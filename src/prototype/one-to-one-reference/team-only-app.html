@@ -2669,6 +2669,7 @@
   <link rel="stylesheet" href="assets/aqua-clear-theme.css?v=calmai-workspace-v2" />
   <link rel="stylesheet" href="assets/workspace-sidebar.css?v=project-layout-v1" />
   <link rel="stylesheet" href="assets/meeting-workspace.css?v=ask-agent-layout-v1" />
+  <link rel="stylesheet" href="assets/today-workbench.css?v=today-workbench-v2" />
 </head>
 <body>
   <section class="edition-gate" id="edition-gate" aria-labelledby="edition-gate-title">
@@ -2823,6 +2824,34 @@
         </section>
 
         <div class="meeting-agent-grid" id="meeting-agent-grid">
+        <div class="home-content-stack">
+        <section class="today-workbench" id="today-workbench" aria-labelledby="today-workbench-title">
+          <header class="today-workbench-head">
+            <div>
+              <span class="today-workbench-eyebrow"><i></i>今日工作台</span>
+              <h1 id="today-workbench-title">下午好，张伟</h1>
+              <p>从我的闪念、会议和待办中，提取今天值得继续推进的内容。</p>
+            </div>
+            <div class="today-workbench-meta"><span>星期二 · 9 月 22 日</span><small>基于我的闪念整理</small></div>
+          </header>
+          <div class="today-workbench-grid">
+            <section class="today-focus-card" aria-labelledby="today-focus-title">
+              <div class="today-card-head"><div><span class="today-card-kicker">今日提炼</span><h2 id="today-focus-title">今天值得推进的 3 件事</h2></div><span class="today-ai-badge">AI 摘要</span></div>
+              <p class="today-focus-intro">最近的闪念已经被整理成可执行的工作线索，打开会议或继续记录即可接着推进。</p>
+              <ul class="today-focus-list"><li><span class="today-focus-index">01</span><span><strong>补齐德国经销商联系人信息</strong><small>来自 2 条闪念 · 关联客户访谈</small></span><button type="button" data-today-action="open-contacts">查看</button></li><li><span class="today-focus-index">02</span><span><strong>确认产品评审 Demo 的演示路径</strong><small>来自昨日会议 · 3 项待确认</small></span><button type="button" data-today-action="open-meeting">查看</button></li><li><span class="today-focus-index">03</span><span><strong>启动储能市场研究的第一轮汇总</strong><small>来自 36 分钟前的闪念 · AI 建议</small><button type="button" data-today-action="ask-agent">交给 Agent</button></span></li></ul>
+              <div class="today-focus-actions"><button type="button" class="today-secondary-action" data-today-action="brief">查看日程简报</button><button type="button" class="today-primary-action" data-today-action="record"><svg class="icon"><use href="#ico-mic"/></svg>快速记录</button></div>
+            </section>
+            <section class="today-agenda-card" aria-labelledby="today-agenda-title">
+              <div class="today-card-head"><div><span class="today-card-kicker">今天的安排</span><h2 id="today-agenda-title">日程与待办</h2></div><button type="button" class="today-text-action" data-today-action="calendar">查看日程</button></div>
+              <div class="today-agenda-block"><span class="today-agenda-label">日程</span><div class="today-calendar-row"><span><b>09:30</b>产品评审</span><span><b>14:00</b>投资人会议</span><span><b>16:30</b>AI 团队周会</span></div></div>
+              <div class="today-agenda-block today-todo-block"><span class="today-agenda-label">待办</span><div class="today-todo-list"><button type="button" class="today-todo-item" data-today-todo="更新行动项"><i></i><span>更新行动项</span><time>9/20</time></button><button type="button" class="today-todo-item" data-today-todo="跟进经销商名单"><i></i><span>跟进经销商名单</span><time>9/21</time></button><button type="button" class="today-todo-item" data-today-todo="确认项目预算"><i></i><span>确认项目预算</span><time>9/22</time></button></div></div>
+            </section>
+          </div>
+          <section class="today-thoughts" aria-labelledby="today-thoughts-title">
+            <div class="today-thoughts-head"><div><span class="today-live-dot"></span><h2 id="today-thoughts-title">实时闪念</h2><small>从我的闪念中提取最近值得关注的内容</small></div><button type="button" class="today-text-action" data-today-action="thoughts">查看全部</button></div>
+            <div class="today-thought-list"><button type="button" class="today-thought-card" data-today-thought="联系人"><span><small>刚刚</small><strong>工作想法</strong></span><p>德国经销商的联系人信息需要补充到项目中。</p></button><button type="button" class="today-thought-card" data-today-thought="会议跟进"><span><small>12 分钟前</small><strong>会议跟进</strong></span><p>下一次产品评审先确认 Demo 的演示路径。</p></button><button type="button" class="today-thought-card" data-today-thought="AI 建议"><span><small>36 分钟前</small><strong>AI 建议</strong></span><p>储能市场研究可以交给 Research Agent 做第一轮汇总。</p></button></div>
+          </section>
+        </section>
         <section class="home-meeting-library" id="recording-card" aria-labelledby="recent-meeting-title">
           <div class="home-meeting-head">
             <div class="meeting-library-copy"><h2 id="recent-meeting-title">我的会议</h2><p id="meeting-view-description">管理录音、转写、纪要和待办</p></div>
@@ -2867,6 +2896,7 @@
             <div class="thought-preview-layout"><aside class="thought-preview-dates" id="thought-preview-dates"><strong>日期</strong></aside><div class="thought-preview-content"><h3 id="thought-preview-date-title">2026-08-28</h3><div class="thought-entry-list"><div class="thought-entry-head"><span>时间</span><span>标题</span><span>内容</span><span>分类</span></div><div id="thought-entry-list"></div></div></div></div>
           </section>
         </section>
+        </div>
 
         <aside class="xiaozhi-rail" id="xiaozhi-rail" aria-labelledby="xiaozhi-title" aria-hidden="true">
           <div class="xiaozhi-panel">
@@ -4053,6 +4083,17 @@
     $("#view-panorama").addEventListener("click", (event) => { if (!event.target.closest("[data-meeting-action], .meeting-select-cell")) openNoteDetail(); });
     $$('[data-meeting]').forEach((row) => row.addEventListener("click", (event) => { if (!event.target.closest("[data-meeting-action], .meeting-select-cell")) openNoteDetail(row.dataset.meeting, row.dataset.meta); }));
     $("#note-detail-back").addEventListener("click", () => showMainView("home", { silent: true }));
+    $$('[data-today-action]').forEach((button) => button.addEventListener("click", () => {
+      const action = button.dataset.todayAction;
+      if (action === "record") return startRecording();
+      if (action === "open-contacts") { showMainView("contacts"); return; }
+      if (action === "open-meeting") { openNoteDetail("百销产品能力与市场匹配调研", "昨天 16:28 · 58 分钟 · 录音卡"); return; }
+      if (action === "ask-agent") { setXiaozhiExpanded(true); return; }
+      if (action === "thoughts") { $("[data-meeting-view='thought']")?.click(); return; }
+      showToast({ brief: "今日简报已整理完成", calendar: "正在打开今日完整日程" }[action] || "已更新今日工作台");
+    }));
+    $$('[data-today-todo]').forEach((button) => button.addEventListener("click", () => { button.classList.toggle("done"); showToast(button.classList.contains("done") ? `已完成：${button.dataset.todayTodo}` : `已恢复：${button.dataset.todayTodo}`); }));
+    $$('[data-today-thought]').forEach((button) => button.addEventListener("click", () => showToast(`已打开「${button.dataset.todayThought}」闪念`)));
     $$('[data-note-detail-item]').forEach((item) => item.addEventListener("click", () => { $$('[data-note-detail-item]').forEach((row) => row.classList.remove("active")); item.classList.add("active"); $("#note-detail-title").textContent = item.dataset.noteDetailItem; $("#note-detail-meta").textContent = `${item.dataset.noteMeta} · 已整理`; }));
     $$('[data-note-tab]').forEach((button) => button.addEventListener("click", () => { $$('[data-note-tab]').forEach((item) => item.classList.toggle("active", item === button)); $$('[data-note-panel]').forEach((panel) => { panel.hidden = panel.dataset.notePanel !== button.dataset.noteTab; }); }));
     const thoughtArchiveData = {
@@ -4146,20 +4187,23 @@
       const enterpriseMode = activeMeetingView === "enterprise";
       const panoramaMode = enterpriseMode && activeEnterpriseAsset === "panorama";
       const teamMeetingMode = enterpriseMode && document.body.dataset.workspace === "team" && !panoramaMode;
-      $("#enterprise-asset-tabs").hidden = !enterpriseMode;
+      const setHidden = (selector, hidden) => { const element = $(selector); if (element) element.hidden = hidden; };
+      setHidden("#enterprise-asset-tabs", !enterpriseMode);
       $$('[data-enterprise-asset]').forEach((item) => {
         const active = item.dataset.enterpriseAsset === activeEnterpriseAsset;
         item.classList.toggle("active", active);
         if (active) item.setAttribute("aria-current", "page"); else item.removeAttribute("aria-current");
       });
-      $("#meeting-toolbar").hidden = thoughtMode || panoramaMode;
-      $("#meeting-toolbar").classList.toggle("team-meeting-mode", teamMeetingMode);
-      $("#team-meeting-filters").hidden = !teamMeetingMode;
-      $("#thought-toolbar").hidden = !thoughtMode;
-      $("#meeting-table-scroll").hidden = thoughtMode || panoramaMode;
-      $("#thought-workspace").hidden = !thoughtMode;
-      $("#business-dashboard").hidden = !panoramaMode;
-      $("#meeting-filter-empty").hidden = true;
+      setHidden("#meeting-toolbar", thoughtMode || panoramaMode);
+      $("#meeting-toolbar")?.classList.toggle("team-meeting-mode", teamMeetingMode);
+      setHidden("#today-workbench", activeMeetingView !== "my");
+      const teamMeetingFilters = $("#team-meeting-filters");
+      if (teamMeetingFilters) teamMeetingFilters.hidden = !teamMeetingMode;
+      setHidden("#thought-toolbar", !thoughtMode);
+      setHidden("#meeting-table-scroll", thoughtMode || panoramaMode);
+      setHidden("#thought-workspace", !thoughtMode);
+      setHidden("#business-dashboard", !panoramaMode);
+      setHidden("#meeting-filter-empty", true);
       if (enterpriseMode) $("#meeting-view-description").textContent = panoramaMode
         ? "查看后端定时生成的企业经营数据文件"
         : (document.body.dataset.workspace === "team" ? "查看团队成员共享的会议内容" : "查看企业成员共享的会议内容");
@@ -4187,10 +4231,14 @@
       $("#meeting-time-column").textContent = "录音时间";
       $("#meeting-search").placeholder = "搜索会议";
       $("#meeting-source-filter").value = "all";
-      $("#team-meeting-source").value = "all";
-      $("#team-meeting-department").value = "all";
-      $("#team-meeting-creator").value = "";
-      $("#team-meeting-date").value = "";
+      const teamMeetingSource = $("#team-meeting-source");
+      const teamMeetingDepartment = $("#team-meeting-department");
+      const teamMeetingCreator = $("#team-meeting-creator");
+      const teamMeetingDate = $("#team-meeting-date");
+      if (teamMeetingSource) teamMeetingSource.value = "all";
+      if (teamMeetingDepartment) teamMeetingDepartment.value = "all";
+      if (teamMeetingCreator) teamMeetingCreator.value = "";
+      if (teamMeetingDate) teamMeetingDate.value = "";
       if (!thoughtMode) { $("#thought-preview").hidden = true; activeThoughtFile = null; }
       setXiaozhiExpanded(false);
       syncEnterpriseAssetView();
