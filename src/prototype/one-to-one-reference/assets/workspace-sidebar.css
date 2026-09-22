@@ -12,7 +12,21 @@ html .sidebar .collapse-btn { display:inline-flex; flex:0 0 32px; }
   html[data-sidebar-collapsed="false"] .sidebar .brand-row { justify-content:space-between; }
   html[data-sidebar-collapsed="false"] .sidebar .nav-label,
   html[data-sidebar-collapsed="false"] .sidebar .user-copy { display:block; }
-  html[data-sidebar-collapsed="false"] .sidebar .history-section { display:flex; }
+  html[data-sidebar-collapsed="false"] .sidebar .history-section {
+    display:flex;
+    flex-direction:column;
+    width:100%;
+    min-width:0;
+  }
+  html[data-sidebar-collapsed="false"] .sidebar .history-section .history-title,
+  html[data-sidebar-collapsed="false"] .sidebar .history-section .history-tabs,
+  html[data-sidebar-collapsed="false"] .sidebar .history-section .history {
+    width:100%;
+    min-width:0;
+  }
+  html[data-sidebar-collapsed="false"] .sidebar .history-section .history-title { white-space:nowrap; }
+  html[data-sidebar-collapsed="false"] .sidebar .history-section .history-tabs { flex:0 0 auto; }
+  html[data-sidebar-collapsed="false"] .sidebar .history-section .history { flex:0 0 auto; overflow:hidden; }
   html[data-sidebar-collapsed="true"] .app { grid-template-columns:76px minmax(0,1fr); }
   html[data-sidebar-collapsed="true"] .sidebar .brand-row { height:100px; flex-basis:100px; flex-direction:column; justify-content:center; gap:8px; padding:12px 0; }
   html[data-sidebar-collapsed="true"] .sidebar .workspace-brand-copy,
@@ -23,6 +37,8 @@ html .sidebar .collapse-btn { display:inline-flex; flex:0 0 32px; }
   html[data-sidebar-collapsed="true"] .sidebar .history-section,
   html[data-sidebar-collapsed="true"] .sidebar .user-copy,
   html[data-sidebar-collapsed="true"] .sidebar .user-card > .icon { display:none !important; }
+  html[data-sidebar-collapsed="true"] .sidebar .workspace-brand { display:flex !important; }
+  html[data-sidebar-collapsed="true"] .sidebar .workspace-brand img { display:block !important; }
   html[data-sidebar-collapsed="true"] .sidebar-quick-nav { padding:0 12px; }
   html[data-sidebar-collapsed="true"] .sidebar-quick-nav > .nav-item,
   html[data-sidebar-collapsed="true"] .sidebar-quick-nav > .team-only-root-entry,
