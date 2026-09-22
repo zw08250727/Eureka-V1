@@ -1,11 +1,10 @@
 <!doctype html>
 <!--
-  v14 轻团队 Agent Workspace：
-  - 团队复用个人账号体系，不增加第三个登录入口；企业登录与企业 Admin 保持不变。
-  - 团队是可自助订阅的轻量共享 Workspace，成员、用量、订阅升级与基础设置在前台管理。
-  - 私人 Session 只有显式发布后才成为团队资产快照；团队 Agent 仅使用共享包与团队知识继续执行。
+  EurekaMind 个人 AI 工作台：
+  - 复用个人账号体系，聚焦会议记录、知识整理、联系人和 AI 工作流。
+  - 页面只展示个人工作台入口，保留本地原型的可回归能力。
   - 本原型使用本地状态模拟创建、支付、邀请、共享与接力，不调用真实支付、邮件和后端接口。
-  - v13 的个人版、企业版、会议、知识库、录音与 AI 能力保持可回归。
+  - 会议、知识库、录音与 AI 能力保持可回归。
 
   v13 继承假设：
   - 左侧底部展示 Project 列表；自动执行与共享接力是项目状态筛选，Session/任务作为项目下的执行过程。
@@ -19,19 +18,15 @@
   - Web 端只提供开始录音；闪念仅展示移动端同步内容，不提供 Web 创建与音频上传入口。
   - 三类内容统一沿用我的会议列表 UI；侧栏不再展示邀请成员卡片。
   - 桌面端引导采用带工作台预览的产品卡，并继续复用现有下载弹窗。
-  - 原型首次进入先选择企业版或个人版；个人版不显示任何企业空间、企业文件、企业会议和共享项目。
+  - 当前版本固定进入个人工作台，不展示版本选择和团队协作入口。
 -->
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>百智 AI 工作台 · v14 轻团队 Agent Workspace</title>
+  <title>EurekaMind · 个人 AI 工作台</title>
   <script>
-    (() => {
-      if (new URLSearchParams(window.location.search).get("workspace") === "team") {
-        document.documentElement.dataset.teamWorkspaceBoot = "1";
-      }
-    })();
+    document.documentElement.dataset.personalOnly = "1";
   </script>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23171717'/%3E%3Cpath d='M10 8h7.5a5 5 0 0 1 0 10H10V8Zm0 10h9a4 4 0 0 1 0 8h-9v-8Z' fill='white'/%3E%3C/svg%3E" />
   <style>
@@ -2075,6 +2070,7 @@
       .home-desktop-guide-actions { justify-content: flex-start; }
     }
     /* v13 · 企业版 / 个人版双模式 */
+    html[data-personal-only="1"] .edition-gate { display: none !important; }
     html[data-team-workspace-boot="1"] .edition-gate { display: none !important; }
     .edition-gate { position: fixed; inset: 0; z-index: 40; display: grid; overflow: auto; padding: 44px 24px; place-items: center; background: radial-gradient(circle at 18% 15%, rgba(85,104,255,.1), transparent 32%), radial-gradient(circle at 84% 80%, rgba(130,58,255,.09), transparent 34%), #f5f7fb; }
     .edition-gate[hidden] { display: none !important; }
@@ -4224,7 +4220,7 @@
       if (ArtifactUI.guard(() => setEdition(edition, { silent }))) return;
       const personal = edition === "personal";
       document.body.dataset.edition = personal ? "personal" : "enterprise";
-      Array.from($("#meeting-source-filter").options).forEach((option) => { if (option.value === "企业共享") { option.hidden = personal; option.disabled = personal; } });
+      if (personal) $("#meeting-source-filter option[value='企业共享']")?.remove();
       const editionGate = $("#edition-gate");
       if (editionGate) editionGate.hidden = true;
       mainViewTitles.home = personal ? "我的 AI 工作台" : "企业AI工作台";
@@ -4261,7 +4257,7 @@
     const previewKnowledgeFile = previewParams.get("previewFile");
     const previewHistoryTab = previewParams.get("history");
     const previewSpaceMenu = previewParams.get("spaceMenu");
-    if (["enterprise", "personal"].includes(previewEdition)) setEdition(previewEdition);
+    if (document.documentElement.dataset.personalOnly === "1" || previewEdition === "personal") setEdition("personal", { silent: true });
     if (["my", "thought", "enterprise"].includes(previewView)) {
       const previewViewButton = $(`[data-meeting-view="${previewView}"]`);
       if (previewViewButton && !previewViewButton.hidden) previewViewButton.click();
@@ -4477,7 +4473,7 @@
       const openUserSettings = () => {
         const settingsBody = `<div class="settings-float">
           <header class="settings-float-toolbar"><div class="settings-float-toolbar-copy"><strong>设置</strong><span>快速调整工作台偏好</span></div><button class="settings-popover-close" type="button" data-settings-close aria-label="关闭设置"><svg class="icon"><use href="#ico-x"/></svg></button></header>
-          <section class="settings-float-section"><div class="settings-float-head"><h4>账户</h4><p>账号与套餐信息</p></div><div class="settings-profile"><span class="settings-avatar">Z</span><span><strong>zw08250727@gmail.com</strong><small>免费版 · 团队版工作台</small></span><button class="settings-logout" type="button" data-settings-action="logout">退出登录</button></div><div class="settings-usage"><div class="settings-usage-top"><div><strong>转写时长</strong><div class="settings-usage-copy">剩余 99999 分钟，共 99999 分钟</div></div><b>0%</b></div><div class="settings-progress"><i></i></div><div class="settings-usage-meta"><span>已使用 0 分钟</span><span>剩余 99999 分钟</span></div></div></section>
+          <section class="settings-float-section"><div class="settings-float-head"><h4>账户</h4><p>账号与套餐信息</p></div><div class="settings-profile"><span class="settings-avatar">Z</span><span><strong>zw08250727@gmail.com</strong><small>免费版 · 个人工作台</small></span><button class="settings-logout" type="button" data-settings-action="logout">退出登录</button></div><div class="settings-usage"><div class="settings-usage-top"><div><strong>转写时长</strong><div class="settings-usage-copy">剩余 99999 分钟，共 99999 分钟</div></div><b>0%</b></div><div class="settings-progress"><i></i></div><div class="settings-usage-meta"><span>已使用 0 分钟</span><span>剩余 99999 分钟</span></div></div></section>
           <section class="settings-float-section"><div class="settings-float-head"><h4>AI 摘要语言</h4><p>设置语音识别与摘要输出语言</p></div><div class="settings-float-row"><div class="settings-row-copy"><strong>语音识别</strong><span>默认语音识别语言</span></div><div class="settings-language-control"><span class="settings-language-count">18</span><select class="settings-language-select" data-settings-language="asr"><option value="en">英语</option><option value="zh-Hans">简体中文</option><option value="zh-Hant">繁体中文</option></select></div></div><div class="settings-float-row"><div class="settings-row-copy"><strong>纪要与翻译</strong><span>纪要输出与翻译目标语言</span></div><div class="settings-language-control"><span class="settings-language-count">156</span><select class="settings-language-select" data-settings-language="notes"><option value="detected">检测语言</option><option value="en">英语</option><option value="zh-Hans">简体中文</option></select></div></div></section>
           <section class="settings-float-section"><div class="settings-float-head"><h4>自动摘要</h4><p>录音与上传文件的默认摘要设置</p></div><div class="settings-float-row"><div class="settings-row-copy"><strong>自动生成摘要</strong><span data-settings-summary-hint>新录音默认使用此摘要设置</span><span class="settings-summary-chip" data-settings-summary-copy>尚未设置默认偏好</span></div><div class="settings-language-control"><button class="settings-configure" type="button" data-settings-action="configure">配置</button><button class="settings-switch" type="button" role="switch" aria-checked="true" data-settings-action="toggle-summary"><i></i></button></div></div><div class="settings-config-panel" data-settings-config hidden><label>摘要语言<select data-settings-summary-language><option value="detected">检测语言</option><option value="en">英语</option><option value="zh-Hans">简体中文</option></select></label><label>详细程度<select data-settings-summary-detail><option>标准</option><option>精简</option><option>详细</option></select></label><button class="settings-save" type="button" data-settings-action="save-summary">保存默认设置</button></div></section>
           <section class="settings-float-section"><div class="settings-float-head"><h4>通用设置</h4><p>查看服务条款与隐私政策</p></div><div class="settings-float-row"><div class="settings-row-copy"><strong>服务条款</strong><span>EurekaMind 账户服务条款</span></div><a class="settings-link" href="https://docs.google.com/document/d/1vvfqgZQDRrdP6dsCJcZFnVmJzjCiojQPqEkJ1gpDXn8/edit?usp=sharing" target="_blank" rel="noreferrer">查看</a></div><div class="settings-float-row"><div class="settings-row-copy"><strong>隐私政策</strong><span>EurekaMind 如何处理用户数据</span></div><a class="settings-link" href="https://docs.google.com/document/d/19zLgiDFfT-ZbY5CSBKqVq6R2zZXUCmNke-k_96XjlKo/edit?usp=sharing" target="_blank" rel="noreferrer">查看</a></div></section>
@@ -4499,10 +4495,41 @@
       };
       window.openUserSettings = openUserSettings;
       document.querySelector("#user-menu")?.addEventListener("click", (event) => { const item = event.target.closest('[data-profile-action="settings"]'); if (!item) return; event.preventDefault(); event.stopImmediatePropagation(); closeUserMenu(); openUserSettings(); }, true);
-      if (new URLSearchParams(window.location.search).get("workspace") === "team") {
-        root.removeAttribute("data-team-workspace-boot");
-      }
+      root.removeAttribute("data-team-workspace-boot");
       document.querySelector("#enterprise-invite-card")?.remove();
+      if (document.documentElement.dataset.personalOnly === "1") {
+        [
+          "#edition-gate",
+          "#enterprise-invite-card",
+          "#invite-modal",
+          "#team-invite-modal",
+          "#team-flow-modal",
+          "#team-confirm-modal",
+          "#team-upgrade-modal",
+          '[data-main-view="team-settings"]',
+          '[data-meeting-view="enterprise"]',
+          "#team-meeting-filters",
+          '[data-view="enterprise"]',
+          ".edition-enterprise-only",
+          '[data-team-shared-history="true"]',
+          ".team-inline-share",
+        ].forEach((selector) => {
+          document.querySelectorAll(selector).forEach((node) => node.remove());
+        });
+        document.querySelectorAll('[data-profile-action="switch-edition"]').forEach((node) => node.remove());
+        document.querySelectorAll(".note-detail-actions button").forEach((node) => {
+          if (/团队|企业|共享/.test(node.textContent || "")) node.remove();
+        });
+        document.querySelectorAll("body *").forEach((node) => {
+          if (node.childElementCount === 0 && node.textContent.includes("团队资料")) node.textContent = node.textContent.replaceAll("团队资料", "个人资料");
+          if (node.childElementCount === 0 && node.textContent.includes("团队工作")) node.textContent = node.textContent.replaceAll("团队工作", "个人工作");
+        });
+        document.querySelector("#user-card")?.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          document.querySelector('[data-profile-action="settings"]')?.click();
+        }, true);
+      }
       const quick = document.querySelector(".sidebar-quick-nav");
       const moveRoot = (node, label) => {
         if (!node || !quick) return;
@@ -4543,7 +4570,7 @@
       });
       const allTab = document.querySelector("#history-tab-all");
       if (allTab) allTab.textContent = "全部任务";
-      const historyNames = ["本周会议决策整理", "研发周报自动整理", "客户访谈高频问题", "团队周报与行动项"];
+      const historyNames = ["本周会议决策整理", "研发周报自动整理", "客户访谈高频问题", "周报与行动项"];
       document.querySelectorAll(".history-text").forEach((el, index) => { if (historyNames[index]) el.textContent = historyNames[index]; });
       const askSource = () => document.querySelector("#xiaozhi-entry") || document.querySelector("#knowledge-xiaozhi-entry") || document.querySelector("#recording-assistant-toggle");
       const openTeamOnlyAskAgent = (contextLabel) => {
@@ -4591,13 +4618,13 @@
           if (viewTitle && pageCrumb.textContent !== viewTitle) pageCrumb.textContent = viewTitle;
           if (visibleView.dataset.mainView === "recycle-bin") {
             const title = document.querySelector("#recycle-title"); if (title && title.textContent !== "回收站") title.textContent = "回收站";
-            const desc = document.querySelector("#recycle-description"); if (desc && /知识库/.test(desc.textContent)) desc.textContent = "删除的团队内容可在 30 天内恢复，30 天后将被永久删除。";
+            const desc = document.querySelector("#recycle-description"); if (desc && /知识库/.test(desc.textContent)) desc.textContent = "删除的内容可在 30 天内恢复，30 天后将被永久删除。";
             const back = document.querySelector("#recycle-back-label"); if (back && back.textContent !== "返回首页") back.textContent = "返回首页";
           }
         }
         const recycleLabel = document.querySelector("#recycle-bin-entry span"); if (recycleLabel && recycleLabel.textContent.includes("知识库")) recycleLabel.textContent = "回收站";
         const knowledgeRoot = document.querySelector("#knowledge-root-link"); if (knowledgeRoot && knowledgeRoot.textContent === "知识库") knowledgeRoot.textContent = "应用数据";
-        const recordingKnowledge = document.querySelector("#recording-assistant-knowledge"); if (recordingKnowledge && recordingKnowledge.textContent.includes("知识库")) recordingKnowledge.textContent = recordingKnowledge.textContent.replace("知识库", "团队资料");
+        const recordingKnowledge = document.querySelector("#recording-assistant-knowledge"); if (recordingKnowledge && recordingKnowledge.textContent.includes("知识库")) recordingKnowledge.textContent = recordingKnowledge.textContent.replace("知识库", "个人资料");
         const sharedGuide = document.querySelector("#history-shared-guide");
         if (sharedGuide) {
           const title = sharedGuide.querySelector("strong"); if (title && title.textContent !== "在工作台查看共享项目") title.textContent = "在工作台查看共享项目";
@@ -4611,7 +4638,7 @@
         document.querySelectorAll(".xiaozhi-context button, .contacts-xiaozhi-entry + .xiaozhi-panel .xiaozhi-context button").forEach((el) => { if (el.textContent.includes("知识库")) el.textContent = el.textContent.replace("知识库", "应用数据"); });
         document.querySelectorAll("[data-contact-action='back-library'], .contacts-breadcrumb button").forEach((el) => { if (el.textContent.trim() === "知识库") el.textContent = "应用数据"; });
         const recordingCopy = document.querySelector("#recording-assistant-messages");
-        if (recordingCopy) recordingCopy.querySelectorAll("p, button").forEach((el) => { el.textContent = el.textContent.replaceAll("知识库", "团队资料"); });
+        if (recordingCopy) recordingCopy.querySelectorAll("p, button").forEach((el) => { el.textContent = el.textContent.replaceAll("知识库", "个人资料").replaceAll("团队资料", "个人资料"); });
       };
       const syncAsk = () => {
         document.querySelectorAll(".apps-breadcrumb button").forEach((el) => { if (el.textContent.trim() === "知识库") el.textContent = "应用数据"; });
@@ -4646,7 +4673,7 @@
       const title = promo.querySelector(".promo-copy strong");
       if (title) title.textContent = "EurekaMind";
       const subtitle = promo.querySelector(".promo-copy span");
-      if (subtitle) subtitle.textContent = "智能记录，团队协作";
+      if (subtitle) subtitle.textContent = "智能记录，轻松协作";
       promo.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopImmediatePropagation();

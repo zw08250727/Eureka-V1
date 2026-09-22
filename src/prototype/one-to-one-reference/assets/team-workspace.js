@@ -1,6 +1,14 @@
 (function () {
   "use strict";
 
+  if (document.documentElement.dataset.personalOnly === "1" || new URLSearchParams(window.location.search).get("personal") === "1") {
+    window.PersonalOnlyMode = true;
+    document.body.dataset.edition = "personal";
+    document.body.dataset.workspace = "personal";
+    document.querySelector("#edition-gate")?.setAttribute("hidden", "true");
+    return;
+  }
+
   const TEAM_STORAGE_KEY = "baizhi-v14-team-workspace";
   const nowISO = () => new Date().toISOString();
   const el = (selector, root) => (root || document).querySelector(selector);
