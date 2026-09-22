@@ -43,6 +43,8 @@ html .sidebar .collapse-btn { display:inline-flex; flex:0 0 32px; }
   html[data-sidebar-collapsed="true"] .sidebar-quick-nav > .nav-item,
   html[data-sidebar-collapsed="true"] .sidebar-quick-nav > .team-only-root-entry,
   html[data-sidebar-collapsed="true"] .sidebar-quick-nav > .team-only-root-entry > .side-sub-item { justify-content:center; padding:0; }
+  html[data-sidebar-collapsed="true"] .sidebar #recycle-bin-entry { justify-content:center; gap:0; padding:0; }
+  html[data-sidebar-collapsed="true"] .sidebar #recycle-bin-entry > span { display:none !important; }
   html[data-sidebar-collapsed="true"] .sidebar .user-card { justify-content:center; padding:8px 0; }
   html[data-sidebar-collapsed="true"] .sidebar .collapse-btn .icon { transform:scaleX(-1); }
 }
