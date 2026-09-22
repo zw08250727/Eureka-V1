@@ -1159,6 +1159,9 @@
     .meeting-date-filter { padding-left: 27px; }
     .meeting-date-filter .date-icon { position: absolute; left: 9px; width: 13px; height: 13px; color: #7d8999; }
     .meeting-date-filter select { padding-left: 3px; }
+    .meeting-date-filter { padding-left: 0; }
+    .meeting-date-filter input { width: 128px; height: 100%; padding: 0 9px 0 11px; outline: 0; border: 0; color: #5c6879; background: transparent; font: 11px var(--font); }
+    .meeting-date-filter input::-webkit-calendar-picker-indicator { opacity: .52; cursor: pointer; }
     .home-meeting-row[hidden] { display: none !important; }
     .meeting-insight-footer { display: grid; width: 100%; min-height: 76px; align-items: center; gap: 10px; padding: 10px 18px; border: 0; border-top: 1px solid #e8edf3; color: #425168; background: linear-gradient(95deg, #f7faff, #f7fbfa); cursor: pointer; text-align: left; grid-template-columns: 34px minmax(0,1fr) auto; }
     .meeting-insight-footer[hidden] { display: none !important; }
@@ -2377,6 +2380,24 @@
     .recycle-actions button[data-recycle-action="permanent"]:hover { color: #c54752; background: #fff0f1; }
     .recycle-empty { display: grid; min-height: 390px; place-items: center; color: #929ba9; font-size: 11px; }
     .recycle-empty[hidden] { display: none !important; }
+    .recording-recycle-toolbar { display: flex; min-height: 76px; align-items: center; justify-content: space-between; gap: 20px; padding: 18px 22px; border-bottom: 1px solid #edf0f4; }
+    .recording-recycle-toolbar[hidden] { display: none !important; }
+    .recording-recycle-toolbar > strong { color: #7d8796; font-size: 12px; font-weight: 500; }
+    .recording-recycle-filters { display: flex; align-items: center; gap: 14px; }
+    .recording-recycle-filters > label { display: flex; height: 34px; align-items: center; gap: 10px; color: #313b4d; font-size: 11px; }
+    .recording-recycle-filters input { height: 34px; outline: 0; border: 1px solid #dfe4ec; border-radius: 9px; color: #5f6d81; background: #fff; font: 11px var(--font); }
+    .recording-recycle-filters input:focus { border-color: rgba(46, 99, 182, .44); box-shadow: 0 0 0 3px rgba(46, 99, 182, .08); }
+    .recording-recycle-filters input[type="date"] { width: 150px; padding: 0 10px; }
+    .recording-recycle-search { position: relative; width: 205px; gap: 0 !important; }
+    .recording-recycle-search .icon { position: absolute; left: 11px; width: 15px; height: 15px; color: #8b96a5; pointer-events: none; }
+    .recording-recycle-search input { width: 100%; padding: 0 10px 0 34px; }
+    .recycle-workspace.recording-recycle .recycle-table-head,
+    .recycle-workspace.recording-recycle .recycle-row { grid-template-columns: minmax(280px, 1.6fr) 110px minmax(120px, .8fr) 150px 150px 100px; }
+    .recycle-workspace.recording-recycle .recycle-table-head { padding-right: 22px; padding-left: 22px; }
+    .recycle-workspace.recording-recycle .recycle-row { min-height: 68px; }
+    .recycle-workspace.recording-recycle .recycle-file strong { font-size: 12px; }
+    .recycle-recording-source { color: #66748a; }
+    .recycle-workspace.recording-recycle .recycle-empty { min-height: 300px; font-size: 12px; }
     @media (max-width: 1120px) {
       body.knowledge-xiaozhi-open .knowledge-workspace:not([hidden]) { width: calc(100% - 40px); margin-right: auto; margin-left: auto; }
       .knowledge-table-head[data-schema], .knowledge-file-row[data-schema] { gap: 10px; grid-template-columns: 30px minmax(220px,1.4fr) 72px 76px 84px 106px 58px; }
@@ -2403,6 +2424,10 @@
       .knowledge-preview-pagination { display: none; }
       .recycle-workspace { width: calc(100% - 24px); margin: 12px auto; }
       .recycle-header { align-items: flex-start; flex-direction: column; }
+      .recording-recycle-toolbar { align-items: flex-start; flex-direction: column; padding: 16px 14px; }
+      .recording-recycle-filters { width: 100%; align-items: stretch; flex-direction: column; gap: 9px; }
+      .recording-recycle-filters > label { justify-content: space-between; }
+      .recording-recycle-filters input[type="date"], .recording-recycle-search { width: 100%; }
       .recycle-table-head { display: none; }
       .recycle-row { grid-template-columns: minmax(0,1fr) auto; padding: 12px 14px; }
       .recycle-row > :not(:first-child):not(:last-child) { display: none; }
@@ -2857,11 +2882,11 @@
             <div class="meeting-library-copy"><h2 id="recent-meeting-title">我的会议</h2><p id="meeting-view-description">管理录音、转写、纪要和待办</p></div>
             <div class="home-meeting-toolbar" id="meeting-toolbar">
               <label class="meeting-search"><svg class="icon"><use href="#ico-search"/></svg><input id="meeting-search" type="search" placeholder="搜索会议" aria-label="搜索会议" /></label>
-              <label class="meeting-source-filter meeting-origin-filter"><span class="sr-only">筛选来源</span><select id="meeting-source-filter" aria-label="筛选内容来源"><option value="all">全部来源</option><option value="网页录音">网页录音</option><option value="录音卡">录音卡</option><option value="移动端同步">移动端同步</option><option value="企业共享">企业共享</option></select><svg class="icon"><use href="#ico-chevron"/></svg></label>
-              <label class="meeting-source-filter meeting-date-filter"><span class="sr-only">筛选录音时间</span><svg class="icon date-icon"><use href="#ico-clock"/></svg><select id="meeting-date-filter" aria-label="筛选录音时间"><option value="all">全部时间</option><option value="today">今天</option><option value="7">近 7 天</option><option value="30">近 30 天</option></select><svg class="icon"><use href="#ico-chevron"/></svg></label>
+              <label class="meeting-source-filter meeting-origin-filter"><span class="sr-only">筛选来源</span><select id="meeting-source-filter" aria-label="筛选内容来源"><option value="all">全部来源</option><option value="网页录音">网页录音</option><option value="合并录音">合并录音</option><option value="M1">M1</option><option value="W1">W1</option><option value="W2">W2</option><option value="W-PEN">W-PEN</option></select><svg class="icon"><use href="#ico-chevron"/></svg></label>
+              <label class="meeting-source-filter meeting-date-filter"><span class="sr-only">筛选录音时间</span><input id="meeting-date-filter" type="date" aria-label="选择录音日期" placeholder="请选择日期" /></label>
               <button class="recording-recycle-entry" id="recording-recycle-entry" type="button"><svg class="icon"><use href="#ico-trash"/></svg><span>录音回收站</span></button>
               <div class="team-meeting-filter-group" id="team-meeting-filters" hidden>
-                <label class="team-meeting-filter"><span>来源</span><select id="team-meeting-source" aria-label="团队会议来源"><option value="all">全部来源</option><option value="企业共享">企业共享</option><option value="网页录音">网页录音</option><option value="录音卡">录音卡</option><option value="移动端同步">移动端同步</option></select><svg class="icon"><use href="#ico-chevron"/></svg></label>
+              <label class="team-meeting-filter"><span>来源</span><select id="team-meeting-source" aria-label="团队会议来源"><option value="all">全部来源</option><option value="企业共享">企业共享</option><option value="网页录音">网页录音</option><option value="合并录音">合并录音</option><option value="M1">M1</option><option value="W1">W1</option><option value="W2">W2</option><option value="W-PEN">W-PEN</option></select><svg class="icon"><use href="#ico-chevron"/></svg></label>
                 <label class="team-meeting-filter"><span>部门</span><select id="team-meeting-department" aria-label="团队会议部门"><option value="all">全部部门</option><option value="华东二部">华东二部</option><option value="华北四部">华北四部</option><option value="销售管理部">销售管理部</option><option value="研发部">研发部</option></select><svg class="icon"><use href="#ico-chevron"/></svg></label>
                 <label class="team-meeting-filter team-meeting-creator-filter"><span>创建人</span><input id="team-meeting-creator" type="search" aria-label="搜索创建人" placeholder="搜索创建人" /></label>
                 <label class="team-meeting-filter team-meeting-date-filter"><span>录音时间</span><input id="team-meeting-date" type="date" aria-label="选择录音日期" /></label>
@@ -2873,10 +2898,10 @@
           <div class="meeting-table-scroll" id="meeting-table-scroll"><div class="home-meeting-table-head"><span class="meeting-select-cell"><input id="meeting-select-all" type="checkbox" aria-label="选择全部会议" /></span><span id="meeting-name-column">文件名</span><span>文件大小</span><span id="meeting-creator-column">创建人</span><span id="meeting-source-column">文件来源</span><span>标签</span><span id="meeting-duration-column">录音时长</span><span id="meeting-status-column">文件状态</span><span id="meeting-time-column">录音时间</span><span>更新时间</span><span>操作</span></div>
           <div class="home-meeting-table" id="meeting-list">
             <button class="meeting-row home-meeting-row" id="view-panorama" data-view="my" data-date="today" data-source="网页录音"><span class="home-meeting-title"><i><svg class="icon"><use href="#ico-mic"/></svg></i><span><strong>三季度产品复盘会议</strong><small>6 位参与者 · 8 项行动项</small></span></span><span class="home-meeting-size">48.2 MB</span><span>网页录音</span><span class="home-meeting-tag">产品复盘</span><span>47 分钟</span><span class="home-meeting-status ready"><i></i>已总结</span><span class="home-meeting-time">2026-09-02 09:42</span><span class="home-meeting-updated">2026-09-02 10:36</span><em>查看<svg class="icon"><use href="#ico-chevron"/></svg></em></button>
-            <button class="meeting-row home-meeting-row" data-view="my" data-date="7" data-source="录音卡" data-meeting="百销产品能力与市场匹配调研" data-meta="昨天 · 58 分钟 · 5 位参与者"><span class="home-meeting-title"><i><svg class="icon"><use href="#ico-mic"/></svg></i><span><strong>百销产品能力与市场匹配调研</strong><small>5 位参与者 · 3 项关键结论</small></span></span><span class="home-meeting-size">56.8 MB</span><span>录音卡</span><span class="home-meeting-tag">市场调研</span><span>58 分钟</span><span class="home-meeting-status ready"><i></i>已总结</span><span class="home-meeting-time">2026-09-01 16:28</span><span class="home-meeting-updated">2026-09-01 18:05</span><em>查看<svg class="icon"><use href="#ico-chevron"/></svg></em></button>
-            <button class="meeting-row home-meeting-row" data-view="my" data-date="7" data-source="网页录音" data-meeting="百销产品试用开通与标准化讨论" data-meta="8月25日 · 36 分钟 · 7 位参与者"><span class="home-meeting-title"><i><svg class="icon"><use href="#ico-mic"/></svg></i><span><strong>百销产品试用开通与标准化讨论</strong><small>7 位参与者 · 纪要已生成</small></span></span><span class="home-meeting-size">35.4 MB</span><span>网页录音</span><span class="home-meeting-tag">产品讨论</span><span>36 分钟</span><span class="home-meeting-status ready"><i></i>已总结</span><span class="home-meeting-time">2026-08-25 14:06</span><span class="home-meeting-updated">2026-08-25 15:22</span><em>查看<svg class="icon"><use href="#ico-chevron"/></svg></em></button>
-            <button class="meeting-row home-meeting-row" data-view="my" data-date="30" data-source="录音卡" data-meeting="智能工作台工具对接评估" data-meta="8月22日 · 42 分钟 · 4 位参与者"><span class="home-meeting-title"><i><svg class="icon"><use href="#ico-mic"/></svg></i><span><strong>智能工作台工具对接评估</strong><small>4 位参与者 · 2 项待确认</small></span></span><span class="home-meeting-size">41.7 MB</span><span>录音卡</span><span class="home-meeting-tag">技术评估</span><span>42 分钟</span><span class="home-meeting-status ready"><i></i>已总结</span><span class="home-meeting-time">2026-08-22 10:31</span><span class="home-meeting-updated">2026-08-22 12:08</span><em>查看<svg class="icon"><use href="#ico-chevron"/></svg></em></button>
-            <button class="meeting-row home-meeting-row" data-view="my" data-date="30" data-source="网页录音" data-meeting="客户成功服务流程访谈" data-meta="8月20日 · 31 分钟 · 3 位参与者"><span class="home-meeting-title"><i><svg class="icon"><use href="#ico-mic"/></svg></i><span><strong>客户成功服务流程访谈</strong><small>3 位参与者 · 正在生成纪要</small></span></span><span class="home-meeting-size">30.5 MB</span><span>网页录音</span><span class="home-meeting-tag">客户访谈</span><span>31 分钟</span><span class="home-meeting-status processing"><i></i>处理中</span><span class="home-meeting-time">2026-08-20 15:12</span><span class="home-meeting-updated">2026-08-20 15:18</span><em>处理<svg class="icon"><use href="#ico-chevron"/></svg></em></button>
+            <button class="meeting-row home-meeting-row" data-view="my" data-date="7" data-source="合并录音" data-meeting="百销产品能力与市场匹配调研" data-meta="昨天 · 58 分钟 · 5 位参与者"><span class="home-meeting-title"><i><svg class="icon"><use href="#ico-mic"/></svg></i><span><strong>百销产品能力与市场匹配调研</strong><small>5 位参与者 · 3 项关键结论</small></span></span><span class="home-meeting-size">56.8 MB</span><span>合并录音</span><span class="home-meeting-tag">市场调研</span><span>58 分钟</span><span class="home-meeting-status ready"><i></i>已总结</span><span class="home-meeting-time">2026-09-01 16:28</span><span class="home-meeting-updated">2026-09-01 18:05</span><em>查看<svg class="icon"><use href="#ico-chevron"/></svg></em></button>
+            <button class="meeting-row home-meeting-row" data-view="my" data-date="7" data-source="M1" data-meeting="百销产品试用开通与标准化讨论" data-meta="8月25日 · 36 分钟 · 7 位参与者"><span class="home-meeting-title"><i><svg class="icon"><use href="#ico-mic"/></svg></i><span><strong>百销产品试用开通与标准化讨论</strong><small>7 位参与者 · 纪要已生成</small></span></span><span class="home-meeting-size">35.4 MB</span><span>M1</span><span class="home-meeting-tag">产品讨论</span><span>36 分钟</span><span class="home-meeting-status ready"><i></i>已总结</span><span class="home-meeting-time">2026-08-25 14:06</span><span class="home-meeting-updated">2026-08-25 15:22</span><em>查看<svg class="icon"><use href="#ico-chevron"/></svg></em></button>
+            <button class="meeting-row home-meeting-row" data-view="my" data-date="30" data-source="W1" data-meeting="智能工作台工具对接评估" data-meta="8月22日 · 42 分钟 · 4 位参与者"><span class="home-meeting-title"><i><svg class="icon"><use href="#ico-mic"/></svg></i><span><strong>智能工作台工具对接评估</strong><small>4 位参与者 · 2 项待确认</small></span></span><span class="home-meeting-size">41.7 MB</span><span>W1</span><span class="home-meeting-tag">技术评估</span><span>42 分钟</span><span class="home-meeting-status ready"><i></i>已总结</span><span class="home-meeting-time">2026-08-22 10:31</span><span class="home-meeting-updated">2026-08-22 12:08</span><em>查看<svg class="icon"><use href="#ico-chevron"/></svg></em></button>
+            <button class="meeting-row home-meeting-row" data-view="my" data-date="30" data-source="W-PEN" data-meeting="客户成功服务流程访谈" data-meta="8月20日 · 31 分钟 · 3 位参与者"><span class="home-meeting-title"><i><svg class="icon"><use href="#ico-mic"/></svg></i><span><strong>客户成功服务流程访谈</strong><small>3 位参与者 · 正在生成纪要</small></span></span><span class="home-meeting-size">30.5 MB</span><span>W-PEN</span><span class="home-meeting-tag">客户访谈</span><span>31 分钟</span><span class="home-meeting-status processing"><i></i>处理中</span><span class="home-meeting-time">2026-08-20 15:12</span><span class="home-meeting-updated">2026-08-20 15:18</span><em>处理<svg class="icon"><use href="#ico-chevron"/></svg></em></button>
             <button class="meeting-row home-meeting-row" hidden data-view="enterprise" data-date="today" data-source="企业共享" data-meeting="产品复盘行动项确认会" data-meta="今天 · 52 分钟 · 林晓共享"><span class="home-meeting-title"><i><svg class="icon"><use href="#ico-users"/></svg></i><span><strong>产品复盘行动项确认会</strong><small>林晓共享 · 3 项行动项待确认</small></span></span><span class="home-meeting-size">51.1 MB</span><span>企业共享</span><span class="home-meeting-tag">行动确认</span><span>52 分钟</span><span class="home-meeting-status processing"><i></i>待确认</span><span class="home-meeting-time">2026-09-02 10:18</span><span class="home-meeting-updated">2026-09-02 11:25</span><em>处理<svg class="icon"><use href="#ico-chevron"/></svg></em></button>
             <button class="meeting-row home-meeting-row" hidden data-view="enterprise" data-date="7" data-source="企业共享" data-meeting="客户需求复盘会" data-meta="昨天 · 41 分钟 · 王宁共享"><span class="home-meeting-title"><i><svg class="icon"><use href="#ico-users"/></svg></i><span><strong>客户需求复盘会</strong><small>王宁共享 · 等待补充业务背景</small></span></span><span class="home-meeting-size">40.3 MB</span><span>企业共享</span><span class="home-meeting-tag">需求复盘</span><span>41 分钟</span><span class="home-meeting-status processing"><i></i>待补充</span><span class="home-meeting-time">2026-09-01 17:36</span><span class="home-meeting-updated">2026-09-01 18:10</span><em>处理<svg class="icon"><use href="#ico-chevron"/></svg></em></button>
             <button class="meeting-row home-meeting-row" hidden data-view="enterprise" data-date="7" data-source="企业共享" data-meeting="区域销售周会" data-meta="8月28日 · 63 分钟 · 销售团队共享"><span class="home-meeting-title"><i><svg class="icon"><use href="#ico-users"/></svg></i><span><strong>区域销售周会</strong><small>销售团队共享 · 5 项重点机会</small></span></span><span class="home-meeting-size">61.9 MB</span><span>企业共享</span><span class="home-meeting-tag">销售周会</span><span>63 分钟</span><span class="home-meeting-status ready"><i></i>已总结</span><span class="home-meeting-time">2026-08-28 16:20</span><span class="home-meeting-updated">2026-08-28 18:02</span><em>查看<svg class="icon"><use href="#ico-chevron"/></svg></em></button>
@@ -2976,8 +3001,9 @@
 
     <section class="recycle-workspace" data-main-view="recycle-bin" hidden aria-label="回收站">
       <header class="recycle-header"><div class="recycle-heading"><span class="recycle-heading-mark"><svg class="icon"><use href="#ico-trash"/></svg></span><div><h1 id="recycle-title">知识库回收站</h1><p id="recycle-description">移入知识库回收站的文件可在 30 天内恢复，30 天后将被永久删除。</p></div></div><button class="recycle-back" id="recycle-back" type="button"><svg class="icon"><use href="#ico-chevron"/></svg><span id="recycle-back-label">返回知识库</span></button></header>
+      <div class="recording-recycle-toolbar" id="recording-recycle-toolbar" hidden><strong id="recording-recycle-summary">共 0 项，30 天后自动删除</strong><div class="recording-recycle-filters"><label><span>录音时间</span><input id="recording-recycle-date" type="date" aria-label="筛选回收站录音日期" placeholder="请选择日期" /></label><label class="recording-recycle-search"><svg class="icon"><use href="#ico-search"/></svg><input id="recording-recycle-search" type="search" placeholder="搜索录音" aria-label="搜索录音" /></label></div></div>
       <nav class="recycle-tabs" aria-label="回收站空间"><button class="recycle-tab active" type="button" data-recycle-space="personal" aria-current="page">个人空间</button><button class="recycle-tab edition-enterprise-only" type="button" data-recycle-space="enterprise">企业空间</button></nav>
-      <div class="recycle-table-head"><span>文件名</span><span>类型</span><span>原位置</span><span>文件大小</span><span>删除时间</span><span>剩余天数</span><span>操作</span></div>
+      <div class="recycle-table-head" id="recycle-table-head"><span>文件名</span><span>类型</span><span>原位置</span><span>文件大小</span><span>删除时间</span><span>剩余天数</span><span>操作</span></div>
       <div id="recycle-list"></div>
       <div class="recycle-empty" id="recycle-empty">回收站暂无内容</div>
     </section>
@@ -3112,13 +3138,7 @@
       drawer.classList.remove("quick-drawer");
       drawer.setAttribute("aria-hidden", "true");
       $$('[aria-controls="drawer"]').forEach((control) => control.setAttribute("aria-expanded", "false"));
-      $("#record-permission-modal").classList.remove("show");
-      $("#capability-preview-modal").classList.remove("show");
-      $("#connector-config-modal").classList.remove("show");
-      $("#invite-modal").classList.remove("show");
-      $("#download-modal").classList.remove("show");
-      $("#delete-confirm-modal").classList.remove("show");
-      $("#permanent-delete-modal").classList.remove("show");
+      ["#record-permission-modal", "#capability-preview-modal", "#connector-config-modal", "#invite-modal", "#download-modal", "#delete-confirm-modal", "#permanent-delete-modal"].forEach((selector) => $(selector)?.classList.remove("show"));
     };
     const openModal = (selector) => {
       $(selector).classList.add("show");
@@ -3354,6 +3374,8 @@
     let activeRecycleRepository = "knowledge";
     let pendingDelete = null;
     let pendingPermanentDeleteId = null;
+    let recordingRecycleSearch = "";
+    let recordingRecycleDate = "";
     const enterpriseKnowledgeFolders = new Set(["企业文件", "百智产品迭代", "百智PC版", "百智智能体", "客户项目", "重点客户", "交付文档", "市场资料"]);
     const knowledgeSpaceForFolder = (folder) => folder.startsWith("artifacts:enterprise") || enterpriseKnowledgeFolders.has(folder) ? "enterprise" : "personal";
     const renderStorageSummary = () => {
@@ -3371,13 +3393,34 @@
     const renderRecycleBin = () => {
       const edition = document.body.dataset.edition === "personal" ? "personal" : "enterprise";
       if (edition === "personal") activeRecycleSpace = "personal";
+      const recordingRepository = activeRecycleRepository === "recording";
+      const recycleWorkspace = $(".recycle-workspace");
+      recycleWorkspace?.classList.toggle("recording-recycle", recordingRepository);
+      $("#recording-recycle-toolbar").hidden = !recordingRepository;
       $$('[data-recycle-space]').forEach((button) => {
         const active = button.dataset.recycleSpace === activeRecycleSpace;
         button.classList.toggle("active", active);
         if (active) button.setAttribute("aria-current", "page"); else button.removeAttribute("aria-current");
       });
-      const items = assetStore.getRecycleItems({ edition, space: activeRecycleSpace, repository: activeRecycleRepository });
-      $("#recycle-list").innerHTML = items.map((item) => `<div class="recycle-row" data-recycle-id="${knowledgeEscape(item.recycleId)}"><span class="recycle-file"><span class="recycle-file-mark"><svg class="icon"><use href="#${item.type === "meeting" ? "ico-mic" : "ico-file"}"/></svg></span><strong>${knowledgeEscape(item.name)}</strong></span><span>${item.type === "meeting" ? "录音文件" : knowledgeEscape(item.item.type || "知识文件")}</span><span>${knowledgeEscape(item.originalLocation)}</span><span>${knowledgeEscape(item.size)}</span><span>${knowledgeEscape(formatDeletedAt(item.deletedAt))}</span><span class="recycle-expiry">${item.expiresInDays} 天</span><span class="recycle-actions"><button type="button" data-recycle-action="restore">恢复</button><button type="button" data-recycle-action="permanent">彻底删除</button></span></div>`).join("");
+      let items = assetStore.getRecycleItems({ edition, space: activeRecycleSpace, repository: activeRecycleRepository });
+      if (recordingRepository) {
+        const keyword = recordingRecycleSearch.toLowerCase();
+        items = items.filter((item) => {
+          const source = item.item.source || "网页录音";
+          const recordingAt = item.item.recordingAt || item.item.updated || "";
+          return (!keyword || `${item.name} ${source}`.toLowerCase().includes(keyword)) && (!recordingRecycleDate || recordingAt.startsWith(recordingRecycleDate));
+        });
+        $("#recording-recycle-summary").textContent = `共 ${items.length} 项，30 天后自动删除`;
+        $("#recycle-table-head").innerHTML = "<span>文件名</span><span>文件大小</span><span>文件来源</span><span>录音时间</span><span>删除时间</span><span>操作</span>";
+        $("#recycle-list").innerHTML = items.map((item) => {
+          const source = item.item.source || "网页录音";
+          const recordingAt = item.item.recordingAt || item.item.updated || "-";
+          return `<div class="recycle-row" data-recycle-id="${knowledgeEscape(item.recycleId)}"><span class="recycle-file"><span class="recycle-file-mark"><svg class="icon"><use href="#ico-mic"/></svg></span><strong>${knowledgeEscape(item.name)}</strong></span><span>${knowledgeEscape(item.size)}</span><span class="recycle-recording-source">${knowledgeEscape(source)}</span><span>${knowledgeEscape(recordingAt || "-")}</span><span>${knowledgeEscape(formatDeletedAt(item.deletedAt))}</span><span class="recycle-actions"><button type="button" data-recycle-action="restore">恢复</button><button type="button" data-recycle-action="permanent">彻底删除</button></span></div>`;
+        }).join("");
+      } else {
+        $("#recycle-table-head").innerHTML = "<span>文件名</span><span>类型</span><span>原位置</span><span>文件大小</span><span>删除时间</span><span>剩余天数</span><span>操作</span>";
+        $("#recycle-list").innerHTML = items.map((item) => `<div class="recycle-row" data-recycle-id="${knowledgeEscape(item.recycleId)}"><span class="recycle-file"><span class="recycle-file-mark"><svg class="icon"><use href="#${item.type === "meeting" ? "ico-mic" : "ico-file"}"/></svg></span><strong>${knowledgeEscape(item.name)}</strong></span><span>${item.type === "meeting" ? "录音文件" : knowledgeEscape(item.item.type || "知识文件")}</span><span>${knowledgeEscape(item.originalLocation)}</span><span>${knowledgeEscape(item.size)}</span><span>${knowledgeEscape(formatDeletedAt(item.deletedAt))}</span><span class="recycle-expiry">${item.expiresInDays} 天</span><span class="recycle-actions"><button type="button" data-recycle-action="restore">恢复</button><button type="button" data-recycle-action="permanent">彻底删除</button></span></div>`).join("");
+      }
       $("#recycle-empty").hidden = items.length > 0;
     };
     const openDeleteConfirm = ({ title, description, onConfirm }) => {
@@ -3593,6 +3636,12 @@
       if (ArtifactUI.guard(() => openRecycleBin(repository))) return;
       activeRecycleRepository = repository === "recording" ? "recording" : "knowledge";
       const recordingRepository = activeRecycleRepository === "recording";
+      if (recordingRepository) {
+        recordingRecycleSearch = "";
+        recordingRecycleDate = "";
+        $("#recording-recycle-search").value = "";
+        $("#recording-recycle-date").value = "";
+      }
       $("#recycle-title").textContent = recordingRepository ? "录音回收站" : "知识库回收站";
       $("#recycle-description").textContent = recordingRepository ? "删除的录音及其转写、AI 总结可在 30 天内恢复，30 天后将被永久删除。" : "移入知识库回收站的文件可在 30 天内恢复，30 天后将被永久删除。";
       $("#recycle-back-label").textContent = recordingRepository ? "返回录音列表" : "返回知识库";
@@ -3602,6 +3651,8 @@
     };
     $("#recycle-bin-entry").addEventListener("click", () => openRecycleBin("knowledge"));
     $("#recording-recycle-entry").addEventListener("click", () => openRecycleBin("recording"));
+    $("#recording-recycle-search").addEventListener("input", (event) => { recordingRecycleSearch = event.target.value.trim(); renderRecycleBin(); });
+    $("#recording-recycle-date").addEventListener("change", (event) => { recordingRecycleDate = event.target.value; renderRecycleBin(); });
     $("#recycle-back").addEventListener("click", () => { if (activeRecycleRepository === "recording") showMainView("home", { silent: true }); else openKnowledgeFolder(activeKnowledgeFolder); });
     $$('[data-recycle-space]').forEach((button) => button.addEventListener("click", () => { activeRecycleSpace = button.dataset.recycleSpace; renderRecycleBin(); }));
     $("#recycle-list").addEventListener("click", (event) => {
@@ -4060,10 +4111,12 @@
       const row = action.closest(".home-meeting-row");
       const title = $(".home-meeting-title strong", row)?.textContent.trim() || "录音文件";
       const size = $(".home-meeting-size", row)?.textContent.trim() || "-";
+      const source = row?.dataset.source || row?.children[2]?.textContent.trim() || "网页录音";
+      const recordingAt = $(".home-meeting-time", row)?.textContent.trim() || row?.dataset.recordingDate || "";
       const enterprise = row.dataset.view === "enterprise";
       openDeleteConfirm({ title: "确认删除录音文件？", description: "删除后文件移入回收站，30 天内可恢复，超期永久删除；相关转写和 AI 总结一并移除。", onConfirm: () => {
         const id = row.dataset.meetingId;
-        if (!assetStore.getMeetings().some((item) => item.id === id)) assetStore.addMeeting({ id, name: title, size, space: enterprise ? "enterprise" : "personal", folder: enterprise ? "企业会议" : "我的会议" });
+        if (!assetStore.getMeetings().some((item) => item.id === id)) assetStore.addMeeting({ id, name: title, size, source, recordingAt, space: enterprise ? "enterprise" : "personal", folder: enterprise ? "企业会议" : "我的会议" });
         const nextSibling = row.nextElementSibling;
         meetingRowsById.set(id, { row, parent: row.parentElement, nextSibling });
         assetStore.deleteMeeting(id);
@@ -4176,7 +4229,7 @@
         const matchesKeyword = !keyword || (teamMeetingMode ? row.dataset.meetingCreator.toLowerCase().includes(keyword) : row.textContent.toLowerCase().includes(keyword));
         const matchesSource = source === "all" || row.dataset.source === source;
         const matchesDepartment = department === "all" || row.dataset.meetingDepartment === department;
-        const matchesDate = teamMeetingMode ? (!date || row.dataset.recordingDate === date) : (date === "all" || (date === "today" && row.dataset.date === "today") || (date === "7" && ["today", "7"].includes(row.dataset.date)) || date === "30");
+        const matchesDate = !date || row.dataset.recordingDate === date;
         row.hidden = !(matchesView && matchesKeyword && matchesSource && matchesDepartment && matchesDate);
         if (!row.hidden) visibleCount += 1;
       });
@@ -4231,6 +4284,7 @@
       $("#meeting-time-column").textContent = "录音时间";
       $("#meeting-search").placeholder = "搜索会议";
       $("#meeting-source-filter").value = "all";
+      $("#meeting-date-filter").value = "";
       const teamMeetingSource = $("#team-meeting-source");
       const teamMeetingDepartment = $("#team-meeting-department");
       const teamMeetingCreator = $("#team-meeting-creator");
@@ -4667,9 +4721,10 @@
           const viewTitle = visibleView.dataset.mainView === "apps" ? "应用数据" : visibleView.dataset.mainView === "contacts" ? "联系人" : visibleView.dataset.mainView === "recycle-bin" ? "回收站" : visibleView.dataset.mainView === "note-detail" ? "语音内容" : visibleView.dataset.mainView === "recording" ? "开始录音" : "";
           if (viewTitle && pageCrumb.textContent !== viewTitle) pageCrumb.textContent = viewTitle;
           if (visibleView.dataset.mainView === "recycle-bin") {
-            const title = document.querySelector("#recycle-title"); if (title && title.textContent !== "回收站") title.textContent = "回收站";
-            const desc = document.querySelector("#recycle-description"); if (desc && /知识库/.test(desc.textContent)) desc.textContent = "删除的内容可在 30 天内恢复，30 天后将被永久删除。";
-            const back = document.querySelector("#recycle-back-label"); if (back && back.textContent !== "返回首页") back.textContent = "返回首页";
+            const recordingRecycle = activeRecycleRepository === "recording";
+            const title = document.querySelector("#recycle-title"); if (title && title.textContent !== (recordingRecycle ? "录音回收站" : "回收站")) title.textContent = recordingRecycle ? "录音回收站" : "回收站";
+            const desc = document.querySelector("#recycle-description"); if (desc && (recordingRecycle ? !/录音/.test(desc.textContent) : /知识库/.test(desc.textContent))) desc.textContent = recordingRecycle ? "删除的录音可在 30 天内恢复，30 天后将被永久删除。" : "删除的内容可在 30 天内恢复，30 天后将被永久删除。";
+            const back = document.querySelector("#recycle-back-label"); if (back && back.textContent !== (recordingRecycle ? "返回录音列表" : "返回首页")) back.textContent = recordingRecycle ? "返回录音列表" : "返回首页";
           }
         }
         const recycleLabel = document.querySelector("#recycle-bin-entry span"); if (recycleLabel && recycleLabel.textContent.includes("知识库")) recycleLabel.textContent = "回收站";
