@@ -1,0 +1,32 @@
+/* Brand image and wordmark structure from workspace.eurekamind.ai/notes. */
+html .sidebar .brand-row { height:78px; flex:0 0 78px; padding:16px 18px; gap:12px; }
+.workspace-brand { display:flex; min-width:0; align-items:center; gap:12px; }
+.workspace-brand img { display:block; width:34px; height:34px; flex:none; border-radius:9px; object-fit:contain; }
+.workspace-brand-copy { display:grid; min-width:0; gap:4px; white-space:nowrap; }
+.workspace-brand-copy strong { color:#1f2328; font-size:14px; line-height:1.1; font-weight:800; }
+.workspace-brand-copy span { color:#7a828c; font-size:12px; line-height:1.1; }
+html .sidebar .collapse-btn { display:inline-flex; flex:0 0 32px; }
+.collapse-btn:focus-visible { outline:2px solid #165dff; outline-offset:2px; }
+@media (min-width:761px) {
+  html[data-sidebar-collapsed="false"] .app { grid-template-columns:272px minmax(0,1fr); }
+  html[data-sidebar-collapsed="false"] .sidebar .brand-row { justify-content:space-between; }
+  html[data-sidebar-collapsed="false"] .sidebar .nav-label,
+  html[data-sidebar-collapsed="false"] .sidebar .user-copy { display:block; }
+  html[data-sidebar-collapsed="false"] .sidebar .history-section { display:flex; }
+  html[data-sidebar-collapsed="true"] .app { grid-template-columns:76px minmax(0,1fr); }
+  html[data-sidebar-collapsed="true"] .sidebar .brand-row { height:100px; flex-basis:100px; flex-direction:column; justify-content:center; gap:8px; padding:12px 0; }
+  html[data-sidebar-collapsed="true"] .sidebar .workspace-brand-copy,
+  html[data-sidebar-collapsed="true"] .sidebar .nav-label,
+  html[data-sidebar-collapsed="true"] .sidebar .tree-folder-name,
+  html[data-sidebar-collapsed="true"] .sidebar .tree-count,
+  html[data-sidebar-collapsed="true"] .sidebar .side-groups,
+  html[data-sidebar-collapsed="true"] .sidebar .history-section,
+  html[data-sidebar-collapsed="true"] .sidebar .user-copy,
+  html[data-sidebar-collapsed="true"] .sidebar .user-card > .icon { display:none !important; }
+  html[data-sidebar-collapsed="true"] .sidebar-quick-nav { padding:0 12px; }
+  html[data-sidebar-collapsed="true"] .sidebar-quick-nav > .nav-item,
+  html[data-sidebar-collapsed="true"] .sidebar-quick-nav > .team-only-root-entry,
+  html[data-sidebar-collapsed="true"] .sidebar-quick-nav > .team-only-root-entry > .side-sub-item { justify-content:center; padding:0; }
+  html[data-sidebar-collapsed="true"] .sidebar .user-card { justify-content:center; padding:8px 0; }
+  html[data-sidebar-collapsed="true"] .sidebar .collapse-btn .icon { transform:scaleX(-1); }
+}
