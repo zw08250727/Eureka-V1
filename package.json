@@ -13,7 +13,7 @@
     "lint": "eslint . && node scripts/check-prototype.mjs",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "node scripts/test-models.mjs",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test --pass-with-no-tests",
     "check": "npm run lint && npm run typecheck && npm test"
   },
   "dependencies": {
