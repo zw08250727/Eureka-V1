@@ -1,0 +1,181 @@
+/* Responsive meeting workspace: the Ask Agent panel participates in the layout,
+   while the meeting list keeps every business field readable through horizontal scroll. */
+:root {
+  --ask-agent-width: clamp(320px, 30vw, 384px);
+  --meeting-table-min-width: 1320px;
+}
+
+.meeting-agent-grid,
+.meeting-agent-grid.agent-open {
+  display: grid;
+  min-width: 0;
+  align-items: stretch;
+  gap: 20px;
+  grid-template-columns: minmax(0, 1fr) 0;
+  transition: grid-template-columns 220ms ease, gap 220ms ease;
+}
+
+.meeting-agent-grid.agent-open {
+  grid-template-columns: minmax(0, 1fr) minmax(320px, var(--ask-agent-width));
+}
+
+.meeting-agent-grid .home-meeting-library {
+  min-width: 0;
+}
+
+.xiaozhi-rail,
+.meeting-agent-grid.agent-open .xiaozhi-rail {
+  position: relative !important;
+  inset: auto !important;
+  display: block !important;
+  width: auto !important;
+  max-width: 100%;
+  min-width: 0;
+  min-height: clamp(420px, calc(100vh - 210px), 720px);
+  height: auto !important;
+  overflow: hidden;
+  border: 1px solid #dce5ef;
+  border-radius: 14px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(12px);
+  pointer-events: none;
+  transition: opacity 160ms ease, transform 220ms ease, visibility 160ms ease;
+}
+
+.meeting-agent-grid.agent-open .xiaozhi-rail {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  pointer-events: auto;
+}
+
+.xiaozhi-panel,
+.meeting-agent-grid.agent-open .xiaozhi-panel {
+  display: flex !important;
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  opacity: 1;
+}
+
+body.xiaozhi-open .main-inner[data-main-view="home"] {
+  width: min(1180px, calc(100% - 48px));
+  margin-right: auto;
+  margin-left: auto;
+}
+
+body.xiaozhi-open .home-desktop-guide {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  pointer-events: none;
+}
+
+/* The header and rows share one explicit schema, including the select and action columns. */
+.meeting-table-scroll {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.meeting-table-scroll .home-meeting-table-head,
+.meeting-table-scroll .home-meeting-row,
+.meeting-agent-grid.agent-open .meeting-table-scroll .home-meeting-table-head,
+.meeting-agent-grid.agent-open .meeting-table-scroll .home-meeting-row {
+  min-width: var(--meeting-table-min-width);
+  grid-template-columns: 44px minmax(300px, 1.8fr) 96px 86px 100px 94px 94px 96px 132px 132px 96px;
+  gap: 12px;
+}
+
+.meeting-table-scroll .home-meeting-table-head > span,
+.meeting-table-scroll .home-meeting-row > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meeting-table-scroll .home-meeting-table-head > span {
+  color: #8792a2;
+  font-weight: 500;
+}
+
+.meeting-table-scroll .home-meeting-row > .home-meeting-title {
+  display: flex;
+  overflow: hidden;
+}
+
+.meeting-table-scroll .home-meeting-row > .meeting-select-cell,
+.meeting-table-scroll .home-meeting-table-head > .meeting-select-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.meeting-table-scroll .meeting-select-cell input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: #2563eb;
+  cursor: pointer;
+}
+
+.meeting-table-scroll .home-meeting-title small {
+  display: none;
+}
+
+.meeting-table-scroll .home-meeting-status,
+.meeting-table-scroll .home-meeting-tag,
+.meeting-table-scroll .meeting-row-actions {
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.meeting-table-scroll .meeting-row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+@media (max-width: 1100px) {
+  :root { --ask-agent-width: min(384px, 42vw); }
+
+  .meeting-agent-grid.agent-open {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, var(--ask-agent-width));
+    gap: 16px;
+  }
+
+  .meeting-table-scroll .home-meeting-table-head,
+  .meeting-table-scroll .home-meeting-row,
+  .meeting-agent-grid.agent-open .meeting-table-scroll .home-meeting-table-head,
+  .meeting-agent-grid.agent-open .meeting-table-scroll .home-meeting-row {
+    min-width: var(--meeting-table-min-width);
+  }
+}
+
+@media (max-width: 760px) {
+  .meeting-agent-grid,
+  .meeting-agent-grid.agent-open {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .xiaozhi-rail,
+  .meeting-agent-grid.agent-open .xiaozhi-rail {
+    width: 100% !important;
+    min-height: 480px;
+    transform: translateY(10px);
+  }
+
+  .meeting-agent-grid.agent-open .xiaozhi-rail {
+    transform: none;
+  }
+
+  body.xiaozhi-open .main-inner[data-main-view="home"] {
+    width: calc(100% - 28px);
+  }
+}
