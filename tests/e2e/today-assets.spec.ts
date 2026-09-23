@@ -45,16 +45,16 @@ test("daily brief connects today records, updates suggestions and opens source a
   await expect(page.locator(".daily-rhythm")).toHaveCount(1);
   await expect(page.locator(".today-asset-card")).toHaveCount(0);
   await expect(page.locator("#today-date-label")).toContainText("9月23日");
-  await expect(page.locator(".daily-brief-narrative")).toContainText("15:00 前发送修订后的合作方案");
+  await expect(page.locator(".daily-brief-narrative")).toContainText("2 项待办");
   await expect(page.locator("#today-assets-source")).toHaveCount(0);
   await expect(page.locator(".daily-ledger-total")).toContainText("¥248.00");
   await expect(page.locator("#today-assets-grid")).not.toContainText("昨天的灵感");
   await expect(page.locator("#today-assets-grid")).not.toContainText("明日提交周报");
   await page.locator('[data-today-toggle="todo-1"]').click();
-  await expect(page.locator(".daily-brief-narrative")).not.toContainText("15:00 前发送修订后的合作方案");
+  await expect(page.locator(".daily-brief-narrative")).toContainText("1 项待办");
   await expect(page.locator('[data-today-toggle="todo-1"]')).toHaveAttribute("aria-pressed", "true");
   await page.locator('[data-today-toggle="todo-1"]').click();
-  await expect(page.locator(".daily-brief-narrative")).toContainText("15:00 前发送修订后的合作方案");
+  await expect(page.locator(".daily-brief-narrative")).toContainText("2 项待办");
   for (const key of ["inspiration", "todo", "ledger", "schedule"]) {
     await page.locator(`[data-today-category="${key}"]`).click();
     await expect(page.locator(`[data-thought-category="${key}"]`)).toHaveAttribute("aria-current", "true");
@@ -96,31 +96,24 @@ test("widgets open the full archive and bring today's context into Agent drafts"
   await page.locator("[data-thought-record]").click();
   await expect(page.locator("#thought-preview")).toBeVisible();
   await page.locator("#home-entry").click();
-  for (const [type, content] of [["schedule", "产品方案评审"], ["todo", "发送修订后的合作方案"], ["inspiration", "给产品演示增加真实客户场景"]]) {
-    await page.locator(`[data-widget-ai="${type}"]`).click();
-    await expect(page.locator("#xiaozhi-rail")).toBeVisible();
+  await page.locator('[data-widget-ai="brief"]').click();
+  await expect(page.locator("#xiaozhi-rail")).toBeVisible();
+  for (const content of ["产品方案评审", "发送修订后的合作方案", "给产品演示增加真实客户场景"]) {
     await expect(page.locator("#xiaozhi-input")).toHaveValue(new RegExp(content));
-    await expect(page.locator("#xiaozhi-input")).not.toHaveValue(/昨天的灵感|明日提交周报/);
-    await expect(page.locator("#xiaozhi-send")).toBeEnabled();
-    await page.locator("#xiaozhi-send").click();
-    await expect(page.locator("#widget-agent-result")).toContainText(content);
-    await expect(page.locator("#widget-agent-result")).toContainText("演示建议");
-    await page.locator("#xiaozhi-collapse").click();
   }
+  await expect(page.locator("#xiaozhi-input")).not.toHaveValue(/昨天的灵感|明日提交周报/);
+  await page.locator("#xiaozhi-send").click();
+  await expect(page.locator("#widget-agent-result")).toContainText("演示建议");
 });
 
 
 test("daily brief exposes its sources and carries all context into Agent", async ({ page }) => {
   await page.clock.install({ time: new Date("2026-09-23T12:00:00Z") });
   await page.goto("/prototype/one-to-one-reference/team-only-app.html?edition=personal&personal=1");
-  await expect(page.locator(".daily-brief-narrative")).toContainText("可以回顾");
-  await expect(page.locator(".daily-brief-narrative")).toContainText("仍待跟进");
-  await page.locator('[data-daily-brief]').click();
-  await expect(page.locator(".brief-detail")).toContainText("客户拜访交通");
-  await expect(page.locator(".brief-detail")).toContainText("产品方案评审");
-  await expect(page.locator(".brief-detail")).toContainText("发送修订后的合作方案");
-  await expect(page.locator(".brief-detail")).toContainText("给产品演示增加真实客户场景");
-  await page.locator("#brief-continue").click();
+  await expect(page.locator(".daily-brief-narrative")).toContainText("2 场日程已结束");
+  await expect(page.locator(".daily-brief-narrative")).toContainText("2 项已到期");
+  await expect(page.locator('#today-assets-grid [data-widget-ai]')).toHaveCount(1);
+  await page.locator('[data-widget-ai="brief"]').click();
   await expect(page.locator("#xiaozhi-input")).toHaveValue(/客户拜访交通/);
   await expect(page.locator("#xiaozhi-input")).toHaveValue(/产品方案评审/);
   await page.locator("#xiaozhi-send").click();
