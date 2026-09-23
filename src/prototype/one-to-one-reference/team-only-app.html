@@ -2940,7 +2940,7 @@
 
         <aside class="xiaozhi-rail" id="xiaozhi-rail" aria-labelledby="xiaozhi-title" aria-hidden="true">
           <div class="xiaozhi-panel">
-            <div class="xiaozhi-head"><div class="xiaozhi-identity"><span class="xiaozhi-mark"><svg class="icon"><use href="#ico-spark"/></svg></span><div><h2 id="xiaozhi-title">小智</h2><p>使用会议与知识库继续工作</p></div></div><div class="xiaozhi-head-actions"><button id="xiaozhi-history" aria-label="查看小智历史会话"><svg class="icon"><use href="#ico-clock"/></svg></button><button id="xiaozhi-collapse" aria-label="收起小智"><svg class="icon"><use href="#ico-x"/></svg></button></div></div>
+            <div class="xiaozhi-head"><div class="xiaozhi-identity"><span class="xiaozhi-mark"><svg class="icon"><use href="#ico-spark"/></svg></span><div><h2 id="xiaozhi-title">小智</h2><p>使用会议与知识库继续工作</p></div></div><div class="xiaozhi-head-actions"><button id="xiaozhi-collapse" aria-label="收起小智"><svg class="icon"><use href="#ico-x"/></svg></button></div></div>
             <div class="xiaozhi-body">
               <div class="xiaozhi-intro"><span class="xiaozhi-state"><i></i>资料准备好后</span><h3>交给小智继续处理</h3><p>引用已沉淀的会议或知识文件，再开始分析与创作。</p><div class="xiaozhi-suggestions"><button data-xiaozhi-prompt="整理本周会议并生成行动清单">整理行动项</button><button data-xiaozhi-prompt="结合知识库生成一份项目复盘报告">生成复盘</button><button data-xiaozhi-prompt="分析近期客户会议中的重点需求">分析需求</button></div></div>
               <div class="agent-composer-wrap">
@@ -3013,7 +3013,7 @@
 
     <aside class="knowledge-xiaozhi-panel" id="knowledge-xiaozhi-panel" aria-labelledby="knowledge-xiaozhi-title" aria-hidden="true">
       <div class="xiaozhi-panel">
-        <div class="xiaozhi-head"><div class="xiaozhi-identity"><span class="xiaozhi-mark"><svg class="icon"><use href="#ico-spark"/></svg></span><div><h2 id="knowledge-xiaozhi-title">小智</h2><p id="knowledge-xiaozhi-subtitle">使用当前知识目录继续工作</p></div></div><div class="xiaozhi-head-actions"><button id="knowledge-xiaozhi-history" type="button" aria-label="查看小智历史会话"><svg class="icon"><use href="#ico-clock"/></svg></button><button id="knowledge-xiaozhi-close" type="button" aria-label="收起小智"><svg class="icon"><use href="#ico-x"/></svg></button></div></div>
+        <div class="xiaozhi-head"><div class="xiaozhi-identity"><span class="xiaozhi-mark"><svg class="icon"><use href="#ico-spark"/></svg></span><div><h2 id="knowledge-xiaozhi-title">小智</h2><p id="knowledge-xiaozhi-subtitle">使用当前知识目录继续工作</p></div></div><div class="xiaozhi-head-actions"><button id="knowledge-xiaozhi-close" type="button" aria-label="收起小智"><svg class="icon"><use href="#ico-x"/></svg></button></div></div>
         <div class="xiaozhi-body">
           <div class="knowledge-xiaozhi-scope"><svg class="icon"><use href="#ico-folder"/></svg><span id="knowledge-xiaozhi-scope">当前目录：我的文件</span></div>
           <div class="xiaozhi-intro"><span class="xiaozhi-state"><i></i>当前目录已就绪</span><h3>基于当前知识继续处理</h3><p>小智会在你的访问权限内引用当前目录或文件，帮助总结、分析和生成内容。</p><div class="xiaozhi-suggestions"><button type="button" data-knowledge-xiaozhi-prompt="总结当前目录的核心资料">总结目录资料</button><button type="button" data-knowledge-xiaozhi-prompt="提取当前资料中的行动项与待确认问题">提取行动项</button><button type="button" data-knowledge-xiaozhi-prompt="基于当前资料整理一份简报">整理简报</button></div></div>
@@ -3661,7 +3661,6 @@
     knowledgeXiaozhiEntry.addEventListener("click", () => setKnowledgeXiaozhiExpanded(!knowledgeXiaozhiPanel.classList.contains("expanded"), knowledgeXiaozhiEntry));
     knowledgeXiaozhiPreviewEntry.addEventListener("click", () => setKnowledgeXiaozhiExpanded(!knowledgeXiaozhiPanel.classList.contains("expanded"), knowledgeXiaozhiPreviewEntry));
     $("#knowledge-xiaozhi-close").addEventListener("click", () => setKnowledgeXiaozhiExpanded(false));
-    $("#knowledge-xiaozhi-history").addEventListener("click", () => showToast("正在打开当前知识范围的小智历史会话"));
     const knowledgeXiaozhiInput = $("#knowledge-xiaozhi-input");
     const knowledgeXiaozhiSend = $("#knowledge-xiaozhi-send");
     const updateKnowledgeXiaozhiComposer = () => { knowledgeXiaozhiSend.disabled = !knowledgeXiaozhiInput.value.trim(); };
@@ -4120,7 +4119,6 @@
     };
     xiaozhiEntry.addEventListener("click", () => setXiaozhiExpanded(!xiaozhiGrid.classList.contains("agent-open")));
     $("#xiaozhi-collapse").addEventListener("click", () => setXiaozhiExpanded(false));
-    $("#xiaozhi-history").addEventListener("click", () => openHistorySession(activeHistorySession?.index || 0));
     const xiaozhiInput = $("#xiaozhi-input");
     const xiaozhiSend = $("#xiaozhi-send");
     let widgetAiContext = null;
@@ -4865,7 +4863,7 @@
   </script>
   <script src="assets/team-workspace.js?v=enterprise-cleanup"></script>
   <script src="assets/contacts-model.js?v=contacts-v14"></script>
-  <script src="assets/contacts-ui.js?v=contacts-v15"></script>
+  <script src="assets/contacts-ui.js?v=contacts-v16"></script>
   <script>
     (() => {
       const root = document.documentElement;

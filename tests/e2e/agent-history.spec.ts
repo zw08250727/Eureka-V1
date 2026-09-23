@@ -47,7 +47,11 @@ test("opening history anchors a usable conversation below the topbar on desktop 
   for (const [width, height] of [[1440, 900], [1024, 768], [390, 844]]) {
     await page.setViewportSize({ width, height });
     if (await page.locator(".history-row").first().isVisible()) await page.locator(".history-row").first().click();
-    else await page.locator("#xiaozhi-history").click();
+    else {
+      await page.locator("#xiaozhi-collapse").click();
+      await page.locator("#xiaozhi-entry").click();
+    }
+    await expect(page.locator("#xiaozhi-history")).toHaveCount(0);
     await expect(page.locator("#agent-history-title")).toBeInViewport();
     await expect(page.locator("#xiaozhi-input")).toBeInViewport();
     await expect(page.locator("#xiaozhi-send")).toBeInViewport();
