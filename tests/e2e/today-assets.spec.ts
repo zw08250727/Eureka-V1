@@ -2,6 +2,23 @@ import { expect, test } from "@playwright/test";
 
 test.use({ channel: process.env.PLAYWRIGHT_CHANNEL || undefined, timezoneId: "Asia/Shanghai" });
 
+test("thoughts archive is reachable from sidebar across views and when collapsed", async ({ page }) => {
+  await page.goto("/prototype/one-to-one-reference/team-only-app.html?edition=personal&personal=1");
+  await expect(page.locator(".today-content-head")).toHaveCount(0);
+  await page.locator("[data-contacts-entry]").click();
+  await page.locator("#thoughts-entry").click();
+  await expect(page.locator("#thought-workspace")).toBeVisible();
+  await expect(page.locator("#thoughts-entry")).toHaveAttribute("aria-current", "page");
+  await expect(page.locator("#page-crumb")).toHaveText("我的闪念");
+  await page.locator("#home-entry").click();
+  await expect(page.locator("#today-workbench")).toBeVisible();
+  await expect(page.locator("#thoughts-entry")).not.toHaveAttribute("aria-current", "page");
+  await page.locator(".collapse-btn").click();
+  await expect(page.locator("#thoughts-entry .nav-label")).toBeHidden();
+  await page.locator("#thoughts-entry").click();
+  await expect(page.locator("#thought-workspace")).toBeVisible();
+});
+
 test("reminder heading rotates without repeats and stays stable during todo updates", async ({ page }) => {
   await page.clock.install();
   await page.goto("/prototype/one-to-one-reference/team-only-app.html?edition=personal&personal=1");
@@ -59,7 +76,7 @@ test("compact today overview leaves meetings visible on desktop", async ({ page 
   expect(overview!.width).toBeLessThanOrEqual(390);
   expect(overview!.height).toBeLessThan(480);
   await expect(page.locator('[data-today-category="other"]')).toHaveCount(0);
-  await page.locator('[data-today-action="thoughts"]').click();
+  await page.locator('[data-today-action="thoughts"]:visible').click();
   await page.locator('[data-thought-category="other"]').click();
   await expect(page.locator('[data-thought-category="other"]')).toHaveAttribute("aria-current", "true");
 });
