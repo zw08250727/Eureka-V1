@@ -2706,7 +2706,7 @@
   <link rel="stylesheet" href="assets/today-workbench.css?v=today-workbench-v16" />
   <link rel="stylesheet" href="assets/pc-capability-enhancements.css?v=pc-capabilities-v2" />
   <link rel="stylesheet" href="assets/meeting-list.css?v=meeting-list-v1" />
-  <link rel="stylesheet" href="assets/meeting-detail.css?v=2" />
+  <link rel="stylesheet" href="assets/meeting-detail.css?v=3" />
   <link rel="stylesheet" href="assets/agent-history.css?v=2" />
   <link rel="stylesheet" href="assets/agent-composer.css?v=1" />
 </head>
@@ -4233,6 +4233,17 @@
         event.preventDefault(); if (!xiaozhiSend.disabled) xiaozhiSend.click();
       }
     });
+    document.addEventListener("meeting-ask-agent", event => {
+      leaveHistorySession();
+      widgetAiContext = null;
+      $("#xiaozhi-widget-context")?.remove();
+      $("#widget-agent-result")?.remove();
+      showMainView("home", { silent: true });
+      xiaozhiInput.value = `请根据「${event.detail.title}」整理重点与后续行动。\n\n会议内容：\n${event.detail.summary}`;
+      updateXiaozhiComposer();
+      setXiaozhiExpanded(true);
+      xiaozhiInput.focus({ preventScroll: true });
+    });
     xiaozhiInput.addEventListener("input", updateXiaozhiComposer);
     $$('[data-xiaozhi-prompt]').forEach((button) => button.addEventListener("click", () => { xiaozhiInput.value = button.dataset.xiaozhiPrompt; xiaozhiInput.focus(); updateXiaozhiComposer(); }));
     xiaozhiSend.addEventListener("click", () => {
@@ -5087,7 +5098,7 @@
         input?.focus();
       };
       const addAsk = (view) => {
-        if (!view || view.hidden || view.querySelector(".team-only-ask")) return;
+        if (!view || view.hidden || view.querySelector(".team-only-ask, .md-ask-agent")) return;
         if (view.querySelector("#xiaozhi-entry, .contacts-xiaozhi-entry, [data-contact-action='toggle-xiaozhi'], #recording-assistant-toggle")) return;
         const button = document.createElement("button");
         button.type = "button"; button.className = "team-only-ask"; button.textContent = "Ask Agent"; button.setAttribute("aria-haspopup", "dialog"); button.setAttribute("aria-controls", "drawer"); button.setAttribute("aria-expanded", "false");
@@ -5207,6 +5218,6 @@
     })();
   </script>
   <script src="assets/workspace-sidebar.js"></script>
-  <script src="assets/meeting-detail.js?v=2"></script>
+  <script src="assets/meeting-detail.js?v=3"></script>
 </body>
 </html>

@@ -124,12 +124,16 @@ test('templates, export, sharing boundaries and recycle are connected', async ({
 });
 
 test('detail and dialogs fit desktop and narrow viewports', async ({ page }) => {
-  for (const [width,height] of [[1920,1080],[1440,900],[1024,768],[390,844]]) {
+  for (const [width,height] of [[1920,1440],[1440,900],[1366,768],[1280,650],[1024,768],[390,844]]) {
     await page.setViewportSize({width,height});
     for (const name of ['导出','分享','删除']) {
       await expect(page.locator('.md-top-actions').getByRole('button', { name, exact:true })).toBeVisible();
     }
     await expect(page.locator('.md-top-actions [data-md-action="ppt"], .md-top-actions [data-md-action="report"], .md-top-actions [data-md-action="more"]')).toHaveCount(0);
+    await expect.poll(async () => {
+      const box = await page.locator('.md-frame').boundingBox();
+      return Math.round(height - box!.y - box!.height);
+    }).toBe(16);
     const frame = await page.locator('.md-frame').boundingBox();
     expect(frame!.x).toBeGreaterThanOrEqual(0);
     expect(frame!.x+frame!.width).toBeLessThanOrEqual(width+1);
@@ -145,4 +149,19 @@ test('detail and dialogs fit desktop and narrow viewports', async ({ page }) => 
   await page.locator('.md-library-item').nth(1).click();
   await expect(page.locator('#note-detail-title')).toHaveText('百销产品能力与市场匹配调研');
   await expect(page.locator('.md-frame')).not.toHaveClass(/library-mobile/);
+});
+
+
+test('meeting list and content reach their ends and Ask Agent opens the shared conversation', async ({ page }) => {
+  await page.setViewportSize({ width:1366, height:768 });
+  const lastMeeting = page.locator('.md-library-item').last();
+  await lastMeeting.scrollIntoViewIfNeeded();
+  await expect(lastMeeting).toBeInViewport({ ratio:1 });
+  await page.locator('.md-scroll').evaluate(el => { el.scrollTop = el.scrollHeight; });
+  await expect(page.locator('[data-md-action="feedback"]')).toBeInViewport({ ratio:1 });
+  await page.getByRole('button', { name:'Ask Agent', exact:true }).click();
+  await expect(page.locator('#xiaozhi-rail')).toBeVisible();
+  await expect(page.locator('#xiaozhi-input')).toHaveValue(/三季度产品复盘会议/);
+  await expect(page.locator('#xiaozhi-send')).toBeInViewport({ ratio:1 });
+  await expect(page.getByRole('dialog')).toHaveCount(0);
 });
