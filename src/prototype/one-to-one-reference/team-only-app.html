@@ -2702,7 +2702,7 @@
   <link rel="stylesheet" href="assets/aqua-clear-theme.css?v=calmai-workspace-v2" />
   <link rel="stylesheet" href="assets/workspace-sidebar.css?v=project-layout-v2" />
   <link rel="stylesheet" href="assets/meeting-workspace.css?v=ask-agent-layout-v2" />
-  <link rel="stylesheet" href="assets/today-workbench.css?v=today-workbench-v9" />
+  <link rel="stylesheet" href="assets/today-workbench.css?v=today-workbench-v10" />
   <link rel="stylesheet" href="assets/pc-capability-enhancements.css?v=pc-capabilities-v2" />
   <link rel="stylesheet" href="assets/meeting-list.css?v=meeting-list-v1" />
 </head>
@@ -2860,7 +2860,7 @@
 
         <div class="meeting-agent-grid" id="meeting-agent-grid">
         <div class="home-content-stack">
-        <section class="today-workbench" id="today-workbench" aria-labelledby="today-workbench-title">
+        <div class="today-workbench" id="today-workbench">
           <header class="today-workbench-head">
             <div>
               <span class="today-workbench-eyebrow"><i></i><span id="today-date-label"></span></span>
@@ -2872,8 +2872,10 @@
               <button type="button" class="today-text-action" data-today-action="thoughts">查看全部闪念 →</button>
             </div>
           </header>
-          <div class="today-assets-grid" id="today-assets-grid" role="region" aria-label="今日安排、待办与随手记录，窄屏可横向滚动" tabindex="0"></div>
-        </section>
+          <section class="today-workbench-content" aria-label="今日闪念概览">
+            <div class="today-assets-grid" id="today-assets-grid" role="region" aria-label="今日安排、待办与随手记录，窄屏可横向滚动" tabindex="0"></div>
+          </section>
+        </div>
         <section class="home-meeting-library" id="recording-card" aria-labelledby="recent-meeting-title">
           <div class="home-meeting-head">
             <div class="meeting-library-copy"><h2 id="recent-meeting-title">我的会议</h2><p id="meeting-view-description">共 20 个会议笔记</p></div>
