@@ -2702,7 +2702,7 @@
   <link rel="stylesheet" href="assets/aqua-clear-theme.css?v=calmai-workspace-v2" />
   <link rel="stylesheet" href="assets/workspace-sidebar.css?v=project-layout-v2" />
   <link rel="stylesheet" href="assets/meeting-workspace.css?v=ask-agent-layout-v1" />
-  <link rel="stylesheet" href="assets/today-workbench.css?v=today-workbench-v8" />
+  <link rel="stylesheet" href="assets/today-workbench.css?v=today-workbench-v9" />
   <link rel="stylesheet" href="assets/pc-capability-enhancements.css?v=pc-capabilities-v2" />
   <link rel="stylesheet" href="assets/meeting-list.css?v=meeting-list-v1" />
 </head>
@@ -4270,7 +4270,7 @@
       if (!document.hidden && $("#today-workbench").getClientRects().length) refreshTodayReminder();
     }, 60000);
     const renderTodayAssets = () => {
-      $("#today-date-label").textContent = todayNow.toLocaleDateString("zh-CN", { month: "long", day: "numeric", weekday: "long" });
+      $("#today-date-label").textContent = `${todayNow.toLocaleDateString("zh-CN", { month: "long", day: "numeric" })} · ${todayNow.toLocaleDateString("zh-CN", { weekday: "long" })}`;
       const pending = assetsForToday(todayAssetTypes[1]).filter((record) => !record.done).length;
       $("#today-assets-summary").textContent = `今天有 ${assetsForToday(todayAssetTypes[3]).length} 场日程，${pending ? `${pending} 项待办等你推进。` : "待办已经全部完成，给自己留一点思考的时间。"}`;
       const renderType = (key) => {
