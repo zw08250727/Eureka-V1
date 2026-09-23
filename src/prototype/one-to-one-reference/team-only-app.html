@@ -2701,7 +2701,7 @@
   <link rel="stylesheet" href="assets/aqua-clear-theme.css?v=calmai-workspace-v2" />
   <link rel="stylesheet" href="assets/workspace-sidebar.css?v=project-layout-v2" />
   <link rel="stylesheet" href="assets/meeting-workspace.css?v=ask-agent-layout-v1" />
-  <link rel="stylesheet" href="assets/today-workbench.css?v=today-workbench-v2" />
+  <link rel="stylesheet" href="assets/today-workbench.css?v=today-workbench-v3" />
 </head>
 <body>
   <section class="edition-gate" id="edition-gate" aria-labelledby="edition-gate-title">
@@ -2850,9 +2850,8 @@
       </div></div>
       <div class="main-inner" data-main-view="home">
       <section class="recording-home" aria-label="录音工作首页">
-        <section class="recording-commandbar meeting-viewbar" aria-label="录音与智能入口">
+        <section class="meeting-view-state" aria-label="会议视图状态" hidden>
           <nav class="meeting-view-tabs" aria-label="会议视图" aria-hidden="true"><button class="meeting-view-tab active" data-meeting-view="my" aria-current="page">我的会议</button><button class="meeting-view-tab" data-meeting-view="thought">我的闪念</button><button class="meeting-view-tab edition-enterprise-only" data-meeting-view="enterprise">企业会议</button></nav>
-          <div class="recording-command-actions"><button class="recording-primary" id="module-start-recording"><svg class="icon"><use href="#ico-mic"/></svg><span><strong>开始录音</strong><small>使用电脑麦克风</small></span></button><button class="xiaozhi-entry" id="xiaozhi-entry" aria-label="问问小智" aria-controls="xiaozhi-rail" aria-expanded="false"><span class="xiaozhi-entry-mark"><svg class="icon"><use href="#ico-spark"/></svg></span><span><strong id="xiaozhi-entry-label">问问小智</strong><small>使用会议与知识</small></span><svg class="icon xiaozhi-expand-icon"><use href="#ico-expand"/></svg></button></div>
         </section>
 
         <div class="meeting-agent-grid" id="meeting-agent-grid">
@@ -2864,7 +2863,10 @@
               <h1 id="today-workbench-title">下午好，张伟</h1>
               <p>从我的闪念、会议和待办中，提取今天值得继续推进的内容。</p>
             </div>
-            <div class="today-workbench-meta"><span>星期二 · 9 月 22 日</span><small>基于我的闪念整理</small></div>
+            <div class="today-workbench-head-side">
+              <div class="recording-command-actions"><button class="recording-primary" id="module-start-recording"><svg class="icon"><use href="#ico-mic"/></svg><span><strong>开始录音</strong><small>使用电脑麦克风</small></span></button><button class="xiaozhi-entry" id="xiaozhi-entry" aria-label="问问小智" aria-controls="xiaozhi-rail" aria-expanded="false"><span class="xiaozhi-entry-mark"><svg class="icon"><use href="#ico-spark"/></svg></span><span><strong id="xiaozhi-entry-label">问问小智</strong><small>使用会议与知识</small></span><svg class="icon xiaozhi-expand-icon"><use href="#ico-expand"/></svg></button></div>
+              <div class="today-workbench-meta"><span>星期二 · 9 月 22 日</span><small>基于我的闪念整理</small></div>
+            </div>
           </header>
           <div class="today-workbench-grid">
             <section class="today-focus-card" aria-labelledby="today-focus-title">

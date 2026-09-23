@@ -26,6 +26,84 @@
   gap: 16px;
 }
 
+.meeting-view-state { display: none !important; }
+
+.today-workbench-head-side {
+  display: grid;
+  min-width: 0;
+  justify-items: end;
+  gap: 10px;
+}
+
+.today-workbench-head-side .recording-command-actions {
+  display: flex;
+  width: auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.today-workbench-head-side .recording-command-actions button {
+  display: inline-flex;
+  width: auto;
+  min-width: 0;
+  height: 36px;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 13px;
+  border-radius: 999px;
+  text-align: center;
+  transform: none;
+}
+
+.today-workbench-head-side .recording-command-actions button:hover { transform: none; }
+.today-workbench-head-side .recording-command-actions button > .icon { width: 15px; height: 15px; }
+.today-workbench-head-side .recording-command-actions button strong { overflow: visible; font-size: 11px; font-weight: 600; line-height: 16px; }
+.today-workbench-head-side .recording-command-actions button small { display: none; }
+
+.today-workbench-head-side .recording-command-actions .recording-primary {
+  border-color: #203452;
+  color: #fff;
+  background: linear-gradient(135deg, #1f365a, #315e9b);
+  box-shadow: 0 8px 16px rgba(32, 65, 115, .14);
+}
+
+.today-workbench-head-side .recording-command-actions .recording-primary:hover {
+  background: linear-gradient(135deg, #172b49, #2b548b);
+  box-shadow: 0 10px 20px rgba(32, 65, 115, .2);
+}
+
+.today-workbench-head-side .recording-command-actions .xiaozhi-entry {
+  border-color: rgba(87, 154, 218, .28);
+  color: #263b61;
+  background: rgba(255, 255, 255, .88);
+  box-shadow: 0 5px 14px rgba(53, 110, 232, .07);
+}
+
+.today-workbench-head-side .recording-command-actions .xiaozhi-entry:hover,
+.today-workbench-head-side .recording-command-actions .xiaozhi-entry[aria-expanded="true"] {
+  border-color: rgba(75, 139, 228, .45);
+  color: #245bc9;
+  background: #f2f7ff;
+  box-shadow: 0 7px 16px rgba(53, 110, 232, .1);
+}
+
+.today-workbench-head-side .xiaozhi-entry-mark {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #3e72f2, #55c5e2);
+  box-shadow: 0 4px 10px rgba(55, 102, 214, .16);
+}
+
+.today-workbench-head-side .xiaozhi-entry-mark .icon { width: 12px !important; height: 12px !important; }
+.today-workbench-head-side .xiaozhi-expand-icon { display: block; width: 12px; height: 12px; color: #50617a; transition: transform 180ms ease; }
+.today-workbench-head-side .xiaozhi-entry[aria-expanded="true"] .xiaozhi-expand-icon { transform: rotate(180deg); }
+
 .today-workbench-eyebrow,
 .today-card-kicker,
 .today-agenda-label,
@@ -187,6 +265,10 @@
 @media (max-width: 760px) {
   .today-workbench { padding: 16px; border-radius: 14px; }
   .today-workbench-head { flex-direction: column; }
+  .today-workbench-head-side { width: 100%; justify-items: start; }
+  .today-workbench-head-side .today-workbench-meta { justify-items: start; padding-top: 0; }
+  .today-workbench-head-side .recording-command-actions { width: 100%; overflow-x: auto; }
+  .today-workbench-head-side .recording-command-actions button { flex: 0 0 auto; }
   .today-workbench-meta { justify-items: start; padding-top: 0; }
   .today-workbench-head h1 { font-size: 22px; line-height: 30px; }
   .today-thought-list { grid-template-columns: 1fr; }
