@@ -2702,6 +2702,7 @@
   <link rel="stylesheet" href="assets/workspace-sidebar.css?v=project-layout-v2" />
   <link rel="stylesheet" href="assets/meeting-workspace.css?v=ask-agent-layout-v1" />
   <link rel="stylesheet" href="assets/today-workbench.css?v=today-workbench-v3" />
+  <link rel="stylesheet" href="assets/pc-capability-enhancements.css?v=pc-capabilities-v1" />
 </head>
 <body>
   <section class="edition-gate" id="edition-gate" aria-labelledby="edition-gate-title">
@@ -2854,6 +2855,11 @@
           <nav class="meeting-view-tabs" aria-label="会议视图" aria-hidden="true"><button class="meeting-view-tab active" data-meeting-view="my" aria-current="page">我的会议</button><button class="meeting-view-tab" data-meeting-view="thought">我的闪念</button><button class="meeting-view-tab edition-enterprise-only" data-meeting-view="enterprise">企业会议</button></nav>
         </section>
 
+        <aside class="pc-quick-capture" id="pc-quick-capture" aria-label="快速记录">
+          <button class="pc-quick-capture-start" id="pc-quick-capture-start" type="button"><span class="pc-quick-capture-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span>快速记录</span></button>
+          <button class="pc-quick-capture-add" id="pc-quick-capture-add" type="button" aria-label="新增记录"><span aria-hidden="true">+</span></button>
+        </aside>
+
         <div class="meeting-agent-grid" id="meeting-agent-grid">
         <div class="home-content-stack">
         <section class="today-workbench" id="today-workbench" aria-labelledby="today-workbench-title">
@@ -2877,7 +2883,8 @@
             </section>
             <section class="today-agenda-card" aria-labelledby="today-agenda-title">
               <div class="today-card-head"><div><span class="today-card-kicker">今天的安排</span><h2 id="today-agenda-title">日程与待办</h2></div><button type="button" class="today-text-action" data-today-action="calendar">查看日程</button></div>
-              <div class="today-agenda-block"><span class="today-agenda-label">日程</span><div class="today-calendar-row"><span><b>09:30</b>产品评审</span><span><b>14:00</b>投资人会议</span><span><b>16:30</b>AI 团队周会</span></div></div>
+              <div class="today-agenda-block"><span class="today-agenda-label">日程</span><div class="today-schedule-list"><button type="button" class="today-schedule-item" data-today-schedule="产品评审" data-schedule-meta="今天 09:30 · 45 分钟 · 网页录音"><time>09:30</time><span>产品评审</span><svg class="icon"><use href="#ico-chevron"/></svg></button><button type="button" class="today-schedule-item" data-today-schedule="投资人会议" data-schedule-meta="今天 14:00 · 60 分钟 · 待开始"><time>14:00</time><span>投资人会议</span><svg class="icon"><use href="#ico-chevron"/></svg></button><button type="button" class="today-schedule-item" data-today-schedule="AI 团队周会" data-schedule-meta="今天 16:30 · 30 分钟 · 待开始"><time>16:30</time><span>AI 团队周会</span><svg class="icon"><use href="#ico-chevron"/></svg></button></div></div>
+              <div class="today-inspiration-card"><div><span class="today-agenda-label">灵感</span><span class="today-inspiration-badge">AI 提醒</span></div><p>把一闪而过的念头，留到以后继续推进。</p><button type="button" data-today-action="thoughts">打开我的闪念<svg class="icon"><use href="#ico-chevron"/></svg></button></div>
               <div class="today-agenda-block today-todo-block"><span class="today-agenda-label">待办</span><div class="today-todo-list"><button type="button" class="today-todo-item" data-today-todo="更新行动项"><i></i><span>更新行动项</span><time>9/20</time></button><button type="button" class="today-todo-item" data-today-todo="跟进经销商名单"><i></i><span>跟进经销商名单</span><time>9/21</time></button><button type="button" class="today-todo-item" data-today-todo="确认项目预算"><i></i><span>确认项目预算</span><time>9/22</time></button></div></div>
             </section>
           </div>
@@ -3020,7 +3027,40 @@
     <section class="note-detail-workspace" data-main-view="note-detail" hidden aria-label="语音笔记详情">
       <div class="note-detail-layout">
         <aside class="note-detail-sidebar"><div class="note-detail-side-head"><strong>语音内容</strong><button id="note-detail-back">返回首页</button></div><div class="note-detail-list"><button class="note-detail-item active" data-note-detail-item="三季度产品复盘会议" data-note-meta="今天 09:42 · 47 分钟 · 网页录音"><strong>三季度产品复盘会议</strong><small>今天 · 已整理</small></button><button class="note-detail-item" data-note-detail-item="百销产品能力与市场匹配调研" data-note-meta="昨天 16:28 · 58 分钟 · 录音卡"><strong>百销产品能力与市场匹配调研</strong><small>昨天 · 已整理</small></button><button class="note-detail-item" data-note-detail-item="关于首页工作流的想法" data-note-meta="今天 11:06 · 移动端闪念"><strong>关于首页工作流的想法</strong><small>移动端同步 · 已保存</small></button></div></aside>
-        <section class="note-detail-main"><header class="note-detail-head"><div class="note-detail-title"><h1 id="note-detail-title">三季度产品复盘会议</h1><p id="note-detail-meta">今天 09:42 · 47 分钟 · 网页录音 · 已整理</p></div><div class="note-detail-actions"><button data-toast="正在生成 AI 智绘 PPT">AI 智绘 PPT</button><button data-toast="正在生成深度报告">生成深度报告</button><button data-toast="分享设置已打开">分享给团队</button></div></header><nav class="note-detail-tabs" aria-label="语音内容类型"><button class="note-detail-tab active" data-note-tab="summary">智能总结</button><button class="note-detail-tab" data-note-tab="transcript">转写文本</button><button class="note-detail-tab" data-note-tab="visual">图文摘要</button><button class="note-detail-tab" data-note-tab="mindmap">思维导图</button><button class="note-detail-tab" data-note-tab="article">逐字稿</button><button class="note-detail-tab" data-note-tab="translation">实时翻译</button></nav><div class="note-detail-content"><section class="note-detail-panel" data-note-panel="summary"><span class="note-ai-note">内容由 AI 生成，仅供参考</span><div class="note-summary-card"><h3>Key Marks</h3><p>重点确认三季度研发排期、负责人和客户试用阶段的关键问题。</p></div><article class="note-detail-article"><h2>总结</h2><p>本次会议围绕产品复盘、交付节奏和客户反馈展开，形成了三项关键决策与八项后续行动。</p><h2>关键结论</h2><ul><li>研发排期需要在本周内完成最终确认。</li><li>客户试用阶段的反馈应统一进入需求池，并标记优先级。</li><li>后续报告由报告撰写助手基于会议与知识库生成初稿。</li></ul><h2>下一步行动</h2><ul><li>产品负责人整理需求边界并同步研发团队。</li><li>客户成功团队补充重点客户反馈。</li><li>下周例会复查行动项完成情况。</li></ul></article></section><section class="note-detail-panel" data-note-panel="transcript" hidden><div class="transcript-block"><div class="transcript-line"><time>00:00:08</time><p>我们先确认本季度产品复盘的范围，重点看研发交付和客户试用反馈。</p></div><div class="transcript-line"><time>00:06:32</time><p>当前最需要明确的是排期、负责人，以及需求进入研发前的统一标准。</p></div><div class="transcript-line"><time>00:18:47</time><p>客户沟通里的问题需要沉淀到知识库，后续再由智能体生成复盘报告。</p></div></div></section><section class="note-detail-panel" data-note-panel="visual" hidden><div class="placeholder-canvas">图文摘要画布 · 展示会议图片与关键结论</div></section><section class="note-detail-panel" data-note-panel="mindmap" hidden><div class="placeholder-canvas">思维导图画布 · 产品复盘 → 问题 → 决策 → 行动</div></section><section class="note-detail-panel" data-note-panel="article" hidden><article class="note-detail-article"><h2>会议逐字稿</h2><p>这里承接完整逐字稿能力，按照发言人和时间顺序展示会议内容，并支持重点标记与编辑。</p></article></section><section class="note-detail-panel" data-note-panel="translation" hidden><div class="placeholder-canvas">实时翻译结果 · 原文与译文分栏展示</div></section></div></section>
+        <section class="note-detail-main"><header class="note-detail-head"><div class="note-detail-title"><h1 id="note-detail-title">三季度产品复盘会议</h1><p id="note-detail-meta">今天 09:42 · 47 分钟 · 网页录音 · 已整理</p></div><div class="note-detail-actions"><button data-toast="正在生成 AI 智绘 PPT">AI 智绘 PPT</button><button data-toast="正在生成深度报告">生成深度报告</button><button data-toast="分享设置已打开">分享给团队</button></div></header><nav class="note-detail-tabs" aria-label="语音内容类型"><button class="note-detail-tab active" data-note-tab="summary">智能总结</button><button class="note-detail-tab" data-note-tab="transcript">转写文本</button><button class="note-detail-tab" data-note-tab="visual">图文摘要</button><button class="note-detail-tab" data-note-tab="mindmap">思维导图</button><button class="note-detail-tab" data-note-tab="article">逐字稿</button><button class="note-detail-tab" data-note-tab="translation">实时翻译</button></nav><div class="note-detail-content">
+          <section class="note-detail-panel event-detail-panel" data-note-panel="summary">
+            <div class="event-detail-intro"><span class="note-ai-note">日程详情 · 已关联会议笔记</span><p>把日程、原始捕获和 AI 整理结果放在同一条工作线上，方便会前准备、会中记录和会后继续推进。</p></div>
+            <div class="event-detail-grid">
+              <section class="event-info-card" aria-labelledby="event-info-title">
+                <div class="event-card-head"><div><span class="event-card-kicker">日程信息</span><h2 id="event-info-title">会议安排</h2></div><button type="button" class="event-card-link" data-toast="日程编辑已打开">编辑日程</button></div>
+                <div class="event-info-list">
+                  <button type="button" class="event-info-row" data-toast="日期与时间编辑已打开"><span class="event-info-icon"><svg class="icon"><use href="#ico-clock"/></svg></span><span><strong>今天 · 09:30–10:15</strong><small>GMT+8 · 45 分钟</small></span><svg class="icon event-info-arrow"><use href="#ico-chevron"/></svg></button>
+                  <button type="button" class="event-info-row" data-toast="会议地点编辑已打开"><span class="event-info-icon"><svg class="icon"><use href="#ico-globe"/></svg></span><span><strong>线上会议</strong><small>会议链接将在开始前提醒</small></span><svg class="icon event-info-arrow"><use href="#ico-chevron"/></svg></button>
+                  <button type="button" class="event-info-row" data-toast="参与人管理已打开"><span class="event-info-icon"><svg class="icon"><use href="#ico-users"/></svg></span><span><strong>张伟 · Tom Cat · Jerry Mouse</strong><small>共 3 位参与者</small></span><svg class="icon event-info-arrow"><use href="#ico-chevron"/></svg></button>
+                  <button type="button" class="event-info-row" data-toast="提醒设置已打开"><span class="event-info-icon"><svg class="icon"><use href="#ico-bell"/></svg></span><span><strong>15 分钟前</strong><small>提醒已开启</small></span><svg class="icon event-info-arrow"><use href="#ico-chevron"/></svg></button>
+                </div>
+              </section>
+              <section class="event-linked-card" aria-labelledby="event-linked-title">
+                <div class="event-card-head"><div><span class="event-card-kicker">Meeting Notes <em>1 linked</em></span><h2 id="event-linked-title">关联会议笔记</h2></div><button type="button" class="event-card-link" data-toast="会议笔记管理已打开">管理</button></div>
+                <button type="button" class="event-linked-note" data-toast="已打开关联会议笔记"><span class="event-linked-mark"><svg class="icon"><use href="#ico-mic"/></svg></span><span><strong>三季度产品复盘会议</strong><small>今天 09:42 · 47 分钟 · 已整理</small></span><svg class="icon"><use href="#ico-chevron"/></svg></button>
+                <div class="event-linked-note-meta"><span>产品复盘</span><span>8 项行动项</span><span>网页录音</span></div>
+              </section>
+            </div>
+            <section class="event-capture-card" aria-labelledby="event-capture-title">
+              <div class="event-capture-head"><div><span class="event-card-kicker">Original Capture</span><h2 id="event-capture-title">原始捕获</h2></div><span class="event-ai-badge"><svg class="icon"><use href="#ico-spark"/></svg>AI Assistant <small>回忆当时的上下文</small></span></div>
+              <div class="event-capture-summary"><p>今天两点半线上和新加坡团队做产品评审，重点讨论录音、分类，以及下一轮产品体验的问题。</p><small>Captured Jul 16 at 9:19 AM · 0:27 · Processed Jul 16 at 9:19 AM</small></div>
+              <div class="event-audio-player"><button type="button" id="note-detail-audio-toggle" aria-label="播放原始捕获"><span class="event-audio-play">▶</span></button><time>00:00</time><div class="event-audio-track"><span></span></div><time>00:34</time></div>
+              <div class="event-agent-session"><span class="event-agent-session-mark"><svg class="icon"><use href="#ico-spark"/></svg></span><span><strong>Agent Session</strong><small>Generated from Quick Capture · Jul 16</small></span><button type="button" data-toast="已打开智能体处理记录">继续处理<svg class="icon"><use href="#ico-chevron"/></svg></button></div>
+            </section>
+            <section class="event-summary-card" aria-labelledby="event-summary-title"><div><span class="event-card-kicker">AI 提炼</span><h2 id="event-summary-title">今天值得继续推进</h2></div><ul><li>补齐产品评审中的录音入口与后续内容沉淀。</li><li>把客户反馈统一进入需求池，并标记优先级。</li><li>下周例会复查行动项完成情况。</li></ul></section>
+            <footer class="event-detail-footer"><span>会议开始后，可继续记录现场内容并实时生成转写。</span><button type="button" class="event-start-recording" id="note-detail-start-recording"><svg class="icon"><use href="#ico-mic"/></svg>开始录音</button></footer>
+          </section>
+          <section class="note-detail-panel" data-note-panel="transcript" hidden><div class="transcript-block"><div class="transcript-line"><time>00:00:08</time><p>我们先确认本季度产品复盘的范围，重点看研发交付和客户试用反馈。</p></div><div class="transcript-line"><time>00:06:32</time><p>当前最需要明确的是排期、负责人，以及需求进入研发前的统一标准。</p></div><div class="transcript-line"><time>00:18:47</time><p>客户沟通里的问题需要沉淀到知识库，后续再由智能体生成复盘报告。</p></div></div></section>
+          <section class="note-detail-panel" data-note-panel="visual" hidden><div class="placeholder-canvas">图文摘要画布 · 展示会议图片与关键结论</div></section>
+          <section class="note-detail-panel" data-note-panel="mindmap" hidden><div class="placeholder-canvas">思维导图画布 · 产品复盘 → 问题 → 决策 → 行动</div></section>
+          <section class="note-detail-panel" data-note-panel="article" hidden><article class="note-detail-article"><h2>会议逐字稿</h2><p>这里承接完整逐字稿能力，按照发言人和时间顺序展示会议内容，并支持重点标记与编辑。</p></article></section>
+          <section class="note-detail-panel" data-note-panel="translation" hidden><div class="placeholder-canvas">实时翻译结果 · 原文与译文分栏展示</div></section>
+        </div></section>
       </div>
     </section>
 
@@ -4145,6 +4185,11 @@
     $("#view-panorama").addEventListener("click", (event) => { if (!event.target.closest("[data-meeting-action], .meeting-select-cell")) openNoteDetail(); });
     $$('[data-meeting]').forEach((row) => row.addEventListener("click", (event) => { if (!event.target.closest("[data-meeting-action], .meeting-select-cell")) openNoteDetail(row.dataset.meeting, row.dataset.meta); }));
     $("#note-detail-back").addEventListener("click", () => showMainView("home", { silent: true }));
+    $$('[data-today-schedule]').forEach((button) => button.addEventListener("click", () => openNoteDetail(button.dataset.todaySchedule, button.dataset.scheduleMeta)));
+    $("#pc-quick-capture-start")?.addEventListener("click", () => startRecording());
+    $("#pc-quick-capture-add")?.addEventListener("click", () => showToast("可从快速记录开始语音捕获，录音会自动归档到会议列表"));
+    $("#note-detail-start-recording")?.addEventListener("click", () => startRecording());
+    $("#note-detail-audio-toggle")?.addEventListener("click", (event) => { const button = event.currentTarget; button.classList.toggle("playing"); button.querySelector(".event-audio-play").textContent = button.classList.contains("playing") ? "Ⅱ" : "▶"; showToast(button.classList.contains("playing") ? "正在播放原始捕获" : "已暂停播放"); });
     $$('[data-today-action]').forEach((button) => button.addEventListener("click", () => {
       const action = button.dataset.todayAction;
       if (action === "record") return startRecording();
