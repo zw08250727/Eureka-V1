@@ -2703,7 +2703,7 @@
   <link rel="stylesheet" href="assets/aqua-clear-theme.css?v=calmai-workspace-v2" />
   <link rel="stylesheet" href="assets/workspace-sidebar.css?v=project-layout-v2" />
   <link rel="stylesheet" href="assets/meeting-workspace.css?v=ask-agent-layout-v2" />
-  <link rel="stylesheet" href="assets/today-workbench.css?v=today-workbench-v17" />
+  <link rel="stylesheet" href="assets/today-workbench.css?v=today-workbench-v18" />
   <link rel="stylesheet" href="assets/pc-capability-enhancements.css?v=pc-capabilities-v2" />
   <link rel="stylesheet" href="assets/meeting-list.css?v=meeting-list-v1" />
   <link rel="stylesheet" href="assets/meeting-detail.css?v=4" />
@@ -2792,7 +2792,7 @@
       </div>
 
       <div class="sidebar-body">
-        <nav class="nav sidebar-quick-nav" aria-label="快捷入口"><button class="nav-item active" id="home-entry" aria-current="page"><span class="nav-left"><span class="nav-icon"><svg class="icon"><use href="#ico-home"/></svg></span><span class="nav-label">首页</span></span></button><button class="nav-item personal-workspace-only" id="thoughts-entry" data-today-action="thoughts" aria-label="我的记录" title="我的记录：查看全部灵感、待办、日程与记账"><span class="nav-left"><span class="nav-icon"><svg class="icon"><use href="#ico-spark"/></svg></span><span class="nav-label">我的记录</span></span></button><button class="nav-item recording-nav-item" id="start-recording"><span class="nav-left"><span class="nav-icon"><svg class="icon"><use href="#ico-mic"/></svg></span><span class="nav-label">开始录音</span></span></button></nav>
+        <nav class="nav sidebar-quick-nav" aria-label="快捷入口"><button class="nav-item active" id="home-entry" aria-current="page"><span class="nav-left"><span class="nav-icon"><svg class="icon"><use href="#ico-home"/></svg></span><span class="nav-label">首页</span></span></button><button class="nav-item recording-nav-item" id="start-recording"><span class="nav-left"><span class="nav-icon"><svg class="icon"><use href="#ico-mic"/></svg></span><span class="nav-label">开始录音</span></span></button></nav>
         <div class="side-groups">
           <section class="side-group knowledge-group"><button class="side-group-head" data-side-toggle="knowledge-side-list" aria-expanded="true"><span class="side-group-title"><svg class="icon"><use href="#ico-book"/></svg><span class="side-group-label">知识库</span></span><svg class="icon chevron"><use href="#ico-chevron"/></svg></button><div class="side-group-list knowledge-list" id="knowledge-side-list">
             <div class="knowledge-tree-node edition-enterprise-only"><button class="tree-folder-toggle" data-tree-toggle="enterprise-file-tree" data-knowledge-folder="企业文件" aria-expanded="false"><svg class="icon tree-chevron"><use href="#ico-chevron"/></svg><svg class="icon tree-folder-icon"><use href="#ico-folder"/></svg><span class="tree-folder-name">企业文件</span><span class="tree-count">24</span></button><button class="tree-folder-more" data-folder-menu="企业文件" aria-label="企业文件操作"><svg class="icon"><use href="#ico-more"/></svg></button><div class="knowledge-tree-children hide" id="enterprise-file-tree">
@@ -2871,7 +2871,7 @@
               <h1 id="today-workbench-title">把今天记下来，让下一步更清楚。</h1>
             </div>
             <div class="today-workbench-head-side">
-              <div class="recording-command-actions"><button class="recording-primary" id="module-start-recording"><svg class="icon"><use href="#ico-mic"/></svg><span><strong>开始录音</strong><small>使用电脑麦克风</small></span></button><button class="xiaozhi-entry" id="xiaozhi-entry" aria-label="问问小智" aria-controls="xiaozhi-rail" aria-expanded="false"><span class="xiaozhi-entry-mark"><svg class="icon"><use href="#ico-spark"/></svg></span><span><strong id="xiaozhi-entry-label">问问小智</strong><small>使用会议与知识</small></span><svg class="icon xiaozhi-expand-icon"><use href="#ico-expand"/></svg></button></div><button type="button" class="today-mobile-thoughts" data-today-action="thoughts">我的记录 →</button>
+              <div class="recording-command-actions"><button class="recording-primary" id="module-start-recording"><svg class="icon"><use href="#ico-mic"/></svg><span><strong>开始录音</strong><small>使用电脑麦克风</small></span></button><button class="xiaozhi-entry" id="xiaozhi-entry" aria-label="问问小智" aria-controls="xiaozhi-rail" aria-expanded="false"><span class="xiaozhi-entry-mark"><svg class="icon"><use href="#ico-spark"/></svg></span><span><strong id="xiaozhi-entry-label">问问小智</strong><small>使用会议与知识</small></span><svg class="icon xiaozhi-expand-icon"><use href="#ico-expand"/></svg></button></div>
             </div>
           </header>
           <section class="today-workbench-content" aria-label="今日闪念概览">
@@ -3277,7 +3277,7 @@
     const setActiveSidebar = (target) => {
       $$(".side-sub-item, .nav-item, .side-group-head, .tree-folder-toggle").forEach((row) => { row.classList.remove("active"); row.removeAttribute("aria-current"); });
       [$("#recycle-bin-entry"), $("#recording-recycle-entry")].forEach((row) => { row.classList.remove("active"); row.removeAttribute("aria-current"); });
-      const activeItem = ["home", "note-detail"].includes(target) ? $("#home-entry") : target === "thoughts" ? $("#thoughts-entry") : target === "recording" ? $("#start-recording") : target === "recycle-bin" ? (activeRecycleRepository === "recording" ? $("#recording-recycle-entry") : $("#recycle-bin-entry")) : target === "contacts" ? $("[data-contacts-entry]") : target === "knowledge" ? null : $("#capability-entry");
+      const activeItem = ["home", "note-detail", "thoughts"].includes(target) ? $("#home-entry") : target === "recording" ? $("#start-recording") : target === "recycle-bin" ? (activeRecycleRepository === "recording" ? $("#recording-recycle-entry") : $("#recycle-bin-entry")) : target === "contacts" ? $("[data-contacts-entry]") : target === "knowledge" ? null : $("#capability-entry");
       if (activeItem) { activeItem.classList.add("active"); activeItem.setAttribute("aria-current", "page"); }
     };
     const showMainView = (target, options = {}) => {
@@ -4446,12 +4446,10 @@
     }, 60000);
     const renderTodayAssets = () => {
       $("#today-date-label").textContent = `${todayNow.toLocaleDateString("zh-CN", { month: "long", day: "numeric" })} · ${todayNow.toLocaleDateString("zh-CN", { weekday: "long" })}`;
-      const pending = assetsForToday(todayAssetTypes[1]).filter((record) => !record.done).length;
       const records = key => assetsForToday(todayAssetTypes.find(type => type.key === key));
       const todos = records("todo"), ideas = records("inspiration"), schedules = records("schedule");
       const amount = records("ledger").reduce((total, record) => total + record.amount, 0);
       const pendingTodos = todos.filter(record => !record.done);
-      const lead = pending === 0 ? "该推进的事已完成" : "今日提醒";
       const clockTime = `${String(todayNow.getHours()).padStart(2, "0")}:${String(todayNow.getMinutes()).padStart(2, "0")}`;
       const upcoming = schedules.find(record => record.end > clockTime);
       const nextMeeting = upcoming || schedules.at(-1);
@@ -4459,11 +4457,10 @@
       const todoText = pendingTodos.length ? `，${pendingTodos.map(record => record.time < clockTime ? `${escapeHTML(record.title)}仍待跟进` : `在<strong>${record.time} 前</strong>${escapeHTML(record.title)}`).join("，并")}` : "，待办已全部完成";
       const narrative = `${scheduleText}${todoText}。`;
       $("#today-assets-grid").innerHTML = `
-        <div class="daily-focus"><article class="daily-brief" aria-labelledby="daily-brief-title">
-          <div class="daily-brief-kicker"><span id="daily-brief-title"><i></i>${lead}</span></div>
+        <div class="daily-focus"><article class="daily-brief" aria-label="今日工作安排">
           <p class="daily-brief-narrative">${narrative}</p>
           <div class="brief-todo-line" data-asset-type="todo">${todos.map(record => `<button type="button" class="brief-task${record.done ? " is-done" : ""}" data-today-toggle="${record.id}" aria-pressed="${record.done}" title="${escapeHTML(record.title)}"><span class="brief-task-check" aria-hidden="true">${record.done ? "✓" : ""}</span><span>${escapeHTML(record.title)}</span></button>`).join("")}</div>
-          <div class="daily-brief-actions"><button type="button" class="brief-primary" data-widget-ai="brief"><svg class="icon" aria-hidden="true"><use href="#ico-spark"/></svg>帮我安排</button></div>
+          <div class="daily-brief-actions"><button type="button" class="brief-primary" data-widget-ai="brief"><svg class="icon" aria-hidden="true"><use href="#ico-spark"/></svg>帮我安排</button><button type="button" class="brief-archive" data-widget-all>全部闪念</button></div>
         </article>
         <aside class="daily-rhythm" aria-label="今天的日程"><header><h2>今日日程</h2><button type="button" data-today-category="schedule" aria-label="查看日程">${schedules.length} 场 ↗</button></header>
           <div class="daily-rhythm-events">${schedules.map(record => `<button type="button" class="rhythm-event" data-today-asset="${record.id}"><time>${record.time}–${record.end}</time><span><strong>${escapeHTML(record.title)}</strong><em>${escapeHTML(record.detail.split(" · ").slice(0, 2).join(" · "))}</em></span><span class="rhythm-arrow" aria-hidden="true">↗</span></button>`).join("") || '<p class="today-asset-empty">今天没有日程，给自己留一段专注时间。</p>'}</div>
@@ -4533,6 +4530,11 @@
     $("#thought-preview-edit").addEventListener("click", () => showToast("正在打开闪念文件编辑模式"));
     $("#thought-preview-sort").addEventListener("click", () => showToast("当前按日期倒序展示"));
     $("#today-assets-grid").addEventListener("click", (event) => {
+      if (event.target.closest("[data-widget-all]")) {
+        $("[data-meeting-view='thought']")?.click();
+        $('[data-thought-category="all"]').click();
+        return;
+      }
       const aiButton = event.target.closest("[data-widget-ai]");
       if (aiButton) {
         leaveHistorySession();
@@ -4582,7 +4584,7 @@
     let activeEnterpriseAsset = "meeting";
     const meetingViewContent = {
       my: ["我的会议", "管理录音、转写、纪要和待办"],
-      thought: ["我的记录", "按灵感、待办、记账、日程和其他五类查看月度归档"],
+      thought: ["全部闪念", "按灵感、待办、记账、日程和其他五类查看月度归档"],
       enterprise: ["企业会议", "查看企业成员共享的会议内容"]
     };
     const MEETING_PAGE_SIZE = 10;
@@ -4671,7 +4673,7 @@
       activeMeetingView = button.dataset.meetingView;
       const thoughtMode = activeMeetingView === "thought";
       setActiveSidebar(thoughtMode ? "thoughts" : "home");
-      $("#page-crumb").textContent = thoughtMode ? "我的记录" : mainViewTitles.home;
+      $("#page-crumb").textContent = thoughtMode ? "全部闪念" : mainViewTitles.home;
       if (activeMeetingView === "enterprise") activeEnterpriseAsset = "meeting";
       $$('[data-meeting-view]').forEach((item) => { const active = item === button; item.classList.toggle("active", active); if (active) item.setAttribute("aria-current", "page"); else item.removeAttribute("aria-current"); });
       const content = activeMeetingView === "enterprise" && document.body.dataset.workspace === "team"

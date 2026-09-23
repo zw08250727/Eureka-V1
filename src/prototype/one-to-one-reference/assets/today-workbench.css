@@ -23,7 +23,6 @@
   box-shadow: none;
 }
 
-.today-mobile-thoughts { display: none; }
 
 .today-workbench-head,
 .today-card-head,
@@ -175,13 +174,8 @@
 .today-assets-grid { display:grid; grid-template-columns:minmax(550px,2.5fr) minmax(220px,1fr); gap:14px; min-width:0; align-items:stretch; overflow-x:auto; padding-bottom:4px; scrollbar-width:thin; scrollbar-color:#c9d4e5 transparent; }
 .daily-focus { display:grid; grid-template-columns:minmax(290px,1.25fr) minmax(230px,1fr); min-width:0; padding:16px 0; border:1px solid #dfe7f2; border-radius:20px; background:linear-gradient(115deg,#f8fbff,#fff 70%); }
 .daily-brief { display:flex; flex-direction:column; min-width:0; padding:0 22px; color:#3d506d; }
-.daily-brief-kicker { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:5px 12px; color:#536b8b; font-size:12px; font-weight:600; line-height:20px; }
-.daily-brief-kicker>span { display:flex; align-items:center; gap:7px; }
-.daily-brief-kicker i { width:5px; height:5px; border-radius:50%; background:#639ddd; box-shadow:0 0 0 4px #639ddd12; }
 .daily-brief button,.daily-rhythm button,.daily-records button { border:0; font:inherit; background:none; cursor:pointer; }
-.daily-brief-kicker button { padding:0; color:#6d86a7; font-size:10px; font-weight:400; }
-.daily-brief-kicker button:hover { color:#2b64bb; }
-.daily-brief-narrative { max-width:64ch; margin:10px 0 0; color:#5b6d86; font-size:14px; line-height:1.7; }
+.daily-brief-narrative { max-width:64ch; margin:0; color:#5b6d86; font-size:14px; line-height:1.7; }
 .daily-brief-narrative strong { color:#304969; font-weight:600; }
 .daily-brief .brief-inline-link { padding:0; color:#3b6dad; text-decoration:underline; text-decoration-color:#b4c9e3; text-underline-offset:4px; }
 .brief-todo-line { display:flex; flex-direction:column; gap:0; margin-top:8px; }
@@ -191,8 +185,10 @@
 .brief-task:hover .brief-task-check { border-color:#6293ce; }
 .brief-task.is-done>span:nth-child(2) { text-decoration:line-through; color:#8a9ab0; }
 .brief-task.is-done .brief-task-check { color:#fff; border-color:#709bce; background:#709bce; }
-.daily-brief-actions { display:flex; align-items:center; gap:16px; margin-top:12px; padding-top:0; }
+.daily-brief-actions { display:flex; align-items:center; gap:8px; margin-top:12px; padding-top:0; }
 .daily-brief-actions .brief-primary { display:flex; align-items:center; gap:6px; min-height:32px; padding:0 12px; border-radius:8px; background:#e9f1fd; color:#3868a8; font-size:11px; font-weight:600; }
+.daily-brief-actions .brief-archive { min-height:32px; padding:0 12px; border:1px solid #dce5f1; border-radius:8px; background:#fff; color:#55749c; font-size:11px; font-weight:500; }
+.daily-brief-actions .brief-archive:hover { background:#f1f6fe; border-color:#bfd2ec; }
 .brief-primary .icon { width:13px; height:13px; }
 .daily-brief-actions .brief-primary:hover { background:#dce9fb; }
 .daily-rhythm { display:flex; flex-direction:column; min-width:0; padding:0 22px; border-left:1px solid #e5ebf4; }
@@ -229,7 +225,7 @@
   .today-workbench { gap:12px; }
   .daily-focus { padding:14px 0; }
   .daily-brief,.daily-rhythm { padding-left:18px; padding-right:18px; }
-  .daily-brief-narrative { font-size:13px; margin-top:10px; }
+  .daily-brief-narrative { font-size:13px; margin-top:0; }
   .brief-todo-line { margin-top:8px; }
   .daily-brief-actions { padding-top:0; }
   .rhythm-event { padding:12px 0; }
@@ -240,7 +236,6 @@
   .today-workbench-head { padding:0 4px; flex-wrap:wrap; gap:12px; }
   .today-workbench-head>div:first-child { flex-basis:100%; }
   .today-workbench-head-side { width:100%; display:flex; align-items:center; gap:12px; }
-  .today-mobile-thoughts { display:inline-flex; align-items:center; padding:6px 0; border:0; background:none; color:#55749c; font-size:11px; white-space:nowrap; cursor:pointer; }
   .today-workbench-head h1 { margin-top:6px; font-size:21px; line-height:28px; }
   .today-workbench-head-side .recording-command-actions button { height:34px; min-height:34px; padding:0 10px; }
   .today-assets-grid { grid-template-columns:550px 230px; gap:12px; }

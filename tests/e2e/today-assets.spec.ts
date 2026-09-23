@@ -2,20 +2,17 @@ import { expect, test } from "@playwright/test";
 
 test.use({ channel: process.env.PLAYWRIGHT_CHANNEL || undefined, timezoneId: "Asia/Shanghai" });
 
-test("thoughts archive is reachable from sidebar across views and when collapsed", async ({ page }) => {
+test("all thoughts opens beside the Agent action without a sidebar entry", async ({ page }) => {
   await page.goto("/prototype/one-to-one-reference/team-only-app.html?edition=personal&personal=1");
-  await expect(page.locator(".today-content-head")).toHaveCount(0);
-  await page.locator("[data-contacts-entry]").click();
-  await page.locator("#thoughts-entry").click();
+  await expect(page.locator("#thoughts-entry, #daily-brief-title")).toHaveCount(0);
+  await expect(page.locator('.daily-brief-actions button')).toHaveText(['帮我安排', '全部闪念']);
+  await page.getByRole('button', { name:'全部闪念', exact:true }).click();
   await expect(page.locator("#thought-workspace")).toBeVisible();
-  await expect(page.locator("#thoughts-entry")).toHaveAttribute("aria-current", "page");
-  await expect(page.locator("#page-crumb")).toHaveText("我的记录");
+  await expect(page.locator('[data-thought-category="all"]')).toHaveAttribute('aria-current', 'true');
+  await expect(page.locator("#page-crumb")).toHaveText("全部闪念");
   await page.locator("#home-entry").click();
-  await expect(page.locator("#today-workbench")).toBeVisible();
-  await expect(page.locator("#thoughts-entry")).not.toHaveAttribute("aria-current", "page");
   await page.locator(".collapse-btn").click();
-  await expect(page.locator("#thoughts-entry .nav-label")).toBeHidden();
-  await page.locator("#thoughts-entry").click();
+  await page.getByRole('button', { name:'全部闪念', exact:true }).click();
   await expect(page.locator("#thought-workspace")).toBeVisible();
 });
 
@@ -45,7 +42,7 @@ test("daily brief connects today records, updates suggestions and opens source a
   await expect(page.locator(".daily-rhythm")).toHaveCount(1);
   await expect(page.locator('.rhythm-event time').first()).toHaveText("14:00–14:45");
   await expect(page.locator('.rhythm-event time').last()).toHaveText("16:30–17:00");
-  await expect(page.locator('.daily-brief [data-widget-all], .brief-todo-link')).toHaveCount(0);
+  await expect(page.locator('.brief-todo-link')).toHaveCount(0);
   await expect(page.locator(".today-asset-card")).toHaveCount(0);
   await expect(page.locator("#today-date-label")).toContainText("9月23日");
   await expect(page.locator(".daily-brief-narrative")).toContainText("15:00 前发送修订后的合作方案");
@@ -81,7 +78,7 @@ test("compact today overview leaves meetings visible on desktop", async ({ page 
   expect(overview!.width).toBeLessThanOrEqual(390);
   expect(overview!.height).toBeLessThan(480);
   await expect(page.locator('[data-today-category="other"]')).toHaveCount(0);
-  await page.locator('.today-mobile-thoughts').click();
+  await page.locator('[data-widget-all]').click();
   await page.locator('[data-thought-category="other"]').click();
   await expect(page.locator('[data-thought-category="other"]')).toHaveAttribute("aria-current", "true");
 });
@@ -89,7 +86,7 @@ test("compact today overview leaves meetings visible on desktop", async ({ page 
 
 test("widgets open the full archive and bring today's context into Agent drafts", async ({ page }) => {
   await page.goto("/prototype/one-to-one-reference/team-only-app.html?edition=personal&personal=1");
-  await page.getByRole("button", { name: "我的记录", exact: true }).click();
+  await page.getByRole("button", { name: "全部闪念", exact: true }).click();
   await expect(page.locator("#thought-workspace")).toBeVisible();
   await expect(page.locator('[data-thought-category="all"]')).toHaveAttribute("aria-current", "true");
   await expect(page.locator("#thought-file-list")).toContainText("客户资料领取信息");
@@ -124,5 +121,5 @@ test("daily brief exposes its sources and carries all context into Agent", async
   await page.locator("#xiaozhi-collapse").click();
   await page.locator('[data-today-toggle="todo-1"]').click();
   await page.locator('[data-today-toggle="todo-2"]').click();
-  await expect(page.locator("#daily-brief-title")).toContainText("该推进的事已完成");
+  await expect(page.locator(".daily-brief-narrative")).toContainText("待办已全部完成");
 });
