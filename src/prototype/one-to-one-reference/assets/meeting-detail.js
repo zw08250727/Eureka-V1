@@ -43,6 +43,8 @@
   let saved = {};
   try { const value = JSON.parse(localStorage.getItem(storageKey) || '{}'); if (value && typeof value === 'object' && !Array.isArray(value)) saved = value; } catch { /* Start in memory if storage is unavailable. */ }
   const records = new Map();
+  const editDrafts = new Map();
+  const editKey = () => `${current.id}/${activeTab}`;
   let current, activeTab = 'summary', expanded = false, score = 0, query = '', mapZoom = 1;
   const audioUrl = new URL('assets/meeting-demo.wav', document.baseURI).href;
   const audio = new Audio();
@@ -129,6 +131,8 @@
     const r = current;
     $$('[data-md-tab]').forEach(b => { b.setAttribute('aria-selected', String(b.dataset.mdTab === activeTab)); b.tabIndex = b.dataset.mdTab === activeTab ? 0 : -1; });
     const target = $('#md-content'); target.setAttribute('aria-labelledby',`md-tab-${activeTab}`);
+    const draft = editDrafts.get(editKey());
+    if (draft) { renderInlineEditor(target, draft); return; }
     if (activeTab === 'summary') {
       target.innerHTML = `<div class="md-panel-tools"><small>内容由AI生成，仅供参考</small><div><span>当前使用模板：</span>${btn('template',`${esc(r.template)} ›`,'md-template-button')}${btn('edit',`${icon('edit')} 编辑`)}</div></div><div class="md-prose">${r.summaryHtml ? cleanHtml(r.summaryHtml) : esc(r.summary)}</div><p class="md-edited">${icon('clock')} 最后编辑：${esc(r.updated || `${r.date} 15:06`)}</p><section class="md-feedback"><div class="md-feedback-head"><span class="md-feedback-mark">${icon('spark')}</span><div><h3>欢迎评价本次结果，下次更懂你 <span class="md-reward">✦ 奖励500积分</span></h3><p>${r.feedback ? `已记录你的 ${r.feedback} 分评价，感谢反馈。` : '提交评分反馈，帮助优化会议总结。'} <span class="md-demo">演示反馈 · 不发放真实积分</span></p></div></div><div class="md-feedback-bottom">${Array.from({length:10},(_,i) => `<button type="button" class="md-score" data-md-score="${i+1}" aria-pressed="${score === i+1}" aria-label="评分 ${i+1}">${i+1}</button>`).join('')}${btn('feedback',r.feedback ? '更新反馈':'提交反馈','md-btn md-primary',score ? '':'disabled')}</div></section>`;
     } else if (activeTab === 'transcript' || activeTab === 'translation') {
@@ -206,20 +210,27 @@
     return `【${current.template}】\n\n${base}\n\n行动项\n1. 产品：补齐方案与验收标准。\n2. 研发：确认实施排期与技术依赖。\n3. 客户成功：汇总试用反馈。${current.detail === '详细' ? '\n\n风险与待确认\n需求范围与资源投入需要进一步核对；下次评审确认验收口径。\n\n后续安排\n会前同步方案，会中核对分工，会后检查行动项。':''}`;
   }
   function editor() {
-    if (activeTab === 'verbatim' && !current.verbatim) current.verbatim = transcriptText();
-    save();
-    const editorUrl = new URL('meeting-editor.html',document.baseURI);
-    editorUrl.searchParams.set('meeting',current.id); editorUrl.searchParams.set('type',activeTab);
-    const child = window.open(editorUrl.href,'_blank');
-    if (child) child.opener = null;
-    else editorFallback();
+    const field = activeTab === 'verbatim' ? 'verbatim' : 'summary';
+    const html = current[`${field}Html`] ? cleanHtml(current[`${field}Html`]) : esc(current[field] || (field === 'verbatim' ? transcriptText() : ''));
+    editDrafts.set(editKey(), { html });
+    panel();
+    $('#md-edit-body').focus({ preventScroll:true });
   }
-  function editorFallback() {
-    const tab = activeTab;
-    modal('编辑会议内容','选中文字使用格式工具 · Ctrl/Cmd+Z 撤销 · 保存后同步到会议详情',`<div class="md-editor-layout"><section class="md-editor-doc"><div class="md-editor-toolbar">${[['undo','↶ 撤销'],['redo','↷ 重做'],['bold','B'],['italic','I'],['underline','U'],['insertUnorderedList','• 列表']].map(([cmd,text]) => btn('format',text,'',`data-command="${cmd}" aria-label="${{bold:'加粗',italic:'斜体',underline:'下划线'}[cmd] || text}"`)).join('')}${btn('format','清除格式','',`data-command="removeFormat"`)}</div><div class="md-editor-paper"><input id="md-edit-title" aria-label="编辑标题" maxlength="120" value="${esc(current.title)}"><div id="md-edit-body" class="md-editable" contenteditable="true" role="textbox" aria-label="编辑正文" aria-multiline="true">${tab === 'verbatim' ? (current.verbatimHtml ? cleanHtml(current.verbatimHtml) : esc(current.verbatim || transcriptText())) : (current.summaryHtml ? cleanHtml(current.summaryHtml) : esc(current.summary))}</div></div></section><aside class="md-editor-assistant"><h3>百智 AI 写作助手</h3><p class="md-notice">当前引用：${esc(current.title)}.md<br>演示模式 · 可生成本地行动项建议。</p><textarea id="md-ai-instruction" placeholder="向 AI 提问" aria-label="向 AI 提问"></textarea>${btn('editor-ai','整理行动项','md-btn md-primary')}<div id="md-ai-answer" class="md-prose"></div></aside></div>`,btn('dismiss','取消')+btn('save-editor','保存','md-btn md-primary',`data-target="${tab}"`),'md-editor-dialog');
-    // Preserve the text selection while toolbar buttons receive pointer input.
-    $('.md-editor-toolbar',dialog).addEventListener('mousedown',e => e.preventDefault());
-    $('#md-edit-body',dialog).addEventListener('paste',e => { e.preventDefault(); document.execCommand('insertText',false,e.clipboardData.getData('text/plain')); });
+  function renderInlineEditor(target, draft) {
+    target.innerHTML = `<div class="md-panel-tools md-inline-edit-tools"><small>正在编辑</small><div>${btn('exit-edit','退出编辑')}${btn('save-inline','保存','md-btn md-primary')}</div></div><div class="md-inline-editor"><div class="md-editor-toolbar" role="toolbar" aria-label="正文格式">${[['undo','↶ 撤销'],['redo','↷ 重做'],['bold','B'],['italic','I'],['underline','U'],['insertUnorderedList','• 列表'],['removeFormat','清除格式']].map(([cmd,text]) => btn('inline-format',text,'',`data-command="${cmd}" aria-label="${{bold:'加粗',italic:'斜体',underline:'下划线'}[cmd] || text}"`)).join('')}</div><div id="md-edit-body" class="md-prose md-inline-editable" contenteditable="true" role="textbox" aria-label="编辑正文" aria-multiline="true">${cleanHtml(draft.html)}</div><p class="md-inline-edit-status" role="status"></p></div>`;
+    $('.md-editor-toolbar',target).addEventListener('mousedown', event => event.preventDefault());
+    $('#md-edit-body',target).addEventListener('input', event => { draft.html = event.currentTarget.innerHTML; });
+    $('#md-edit-body',target).addEventListener('paste', event => { event.preventDefault(); document.execCommand('insertText',false,event.clipboardData.getData('text/plain')); });
+  }
+  function saveInlineEdit() {
+    const body = $('#md-edit-body');
+    if (!body?.innerText.trim()) { $('.md-inline-edit-status').textContent = '正文不能为空'; body?.focus(); return; }
+    const field = activeTab === 'verbatim' ? 'verbatim' : 'summary';
+    current[field] = body.innerText.trim();
+    current[`${field}Html`] = cleanHtml(body.innerHTML);
+    current.updated = new Date().toLocaleString('zh-CN',{hour12:false});
+    save(); editDrafts.delete(editKey()); panel();
+    $('[data-md-action="edit"]').focus({ preventScroll:true });
   }
   let exportChoice = 'summary';
   function exportModal() {
@@ -298,18 +309,6 @@
       current.template = templateChoice; current.language = $('#md-language',dialog).value; current.detail = $('#md-detail',dialog).value;
       current.summary = regeneratedSummary(); current.summaryHtml = '';  current.updated = new Date().toLocaleString('zh-CN',{hour12:false}); save(); dismiss(); panel(); toast('已按所选配置生成演示总结'); return;
     }
-    if (action === 'format') { document.execCommand(b.dataset.command,false); return; }
-    if (action === 'editor-ai') {
-      $('#md-ai-answer',dialog).innerHTML = `<p>演示建议</p><p>• 产品侧补齐方案与验收标准。<br>• 研发确认排期与技术依赖。<br>• 客户成功汇总试用反馈。</p>${btn('insert-ai','插入到正文')}`; return;
-    }
-    if (action === 'insert-ai') { $('#md-edit-body',dialog).append(document.createTextNode('\n\n行动项\n产品：补齐方案与验收标准。\n研发：确认排期与技术依赖。\n客户成功：汇总试用反馈。')); return; }
-    if (action === 'save-editor') {
-      const title = $('#md-edit-title',dialog).value.trim(), body = $('#md-edit-body',dialog).innerText.trim();
-      if (!title || !body) return error('标题和正文不能为空');
-      current.title = title; const field = b.dataset.target === 'verbatim' ? 'verbatim':'summary'; current[field] = body; current[`${field}Html`] = cleanHtml($('#md-edit-body',dialog).innerHTML);
-      current.updated = new Date().toLocaleString('zh-CN',{hour12:false}); save(); dismiss(); render(); toast('修改已保存'); return;
-    }
-    if (action === 'export') return exportModal();
     if (action === 'export-next') { exportChoice = $('[name=md-export]:checked',dialog).value; return exportFormats(); }
     if (action === 'download') return exportDownload();
     if (action === 'share') return shareModal();
@@ -352,6 +351,9 @@
     if (action === 'rewind' || action === 'forward') { audio.currentTime = Math.max(0,Math.min(audio.duration || 0,audio.currentTime+(action === 'rewind' ? -15:15))); return; }
     if (action === 'template') return templateModal();
     if (action === 'edit') return editor();
+    if (action === 'exit-edit') { editDrafts.delete(editKey()); panel(); $('[data-md-action="edit"]').focus({ preventScroll:true }); return; }
+    if (action === 'save-inline') return saveInlineEdit();
+    if (action === 'inline-format') { document.execCommand(b.dataset.command,false); editDrafts.get(editKey()).html = $('#md-edit-body').innerHTML; return; }
     if (action === 'copy') return copy(currentText());
     if (action === 'feedback') { current.feedback = score; save(); panel(); toast('评价已保存在本地演示中'); return; }
     if (action === 'generate') { current.generated[activeTab] = true; save(); panel(); return; }

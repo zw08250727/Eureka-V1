@@ -173,3 +173,13 @@
 .md-top-actions .md-delete-btn:hover { color:#b63b44; border-color:#edc9cc; background:#fff5f5; }
 .md-top-actions [data-md-action="close"] { margin-left:auto; }
 @media(max-width:800px) { .md-top-actions { gap:6px; } .md-top-actions .md-btn { padding:8px 10px; } }
+
+/* Edit the document in its existing content pane. */
+.md-inline-edit-tools { position:sticky; top:48px; z-index:2; padding:12px 0; background:#fff; }
+.md-inline-editor { border:1px solid #dce5f2; border-radius:10px; padding:0 16px; background:#fcfdff; }
+.md-inline-editor .md-editor-toolbar { gap:4px; padding:8px 0; }
+.md-inline-editor .md-editor-toolbar button:hover { color:#3868b2; background:#edf3ff; }
+.md-inline-editable { min-height:220px; padding:16px 0; outline:none; }
+.md-inline-editable:focus { outline:none; }
+.md-inline-editor:focus-within { border-color:#8eaddd; box-shadow:0 0 0 2px #eaf1fb; }
+.md-inline-edit-status { min-height:18px; margin:0; color:#b75454; font-size:11px; }
