@@ -76,7 +76,33 @@ test("compact today overview leaves meetings visible on desktop", async ({ page 
   expect(overview!.width).toBeLessThanOrEqual(390);
   expect(overview!.height).toBeLessThan(480);
   await expect(page.locator('[data-today-category="other"]')).toHaveCount(0);
-  await page.locator('[data-today-action="thoughts"]:visible').click();
+  await page.locator('[data-widget-all]').click();
   await page.locator('[data-thought-category="other"]').click();
   await expect(page.locator('[data-thought-category="other"]')).toHaveAttribute("aria-current", "true");
+});
+
+
+test("widgets open the full archive and bring today's context into Agent drafts", async ({ page }) => {
+  await page.goto("/prototype/one-to-one-reference/team-only-app.html?edition=personal&personal=1");
+  await page.getByRole("button", { name: "查看全部闪念列表" }).click();
+  await expect(page.locator("#thought-workspace")).toBeVisible();
+  await expect(page.locator('[data-thought-category="all"]')).toHaveAttribute("aria-current", "true");
+  await expect(page.locator("#thought-file-list")).toContainText("客户资料领取信息");
+  await expect(page.locator("#thought-file-list")).toContainText("发送修订后的合作方案");
+  await page.locator("#thought-file-search").fill("给产品演示");
+  await expect(page.locator("[data-thought-record]")).toHaveCount(1);
+  await page.locator("[data-thought-record]").click();
+  await expect(page.locator("#thought-preview")).toBeVisible();
+  await page.locator("#home-entry").click();
+  for (const [type, content] of [["schedule", "产品方案评审"], ["todo", "发送修订后的合作方案"], ["inspiration", "给产品演示增加真实客户场景"]]) {
+    await page.locator(`[data-widget-ai="${type}"]`).click();
+    await expect(page.locator("#xiaozhi-rail")).toBeVisible();
+    await expect(page.locator("#xiaozhi-input")).toHaveValue(new RegExp(content));
+    await expect(page.locator("#xiaozhi-input")).not.toHaveValue(/昨天的灵感|明日提交周报/);
+    await expect(page.locator("#xiaozhi-send")).toBeEnabled();
+    await page.locator("#xiaozhi-send").click();
+    await expect(page.locator("#widget-agent-result")).toContainText(content);
+    await expect(page.locator("#widget-agent-result")).toContainText("演示建议");
+    await page.locator("#xiaozhi-collapse").click();
+  }
 });
