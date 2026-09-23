@@ -38,21 +38,23 @@ test("reminder heading rotates without repeats and stays stable during todo upda
   await expect(heading).not.toHaveText(third!);
 });
 
-test("today assets cover four overview types, filter by business date, and open their archives", async ({ page }) => {
+test("daily brief connects today records, updates suggestions and opens source archives", async ({ page }) => {
   await page.clock.install({ time: new Date("2026-09-23T04:00:00Z") });
   await page.goto("/prototype/one-to-one-reference/team-only-app.html?edition=personal&personal=1");
-  await expect(page.locator(".today-asset-card")).toHaveCount(4);
+  await expect(page.locator(".daily-brief")).toHaveCount(1);
+  await expect(page.locator(".daily-rhythm")).toHaveCount(1);
+  await expect(page.locator(".today-asset-card")).toHaveCount(0);
   await expect(page.locator("#today-date-label")).toContainText("9月23日");
-  await expect(page.locator("#today-assets-summary")).toContainText("今天有 2 场日程，2 项待办等你推进。");
+  await expect(page.locator(".daily-brief-narrative")).toContainText("15:00 前发送修订后的合作方案");
   await expect(page.locator("#today-assets-source")).toHaveCount(0);
-  await expect(page.locator("[data-asset-type=ledger] .today-asset-caption")).toContainText("¥248.00");
+  await expect(page.locator(".daily-ledger-total")).toContainText("¥248.00");
   await expect(page.locator("#today-assets-grid")).not.toContainText("昨天的灵感");
   await expect(page.locator("#today-assets-grid")).not.toContainText("明日提交周报");
   await page.locator('[data-today-toggle="todo-1"]').click();
-  await expect(page.locator("#today-assets-summary")).toContainText("1 项待办等你推进");
+  await expect(page.locator(".daily-brief-narrative")).not.toContainText("15:00 前发送修订后的合作方案");
   await expect(page.locator('[data-today-toggle="todo-1"]')).toHaveAttribute("aria-pressed", "true");
   await page.locator('[data-today-toggle="todo-1"]').click();
-  await expect(page.locator("#today-assets-summary")).toContainText("2 项待办等你推进");
+  await expect(page.locator(".daily-brief-narrative")).toContainText("15:00 前发送修订后的合作方案");
   for (const key of ["inspiration", "todo", "ledger", "schedule"]) {
     await page.locator(`[data-today-category="${key}"]`).click();
     await expect(page.locator(`[data-thought-category="${key}"]`)).toHaveAttribute("aria-current", "true");
@@ -105,4 +107,26 @@ test("widgets open the full archive and bring today's context into Agent drafts"
     await expect(page.locator("#widget-agent-result")).toContainText("演示建议");
     await page.locator("#xiaozhi-collapse").click();
   }
+});
+
+
+test("daily brief exposes its sources and carries all context into Agent", async ({ page }) => {
+  await page.clock.install({ time: new Date("2026-09-23T12:00:00Z") });
+  await page.goto("/prototype/one-to-one-reference/team-only-app.html?edition=personal&personal=1");
+  await expect(page.locator(".daily-brief-narrative")).toContainText("可以回顾");
+  await expect(page.locator(".daily-brief-narrative")).toContainText("仍待跟进");
+  await page.locator('[data-daily-brief]').click();
+  await expect(page.locator(".brief-detail")).toContainText("客户拜访交通");
+  await expect(page.locator(".brief-detail")).toContainText("产品方案评审");
+  await expect(page.locator(".brief-detail")).toContainText("发送修订后的合作方案");
+  await expect(page.locator(".brief-detail")).toContainText("给产品演示增加真实客户场景");
+  await page.locator("#brief-continue").click();
+  await expect(page.locator("#xiaozhi-input")).toHaveValue(/客户拜访交通/);
+  await expect(page.locator("#xiaozhi-input")).toHaveValue(/产品方案评审/);
+  await page.locator("#xiaozhi-send").click();
+  await expect(page.locator("#widget-agent-result")).toContainText("把今天的记录连成下一步");
+  await page.locator("#xiaozhi-collapse").click();
+  await page.locator('[data-today-toggle="todo-1"]').click();
+  await page.locator('[data-today-toggle="todo-2"]').click();
+  await expect(page.locator("#daily-brief-title")).toContainText("该推进的事已完成");
 });

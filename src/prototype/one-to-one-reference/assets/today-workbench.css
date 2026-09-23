@@ -167,78 +167,64 @@
 .today-workbench-meta span { color: #536d94; font-weight: 600; }
 .today-workbench-meta small { color: #9aa7b9; font-size: 9px; }
 
-/* Personal widgets: two tall planners, a wide idea note and two compact tiles. */
+/* A contextual brief connects the day; supporting records stay distinct. */
 .today-workbench-head > div:first-child { flex: 1; min-width: 0; }
 .today-workbench-head h1 { font-size: clamp(21px, 1.9vw, 26px); line-height: 1.35; text-wrap: balance; }
 .today-workbench-eyebrow { font-size: 11px; letter-spacing: .02em; }
 .today-workbench-content { padding:0; border-radius:0; background:transparent; box-shadow:none; }
-.today-assets-grid { display:grid; grid-template-columns:minmax(195px,1fr) minmax(195px,1fr) minmax(165px,.9fr) minmax(165px,.9fr); grid-template-rows:128px 112px; gap:12px; min-width:0; overflow-x:auto; padding:2px 2px 8px; scrollbar-width:thin; scrollbar-color:#c9d4e5 transparent; }
-.today-asset-card { min-width:0; padding:17px 18px; border:1px solid rgba(210,221,236,.65); border-radius:18px; background:#fff; box-shadow:0 3px 9px #34527c04; display:flex; flex-direction:column; position:relative; overflow:hidden; }
-.today-asset-card header { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:22px; margin-bottom:13px; }
-.today-asset-card h2 { display:flex; align-items:center; gap:7px; margin:0; color:#3d4b61; font-size:12px; font-weight:600; line-height:20px; white-space:nowrap; }
-.widget-type-mark { display:grid; place-items:center; }
-.widget-type-mark .icon { width:14px; height:14px; color:#6c87b1; }
-.today-asset-more { display:inline-flex; align-items:center; gap:7px; padding:3px 0 3px 4px; border:0; border-radius:4px; color:#8a97aa; background:transparent; cursor:pointer; font:10px var(--font); white-space:nowrap; }
-.today-asset-more:hover { color:#3267b4; }
-.today-asset-row { display:flex; align-items:center; gap:9px; width:100%; min-width:0; padding:0; border:0; border-radius:5px; background:transparent; text-align:left; font:inherit; cursor:pointer; }
-.today-asset-row:hover { background:#c6d8f21c; }
-.today-asset-row>span:last-child { min-width:0; flex:1; }
-.today-asset-row small { display:block; color:#7d8ba1; font-size:10px; line-height:17px; font-variant-numeric:tabular-nums; }
-.today-asset-row strong { display:block; color:#33445e; font-size:12px; font-weight:550; line-height:22px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
-.today-asset-row em { display:block; color:#8c98a9; font-size:10px; line-height:17px; font-style:normal; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
-.widget-schedule { grid-column:1; grid-row:1 / 3; background:linear-gradient(155deg,#f7faff,#fff 70%); }
-.widget-todo { grid-column:2; grid-row:1 / 3; background:linear-gradient(160deg,#f7fbf9,#fff 75%); }
-.widget-schedule .today-asset-rows,.widget-todo .today-asset-rows { display:grid; gap:15px; }
-.widget-schedule .today-asset-rows { border-left:1px solid #dce5f3; margin-left:3px; padding-left:13px; }
-.widget-schedule .today-asset-row { position:relative; }
-.widget-schedule .today-asset-row::before { content:""; width:6px; height:6px; position:absolute; top:6px; left:-17px; border-radius:50%; background:#7b9fcf; box-shadow:0 0 0 3px #f8fbff; }
-.widget-todo .widget-type-mark .icon { color:#6f9b89; }
-.widget-todo .today-asset-row { min-height:53px; }
-.today-check { display:grid; place-items:center; flex-shrink:0; width:17px; height:17px; border:1.5px solid #c6d8d0; border-radius:6px; color:#fff; font-size:10px; }
-.today-asset-row.is-done .today-check { background:#6b9d87; border-color:#6b9d87; }
-.today-asset-row.is-done strong { text-decoration:line-through; color:#9ba8a1; }
-.widget-ai-action { display:flex; align-items:center; justify-content:space-between; gap:6px; margin-top:auto; width:100%; padding:8px 9px; border:0; border-radius:8px; color:#587bab; background:#eef4fc; font:11px var(--font); cursor:pointer; text-align:left; }
-.widget-ai-action .icon { width:12px; height:12px; flex-shrink:0; }
-.widget-ai-action span:first-of-type { flex:1; }
-.widget-ai-action:hover { color:#2d65bc; }
-.widget-todo .widget-ai-action { color:#638875; background:#eef5f0; }
-.widget-inspiration { grid-column:3 / 5; grid-row:1; padding:13px 17px; background:#fcfaf5; border-color:#eee7d9; }
-.widget-inspiration header { margin-bottom:3px; }
-.widget-inspiration h2 { color:#8b7b58; }
-.widget-inspiration .widget-type-mark .icon { color:#ad986b; }
-.widget-inspiration .today-asset-rows { display:grid; gap:2px; }
-.widget-inspiration .today-asset-row>span { display:flex; flex-direction:row-reverse; align-items:baseline; justify-content:space-between; gap:14px; }
-.widget-inspiration .today-asset-row small { color:#a39780; flex-shrink:0; font-size:9px; }
-.widget-inspiration .today-asset-row strong { color:#5d594f; font-weight:500; font-size:11px; line-height:20px; }
-.widget-idea-action { display:flex; align-items:center; gap:5px; padding:4px 0 0; border:0; background:transparent; color:#a08b60; font:9px var(--font); cursor:pointer; }
-.widget-idea-action .icon { width:10px; height:10px; }
-.widget-idea-action:hover { color:#766239; }
-.widget-ledger { grid-column:3; grid-row:2; padding:12px 15px; background:#f8f9fd; border-color:#e5e7f1; }
-.widget-ledger header { margin-bottom:2px; }
-.widget-ledger h2 { font-size:11px; color:#6d738c; }
-.widget-ledger .widget-type-mark .icon { width:12px; height:12px; color:#969aba; }
-.today-asset-caption { display:flex; gap:8px; align-items:baseline; margin:0; }
-.today-asset-caption b { font-size:24px; line-height:32px; font-weight:550; letter-spacing:-.045em; font-variant-numeric:tabular-nums; color:#4c566d; }
-.today-asset-caption>span { font-size:9px; color:#a0a5b4; white-space:nowrap; }
-.widget-ledger-categories { display:flex; flex-wrap:wrap; gap:3px 10px; }
-.widget-ledger-categories button { padding:0; background:transparent; border:0; font:9px var(--font); color:#9299a8; cursor:pointer; }
-.widget-ledger-categories button:hover { color:#486ca2; }
-.widget-ledger-categories span { color:#77839a; }
-.widget-archive { grid-column:4; grid-row:2; padding:13px 16px; min-width:0; display:flex; flex-direction:column; align-items:flex-start; border:1px solid #dbe7f5; border-radius:18px; background:linear-gradient(115deg,#edf4fc,#eaf3ff); color:#375278; box-shadow:inset 0 1px 0 #ffffffb3; cursor:pointer; text-align:left; font:inherit; position:relative; overflow:hidden; transition:border-color .2s,background .2s; }
-.widget-archive:hover { border-color:#9cbbe4; background:#e4efff; }
-.widget-archive-top { display:flex; width:100%; align-items:center; justify-content:space-between; margin-bottom:8px; height:23px; }
-.widget-archive-arrow { font-size:16px; color:#809aba; transition:transform .2s; }
-.widget-archive:hover .widget-archive-arrow { transform:translate(2px,-2px); }
-.widget-stack { position:relative; width:28px; height:24px; }
-.widget-stack i { position:absolute; width:19px; height:22px; background:#fff; border:1px solid #c6d7ee; border-radius:5px; transform:rotate(-15deg); left:0; top:0; }
-.widget-stack i:nth-child(2) { left:4px; transform:rotate(-5deg); }
-.widget-stack i:last-child { left:8px; transform:rotate(7deg); display:grid; place-items:center; background:#f7fbff; }
-.widget-stack .icon { width:12px; height:12px; color:#6d95c9; }
-.widget-archive strong { font-size:13px; font-weight:600; line-height:22px; }
-.widget-archive-caption { font-size:9px; color:#8b9fb8; line-height:18px; white-space:nowrap; }
-.today-asset-empty { font-size:11px; color:#9ba5b4; }
-.today-assets-grid:focus-visible,.today-assets-grid button:focus-visible { outline:2px solid #80a7ed; outline-offset:-2px; }
+.today-assets-grid { display:grid; grid-template-columns:minmax(360px,1.65fr) minmax(260px,1fr); gap:16px; min-width:0; overflow-x:auto; padding:0 0 4px; scrollbar-width:thin; scrollbar-color:#c9d4e5 transparent; }
+.daily-brief { display:flex; flex-direction:column; min-width:0; padding:22px 26px 18px; border-radius:22px; background:linear-gradient(125deg,#20252d,#2e3540); color:#fff; }
+.daily-brief-kicker { display:flex; align-items:center; justify-content:space-between; gap:12px; color:#c0c6d0; font-size:11px; line-height:20px; }
+.daily-brief-kicker>span { display:flex; align-items:center; gap:7px; }
+.daily-brief-kicker i { width:5px; height:5px; border-radius:50%; background:#a7d4c6; box-shadow:0 0 0 4px #a7d4c612; }
+.daily-brief button { border:0; font:inherit; cursor:pointer; }
+.daily-brief-kicker button { padding:0; background:none; color:#c0c6d0; font-size:10px; }
+.daily-brief-narrative { max-width:64ch; margin:0; color:#bdc5d0; font-size:13px; line-height:1.85; }
+.daily-brief-narrative strong { color:#e8ecf2; font-weight:550; }
+.daily-brief .brief-inline-link { padding:0; background:none; color:#e6eaf1; text-decoration:underline; text-decoration-color:#6f7987; text-underline-offset:4px; }
+.daily-brief-actions { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin:16px 0; }
+.daily-brief-actions .brief-primary { display:flex; align-items:center; gap:18px; min-height:34px; padding:0 13px; border-radius:8px; background:#f9fafb; color:#252b34; font-size:11px; font-weight:600; }
+.daily-brief-actions .brief-primary:hover { background:#dce8f5; }
+.daily-brief-actions .brief-secondary { padding:5px 0; color:#c5cbd5; background:transparent; font-size:11px; }
+.daily-brief .brief-secondary:hover,.daily-brief-kicker button:hover { color:#fff; }
+.brief-task { display:flex; align-items:center; gap:9px; width:100%; padding:5px 0; color:#e1e6ed; background:none; text-align:left; font-size:11px!important; line-height:18px!important; }
+.brief-task>span:nth-child(2) { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.brief-task-check { display:grid; place-items:center; width:13px; height:13px; flex-shrink:0; border:1px solid #707f90; border-radius:50%; font-size:8px; }
+.brief-task time { color:#aab5c3; font-size:10px; white-space:nowrap; font-variant-numeric:tabular-nums; }
+.brief-task.is-done>span:nth-child(2) { text-decoration:line-through; color:#96a5b4; }
+.brief-task.is-done .brief-task-check { color:#253c35; border-color:#a4cbbb; background:#a4cbbb; }
+.daily-rhythm { display:flex; flex-direction:column; padding:22px 23px 18px; border:1px solid #e2e7ee; border-radius:22px; background:#ffffffc9; }
+.daily-rhythm header { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.daily-rhythm h2 { margin:0; color:#2d3745; font-size:16px; font-weight:600; }
+.daily-rhythm button { border:0; font:inherit; background:none; cursor:pointer; }
+.daily-rhythm header button { padding:0; color:#8491a2; font-size:10px; }
+.daily-rhythm-events { flex:1; padding-top:10px; }
+.rhythm-event { display:grid; grid-template-columns:40px minmax(0,1fr) 12px; gap:10px; align-items:start; width:100%; padding:15px 0; text-align:left; }
+.rhythm-event+.rhythm-event { border-top:1px solid #e9edf2; }
+.rhythm-event time { color:#7c8a9c; font-size:11px; line-height:20px; font-variant-numeric:tabular-nums; }
+.rhythm-event strong { display:block; color:#354359; font-size:13px; font-weight:600; line-height:20px; }
+.rhythm-event small { display:block; margin-top:5px; color:#667990; font-size:11px; line-height:18px; }
+.rhythm-event em { display:block; margin-top:4px; color:#94a0af; font-size:10px; line-height:17px; font-style:normal; }
+.rhythm-arrow { color:#b1bccb; font-size:12px; line-height:20px; }
+.rhythm-event:hover strong { color:#2e65ab; }
+.daily-rhythm .rhythm-prepare { display:flex; justify-content:space-between; width:100%; margin-top:10px; padding:10px 0 0; border-top:1px solid #e9edf2; color:#48719e; text-align:left; font-size:11px; }
+.today-assets-grid button:focus-visible { outline:2px solid #80a7ed; outline-offset:3px; }
 .today-workbench[hidden] { display:none!important; }
+.brief-detail { color:#4f6078; line-height:1.8; }
+.brief-detail h2 { color:#263449; font-size:22px; line-height:1.5; }
+.brief-detail-date,.brief-detail>small { color:#8a98a9; font-size:11px; }
+.brief-detail-section { margin-top:24px; }
+.brief-detail-section h3 { margin:0 0 10px; font-size:13px; color:#6a7b93; }
+.brief-detail-section>div { border-top:1px solid #e8edf3; padding:10px 0; }
+.brief-detail-section time { display:block; color:#8a98a9; font-size:11px; }
+.brief-detail-section strong { color:#34475e; font-size:13px; }
+.brief-detail-section p { margin:3px 0; font-size:12px; }
+@media(max-height:800px) and (min-width:761px) {
+  .today-workbench { gap:16px; }
+  .daily-brief,.daily-rhythm { padding-top:16px; padding-bottom:14px; }
+  .daily-brief-actions { margin:11px 0; }
+  .rhythm-event { padding:12px 0; }
+}
 @media(max-width:760px) {
   .today-workbench { gap:14px; }
   .today-workbench-head { padding:0 4px; flex-wrap:wrap; gap:12px; }
@@ -247,10 +233,13 @@
   .today-workbench-head h1 { margin-top:6px; font-size:21px; line-height:28px; }
   .today-workbench-head p { font-size:11px; }
   .today-workbench-head-side .recording-command-actions button { height:34px; min-height:34px; padding:0 10px; }
-  .today-assets-grid { grid-template-columns:195px 195px 165px 165px; scroll-snap-type:x proximity; }
-  .today-asset-card,.widget-archive { scroll-snap-align:start; }
+  .today-assets-grid { grid-template-columns:330px 260px; gap:12px; scroll-snap-type:x proximity; }
+  .daily-brief,.daily-rhythm { padding:16px 18px; scroll-snap-align:start; }
+  .daily-brief-narrative { font-size:12px; }
+  .daily-brief-actions { gap:10px; margin:12px 0; }
+  .daily-brief-actions .brief-primary { gap:8px; padding:0 9px; }
+  .daily-brief-actions .brief-secondary { font-size:10px; }
 }
-@media(prefers-reduced-motion:reduce) { .widget-archive,.widget-archive-arrow { transition:none; } }
 
 .widget-agent-result { margin-top:20px; padding:18px; border:1px solid #dce7f8; border-radius:14px; background:#f5f9ff; color:#4d6385; }
 .widget-agent-result>span { color:#688cc6; font-size:10px; letter-spacing:.02em; }
@@ -259,3 +248,103 @@
 .widget-agent-result ol { padding-left:17px; margin:12px 0; }
 .widget-agent-result li { margin:10px 0; font-size:12px; line-height:1.9; }
 .widget-agent-result small { font-size:10px; color:#99a6b8; }
+
+/* Keep ideas, expenses and the agenda distinct; the brief connects schedules and tasks. */
+.today-assets-grid { grid-template-rows:auto auto; gap:12px 16px; }
+.daily-brief { grid-column:1; grid-row:1; padding:18px 24px 16px; }
+.daily-brief-narrative { margin-top:10px; font-size:15px; line-height:1.8; color:#c5ccd6; }
+.brief-todo-line { display:flex; align-items:center; gap:16px; margin-top:10px; }
+.brief-todo-line .brief-task { min-width:0; flex:1; font-size:10px!important; }
+.daily-brief-actions { margin:12px 0 0; gap:12px; }
+.daily-brief-actions .brief-todo-link { margin-left:auto; padding:0; color:#aeb9c8; background:none; font-size:10px; }
+.daily-rhythm { grid-column:2; grid-row:1 / 3; }
+.daily-rhythm-events { display:flex; flex-direction:column; justify-content:flex-start; gap:4px; padding-top:15px; }
+.daily-records { display:grid; grid-column:1; grid-row:2; grid-template-columns:minmax(0,1.4fr) minmax(180px,1fr); gap:12px; }
+.daily-inspiration,.daily-ledger { display:flex; flex-direction:column; min-width:0; padding:14px 18px; border:1px solid #e9e5dc; border-radius:16px; background:#faf8f3; }
+.daily-ledger { border-color:#e1e6ed; background:#f9fbfe; }
+.daily-records header { display:flex; align-items:center; justify-content:space-between; margin-bottom:7px; }
+.daily-records h2 { margin:0; color:#817451; font-size:11px; font-weight:600; }
+.daily-ledger h2 { color:#677a8c; }
+.daily-records button { padding:0; border:0; background:none; color:#8190a1; font:inherit; font-size:10px; cursor:pointer; }
+.daily-records .daily-idea { display:flex; align-items:center; gap:8px; justify-content:space-between; width:100%; padding:3px 0; text-align:left; color:#596171; font-size:11px; line-height:18px; }
+.daily-idea>span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.daily-idea time { flex-shrink:0; color:#a49b86; font-size:9px; }
+.daily-records .idea-next { align-self:flex-start; margin-top:auto; padding-top:5px; color:#9a8965; font-size:9px; }
+.daily-ledger-total { display:flex; align-items:baseline; gap:9px; }
+.daily-ledger-total strong { color:#4b5c6d; font-size:23px; font-weight:550; line-height:29px; letter-spacing:-.03em; }
+.daily-ledger-total>span { font-size:9px; color:#94a0ac; }
+.daily-ledger-items { display:flex; flex-wrap:wrap; gap:4px 12px; margin-top:4px; }
+.daily-ledger-items button { color:#8d97a2; font-size:9px; }
+.daily-records button:hover { color:#336aa9; }
+@media(max-height:800px) and (min-width:761px) {
+  .today-workbench { gap:12px; }
+  .daily-brief { padding:14px 22px; }
+  .daily-brief-narrative { font-size:13px; margin-top:7px; }
+  .brief-todo-line { margin-top:6px; }
+  .daily-brief-actions { margin-top:8px; }
+  .daily-inspiration,.daily-ledger { padding:10px 16px; }
+}
+@media(max-width:760px) {
+  .today-assets-grid { grid-template-columns:330px 260px; }
+  .daily-brief { padding:14px 16px; }
+  .daily-brief-narrative { font-size:12px; }
+  .daily-brief-actions { gap:8px; }
+  .daily-brief-actions .brief-secondary { display:none; }
+  .daily-records { grid-template-columns:minmax(0,1.3fr) minmax(130px,1fr); gap:8px; }
+  .daily-inspiration,.daily-ledger { padding:10px; }
+  .daily-records .daily-idea { font-size:10px; }
+  .daily-ledger-total { gap:4px; }
+  .daily-ledger-total strong { font-size:19px; }
+}
+
+.brief-navigation { display:flex; align-items:center; gap:14px; }
+.brief-navigation [data-widget-all] { color:#e2e8f1; }
+
+/* Three content columns: reminder + agenda share one surface; records stack beside it. */
+.today-assets-grid { grid-template-columns:minmax(550px,2.5fr) minmax(220px,1fr); grid-template-rows:auto; gap:14px; align-items:stretch; }
+.daily-focus { display:grid; grid-template-columns:minmax(290px,1.25fr) minmax(230px,1fr); min-width:0; padding:20px 0; border-radius:22px; background:linear-gradient(125deg,#20252d,#2e3540); }
+.daily-focus .daily-brief { grid-column:1; grid-row:1; padding:0 22px; border-radius:0; background:transparent; }
+.daily-focus .daily-brief-kicker { flex-wrap:wrap; gap:5px 12px; }
+.daily-focus .daily-brief-narrative { margin-top:14px; font-size:14px; line-height:1.85; }
+.daily-focus .brief-todo-line { flex-direction:column; align-items:stretch; gap:0; margin-top:10px; }
+.daily-focus .brief-task { flex:none; font-size:11px!important; }
+.daily-focus .daily-brief-actions { margin-top:auto; padding-top:14px; flex-wrap:wrap; gap:8px 12px; }
+.daily-focus .brief-todo-link { margin-left:0; }
+.daily-focus .daily-rhythm { grid-column:2; grid-row:1; padding:0 22px; border:0; border-left:1px solid #ffffff18; border-radius:0; background:transparent; }
+.daily-focus .daily-rhythm h2 { color:#e5eaf1; font-size:13px; }
+.daily-focus .daily-rhythm header button { color:#a1adbd; }
+.daily-focus .daily-rhythm-events { padding-top:10px; gap:0; }
+.daily-focus .rhythm-event { grid-template-columns:34px minmax(0,1fr); gap:9px; padding:13px 0; }
+.daily-focus .rhythm-event+.rhythm-event { border-color:#ffffff12; }
+.daily-focus .rhythm-event time { color:#a4b3c6; font-size:10px; }
+.daily-focus .rhythm-event strong { color:#e0e7f0; font-size:12px; }
+.daily-focus .rhythm-event small { color:#b5c0ce; font-size:11px; }
+.daily-focus .rhythm-event em { color:#8493a7; font-size:10px; }
+.daily-focus .rhythm-arrow { display:none; }
+.daily-focus .rhythm-event:hover strong { color:#b9d9ff; }
+.daily-focus .rhythm-prepare { margin-top:auto; padding-top:12px; border-color:#ffffff18; color:#b0c9e6; font-size:10px; }
+.daily-records { grid-column:2; grid-row:1; grid-template-columns:minmax(0,1fr); grid-template-rows:1.15fr 1fr; gap:12px; }
+.daily-inspiration,.daily-ledger { padding:18px; }
+.daily-records header { margin-bottom:10px; }
+.daily-records h2 { font-size:12px; }
+.daily-records .daily-idea { padding:5px 0; font-size:11px; }
+.daily-records .idea-next { padding-top:10px; font-size:10px; }
+.daily-ledger-total strong { font-size:27px; line-height:34px; }
+.daily-ledger-items { gap:6px 14px; margin-top:8px; }
+.daily-ledger-items button { font-size:10px; }
+@media(max-height:800px) and (min-width:761px) {
+  .daily-focus { padding:16px 0; }
+  .daily-focus .daily-brief,.daily-focus .daily-rhythm { padding-left:18px; padding-right:18px; }
+  .daily-focus .daily-brief-narrative { font-size:13px; margin-top:10px; }
+  .daily-focus .daily-brief-actions { padding-top:10px; }
+  .daily-focus .rhythm-event { padding:10px 0; }
+  .daily-inspiration,.daily-ledger { padding:14px 16px; }
+}
+@media(max-width:760px) {
+  .today-assets-grid { grid-template-columns:550px 230px; }
+  .daily-focus { padding:16px 0; }
+  .daily-focus .daily-brief,.daily-focus .daily-rhythm { padding-left:16px; padding-right:16px; }
+  .daily-focus .daily-brief-narrative { font-size:12px; }
+  .daily-records { grid-template-columns:minmax(0,1fr); }
+  .daily-inspiration,.daily-ledger { padding:14px; }
+}

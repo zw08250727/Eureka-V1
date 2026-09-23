@@ -2703,7 +2703,7 @@
   <link rel="stylesheet" href="assets/aqua-clear-theme.css?v=calmai-workspace-v2" />
   <link rel="stylesheet" href="assets/workspace-sidebar.css?v=project-layout-v2" />
   <link rel="stylesheet" href="assets/meeting-workspace.css?v=ask-agent-layout-v2" />
-  <link rel="stylesheet" href="assets/today-workbench.css?v=today-workbench-v13" />
+  <link rel="stylesheet" href="assets/today-workbench.css?v=today-workbench-v14" />
   <link rel="stylesheet" href="assets/pc-capability-enhancements.css?v=pc-capabilities-v2" />
   <link rel="stylesheet" href="assets/meeting-list.css?v=meeting-list-v1" />
   <link rel="stylesheet" href="assets/meeting-detail.css?v=2" />
@@ -2869,14 +2869,13 @@
             <div>
               <span class="today-workbench-eyebrow"><i></i><span id="today-date-label"></span></span>
               <h1 id="today-workbench-title">把今天记下来，让下一步更清楚。</h1>
-              <p id="today-assets-summary">汇集今天的记录、安排与提醒</p>
             </div>
             <div class="today-workbench-head-side">
               <div class="recording-command-actions"><button class="recording-primary" id="module-start-recording"><svg class="icon"><use href="#ico-mic"/></svg><span><strong>开始录音</strong><small>使用电脑麦克风</small></span></button><button class="xiaozhi-entry" id="xiaozhi-entry" aria-label="问问小智" aria-controls="xiaozhi-rail" aria-expanded="false"><span class="xiaozhi-entry-mark"><svg class="icon"><use href="#ico-spark"/></svg></span><span><strong id="xiaozhi-entry-label">问问小智</strong><small>使用会议与知识</small></span><svg class="icon xiaozhi-expand-icon"><use href="#ico-expand"/></svg></button></div>
             </div>
           </header>
           <section class="today-workbench-content" aria-label="今日闪念概览">
-            <div class="today-assets-grid" id="today-assets-grid" role="region" aria-label="今日安排、待办与随手记录，窄屏可横向滚动" tabindex="0"></div>
+            <div class="today-assets-grid" id="today-assets-grid" role="region" aria-label="今日简报与日程，窄屏可横向滚动" tabindex="0"></div>
           </section>
         </div>
         <section class="home-meeting-library" id="recording-card" aria-labelledby="recent-meeting-title">
@@ -4255,8 +4254,8 @@
         const { type, records } = widgetAiContext;
         let result = $("#widget-agent-result");
         if (!result) { result = document.createElement("section"); result.id = "widget-agent-result"; result.className = "widget-agent-result"; result.setAttribute("aria-live", "polite"); $(".xiaozhi-intro", xiaozhiRail).append(result); }
-        const title = {schedule:"会前准备清单",todo:"今天的行动顺序",inspiration:"把灵感变成小计划"}[type];
-        const items = records.map(record => type === "schedule" ? `${record.time} ${record.title}：提前核对议题和材料，列出需要参会人确认的问题。` : type === "todo" ? `${record.done ? "已完成" : record.time + " 前"} · ${record.title}${record.done ? "，可在复盘时回顾结果。" : "：先确认所需资料，再完成交付。"}` : `${record.title}：先写下目标与一个可验证的小步骤，再补齐需要的信息。`);
+        const title = {brief:"把今天的记录连成下一步",schedule:"会前准备清单",todo:"今天的行动顺序",inspiration:"把灵感变成小计划"}[type];
+        const items = records.map(record => type === "brief" ? `${record.time} · ${record.title}：${record.done ? "已完成，可在今日复盘中回顾。" : record.detail}` : type === "schedule" ? `${record.time} ${record.title}：提前核对议题和材料，列出需要参会人确认的问题。` : type === "todo" ? `${record.done ? "已完成" : record.time + " 前"} · ${record.title}${record.done ? "，可在复盘时回顾结果。" : "：先确认所需资料，再完成交付。"}` : `${record.title}：先写下目标与一个可验证的小步骤，再补齐需要的信息。`);
         result.innerHTML = `<span>AI · 演示建议</span><h4>${title}</h4><p class="widget-agent-request">${escapeHTML(xiaozhiInput.value.split("\n")[0])}</p><ol>${items.map(item => `<li>${escapeHTML(item)}</li>`).join("")}</ol><small>基于已引用的今日记录整理，仅供参考。</small>`;
         result.scrollIntoView({ block: "nearest", behavior: "smooth" });
       } else {
@@ -4437,25 +4436,29 @@
     const renderTodayAssets = () => {
       $("#today-date-label").textContent = `${todayNow.toLocaleDateString("zh-CN", { month: "long", day: "numeric" })} · ${todayNow.toLocaleDateString("zh-CN", { weekday: "long" })}`;
       const pending = assetsForToday(todayAssetTypes[1]).filter((record) => !record.done).length;
-      $("#today-assets-summary").textContent = `今天有 ${assetsForToday(todayAssetTypes[3]).length} 场日程，${pending ? `${pending} 项待办等你推进。` : "待办已经全部完成，给自己留一点思考的时间。"}`;
-      const widgetIcon = (name) => `<svg class="icon" aria-hidden="true"><use href="#${name}"/></svg>`;
-      const renderType = (key) => {
-        const type = todayAssetTypes.find((item) => item.key === key);
-        const records = assetsForToday(type);
-        const amount = records.reduce((sum, record) => sum + (record.amount || 0), 0);
-        const done = records.filter((record) => record.done).length;
-        const rows = records.slice(0, 2).map((record) => {
-          const isTodo = key === "todo";
-          const action = isTodo ? `data-today-toggle="${record.id}" aria-pressed="${record.done}"` : `data-today-asset="${record.id}"`;
-          const meta = key === "ledger" ? `¥${record.amount.toFixed(2)}` : key === "schedule" ? `${record.time}–${record.end}` : isTodo ? `${record.time} 前` : record.time;
-          return `<button type="button" class="today-asset-row${record.done ? " is-done" : ""}" ${action} title="${escapeHTML(record.title)}">${isTodo ? '<span class="today-check" aria-hidden="true">' + (record.done ? "✓" : "") + '</span>' : ""}<span><small>${meta}</small><strong>${escapeHTML(record.title)}</strong>${key === "schedule" ? `<em>${escapeHTML(record.detail.split(" · ").slice(0, 2).join(" · "))}</em>` : ""}</span></button>`;
-        }).join("");
-        const heading = {schedule:"今日日程",todo:"待办清单",inspiration:"灵感便笺",ledger:"今日记账"}[key];
-        const count = key === "todo" ? `${done}/${records.length}` : `${records.length} ${key === "schedule" ? "场" : key === "ledger" ? "笔" : "条"}`;
-        const footer = key === "schedule" ? `<button class="widget-ai-action" type="button" data-widget-ai="schedule">${widgetIcon("ico-spark")}<span>AI 会前准备</span><span aria-hidden="true">↗</span></button>` : key === "todo" ? `<button class="widget-ai-action" type="button" data-widget-ai="todo">${widgetIcon("ico-spark")}<span>${pending ? "AI 安排行动顺序" : "AI 回顾今日进展"}</span><span aria-hidden="true">↗</span></button>` : "";
-        return `<section class="today-asset-card widget-${key}" data-asset-type="${key}" aria-label="今日${type.name}"><header><h2><span class="widget-type-mark">${widgetIcon(type.icon)}</span>${heading}</h2><button class="today-asset-more" type="button" data-today-category="${key}" aria-label="查看${type.name}">${count}<span aria-hidden="true">↗</span></button></header>${key === "ledger" ? `<p class="today-asset-caption"><b>¥${amount.toFixed(2)}</b><span>今日支出</span></p><div class="widget-ledger-categories">${records.map(r => `<button type="button" data-today-asset="${r.id}" title="${escapeHTML(r.title)} · ¥${r.amount.toFixed(2)}">${escapeHTML(r.title.replace("客户拜访", "").replace("客户工作", ""))} <span>¥${r.amount.toFixed(0)}</span></button>`).join("")}</div>` : `<div class="today-asset-rows">${rows || '<p class="today-asset-empty">今天暂无记录</p>'}</div>`}${key === "inspiration" ? `<button class="widget-idea-action" type="button" data-widget-ai="inspiration">${widgetIcon("ico-spark")}把灵感展开成下一步 <span aria-hidden="true">↗</span></button>` : footer}</section>`;
-      };
-      $("#today-assets-grid").innerHTML = `${renderType("schedule")}${renderType("todo")}${renderType("inspiration")}${renderType("ledger")}<button type="button" class="widget-archive" data-widget-all aria-label="查看全部闪念列表"><span class="widget-archive-top"><span class="widget-stack" aria-hidden="true"><i></i><i></i><i>${widgetIcon("ico-spark")}</i></span><span class="widget-archive-arrow" aria-hidden="true">↗</span></span><strong>全部闪念</strong><span class="widget-archive-caption">让每一次记录，都有下文</span></button>`;
+      const records = key => assetsForToday(todayAssetTypes.find(type => type.key === key));
+      const todos = records("todo"), ideas = records("inspiration"), schedules = records("schedule");
+      const amount = records("ledger").reduce((total, record) => total + record.amount, 0);
+      const pendingTodos = todos.filter(record => !record.done);
+      const lead = pending === 0 ? "该推进的事已完成" : "今日安排 · 为你串联";
+      const clockTime = `${String(todayNow.getHours()).padStart(2, "0")}:${String(todayNow.getMinutes()).padStart(2, "0")}`;
+      const upcoming = schedules.find(record => record.end > clockTime);
+      const nextMeeting = upcoming || schedules.at(-1);
+      const scheduleText = schedules.length ? `今天有 <strong>${schedules.length} 场日程</strong>，${upcoming ? (upcoming.time <= clockTime ? "当前安排是" : "建议先准备") : "可以回顾"} <button type="button" class="brief-inline-link" data-today-asset="${nextMeeting.id}">${nextMeeting.time} 的${escapeHTML(nextMeeting.title)}</button>` : "今天没有日程，可以留出一段专注时间";
+      const todoText = pendingTodos.length ? `，${pendingTodos.map(record => record.time < clockTime ? `<strong>${record.time}</strong> 的${escapeHTML(record.title)}仍待跟进` : `在<strong>${record.time} 前</strong>${escapeHTML(record.title)}`).join("，并")}` : "，待办已全部完成，留一点时间回顾今天的进展";
+      const narrative = `${scheduleText}${todoText}。`;
+      $("#today-assets-grid").innerHTML = `
+        <div class="daily-focus"><article class="daily-brief" aria-labelledby="daily-brief-title">
+          <div class="daily-brief-kicker"><span id="daily-brief-title"><i></i>${lead}</span><div class="brief-navigation"><button type="button" data-daily-brief>查看简报 ↗</button><button type="button" data-widget-all aria-label="查看全部闪念列表">全部闪念 →</button></div></div>
+          <p class="daily-brief-narrative">${narrative}</p>
+          <div class="brief-todo-line" data-asset-type="todo">${todos.map(record => `<button type="button" class="brief-task${record.done ? " is-done" : ""}" data-today-toggle="${record.id}" aria-pressed="${record.done}" title="${escapeHTML(record.title)}"><span class="brief-task-check" aria-hidden="true">${record.done ? "✓" : ""}</span><span>${escapeHTML(record.title)}</span></button>`).join("")}</div>
+          <div class="daily-brief-actions"><button type="button" class="brief-primary" data-widget-ai="brief">和 Agent 一起推进 <span aria-hidden="true">↗</span></button><button type="button" class="brief-secondary" data-widget-ai="todo">${pending ? "帮我排优先级" : "回顾今日进展"}</button><button type="button" class="brief-todo-link" data-today-category="todo">全部待办 ↗</button></div>
+        </article>
+        <aside class="daily-rhythm" aria-label="今天的日程"><header><h2>今天的日程</h2><button type="button" data-today-category="schedule" aria-label="查看日程">${schedules.length} 场日程 ↗</button></header>
+          <div class="daily-rhythm-events">${schedules.map((record, index) => `<button type="button" class="rhythm-event" data-today-asset="${record.id}"><time>${record.time}</time><span><strong>${escapeHTML(record.title)}</strong><small>${index === 0 ? "建议带上客户场景，确认演示路径" : "建议会前回顾客户问题，明确跟进事项"}</small><em>${escapeHTML(record.detail.split(" · ").slice(0, 2).join(" · "))}</em></span><span class="rhythm-arrow" aria-hidden="true">↗</span></button>`).join("") || '<p class="today-asset-empty">今天没有日程，给自己留一段专注时间。</p>'}</div>
+          <button type="button" class="rhythm-prepare" data-widget-ai="schedule">让 Agent 帮我准备会议 <span aria-hidden="true">↗</span></button>
+        </aside></div>
+        <div class="daily-records"><section class="daily-inspiration" aria-label="今日灵感"><header><h2>留给自己的灵感</h2><button type="button" data-today-category="inspiration">${ideas.length} 条 ↗</button></header><div>${ideas.map(record => `<button type="button" data-today-asset="${record.id}" class="daily-idea"><span>${escapeHTML(record.title)}</span><time>${record.time}</time></button>`).join("")}</div><button type="button" class="idea-next" data-widget-ai="inspiration">把灵感变成计划 ↗</button></section><section class="daily-ledger" aria-label="今日记账"><header><h2>今日记账</h2><button type="button" data-today-category="ledger" aria-label="查看今日记账">↗</button></header><div class="daily-ledger-total"><strong>¥${amount.toFixed(2)}</strong><span>今日支出</span></div><div class="daily-ledger-items">${records("ledger").map(record => `<button type="button" data-today-asset="${record.id}">${escapeHTML(record.title.replace("客户拜访", "").replace("客户工作", ""))} <span>¥${record.amount.toFixed(0)}</span></button>`).join("")}</div></section></div>`;
 
     };
     renderTodayAssets();
@@ -4521,13 +4524,24 @@
     $("#thought-preview-sort").addEventListener("click", () => showToast("当前按日期倒序展示"));
     $("#today-assets-grid").addEventListener("click", (event) => {
       if (event.target.closest("[data-widget-all]")) { $("#thoughts-entry").click(); $('[data-thought-category="all"]').click(); return; }
+      if (event.target.closest("[data-daily-brief]")) {
+        const summary = $(".daily-brief-narrative").textContent;
+        const sections = ["schedule", "todo", "inspiration", "ledger"].map(key => {
+          const type = todayAssetTypes.find(item => item.key === key);
+          return `<section class="brief-detail-section"><h3>${type.name}</h3>${assetsForToday(type).map(record => `<div><time>${record.time}${record.done ? " · 已完成" : ""}</time><strong>${escapeHTML(record.title)}</strong><p>${escapeHTML(record.detail)}</p></div>`).join("")}</section>`;
+        }).join("");
+        openDrawer("今日工作简报", `<article class="brief-detail"><p class="brief-detail-date">${escapeHTML($("#today-date-label").textContent)}</p><h2>${escapeHTML($("#daily-brief-title").textContent)}</h2><p>${escapeHTML(summary)}</p>${sections}<small>基于今日记录整理的演示简报</small></article>`, '<button type="button" class="secondary-btn" id="brief-close">关闭</button><button type="button" class="primary-btn" id="brief-continue">带着简报继续对话</button>');
+        $("#brief-close").addEventListener("click", closeOverlays);
+        $("#brief-continue").addEventListener("click", () => { closeOverlays(); $('[data-widget-ai="brief"]').click(); });
+        return;
+      }
       const aiButton = event.target.closest("[data-widget-ai]");
       if (aiButton) {
         leaveHistorySession();
         const type = aiButton.dataset.widgetAi;
-        const typeInfo = todayAssetTypes.find((item) => item.key === type);
-        const records = assetsForToday(typeInfo);
-        const instruction = {schedule:"请帮我准备今天的会议：按时间整理议题、会前材料和需要确认的问题。",todo:"请根据今天的待办与截止时间，建议执行顺序，并给每项任务列出第一步。",inspiration:"请把今天的灵感展开成可执行的小计划，保留原始想法，列出需要验证的问题。"}[type];
+        const typeInfo = todayAssetTypes.find((item) => item.key === type) || { key: "brief", name: "工作简报" };
+        const records = type === "brief" ? todayAssetTypes.filter(item => item.key !== "other").flatMap(assetsForToday) : assetsForToday(typeInfo);
+        const instruction = {brief:"请结合今天的日程、待办、灵感与记账，整理当前重点、建议的行动顺序和需要确认的问题。请说明依据，不把建议当成已经完成的工作。",schedule:"请帮我准备今天的会议：按时间整理议题、会前材料和需要确认的问题。",todo:"请根据今天的待办与截止时间，建议执行顺序，并给每项任务列出第一步。",inspiration:"请把今天的灵感展开成可执行的小计划，保留原始想法，列出需要验证的问题。"}[type];
         widgetAiContext = { type, records: records.map(record => ({ ...record })) };
         xiaozhiInput.value = `${instruction}\n\n今日${typeInfo.name}：\n${records.map(item => `${item.time}${item.done ? " · 已完成" : ""} ${item.title}\n${item.detail}`).join("\n\n")}`;
         let context = $("#xiaozhi-widget-context");
