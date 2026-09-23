@@ -2702,7 +2702,7 @@
   <link rel="stylesheet" href="assets/aqua-clear-theme.css?v=calmai-workspace-v2" />
   <link rel="stylesheet" href="assets/workspace-sidebar.css?v=project-layout-v2" />
   <link rel="stylesheet" href="assets/meeting-workspace.css?v=ask-agent-layout-v1" />
-  <link rel="stylesheet" href="assets/today-workbench.css?v=today-workbench-v7" />
+  <link rel="stylesheet" href="assets/today-workbench.css?v=today-workbench-v8" />
   <link rel="stylesheet" href="assets/pc-capability-enhancements.css?v=pc-capabilities-v2" />
   <link rel="stylesheet" href="assets/meeting-list.css?v=meeting-list-v1" />
 </head>
@@ -2864,7 +2864,7 @@
           <header class="today-workbench-head">
             <div>
               <span class="today-workbench-eyebrow"><i></i><span id="today-date-label"></span></span>
-              <h1 id="today-workbench-title">你好，张伟</h1>
+              <h1 id="today-workbench-title">把今天记下来，让下一步更清楚。</h1>
               <p id="today-assets-summary">汇集今天的记录、安排与提醒</p>
             </div>
             <div class="today-workbench-head-side">
@@ -2873,7 +2873,6 @@
             </div>
           </header>
           <div class="today-assets-grid" id="today-assets-grid" role="region" aria-label="今日安排、待办与随手记录，窄屏可横向滚动" tabindex="0"></div>
-          <div class="today-assets-footnote"><span>把今天记下来，让下一步更清楚。</span></div>
         </section>
         <section class="home-meeting-library" id="recording-card" aria-labelledby="recent-meeting-title">
           <div class="home-meeting-head">
@@ -4232,11 +4231,32 @@
     if (!Array.from($("#thought-month-select").options).some((option) => option.value === todayKey.slice(0, 7))) {
       $("#thought-month-select").add(new Option(todayKey.slice(0, 7), todayKey.slice(0, 7)));
     }
+    const todayReminders = [
+      "把今天记下来，让下一步更清楚。",
+      "先记下灵感，再慢慢把它实现。",
+      "从一件小事开始，推进今天。",
+      "给重要的事，留一点专注时间。",
+      "想法不必完整，先把它留下。",
+      "会议之前，看看今天要确认什么。",
+      "把待办写清楚，让行动更轻松。",
+      "忙碌之间，也给思考留点空间。",
+    ];
+    let lastTodayReminder = "";
+    try { lastTodayReminder = sessionStorage.getItem("eureka:last-today-reminder") || ""; } catch { /* Storage can be unavailable in private contexts. */ }
+    const refreshTodayReminder = () => {
+      const choices = todayReminders.filter((text) => text !== lastTodayReminder);
+      lastTodayReminder = choices[Math.floor(Math.random() * choices.length)];
+      $("#today-workbench-title").textContent = lastTodayReminder;
+      try { sessionStorage.setItem("eureka:last-today-reminder", lastTodayReminder); } catch { /* Rotation still works in memory. */ }
+    };
+    refreshTodayReminder();
+    $("#home-entry").addEventListener("click", refreshTodayReminder);
+    setInterval(() => {
+      if (!document.hidden && $("#today-workbench").getClientRects().length) refreshTodayReminder();
+    }, 60000);
     const renderTodayAssets = () => {
       $("#today-date-label").textContent = todayNow.toLocaleDateString("zh-CN", { month: "long", day: "numeric", weekday: "long" });
       const pending = assetsForToday(todayAssetTypes[1]).filter((record) => !record.done).length;
-      const hour = new Date().getHours();
-      $("#today-workbench-title").textContent = `${hour < 12 ? "上午好" : hour < 18 ? "下午好" : "晚上好"}，张伟`;
       $("#today-assets-summary").textContent = `今天有 ${assetsForToday(todayAssetTypes[3]).length} 场日程，${pending ? `${pending} 项待办等你推进。` : "待办已经全部完成，给自己留一点思考的时间。"}`;
       const renderType = (key) => {
         const type = todayAssetTypes.find((item) => item.key === key);

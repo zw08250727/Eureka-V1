@@ -2,6 +2,25 @@ import { expect, test } from "@playwright/test";
 
 test.use({ channel: process.env.PLAYWRIGHT_CHANNEL || undefined, timezoneId: "Asia/Shanghai" });
 
+test("reminder heading rotates without repeats and stays stable during todo updates", async ({ page }) => {
+  await page.clock.install();
+  await page.goto("/prototype/one-to-one-reference/team-only-app.html?edition=personal&personal=1");
+  const heading = page.locator("#today-workbench-title");
+  const first = await heading.textContent();
+  await expect(heading).not.toContainText("张伟");
+  await expect(page.locator(".today-assets-footnote")).toHaveCount(0);
+  await page.locator('[data-today-toggle="todo-1"]').click();
+  await expect(heading).toHaveText(first!);
+  await page.clock.fastForward(60000);
+  await expect(heading).not.toHaveText(first!);
+  const second = await heading.textContent();
+  await page.locator("#home-entry").click();
+  await expect(heading).not.toHaveText(second!);
+  const third = await heading.textContent();
+  await page.reload();
+  await expect(heading).not.toHaveText(third!);
+});
+
 test("today assets cover four overview types, filter by business date, and open their archives", async ({ page }) => {
   await page.clock.install({ time: new Date("2026-09-23T04:00:00Z") });
   await page.goto("/prototype/one-to-one-reference/team-only-app.html?edition=personal&personal=1");
