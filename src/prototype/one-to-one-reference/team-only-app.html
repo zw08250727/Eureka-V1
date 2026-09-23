@@ -2702,7 +2702,7 @@
   <link rel="stylesheet" href="assets/aqua-clear-theme.css?v=calmai-workspace-v2" />
   <link rel="stylesheet" href="assets/workspace-sidebar.css?v=project-layout-v2" />
   <link rel="stylesheet" href="assets/meeting-workspace.css?v=ask-agent-layout-v1" />
-  <link rel="stylesheet" href="assets/today-workbench.css?v=today-workbench-v6" />
+  <link rel="stylesheet" href="assets/today-workbench.css?v=today-workbench-v7" />
   <link rel="stylesheet" href="assets/pc-capability-enhancements.css?v=pc-capabilities-v2" />
   <link rel="stylesheet" href="assets/meeting-list.css?v=meeting-list-v1" />
 </head>
@@ -2873,7 +2873,7 @@
             </div>
           </header>
           <div class="today-assets-grid" id="today-assets-grid" role="region" aria-label="今日安排、待办与随手记录，窄屏可横向滚动" tabindex="0"></div>
-          <div class="today-assets-footnote"><span id="today-assets-source"></span><span>把今天记下来，让下一步更清楚。</span></div>
+          <div class="today-assets-footnote"><span>把今天记下来，让下一步更清楚。</span></div>
         </section>
         <section class="home-meeting-library" id="recording-card" aria-labelledby="recent-meeting-title">
           <div class="home-meeting-head">
@@ -4235,11 +4235,9 @@
     const renderTodayAssets = () => {
       $("#today-date-label").textContent = todayNow.toLocaleDateString("zh-CN", { month: "long", day: "numeric", weekday: "long" });
       const pending = assetsForToday(todayAssetTypes[1]).filter((record) => !record.done).length;
-      const total = todayAssetTypes.filter((type) => type.key !== "other").reduce((sum, type) => sum + assetsForToday(type).length, 0);
       const hour = new Date().getHours();
       $("#today-workbench-title").textContent = `${hour < 12 ? "上午好" : hour < 18 ? "下午好" : "晚上好"}，张伟`;
       $("#today-assets-summary").textContent = `今天有 ${assetsForToday(todayAssetTypes[3]).length} 场日程，${pending ? `${pending} 项待办等你推进。` : "待办已经全部完成，给自己留一点思考的时间。"}`;
-      $("#today-assets-source").textContent = `从今日 ${total} 条闪念整理 · 模拟数据`;
       const renderType = (key) => {
         const type = todayAssetTypes.find((item) => item.key === key);
         const records = assetsForToday(type);

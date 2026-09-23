@@ -8,7 +8,7 @@ test("today assets cover four overview types, filter by business date, and open 
   await expect(page.locator(".today-asset-card")).toHaveCount(4);
   await expect(page.locator("#today-date-label")).toContainText("9月23日");
   await expect(page.locator("#today-assets-summary")).toContainText("今天有 2 场日程，2 项待办等你推进。");
-  await expect(page.locator("#today-assets-source")).toContainText("今日 8 条闪念");
+  await expect(page.locator("#today-assets-source")).toHaveCount(0);
   await expect(page.locator("[data-asset-type=ledger] .today-asset-caption")).toContainText("¥248.00");
   await expect(page.locator("#today-assets-grid")).not.toContainText("昨天的灵感");
   await expect(page.locator("#today-assets-grid")).not.toContainText("明日提交周报");
