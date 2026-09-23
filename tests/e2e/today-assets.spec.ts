@@ -9,7 +9,7 @@ test("thoughts archive is reachable from sidebar across views and when collapsed
   await page.locator("#thoughts-entry").click();
   await expect(page.locator("#thought-workspace")).toBeVisible();
   await expect(page.locator("#thoughts-entry")).toHaveAttribute("aria-current", "page");
-  await expect(page.locator("#page-crumb")).toHaveText("我的闪念");
+  await expect(page.locator("#page-crumb")).toHaveText("我的记录");
   await page.locator("#home-entry").click();
   await expect(page.locator("#today-workbench")).toBeVisible();
   await expect(page.locator("#thoughts-entry")).not.toHaveAttribute("aria-current", "page");
@@ -81,7 +81,7 @@ test("compact today overview leaves meetings visible on desktop", async ({ page 
   expect(overview!.width).toBeLessThanOrEqual(390);
   expect(overview!.height).toBeLessThan(480);
   await expect(page.locator('[data-today-category="other"]')).toHaveCount(0);
-  await page.locator('[data-widget-all]').click();
+  await page.locator('.today-mobile-thoughts').click();
   await page.locator('[data-thought-category="other"]').click();
   await expect(page.locator('[data-thought-category="other"]')).toHaveAttribute("aria-current", "true");
 });
@@ -89,7 +89,7 @@ test("compact today overview leaves meetings visible on desktop", async ({ page 
 
 test("widgets open the full archive and bring today's context into Agent drafts", async ({ page }) => {
   await page.goto("/prototype/one-to-one-reference/team-only-app.html?edition=personal&personal=1");
-  await page.getByRole("button", { name: "查看我的全部记录" }).click();
+  await page.getByRole("button", { name: "我的记录", exact: true }).click();
   await expect(page.locator("#thought-workspace")).toBeVisible();
   await expect(page.locator('[data-thought-category="all"]')).toHaveAttribute("aria-current", "true");
   await expect(page.locator("#thought-file-list")).toContainText("客户资料领取信息");

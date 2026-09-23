@@ -173,7 +173,7 @@
 .today-workbench-eyebrow { font-size:11px; letter-spacing:.02em; }
 .today-workbench-content { padding:0; border-radius:0; background:transparent; box-shadow:none; }
 .today-assets-grid { display:grid; grid-template-columns:minmax(550px,2.5fr) minmax(220px,1fr); gap:14px; min-width:0; align-items:stretch; overflow-x:auto; padding-bottom:4px; scrollbar-width:thin; scrollbar-color:#c9d4e5 transparent; }
-.daily-focus { display:grid; grid-template-columns:minmax(290px,1.25fr) minmax(230px,1fr); min-width:0; padding:22px 0; border:1px solid #dfe7f2; border-radius:20px; background:linear-gradient(115deg,#f8fbff,#fff 70%); }
+.daily-focus { display:grid; grid-template-columns:minmax(290px,1.25fr) minmax(230px,1fr); min-width:0; padding:16px 0; border:1px solid #dfe7f2; border-radius:20px; background:linear-gradient(115deg,#f8fbff,#fff 70%); }
 .daily-brief { display:flex; flex-direction:column; min-width:0; padding:0 22px; color:#3d506d; }
 .daily-brief-kicker { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:5px 12px; color:#536b8b; font-size:12px; font-weight:600; line-height:20px; }
 .daily-brief-kicker>span { display:flex; align-items:center; gap:7px; }
@@ -181,17 +181,17 @@
 .daily-brief button,.daily-rhythm button,.daily-records button { border:0; font:inherit; background:none; cursor:pointer; }
 .daily-brief-kicker button { padding:0; color:#6d86a7; font-size:10px; font-weight:400; }
 .daily-brief-kicker button:hover { color:#2b64bb; }
-.daily-brief-narrative { max-width:64ch; margin:15px 0 0; color:#5b6d86; font-size:14px; line-height:1.85; }
+.daily-brief-narrative { max-width:64ch; margin:10px 0 0; color:#5b6d86; font-size:14px; line-height:1.7; }
 .daily-brief-narrative strong { color:#304969; font-weight:600; }
 .daily-brief .brief-inline-link { padding:0; color:#3b6dad; text-decoration:underline; text-decoration-color:#b4c9e3; text-underline-offset:4px; }
-.brief-todo-line { display:flex; flex-direction:column; gap:2px; margin-top:14px; }
-.brief-task { display:flex; align-items:center; gap:9px; width:100%; padding:5px 0; color:#3c506d; text-align:left; font-size:11px!important; line-height:18px!important; }
+.brief-todo-line { display:flex; flex-direction:column; gap:0; margin-top:8px; }
+.brief-task { display:flex; align-items:center; gap:9px; width:100%; padding:4px 0; color:#3c506d; text-align:left; font-size:11px!important; line-height:18px!important; }
 .brief-task>span:nth-child(2) { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .brief-task-check { display:grid; place-items:center; width:14px; height:14px; flex-shrink:0; border:1px solid #becfe2; border-radius:50%; background:#fff; font-size:9px; }
 .brief-task:hover .brief-task-check { border-color:#6293ce; }
 .brief-task.is-done>span:nth-child(2) { text-decoration:line-through; color:#8a9ab0; }
 .brief-task.is-done .brief-task-check { color:#fff; border-color:#709bce; background:#709bce; }
-.daily-brief-actions { display:flex; align-items:center; gap:16px; margin-top:auto; padding-top:18px; }
+.daily-brief-actions { display:flex; align-items:center; gap:16px; margin-top:12px; padding-top:0; }
 .daily-brief-actions .brief-primary { display:flex; align-items:center; gap:6px; min-height:32px; padding:0 12px; border-radius:8px; background:#e9f1fd; color:#3868a8; font-size:11px; font-weight:600; }
 .brief-primary .icon { width:13px; height:13px; }
 .daily-brief-actions .brief-primary:hover { background:#dce9fb; }
@@ -199,22 +199,22 @@
 .daily-rhythm header,.daily-records header { display:flex; align-items:center; justify-content:space-between; gap:12px; }
 .daily-rhythm h2 { margin:0; color:#455d7b; font-size:12px; font-weight:600; line-height:20px; }
 .daily-rhythm header button { padding:0; color:#8495ab; font-size:10px; }
-.daily-rhythm-events { display:flex; flex:1; flex-direction:column; justify-content:space-evenly; padding-top:10px; }
-.rhythm-event { display:grid; grid-template-columns:70px minmax(0,1fr); gap:9px; align-items:start; width:100%; padding:16px 0; text-align:left; }
+.daily-rhythm-events { display:flex; flex:1; flex-direction:column; justify-content:flex-start; padding-top:8px; }
+.rhythm-event { display:grid; grid-template-columns:70px minmax(0,1fr); gap:9px; align-items:start; width:100%; padding:12px 0; text-align:left; }
 .rhythm-event+.rhythm-event { border-top:1px solid #edf1f7; }
 .rhythm-event time { color:#7c92af; font-size:10px; line-height:20px; font-variant-numeric:tabular-nums; }
 .rhythm-event strong { display:block; color:#354d6e; font-size:12px; font-weight:600; line-height:20px; }
 .rhythm-event em { display:block; margin-top:6px; color:#8a9aaf; font-size:10px; line-height:17px; font-style:normal; }
 .rhythm-arrow { display:none; }
 .rhythm-event:hover strong { color:#2e65ab; }
-.daily-records { display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:1fr 1fr auto; gap:12px; }
-.daily-inspiration,.daily-ledger { display:flex; flex-direction:column; min-width:0; padding:16px 18px; border:1px solid #e9e5dc; border-radius:16px; background:#faf9f6; }
+.daily-records { display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:1fr 1fr; gap:12px; }
+.daily-inspiration,.daily-ledger { display:flex; flex-direction:column; min-width:0; padding:12px 16px; border:1px solid #e9e5dc; border-radius:16px; background:#faf9f6; }
 .daily-ledger { border-color:#e1e7f0; background:#fbfcff; }
-.daily-records header { margin-bottom:10px; }
+.daily-records header { margin-bottom:6px; }
 .daily-records h2 { margin:0; color:#817451; font-size:12px; font-weight:600; }
 .daily-ledger h2 { color:#677a8c; }
 .daily-records button { padding:0; color:#8190a1; font-size:10px; }
-.daily-records .daily-idea { display:flex; align-items:center; gap:8px; justify-content:space-between; width:100%; padding:5px 0; text-align:left; color:#596171; font-size:11px; line-height:18px; }
+.daily-records .daily-idea { display:flex; align-items:center; gap:8px; justify-content:space-between; width:100%; padding:3px 0; text-align:left; color:#596171; font-size:11px; line-height:18px; }
 .daily-idea>span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .daily-idea time { flex-shrink:0; color:#a49b86; font-size:9px; }
 .daily-ledger-total { display:flex; align-items:baseline; gap:9px; }
@@ -222,25 +222,25 @@
 .daily-ledger-total>span { font-size:9px; color:#94a0ac; }
 .daily-ledger-items { display:flex; flex-wrap:wrap; gap:6px 14px; margin-top:6px; }
 .daily-ledger-items button { color:#8d97a2; font-size:10px; }
-.daily-records .records-archive-link { justify-self:end; display:flex; align-items:center; gap:8px; padding:0 3px; color:#6c83a2; font-size:10px; line-height:16px; }
 .daily-records button:hover { color:#336aa9; }
 .today-assets-grid button:focus-visible { outline:2px solid #80a7ed; outline-offset:3px; }
 .today-workbench[hidden] { display:none!important; }
 @media(max-height:800px) and (min-width:761px) {
   .today-workbench { gap:12px; }
-  .daily-focus { padding:18px 0; }
+  .daily-focus { padding:14px 0; }
   .daily-brief,.daily-rhythm { padding-left:18px; padding-right:18px; }
-  .daily-brief-narrative { font-size:13px; margin-top:12px; }
-  .brief-todo-line { margin-top:10px; }
-  .daily-brief-actions { padding-top:14px; }
+  .daily-brief-narrative { font-size:13px; margin-top:10px; }
+  .brief-todo-line { margin-top:8px; }
+  .daily-brief-actions { padding-top:0; }
   .rhythm-event { padding:12px 0; }
-  .daily-inspiration,.daily-ledger { padding:14px 16px; }
+  .daily-inspiration,.daily-ledger { padding:10px 16px; }
 }
 @media(max-width:760px) {
   .today-workbench { gap:14px; }
   .today-workbench-head { padding:0 4px; flex-wrap:wrap; gap:12px; }
   .today-workbench-head>div:first-child { flex-basis:100%; }
-  .today-workbench-head-side { width:100%; display:flex; align-items:center; }
+  .today-workbench-head-side { width:100%; display:flex; align-items:center; gap:12px; }
+  .today-mobile-thoughts { display:inline-flex; align-items:center; padding:6px 0; border:0; background:none; color:#55749c; font-size:11px; white-space:nowrap; cursor:pointer; }
   .today-workbench-head h1 { margin-top:6px; font-size:21px; line-height:28px; }
   .today-workbench-head-side .recording-command-actions button { height:34px; min-height:34px; padding:0 10px; }
   .today-assets-grid { grid-template-columns:550px 230px; gap:12px; }
