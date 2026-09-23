@@ -2707,6 +2707,7 @@
   <link rel="stylesheet" href="assets/pc-capability-enhancements.css?v=pc-capabilities-v2" />
   <link rel="stylesheet" href="assets/meeting-list.css?v=meeting-list-v1" />
   <link rel="stylesheet" href="assets/meeting-detail.css?v=1" />
+  <link rel="stylesheet" href="assets/agent-history.css?v=1" />
 </head>
 <body>
   <section class="edition-gate" id="edition-gate" aria-labelledby="edition-gate-title">
@@ -3945,7 +3946,7 @@
       if (sharedGuide) sharedGuide.hidden = filter !== "shared";
       $("#history-task-list").setAttribute("aria-labelledby", tab.id);
     }));
-    $$(".history-row").forEach((row) => row.addEventListener("click", () => showToast(`正在打开项目「${$(".history-text", row).textContent}」`)));
+
     $("#history-shared-download").addEventListener("click", () => openModal("#download-modal"));
     const composerShell = $(".composer");
     const toolMenu = $("#tool-menu");
@@ -4097,12 +4098,96 @@
     };
     xiaozhiEntry.addEventListener("click", () => setXiaozhiExpanded(!xiaozhiGrid.classList.contains("agent-open")));
     $("#xiaozhi-collapse").addEventListener("click", () => setXiaozhiExpanded(false));
-    $("#xiaozhi-history").addEventListener("click", () => showToast("正在打开小智历史会话"));
+    $("#xiaozhi-history").addEventListener("click", () => openHistorySession(activeHistorySession?.index || 0));
     const xiaozhiInput = $("#xiaozhi-input");
     const xiaozhiSend = $("#xiaozhi-send");
     let widgetAiContext = null;
+    let activeHistorySession = null;
+    const historySeeds = [
+      { source: "本周会议 · 3 份笔记", request: "帮我整理本周会议里的关键决策和待确认事项。", answer: "已整理出三项关键决策：\n1. 产品演示优先使用真实客户场景。\n2. 合作方案先补齐交付范围，再进入报价确认。\n3. 客户需求按影响范围和紧急程度排序。\n\n待确认：演示材料负责人、合作方案交付日期。", next: "把待确认事项整理成可执行的行动清单", followup: "建议先确认演示材料负责人，再核对合作方案交付日期；每项补充负责人、截止时间和验收标准。" },
+      { source: "研发周会 · 项目推进记录", request: "每周整理研发进度，汇总已完成事项、风险和下周计划。", answer: "本次周报已整理：\n• 已完成：录音列表筛选、会议详情交互优化。\n• 进行中：会话续接、不同屏幕尺寸适配。\n• 风险：跨端数据同步的验收口径仍需确认。\n\n下周优先推进会话链路联调，并补充验收清单。", next: "展开本周风险和需要协作的事项", followup: "当前优先确认跨端同步的验收口径，安排会话续接联调，并为屏幕适配补充桌面与窄屏验收案例。" },
+      { source: "客户访谈 · 2 份笔记", request: "从近期客户访谈中找出反复出现的问题。", answer: "访谈中的三个高频主题：\n1. 会议结束后，希望快速找到行动项。\n2. 历史记录较多，需要按来源和日期定位。\n3. 希望 AI 带着已有上下文继续工作，减少重复描述。\n\n建议优先验证历史会话续接和行动项追踪。", next: "按优先级整理这些客户需求", followup: "建议优先处理历史上下文续接，其次完善行动项追踪，最后优化来源与日期筛选；通过客户回访验证优先级。" },
+      { source: "本周日程 · 待办与会议笔记", request: "整理本周工作周报，并列出下周的行动项。", answer: "本周工作回顾：\n• 完成产品方案评审，明确演示场景。\n• 收集客户反馈，梳理待跟进问题。\n• 推进合作方案修订，等待最终确认。\n\n下周行动项：确认演示材料、发送合作方案、回访重点客户。", next: "把下周行动项拆分成每天的安排", followup: "建议周一确认演示材料，周二核对并发送合作方案，周三回访重点客户，周四处理反馈，周五汇总进展。具体日期可继续调整。" }
+    ];
+    const historyRows = $$("#history-task-list .history-row");
+    const historySessions = historySeeds.map((seed, index) => ({ ...seed, index, draft: "", messages: [{ role: "user", text: seed.request }, { role: "assistant", text: seed.answer }] }));
+    const historySection = document.createElement("section");
+    historySection.id = "agent-history-session";
+    historySection.hidden = true;
+    historySection.setAttribute("aria-labelledby", "agent-history-title");
+    historySection.innerHTML = '<header class="agent-session-head"><span>历史会话 <small>模拟对话</small></span><h3 id="agent-history-title" tabindex="-1"></h3><p id="agent-history-source"></p></header><div id="agent-history-messages" role="log" aria-label="当前历史会话消息" aria-live="polite" tabindex="0"></div><button type="button" id="agent-history-continue"></button>';
+    $(".xiaozhi-intro", xiaozhiRail).after(historySection);
+    const renderHistoryMessages = () => {
+      $("#agent-history-messages").innerHTML = activeHistorySession.messages.map(message => `<article class="agent-history-message ${message.role}"><span>${message.role === "user" ? "你" : "Ask Agent · 模拟回复"}</span><p>${escapeHTML(message.text)}</p></article>`).join("");
+      const log = $("#agent-history-messages");
+      log.scrollTop = log.scrollHeight;
+    };
+    const leaveHistorySession = () => {
+      if (activeHistorySession) activeHistorySession.draft = xiaozhiInput.value;
+      activeHistorySession = null;
+      historySection.hidden = true;
+      xiaozhiRail.classList.remove("history-mode");
+      $(".xiaozhi-intro", xiaozhiRail).hidden = false;
+      xiaozhiInput.placeholder = "输入要继续完成的工作…";
+      historyRows.forEach(row => row.removeAttribute("aria-current"));
+    };
+    const openHistorySession = (index) => {
+      if (ArtifactUI.guard(() => openHistorySession(index))) return;
+      if (activeHistorySession) activeHistorySession.draft = xiaozhiInput.value;
+      activeHistorySession = historySessions[index];
+      if (!activeHistorySession) return;
+      closeOverlays();
+      showMainView("home", { silent: true });
+      clearTimeout(window.__toastTimer);
+      toast.classList.remove("show");
+      widgetAiContext = null;
+      $("#xiaozhi-widget-context")?.remove();
+      $$(".xiaozhi-context button", xiaozhiRail).forEach(button => button.classList.remove("selected"));
+      historyRows.forEach((row, rowIndex) => {
+        if (rowIndex === index) row.setAttribute("aria-current", "true");
+        else row.removeAttribute("aria-current");
+      });
+      const title = $(".history-text", historyRows[index]).textContent;
+      $("#agent-history-title").textContent = title;
+      $("#agent-history-source").textContent = `已带入上下文 · ${activeHistorySession.source}`;
+      $("#agent-history-continue").textContent = activeHistorySession.next;
+      historySection.dataset.sessionId = `history-${index + 1}`;
+      historySection.hidden = false;
+      $(".xiaozhi-intro", xiaozhiRail).hidden = true;
+      xiaozhiRail.classList.add("history-mode");
+      xiaozhiInput.value = activeHistorySession.draft;
+      xiaozhiInput.placeholder = "继续这个任务，或补充新的要求…";
+      setXiaozhiExpanded(true);
+      renderHistoryMessages();
+      updateXiaozhiComposer();
+      requestAnimationFrame(() => {
+        xiaozhiRail.style.scrollMarginTop = `${$(".topbar").getBoundingClientRect().height + 16}px`;
+        xiaozhiRail.scrollIntoView({ block: "start", behavior: "instant" });
+        $("#agent-history-title").focus({ preventScroll: true });
+        renderHistoryMessages();
+      });
+    };
+    historyRows.forEach((row, index) => {
+      row.setAttribute("role", "button");
+      row.tabIndex = 0;
+      row.setAttribute("aria-controls", "agent-history-session");
+      row.addEventListener("click", () => openHistorySession(index));
+      row.addEventListener("keydown", event => {
+        if (!["Enter", " "].includes(event.key)) return;
+        event.preventDefault(); openHistorySession(index);
+      });
+    });
+    $("#agent-history-continue").addEventListener("click", () => {
+      xiaozhiInput.value = activeHistorySession.next;
+      updateXiaozhiComposer(); xiaozhiInput.focus({ preventScroll: true });
+    });
     const updateXiaozhiComposer = () => {
-      const selectedSources = $$(".xiaozhi-context button.selected");
+      if (activeHistorySession) {
+        $("#xiaozhi-context-hint").textContent = "已引用当前历史会话 · 继续对话";
+        xiaozhiSend.disabled = !xiaozhiInput.value.trim();
+        return;
+      }
+      const selectedSources = $$(".xiaozhi-context button.selected", xiaozhiRail);
       $("#xiaozhi-context-hint").textContent = selectedSources.length ? `已引用 ${selectedSources.length} 类资料` : "先选择需要使用的资料";
       xiaozhiSend.disabled = !xiaozhiInput.value.trim() || !selectedSources.length;
     };
@@ -4110,6 +4195,15 @@
     xiaozhiInput.addEventListener("input", updateXiaozhiComposer);
     $$('[data-xiaozhi-prompt]').forEach((button) => button.addEventListener("click", () => { xiaozhiInput.value = button.dataset.xiaozhiPrompt; xiaozhiInput.focus(); updateXiaozhiComposer(); }));
     xiaozhiSend.addEventListener("click", () => {
+      if (activeHistorySession) {
+        const text = xiaozhiInput.value.trim();
+        if (!text) return;
+        activeHistorySession.messages.push({ role: "user", text }, { role: "assistant", text: `收到你的补充：“${text}”\n\n结合这条会话的已有记录，${activeHistorySession.followup}\n\n以上是基于该会话的模拟续接，尚未调用 AI 服务。` });
+        activeHistorySession.draft = "";
+        xiaozhiInput.value = "";
+        renderHistoryMessages(); updateXiaozhiComposer();
+        return;
+      }
       if (widgetAiContext && $("#xiaozhi-widget-context")?.classList.contains("selected")) {
         const { type, records } = widgetAiContext;
         let result = $("#widget-agent-result");
@@ -4376,6 +4470,7 @@
       if (event.target.closest("[data-widget-all]")) { $("#thoughts-entry").click(); $('[data-thought-category="all"]').click(); return; }
       const aiButton = event.target.closest("[data-widget-ai]");
       if (aiButton) {
+        leaveHistorySession();
         const type = aiButton.dataset.widgetAi;
         const typeInfo = todayAssetTypes.find((item) => item.key === type);
         const records = assetsForToday(typeInfo);

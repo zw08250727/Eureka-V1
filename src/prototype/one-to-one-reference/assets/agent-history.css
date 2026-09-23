@@ -1,0 +1,29 @@
+.history-row[aria-current="true"] { color: #235fb4; background: #eaf2ff; box-shadow: inset 3px 0 #4383dc; }
+.history-row:focus-visible { outline: 2px solid #4383dc; outline-offset: 2px; }
+.meeting-agent-grid.agent-open .xiaozhi-rail.history-mode {
+  height: min(680px, calc(100dvh - 110px)) !important;
+  min-height: 0;
+  align-self: start;
+  scroll-margin-top: 16px;
+}
+.history-mode .xiaozhi-panel { min-height: 0; }
+.history-mode .xiaozhi-head { flex-shrink: 0; }
+.history-mode .xiaozhi-body { overflow: hidden; gap: 14px; }
+.history-mode .xiaozhi-intro[hidden], #agent-history-session[hidden] { display: none; }
+#agent-history-session { display: flex; min-height: 0; flex: 1; flex-direction: column; gap: 12px; }
+.agent-session-head { flex-shrink: 0; }
+.agent-session-head > span { display: flex; justify-content: space-between; color: #66809d; font-size: 11px; }
+.agent-session-head small { color: #8b96a5; font-size: 10px; }
+.agent-session-head h3 { margin: 8px 0 5px; color: #253852; font-size: 18px; line-height: 1.5; overflow-wrap: anywhere; }
+.agent-session-head p { margin: 0; color: #74849b; font-size: 11px; line-height: 1.6; }
+#agent-history-messages { min-height: 0; flex: 1; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; padding-right: 5px; }
+.agent-history-message { margin: 0 0 16px; }
+.agent-history-message > span { color: #728399; font-size: 10px; }
+.agent-history-message p { margin: 6px 0 0; color: #354961; font-size: 13px; line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; }
+.agent-history-message.user { padding: 10px 12px; border-radius: 12px; background: #eef4fd; }
+.agent-history-message.assistant { padding: 0 3px; }
+#agent-history-continue { flex-shrink: 0; padding: 9px 11px; border: 1px solid #dce6f4; border-radius: 9px; background: #f8fbff; color: #346db5; font: inherit; font-size: 11px; text-align: left; cursor: pointer; }
+#agent-history-continue:hover { background: #eef5ff; }
+.history-mode .xiaozhi-composer { min-height: 122px; flex-shrink: 0; margin: 0; }
+.history-mode .xiaozhi-composer textarea { min-height: 64px; }
+.history-mode .xiaozhi-context { display: none; }
