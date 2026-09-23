@@ -6,7 +6,7 @@
 .md-workspace button,.md-dialog button { cursor:pointer; }
 .md-workspace button:disabled,.md-dialog button:disabled { opacity:.45; cursor:not-allowed; }
 .md-workspace button:focus-visible,.md-dialog :focus-visible { outline:2px solid #536dfe; outline-offset:3px; }
-.md-workspace button { border:0; background:transparent; color:inherit; }
+.md-workspace button:where(:not(#xiaozhi-rail *)) { border:0; background:transparent; color:inherit; }
 .md-page-head { display:flex; align-items:center; justify-content:space-between; gap:20px; margin:0 0 20px; }
 .md-page-head h1 { font-size:20px; margin:0 0 8px; font-weight:650; }
 .md-page-head p { font-size:12px; color:#888d97; margin:0; }
@@ -183,3 +183,26 @@
 .md-inline-editable:focus { outline:none; }
 .md-inline-editor:focus-within { border-color:#8eaddd; box-shadow:0 0 0 2px #eaf1fb; }
 .md-inline-edit-status { min-height:18px; margin:0; color:#b75454; font-size:11px; }
+
+/* The Agent shares the meeting viewport; only the document and chat scroll. */
+.md-detail-layout { display:grid; grid-template-columns:minmax(0,1fr); gap:16px; position:relative; min-width:0; }
+.md-agent-open .md-detail-layout { grid-template-columns:minmax(0,1fr) 340px; }
+#md-agent-host { min-width:0; min-height:0; height:calc(100dvh - var(--md-frame-top,160px) - 16px); }
+#md-agent-host #xiaozhi-rail { position:relative!important; inset:auto!important; display:block!important; width:100%!important; height:100%!important; min-height:0; opacity:1; visibility:visible; transform:none; pointer-events:auto; border-radius:16px; }
+#md-agent-host .xiaozhi-panel { min-height:0; }
+.md-agent-context { padding:0 0 16px; border-bottom:1px solid #e6edf6; }
+.md-agent-context small { display:block; color:#8492a8; font-size:11px; margin-bottom:6px; }
+.md-agent-context strong { display:block; color:#334a6c; font-size:14px; line-height:1.6; }
+.md-agent-context p { margin:8px 0 0; color:#7b899f; font-size:12px; line-height:1.7; }
+.md-agent-open .md-top { flex-wrap:wrap; }
+.md-agent-open .md-top-actions { margin-left:auto; }
+.md-agent-open .md-tabs { overflow-x:auto; gap:20px; }
+.md-agent-open .md-panel { padding:24px 0; }
+.md-agent-open .md-panel-tools { flex-wrap:wrap; }
+.md-agent-open .md-frame { grid-template-columns:0 minmax(0,1fr); position:relative; }
+.md-agent-open .md-frame.library-mobile .md-library { position:absolute; inset:0 auto 0 0; width:240px; z-index:5; background:white; box-shadow:15px 0 35px #26304922; }
+@media(min-width:1800px) { .md-agent-open .md-frame:not(.library-closed) { grid-template-columns:240px minmax(0,1fr); } }
+@media(max-width:1000px) {
+  .md-agent-open .md-detail-layout { grid-template-columns:minmax(0,1fr); }
+  #md-agent-host { position:absolute; right:0; top:0; width:min(380px,100%); z-index:8; box-shadow:-12px 0 40px #243b6220; border-radius:16px; }
+}

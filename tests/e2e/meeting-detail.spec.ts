@@ -190,3 +190,47 @@ test('inline edits validate empty content and keep summary and verbatim separate
   await page.getByRole('tab', { name:'逐字稿', exact:true }).click();
   await expect(page.locator('#md-content .md-prose')).toHaveText('逐字稿修订内容');
 });
+
+test('meeting Agent expands in place, preserves edits and conversations, and restores the home Agent', async ({ page }) => {
+  await page.setViewportSize({ width:1366, height:768 });
+  await page.getByRole('button', { name:'编辑', exact:true }).click();
+  const body = page.getByRole('textbox', { name:'编辑正文', exact:true });
+  await body.fill('未保存的会议修订');
+  await page.getByRole('button', { name:'Ask Agent', exact:true }).click();
+  await expect(page.locator('#meeting-detail-root')).toBeVisible();
+  await expect(page.locator('#md-agent-host #xiaozhi-rail')).toBeVisible();
+  await expect(body).toHaveText('未保存的会议修订');
+  await expect(page.locator('#xiaozhi-send')).toBeInViewport({ ratio:1 });
+  await page.locator('#xiaozhi-input').fill('我的会议追问');
+  await page.locator('#xiaozhi-send').click();
+  await expect(page.locator('.md-agent-messages')).toContainText('我的会议追问');
+  await page.locator('#xiaozhi-input').fill('继续整理负责人');
+  await page.locator('#xiaozhi-collapse').click();
+  await expect(page.locator('#md-agent-host')).toBeHidden();
+  await expect(body).toHaveText('未保存的会议修订');
+  await expect(page.getByRole('button', { name:'Ask Agent', exact:true })).toBeFocused();
+  await page.getByRole('button', { name:'Ask Agent', exact:true }).click();
+  await expect(page.locator('#xiaozhi-input')).toHaveValue('继续整理负责人');
+  await expect(page.locator('.md-agent-messages')).toContainText('我的会议追问');
+  await page.getByRole('button', { name:'切换录音列表' }).click();
+  await page.locator('.md-library-item').nth(1).click();
+  await expect(page.locator('.md-agent-context strong')).toHaveText('百销产品能力与市场匹配调研');
+  await expect(page.locator('.md-agent-messages')).not.toContainText('我的会议追问');
+  await page.getByRole('button', { name:'切换录音列表' }).click();
+  await page.locator('.md-library-item').first().click();
+  await expect(page.locator('#xiaozhi-input')).toHaveValue('继续整理负责人');
+  await expect(body).toHaveText('未保存的会议修订');
+  for (const [width,height] of [[1920,1080],[1280,650],[1024,768],[390,844]]) {
+    await page.setViewportSize({width,height});
+    await expect(page.locator('#xiaozhi-send')).toBeInViewport({ ratio:1 });
+    await expect(page.locator('#xiaozhi-collapse')).toBeInViewport({ ratio:1 });
+    await expect(page.locator('#meeting-detail-root')).toBeVisible();
+  }
+  await page.setViewportSize({width:1366,height:768});
+  await page.locator('#home-entry').click();
+  await expect(page.locator('#meeting-agent-grid #xiaozhi-rail')).toHaveCount(1);
+  await expect(page.locator('#md-agent-host')).toBeHidden();
+  await page.locator('#history-task-list .history-row').first().click();
+  await expect(page.locator('#xiaozhi-rail')).toBeVisible();
+  await expect(page.locator('#agent-history-session')).toBeVisible();
+});

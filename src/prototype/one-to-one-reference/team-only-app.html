@@ -2706,7 +2706,7 @@
   <link rel="stylesheet" href="assets/today-workbench.css?v=today-workbench-v19" />
   <link rel="stylesheet" href="assets/pc-capability-enhancements.css?v=pc-capabilities-v2" />
   <link rel="stylesheet" href="assets/meeting-list.css?v=meeting-list-v1" />
-  <link rel="stylesheet" href="assets/meeting-detail.css?v=4" />
+  <link rel="stylesheet" href="assets/meeting-detail.css?v=5" />
   <link rel="stylesheet" href="assets/agent-history.css?v=2" />
   <link rel="stylesheet" href="assets/agent-composer.css?v=1" />
 </head>
@@ -3288,6 +3288,7 @@
       }
       const next = $(`[data-main-view="${target}"]`);
       if (!next) return;
+      if (target !== "note-detail") document.dispatchEvent(new Event("meeting-agent-leave"));
       if (target !== "knowledge") window.setKnowledgeXiaozhiExpanded?.(false);
       $$('[data-main-view]').forEach((view) => { const active = view === next; view.hidden = !active; view.setAttribute("aria-hidden", String(!active)); });
       $("#page-crumb").textContent = mainViewTitles[target] || "企业AI工作台";
@@ -4105,6 +4106,7 @@
     };
     new ResizeObserver(sizeAgentPanel).observe($(".topbar"));
     const setXiaozhiExpanded = (expanded) => {
+      if (!expanded && meetingAgentContext) { closeMeetingAgent(true); return; }
       sizeAgentPanel();
       xiaozhiRail.classList.toggle("expanded", expanded);
       document.body.classList.toggle("xiaozhi-open", expanded);
@@ -4114,7 +4116,7 @@
       $("#xiaozhi-entry-label").textContent = expanded ? "收起小智" : "问问小智";
       xiaozhiPanel.setAttribute("aria-hidden", String(!expanded));
       xiaozhiGrid.classList.toggle("agent-open", expanded);
-      if (expanded) requestAnimationFrame(() => xiaozhiRail.scrollIntoView({ block: "nearest", behavior: "instant" }));
+      if (expanded && !meetingAgentContext) requestAnimationFrame(() => xiaozhiRail.scrollIntoView({ block: "nearest", behavior: "instant" }));
     };
     xiaozhiEntry.addEventListener("click", () => setXiaozhiExpanded(!xiaozhiGrid.classList.contains("agent-open")));
     $("#xiaozhi-collapse").addEventListener("click", () => setXiaozhiExpanded(false));
@@ -4203,6 +4205,12 @@
     });
     const updateXiaozhiComposer = () => {
       $("#agent-sources-toggle").classList.toggle("has-sources", Boolean(activeHistorySession) || Boolean($(".xiaozhi-context button.selected", xiaozhiRail)));
+      if (meetingAgentContext) {
+        $("#xiaozhi-context-hint").textContent = `已引用「${meetingAgentContext.title}」`;
+        $("#agent-sources-toggle").classList.add("has-sources");
+        xiaozhiSend.disabled = !xiaozhiInput.value.trim();
+        return;
+      }
       if (activeHistorySession) {
         $("#xiaozhi-context-hint").textContent = "已引用当前历史会话 · 继续对话";
         xiaozhiSend.disabled = !xiaozhiInput.value.trim();
@@ -4233,16 +4241,70 @@
         event.preventDefault(); if (!xiaozhiSend.disabled) xiaozhiSend.click();
       }
     });
-    document.addEventListener("meeting-ask-agent", event => {
-      leaveHistorySession();
-      widgetAiContext = null;
-      $("#xiaozhi-widget-context")?.remove();
-      $("#widget-agent-result")?.remove();
-      showMainView("home", { silent: true });
-      xiaozhiInput.value = `请根据「${event.detail.title}」整理重点与后续行动。\n\n会议内容：\n${event.detail.summary}`;
+    // Move the shared composer, preserving its listeners, into the current meeting.
+    const meetingAgentSessions = new Map();
+    const homeAgentIntro = $(".xiaozhi-intro", xiaozhiRail);
+    let meetingAgentContext = null;
+    let homeAgentDraft = "";
+    const saveMeetingAgentDraft = () => {
+      if (meetingAgentContext) meetingAgentContext.draft = xiaozhiInput.value;
+    };
+    const closeMeetingAgent = (focus = false) => {
+      if (!meetingAgentContext) return;
+      saveMeetingAgentDraft();
+      meetingAgentContext.intro.replaceWith(homeAgentIntro);
+      meetingAgentContext = null;
+      xiaozhiGrid.append(xiaozhiRail);
+      const root = $("#meeting-detail-root");
+      root.classList.remove("md-agent-open");
+      $("#md-agent-host").hidden = true;
+      const trigger = $(".md-ask-agent", root);
+      trigger.setAttribute("aria-expanded", "false");
+      trigger.setAttribute("aria-label", "Ask Agent");
+      xiaozhiInput.value = homeAgentDraft;
+      setXiaozhiExpanded(false);
       updateXiaozhiComposer();
+      if (focus) trigger.focus({ preventScroll:true });
+    };
+    document.addEventListener("meeting-agent-leave", () => closeMeetingAgent());
+    document.addEventListener("meeting-ask-agent", event => {
+      const { open, focus, id, title, summary } = event.detail;
+      if (!open) { closeMeetingAgent(true); return; }
+      saveMeetingAgentDraft();
+      if (!meetingAgentContext) {
+        homeAgentDraft = xiaozhiInput.value;
+        leaveHistorySession();
+        widgetAiContext = null;
+        $("#xiaozhi-widget-context")?.remove();
+        $("#widget-agent-result")?.remove();
+      }
+      let session = meetingAgentSessions.get(id);
+      if (!session) {
+        const intro = document.createElement("div");
+        intro.className = "xiaozhi-intro md-agent-conversation";
+        intro.innerHTML = '<div class="md-agent-context"><small>当前会议</small><strong></strong><p>围绕这场会议，继续提问或整理行动项。</p></div><div class="md-agent-messages" role="log" aria-label="会议对话消息" aria-live="polite"></div>';
+        session = { intro, draft:`请根据「${title}」整理重点与后续行动。` };
+        meetingAgentSessions.set(id, session);
+      }
+      session.title = title;
+      session.summary = summary;
+      $(".md-agent-context strong", session.intro).textContent = title;
+      if (meetingAgentContext !== session) {
+        (meetingAgentContext?.intro || homeAgentIntro).replaceWith(session.intro);
+        xiaozhiInput.value = session.draft;
+      }
+      meetingAgentContext = session;
+      const root = $("#meeting-detail-root");
+      const host = $("#md-agent-host");
+      host.append(xiaozhiRail);
+      host.hidden = false;
+      root.classList.add("md-agent-open");
+      const trigger = $(".md-ask-agent", root);
+      trigger.setAttribute("aria-expanded", "true");
+      trigger.setAttribute("aria-label", "收起 Agent");
       setXiaozhiExpanded(true);
-      xiaozhiInput.focus({ preventScroll: true });
+      updateXiaozhiComposer();
+      if (focus) xiaozhiInput.focus({ preventScroll:true });
     });
     xiaozhiInput.addEventListener("input", updateXiaozhiComposer);
     $$('[data-xiaozhi-prompt]').forEach((button) => button.addEventListener("click", () => { xiaozhiInput.value = button.dataset.xiaozhiPrompt; xiaozhiInput.focus(); updateXiaozhiComposer(); }));
@@ -4252,6 +4314,22 @@
       const mode = $("#agent-response-mode").value === "deep" ? "深度思考" : "快速";
       const webEnabled = $("#agent-web-toggle").getAttribute("aria-pressed") === "true";
       const simulationNote = `${mode} · ${webEnabled ? "联网搜索已选，当前仅模拟，未执行真实检索。" : "模拟回复，尚未调用 AI 服务。"}`;
+      if (meetingAgentContext) {
+        const log = $(".md-agent-messages", meetingAgentContext.intro);
+        const request = xiaozhiInput.value.trim();
+        const response = `这场会议的主要内容：\n${meetingAgentContext.summary}\n\n可以继续按负责人、截止时间整理后续行动。\n\n${simulationNote}`;
+        for (const [role, text] of [["user", request], ["assistant", response]]) {
+          const message = document.createElement("article");
+          message.className = `agent-history-message ${role}`;
+          message.innerHTML = `<span>${role === "user" ? "你" : "Ask Agent · 模拟回复"}</span><p>${escapeHTML(text)}</p>`;
+          log.append(message);
+        }
+        meetingAgentContext.draft = "";
+        xiaozhiInput.value = "";
+        meetingAgentContext.intro.scrollTop = meetingAgentContext.intro.scrollHeight;
+        updateXiaozhiComposer();
+        return;
+      }
       if (activeHistorySession) {
         const text = xiaozhiInput.value.trim();
         if (!text) return;
@@ -5219,6 +5297,6 @@
     })();
   </script>
   <script src="assets/workspace-sidebar.js"></script>
-  <script src="assets/meeting-detail.js?v=4"></script>
+  <script src="assets/meeting-detail.js?v=5"></script>
 </body>
 </html>

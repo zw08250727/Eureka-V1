@@ -117,15 +117,19 @@
     showMainView('note-detail', { silent:true });
   }
   function render() {
-    root.innerHTML = `<div class="md-page-head"><div><h1>语音笔记</h1><p>统一管理语音转写内容，沉淀会议、闪念与结构化数据，持续积累可复用的知识资产。</p></div><div class="md-page-tools"><input class="md-search" id="md-search" type="search" placeholder="搜索语音笔记" aria-label="搜索语音笔记" value="${esc(query)}">${btn('ask','<span class="md-agent-mark"><svg class="icon" aria-hidden="true"><use href="#ico-spark"/></svg></span><strong>Ask Agent</strong><svg class="icon md-agent-expand" aria-hidden="true"><use href="#ico-expand"/></svg>','md-ask-agent','aria-label="Ask Agent"')}</div></div>
-    <div class="md-frame"><aside class="md-library"><div class="md-library-head"><span>录音文件 <small id="md-library-count"></small></span>${ibtn('library','library','收起录音列表')}</div><div class="md-library-list" id="md-library-list"></div></aside>
+    root.innerHTML = `<div class="md-page-head"><div><h1>语音笔记</h1><p>统一管理语音转写内容，沉淀会议、闪念与结构化数据，持续积累可复用的知识资产。</p></div><div class="md-page-tools"><input class="md-search" id="md-search" type="search" placeholder="搜索语音笔记" aria-label="搜索语音笔记" value="${esc(query)}">${btn('ask','<span class="md-agent-mark"><svg class="icon" aria-hidden="true"><use href="#ico-spark"/></svg></span><strong>Ask Agent</strong><svg class="icon md-agent-expand" aria-hidden="true"><use href="#ico-expand"/></svg>','md-ask-agent','aria-label="Ask Agent" aria-controls="md-agent-host" aria-expanded="false"')}</div></div>
+    <div class="md-detail-layout"><div class="md-frame"><aside class="md-library"><div class="md-library-head"><span>录音文件 <small id="md-library-count"></small></span>${ibtn('library','library','收起录音列表')}</div><div class="md-library-list" id="md-library-list"></div></aside>
     <section class="md-main"><header class="md-top">${ibtn('library','library','切换录音列表')}<div class="md-top-copy"><button class="md-title-button" type="button" data-md-action="rename" aria-label="编辑录音标题"><h1 id="note-detail-title">${esc(current.title)}</h1>${icon('edit')}</button><div class="md-top-meta"><p id="note-detail-meta">${esc(current.meta || `${current.date} · ${current.source}`)} · <span style="color:#25b47b">${esc(current.status)}</span></p><button type="button" data-md-action="info">${icon('location')} ${esc(current.location || '添加位置')}</button></div></div>
     <div class="md-top-actions" role="group" aria-label="会议操作">${btn('export',`${icon('download')} 导出`)}${btn('share',`${icon('share')} 分享`)}${btn('delete',`${icon('trash')} 删除`,'md-btn md-delete-btn')}${ibtn('close','close','关闭会议详情')}</div></header>
     <div class="md-scroll"><section class="md-info"><div class="md-info-line"><button type="button" data-md-action="participants">参会人 <span>${esc(current.speakers.join('、'))}</span></button><button type="button" data-md-action="info">客户名称 <span>${esc(current.customer || '添加客户')}</span></button><button type="button" data-md-action="info">商机项目 <span>${esc(current.project || '添加项目')}</span></button>${btn('info-toggle',expanded ? '收起 ⌃':'展开 ⌄','md-info-toggle',`aria-expanded="${expanded}"`)}</div><div class="md-info-extra" ${expanded ? '':'hidden'}><div>标签 ${current.tags.map(t => `<span class="md-tag">${esc(t)}</span>`).join('')}${btn('info','＋ 添加标签','md-link')}</div><div>图片（${current.images.length}/50）<div class="md-images">${current.images.map((im,i) => `<div class="md-image"><img src="${im.url}" alt="${esc(im.name)}" data-md-preview="${i}"><button aria-label="移除图片 ${esc(im.name)}" data-md-remove-image="${i}">×</button></div>`).join('')}</div>${btn('image',icon('plus'),'md-image-add','aria-label="添加图片"')}</div></div></section>
     <div class="md-player">${btn('play',icon(audio.paused ? 'play':'pause'),'md-play',`aria-label="${audio.paused ? '播放':'暂停'}录音"`)}${btn('rewind','↶15','md-icon-btn','aria-label="后退15秒"')}<time id="md-elapsed">00:00</time><input id="md-seek" type="range" min="0" max="${audio.duration || 1}" value="${audio.currentTime}" step="0.1" aria-label="录音播放进度"><time id="md-duration">00:00</time>${btn('forward','15↷','md-icon-btn','aria-label="前进15秒"')}<select id="md-speed" aria-label="播放倍速">${[0.5,0.75,1,1.25,1.5,2].map(x => `<option value="${x}" ${audio.playbackRate === x ? 'selected':''}>${x}x</option>`).join('')}</select><span class="md-demo">演示音频</span></div>
-    <nav class="md-tabs" role="tablist" aria-label="录音详情内容">${tabs.map(([id,label]) => `<button id="md-tab-${id}" role="tab" type="button" data-md-tab="${id}" aria-controls="md-content" aria-selected="${id === activeTab}" tabindex="${id === activeTab ? 0:-1}">${label}</button>`).join('')}</nav><section id="md-content" class="md-panel" role="tabpanel" aria-labelledby="md-tab-${activeTab}"></section></div></section></div><input type="file" id="md-images-input" accept="image/png,image/jpeg,image/webp,image/gif" multiple hidden>`;
+    <nav class="md-tabs" role="tablist" aria-label="录音详情内容">${tabs.map(([id,label]) => `<button id="md-tab-${id}" role="tab" type="button" data-md-tab="${id}" aria-controls="md-content" aria-selected="${id === activeTab}" tabindex="${id === activeTab ? 0:-1}">${label}</button>`).join('')}</nav><section id="md-content" class="md-panel" role="tabpanel" aria-labelledby="md-tab-${activeTab}"></section></div></section></div><aside id="md-agent-host" aria-label="会议 Agent 对话" hidden></aside></div><input type="file" id="md-images-input" accept="image/png,image/jpeg,image/webp,image/gif" multiple hidden>`;
     library(); panel(); updatePlayer();
+    if (root.classList.contains('md-agent-open')) notifyAgent(true, false);
     requestAnimationFrame(fitWorkspace);
+  }
+  function notifyAgent(open, focus = true) {
+    document.dispatchEvent(new CustomEvent('meeting-ask-agent', { detail: { open, focus, id: current.id, title: current.title, summary: current.summary } }));
   }
   function panel() {
     const r = current;
@@ -342,7 +346,7 @@
     const b = event.target.closest('[data-md-action]'); if (!b) return;
     const action = b.dataset.mdAction;
     if (action === 'close') { audio.pause(); showMainView('home',{silent:true}); return; }
-    if (action === 'library') { const frame = $('.md-frame'); if (matchMedia('(max-width:800px)').matches) frame.classList.toggle('library-mobile'); else frame.classList.toggle('library-closed'); return; }
+    if (action === 'library') { const frame = $('.md-frame'); if (matchMedia('(max-width:800px)').matches || (root.classList.contains('md-agent-open') && matchMedia('(max-width:1799px)').matches)) frame.classList.toggle('library-mobile'); else frame.classList.toggle('library-closed'); return; }
     if (action === 'rename') return rename();
     if (action === 'info') return info();
     if (action === 'participants') return participants();
@@ -364,7 +368,7 @@
     if (action === 'share') return shareModal();
     if (action === 'delete') { current.row.querySelector('[data-meeting-action=delete]')?.click(); return; }
     if (action === 'ask') {
-      document.dispatchEvent(new CustomEvent('meeting-ask-agent', { detail: { title: current.title, summary: current.summary } }));
+      notifyAgent(!root.classList.contains('md-agent-open'));
       return;
     }
     if (action === 'ppt' || action === 'report') return draft(action === 'ppt' ? 'ppt':'report');
