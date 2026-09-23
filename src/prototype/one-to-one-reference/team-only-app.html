@@ -2702,7 +2702,7 @@
   <link rel="stylesheet" href="assets/aqua-clear-theme.css?v=calmai-workspace-v2" />
   <link rel="stylesheet" href="assets/workspace-sidebar.css?v=project-layout-v2" />
   <link rel="stylesheet" href="assets/meeting-workspace.css?v=ask-agent-layout-v2" />
-  <link rel="stylesheet" href="assets/today-workbench.css?v=today-workbench-v10" />
+  <link rel="stylesheet" href="assets/today-workbench.css?v=today-workbench-v11" />
   <link rel="stylesheet" href="assets/pc-capability-enhancements.css?v=pc-capabilities-v2" />
   <link rel="stylesheet" href="assets/meeting-list.css?v=meeting-list-v1" />
 </head>
@@ -2869,10 +2869,13 @@
             </div>
             <div class="today-workbench-head-side">
               <div class="recording-command-actions"><button class="recording-primary" id="module-start-recording"><svg class="icon"><use href="#ico-mic"/></svg><span><strong>开始录音</strong><small>使用电脑麦克风</small></span></button><button class="xiaozhi-entry" id="xiaozhi-entry" aria-label="问问小智" aria-controls="xiaozhi-rail" aria-expanded="false"><span class="xiaozhi-entry-mark"><svg class="icon"><use href="#ico-spark"/></svg></span><span><strong id="xiaozhi-entry-label">问问小智</strong><small>使用会议与知识</small></span><svg class="icon xiaozhi-expand-icon"><use href="#ico-expand"/></svg></button></div>
-              <button type="button" class="today-text-action" data-today-action="thoughts">查看全部闪念 →</button>
             </div>
           </header>
-          <section class="today-workbench-content" aria-label="今日闪念概览">
+          <section class="today-workbench-content" aria-labelledby="today-content-title">
+            <header class="today-content-head">
+              <h2 id="today-content-title">今日闪念</h2>
+              <button type="button" class="today-text-action" data-today-action="thoughts">全部闪念 <span aria-hidden="true">→</span></button>
+            </header>
             <div class="today-assets-grid" id="today-assets-grid" role="region" aria-label="今日安排、待办与随手记录，窄屏可横向滚动" tabindex="0"></div>
           </section>
         </div>

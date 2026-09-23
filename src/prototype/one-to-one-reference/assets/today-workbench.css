@@ -23,6 +23,35 @@
   box-shadow: none;
 }
 
+.today-content-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.today-content-head h2 {
+  margin: 0;
+  color: #2f4059;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.today-content-head .today-text-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  border-radius: 4px;
+}
+
+.today-content-head .today-text-action:focus-visible {
+  outline: 2px solid #80a7ed;
+  outline-offset: 4px;
+}
+
 .today-workbench-head,
 .today-card-head,
 .today-thoughts-head {
