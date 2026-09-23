@@ -11,7 +11,7 @@
   min-width: 0;
   align-items: stretch;
   gap: 20px;
-  grid-template-columns: minmax(0, 1fr) 0;
+  grid-template-columns: minmax(0, 1fr);
   transition: grid-template-columns 220ms ease, gap 220ms ease;
 }
 
@@ -27,7 +27,7 @@
 .meeting-agent-grid.agent-open .xiaozhi-rail {
   position: relative !important;
   inset: auto !important;
-  display: block !important;
+  display: none !important;
   width: auto !important;
   max-width: 100%;
   min-width: 0;
@@ -44,6 +44,7 @@
 }
 
 .meeting-agent-grid.agent-open .xiaozhi-rail {
+  display: block !important;
   opacity: 1;
   visibility: visible;
   transform: none;
@@ -63,6 +64,11 @@ body.xiaozhi-open .main-inner[data-main-view="home"] {
   width: min(1180px, calc(100% - 48px));
   margin-right: auto;
   margin-left: auto;
+}
+
+/* The removed desktop guide no longer needs reserved space below the list. */
+body .main-inner[data-main-view="home"]:not(:has(.home-desktop-guide)) {
+  padding-bottom: 24px;
 }
 
 body.xiaozhi-open .home-desktop-guide {

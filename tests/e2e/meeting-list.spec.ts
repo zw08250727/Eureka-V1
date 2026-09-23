@@ -75,3 +75,27 @@ test("meeting list fits desktop, smaller screens and an open Agent panel", async
   await page.locator("#home-entry").click();
   await expect(page.locator("#meeting-view-description")).toHaveText("共 20 个会议笔记");
 });
+
+test("scrolling to the end leaves no empty Agent space below meetings", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(pageUrl);
+  for (const [width, height] of [[1920, 1080], [1440, 900], [1024, 768], [390, 844]]) {
+    await page.setViewportSize({ width, height });
+    for (const toggleAgent of [false, true]) {
+      if (toggleAgent) {
+        await page.locator("#xiaozhi-entry").click();
+        await expect(page.locator("#xiaozhi-rail")).toBeVisible();
+        await page.locator("#xiaozhi-collapse").click();
+      }
+      await expect(page.locator("#xiaozhi-rail")).toBeHidden();
+      await page.locator("#meeting-table-scroll").evaluate((el) => { el.scrollTop = el.scrollHeight; });
+      await expect(page.locator("#meeting-list .home-meeting-row:visible")).toHaveCount(20);
+      await expect.poll(async () => page.locator(".main").evaluate((el) => {
+        el.scrollTop = el.scrollHeight;
+        const card = document.querySelector("#recording-card")!.getBoundingClientRect();
+        return el.getBoundingClientRect().bottom - card.bottom;
+      })).toBeLessThanOrEqual(32);
+      await expect(page.locator("#recording-card")).toBeInViewport();
+    }
+  }
+});
