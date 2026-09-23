@@ -2702,7 +2702,7 @@
   <link rel="stylesheet" href="assets/aqua-clear-theme.css?v=calmai-workspace-v2" />
   <link rel="stylesheet" href="assets/workspace-sidebar.css?v=project-layout-v2" />
   <link rel="stylesheet" href="assets/meeting-workspace.css?v=ask-agent-layout-v1" />
-  <link rel="stylesheet" href="assets/today-workbench.css?v=today-workbench-v4" />
+  <link rel="stylesheet" href="assets/today-workbench.css?v=today-workbench-v5" />
   <link rel="stylesheet" href="assets/pc-capability-enhancements.css?v=pc-capabilities-v2" />
   <link rel="stylesheet" href="assets/meeting-list.css?v=meeting-list-v1" />
 </head>
@@ -2863,8 +2863,8 @@
         <section class="today-workbench" id="today-workbench" aria-labelledby="today-workbench-title">
           <header class="today-workbench-head">
             <div>
-              <span class="today-workbench-eyebrow"><i></i><span id="today-date-label"></span><span class="today-demo-label">模拟数据</span></span>
-              <h1 id="today-workbench-title">今日闪念</h1>
+              <span class="today-workbench-eyebrow"><i></i><span id="today-date-label"></span></span>
+              <h1 id="today-workbench-title">你好，张伟</h1>
               <p id="today-assets-summary">汇集今天的记录、安排与提醒</p>
             </div>
             <div class="today-workbench-head-side">
@@ -2872,8 +2872,8 @@
               <button type="button" class="today-text-action" data-today-action="thoughts">查看全部闪念 →</button>
             </div>
           </header>
-          <div class="today-assets-grid" id="today-assets-grid" role="region" aria-label="今日五类闪念，窄屏可横向滚动" tabindex="0"></div>
-          <div class="today-assets-footnote"><span>按今日记录、待办截止与日程发生时间整理</span><span>灵感 · 待办 · 记账 · 日程 · 其他</span></div>
+          <div class="today-assets-grid" id="today-assets-grid" role="region" aria-label="今日安排、待办与随手记录，窄屏可横向滚动" tabindex="0"></div>
+          <div class="today-assets-footnote"><span id="today-assets-source"></span><span>把今天记下来，让下一步更清楚。</span></div>
         </section>
         <section class="home-meeting-library" id="recording-card" aria-labelledby="recent-meeting-title">
           <div class="home-meeting-head">
@@ -4236,18 +4236,25 @@
       $("#today-date-label").textContent = todayNow.toLocaleDateString("zh-CN", { month: "long", day: "numeric", weekday: "long" });
       const pending = assetsForToday(todayAssetTypes[1]).filter((record) => !record.done).length;
       const total = todayAssetTypes.reduce((sum, type) => sum + assetsForToday(type).length, 0);
-      $("#today-assets-summary").textContent = `今日 ${total} 条闪念资产 · ${pending} 项待办未完成 · ${assetsForToday(todayAssetTypes[3]).length} 场日程`;
-      $("#today-assets-grid").innerHTML = todayAssetTypes.map((type) => {
+      const hour = new Date().getHours();
+      $("#today-workbench-title").textContent = `${hour < 12 ? "上午好" : hour < 18 ? "下午好" : "晚上好"}，张伟`;
+      $("#today-assets-summary").textContent = `今天有 ${assetsForToday(todayAssetTypes[3]).length} 场日程，${pending ? `${pending} 项待办等你推进。` : "待办已经全部完成，给自己留一点思考的时间。"}`;
+      $("#today-assets-source").textContent = `从今日 ${total} 条闪念整理 · 模拟数据`;
+      const renderType = (key) => {
+        const type = todayAssetTypes.find((item) => item.key === key);
         const records = assetsForToday(type);
         const amount = records.reduce((sum, record) => sum + (record.amount || 0), 0);
+        const compact = ["ledger", "other"].includes(key);
         const rows = records.slice(0, 2).map((record) => {
-          const isTodo = type.key === "todo";
+          const isTodo = key === "todo";
           const action = isTodo ? `data-today-toggle="${record.id}" aria-pressed="${record.done}"` : `data-today-asset="${record.id}"`;
-          const meta = type.key === "ledger" ? `¥${record.amount.toFixed(2)}` : type.key === "schedule" ? `${record.time}–${record.end}` : isTodo ? `${record.time} 截止` : record.time;
-          return `<button type="button" class="today-asset-row${record.done ? " is-done" : ""}" ${action}>${isTodo ? '<span class="today-check" aria-hidden="true">' + (record.done ? "✓" : "") + '</span>' : ""}<span><small>${meta}</small><strong>${escapeHTML(record.title)}</strong></span></button>`;
+          const meta = key === "ledger" ? `¥${record.amount.toFixed(2)}` : key === "schedule" ? `${record.time}–${record.end}` : isTodo ? `${record.time} 前` : record.time;
+          return `<button type="button" class="today-asset-row${record.done ? " is-done" : ""}" ${action}>${isTodo ? '<span class="today-check" aria-hidden="true">' + (record.done ? "✓" : "") + '</span>' : ""}<span><small>${meta}</small><strong>${escapeHTML(record.title)}</strong>${key === "schedule" ? `<em>${escapeHTML(record.detail.split(" · ").slice(0, 2).join(" · "))}</em>` : ""}</span></button>`;
         }).join("");
-        return `<section class="today-asset-card" data-asset-type="${type.key}" aria-label="今日${type.name}"><header><span><svg class="icon"><use href="#${type.icon}"/></svg><h2>${type.name}</h2></span><span class="today-asset-count">${records.length}</span></header><p class="today-asset-caption">${type.caption}${type.key === "ledger" ? ` <b>¥${amount.toFixed(2)}</b>` : ""}</p><div class="today-asset-rows">${rows || '<p class="today-asset-empty">今天暂无记录</p>'}</div><button class="today-asset-more" type="button" data-today-category="${type.key}">查看${type.name}<span aria-hidden="true">↗</span></button></section>`;
-      }).join("");
+        const heading = key === "schedule" ? "今天的安排" : key === "todo" ? "接下来要做" : key === "inspiration" ? "留给自己的灵感" : type.name;
+        return `<section class="today-asset-card${compact ? " today-asset-inline" : ""}" data-asset-type="${key}" aria-label="今日${type.name}"><header><h2>${heading}</h2><button class="today-asset-more" type="button" data-today-category="${key}" aria-label="查看${type.name}">${compact ? "↗" : `${records.length} ${key === "schedule" ? "场" : key === "todo" ? "项" : "条"} <span aria-hidden="true">↗</span>`}</button></header>${key === "ledger" ? `<p class="today-asset-caption">今日支出 <b>¥${amount.toFixed(2)}</b></p>` : ""}<div class="today-asset-rows">${rows || '<p class="today-asset-empty">今天暂无记录</p>'}</div></section>`;
+      };
+      $("#today-assets-grid").innerHTML = `<div class="today-day-plan">${renderType("schedule")}${renderType("todo")}</div><div class="today-notebook">${renderType("inspiration")}${renderType("ledger")}${renderType("other")}</div>`;
     };
     renderTodayAssets();
     let activeThoughtCategory = "inspiration";

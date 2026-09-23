@@ -7,15 +7,16 @@ test("today assets cover five types, filter by business date, and open their arc
   await page.goto("/prototype/one-to-one-reference/team-only-app.html?edition=personal&personal=1");
   await expect(page.locator(".today-asset-card")).toHaveCount(5);
   await expect(page.locator("#today-date-label")).toContainText("9月23日");
-  await expect(page.locator("#today-assets-summary")).toContainText("今日 9 条闪念资产 · 2 项待办未完成 · 2 场日程");
+  await expect(page.locator("#today-assets-summary")).toContainText("今天有 2 场日程，2 项待办等你推进。");
+  await expect(page.locator("#today-assets-source")).toContainText("今日 9 条闪念");
   await expect(page.locator("[data-asset-type=ledger] .today-asset-caption")).toContainText("¥248.00");
   await expect(page.locator("#today-assets-grid")).not.toContainText("昨天的灵感");
   await expect(page.locator("#today-assets-grid")).not.toContainText("明日提交周报");
   await page.locator('[data-today-toggle="todo-1"]').click();
-  await expect(page.locator("#today-assets-summary")).toContainText("1 项待办未完成");
+  await expect(page.locator("#today-assets-summary")).toContainText("1 项待办等你推进");
   await expect(page.locator('[data-today-toggle="todo-1"]')).toHaveAttribute("aria-pressed", "true");
   await page.locator('[data-today-toggle="todo-1"]').click();
-  await expect(page.locator("#today-assets-summary")).toContainText("2 项待办未完成");
+  await expect(page.locator("#today-assets-summary")).toContainText("2 项待办等你推进");
   for (const key of ["inspiration", "todo", "ledger", "schedule", "other"]) {
     await page.locator(`[data-today-category="${key}"]`).click();
     await expect(page.locator(`[data-thought-category="${key}"]`)).toHaveAttribute("aria-current", "true");
