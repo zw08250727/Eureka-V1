@@ -2705,6 +2705,7 @@
   <link rel="stylesheet" href="assets/today-workbench.css?v=today-workbench-v12" />
   <link rel="stylesheet" href="assets/pc-capability-enhancements.css?v=pc-capabilities-v2" />
   <link rel="stylesheet" href="assets/meeting-list.css?v=meeting-list-v1" />
+  <link rel="stylesheet" href="assets/meeting-detail.css?v=1" />
 </head>
 <body>
   <section class="edition-gate" id="edition-gate" aria-labelledby="edition-gate-title">
@@ -3021,10 +3022,11 @@
       <div class="recycle-empty" id="recycle-empty">回收站暂无内容</div>
     </section>
 
-    <section class="note-detail-workspace" data-main-view="note-detail" hidden aria-label="语音笔记详情">
+    <section id="meeting-detail-root" class="md-workspace" data-main-view="note-detail" hidden aria-label="语音笔记详情"></section>
+    <section class="note-detail-workspace" data-main-view="event-detail" hidden aria-label="语音笔记详情">
       <div class="note-detail-layout">
-        <aside class="note-detail-sidebar"><div class="note-detail-side-head"><strong>语音内容</strong><button id="note-detail-back">返回首页</button></div><div class="note-detail-list"><button class="note-detail-item active" data-note-detail-item="三季度产品复盘会议" data-note-meta="今天 09:42 · 47 分钟 · 网页录音"><strong>三季度产品复盘会议</strong><small>今天 · 已整理</small></button><button class="note-detail-item" data-note-detail-item="百销产品能力与市场匹配调研" data-note-meta="昨天 16:28 · 58 分钟 · 录音卡"><strong>百销产品能力与市场匹配调研</strong><small>昨天 · 已整理</small></button><button class="note-detail-item" data-note-detail-item="关于首页工作流的想法" data-note-meta="今天 11:06 · 移动端闪念"><strong>关于首页工作流的想法</strong><small>移动端同步 · 已保存</small></button></div></aside>
-        <section class="note-detail-main"><header class="note-detail-head"><div class="note-detail-title"><h1 id="note-detail-title">三季度产品复盘会议</h1><p id="note-detail-meta">今天 09:42 · 47 分钟 · 网页录音 · 已整理</p></div><div class="note-detail-actions"><button data-toast="正在生成 AI 智绘 PPT">AI 智绘 PPT</button><button data-toast="正在生成深度报告">生成深度报告</button><button data-toast="分享设置已打开">分享给团队</button></div></header><nav class="note-detail-tabs" aria-label="语音内容类型"><button class="note-detail-tab active" data-note-tab="summary">智能总结</button><button class="note-detail-tab" data-note-tab="transcript">转写文本</button><button class="note-detail-tab" data-note-tab="visual">图文摘要</button><button class="note-detail-tab" data-note-tab="mindmap">思维导图</button><button class="note-detail-tab" data-note-tab="article">逐字稿</button><button class="note-detail-tab" data-note-tab="translation">实时翻译</button></nav><div class="note-detail-content">
+        <aside class="note-detail-sidebar"><div class="note-detail-side-head"><strong>语音内容</strong><button id="event-note-detail-back">返回首页</button></div><div class="note-detail-list"><button class="note-detail-item active" data-note-detail-item="三季度产品复盘会议" data-note-meta="今天 09:42 · 47 分钟 · 网页录音"><strong>三季度产品复盘会议</strong><small>今天 · 已整理</small></button><button class="note-detail-item" data-note-detail-item="百销产品能力与市场匹配调研" data-note-meta="昨天 16:28 · 58 分钟 · 录音卡"><strong>百销产品能力与市场匹配调研</strong><small>昨天 · 已整理</small></button><button class="note-detail-item" data-note-detail-item="关于首页工作流的想法" data-note-meta="今天 11:06 · 移动端闪念"><strong>关于首页工作流的想法</strong><small>移动端同步 · 已保存</small></button></div></aside>
+        <section class="note-detail-main"><header class="note-detail-head"><div class="note-detail-title"><h1 id="event-note-detail-title">三季度产品复盘会议</h1><p id="event-note-detail-meta">今天 09:42 · 47 分钟 · 网页录音 · 已整理</p></div><div class="note-detail-actions"><button data-toast="正在生成 AI 智绘 PPT">AI 智绘 PPT</button><button data-toast="正在生成深度报告">生成深度报告</button><button data-toast="分享设置已打开">分享给团队</button></div></header><nav class="note-detail-tabs" aria-label="语音内容类型"><button class="note-detail-tab active" data-note-tab="summary">智能总结</button><button class="note-detail-tab" data-note-tab="transcript">转写文本</button><button class="note-detail-tab" data-note-tab="visual">图文摘要</button><button class="note-detail-tab" data-note-tab="mindmap">思维导图</button><button class="note-detail-tab" data-note-tab="article">逐字稿</button><button class="note-detail-tab" data-note-tab="translation">实时翻译</button></nav><div class="note-detail-content">
           <section class="note-detail-panel event-detail-panel" data-note-panel="summary">
             <div class="event-detail-intro"><span class="note-ai-note">日程详情 · 已关联会议笔记</span><p>把日程、原始捕获和 AI 整理结果放在同一条工作线上，方便会前准备、会中记录和会后继续推进。</p></div>
             <div class="event-detail-grid">
@@ -3046,11 +3048,11 @@
             <section class="event-capture-card" aria-labelledby="event-capture-title">
               <div class="event-capture-head"><div><span class="event-card-kicker">Original Capture</span><h2 id="event-capture-title">原始捕获</h2></div><span class="event-ai-badge"><svg class="icon"><use href="#ico-spark"/></svg>AI Assistant <small>回忆当时的上下文</small></span></div>
               <div class="event-capture-summary"><p>今天两点半线上和新加坡团队做产品评审，重点讨论录音、分类，以及下一轮产品体验的问题。</p><small>Captured Jul 16 at 9:19 AM · 0:27 · Processed Jul 16 at 9:19 AM</small></div>
-              <div class="event-audio-player"><button type="button" id="note-detail-audio-toggle" aria-label="播放原始捕获"><span class="event-audio-play">▶</span></button><time>00:00</time><div class="event-audio-track"><span></span></div><time>00:34</time></div>
+              <div class="event-audio-player"><button type="button" id="event-note-detail-audio-toggle" aria-label="播放原始捕获"><span class="event-audio-play">▶</span></button><time>00:00</time><div class="event-audio-track"><span></span></div><time>00:34</time></div>
               <div class="event-agent-session"><span class="event-agent-session-mark"><svg class="icon"><use href="#ico-spark"/></svg></span><span><strong>Agent Session</strong><small>Generated from Quick Capture · Jul 16</small></span><button type="button" data-toast="已打开智能体处理记录">继续处理<svg class="icon"><use href="#ico-chevron"/></svg></button></div>
             </section>
             <section class="event-summary-card" aria-labelledby="event-summary-title"><div><span class="event-card-kicker">AI 提炼</span><h2 id="event-summary-title">今天值得继续推进</h2></div><ul><li>补齐产品评审中的录音入口与后续内容沉淀。</li><li>把客户反馈统一进入需求池，并标记优先级。</li><li>下周例会复查行动项完成情况。</li></ul></section>
-            <footer class="event-detail-footer"><span>会议开始后，可继续记录现场内容并实时生成转写。</span><button type="button" class="event-start-recording" id="note-detail-start-recording"><svg class="icon"><use href="#ico-mic"/></svg>开始录音</button></footer>
+            <footer class="event-detail-footer"><span>会议开始后，可继续记录现场内容并实时生成转写。</span><button type="button" class="event-start-recording" id="event-note-detail-start-recording"><svg class="icon"><use href="#ico-mic"/></svg>开始录音</button></footer>
           </section>
           <section class="note-detail-panel" data-note-panel="transcript" hidden><div class="transcript-block"><div class="transcript-line"><time>00:00:08</time><p>我们先确认本季度产品复盘的范围，重点看研发交付和客户试用反馈。</p></div><div class="transcript-line"><time>00:06:32</time><p>当前最需要明确的是排期、负责人，以及需求进入研发前的统一标准。</p></div><div class="transcript-line"><time>00:18:47</time><p>客户沟通里的问题需要沉淀到知识库，后续再由智能体生成复盘报告。</p></div></div></section>
           <section class="note-detail-panel" data-note-panel="visual" hidden><div class="placeholder-canvas">图文摘要画布 · 展示会议图片与关键结论</div></section>
@@ -3254,7 +3256,7 @@
     $("#user-card").addEventListener("click", (event) => { event.stopPropagation(); closeSpaceMenu(); const open = !$("#user-menu").classList.contains("show"); if (open && typeof window.openUserSettings === "function") window.openUserSettings(); else { $("#user-menu").classList.toggle("show", open); $("#user-card").setAttribute("aria-expanded", String(open)); } });
     $("#user-menu").addEventListener("click", (event) => { event.stopPropagation(); const item = event.target.closest("[data-profile-action]"); if (!item) return; const action = item.dataset.profileAction; if (action === "profile") openDrawer("个人中心", '<h4>张伟</h4><div class="drawer-section"><strong>个人资料</strong><p>维护头像、姓名与个人工作信息。</p></div><div class="drawer-section"><strong>我的设备</strong><p>查看已登录的网页端、移动端与桌面端。</p></div>', '<button class="primary-btn" data-toast="个人资料已保存">编辑个人资料</button>'); else if (action === "switch-edition") { closeUserMenu(); $("#edition-gate").hidden = false; return; } else if (action === "download-app") { closeUserMenu(); setAppQrOpen(true); return; } else if (action === "checkin") { item.textContent = "已签到"; item.disabled = true; showToast("签到成功，获得 20 积分"); } else if (action === "logout") showToast("原型演示：退出登录需要二次确认"); else showToast({ upgrade: "正在查看升级方案", points: "正在打开积分明细", "earn-points": "正在打开积分任务", website: "正在打开百智官网", orders: "正在打开我的订单", "agent-workspace": "将按已有逻辑打开 Agent 工作台", intro: "正在打开产品介绍", changelog: "正在打开更新日志", guide: "正在打开新手指南" }[action] || "正在打开个人设置"); closeUserMenu(); });
     document.addEventListener("click", (event) => { if (!event.target.closest(".space-switcher-wrap")) closeSpaceMenu(); if (!event.target.closest(".user-footer")) closeUserMenu(); });
-    const mainViewTitles = { home: "企业AI工作台", knowledge: "知识库", contacts: "联系人", "recycle-bin": "回收站", capabilities: "AI专家· 技能·连接器", recording: "语音录制", "note-detail": "语音内容" };
+    const mainViewTitles = { home: "企业AI工作台", knowledge: "知识库", contacts: "联系人", "recycle-bin": "回收站", capabilities: "AI专家· 技能·连接器", recording: "语音录制", "note-detail": "语音笔记", "event-detail": "日程详情" };
     // Feature switch: keep the app-data implementation in place while hiding
     // its current UI surface so it can be restored without rebuilding it.
     const APP_DATA_HIDDEN = true;
@@ -4142,7 +4144,7 @@
       const action = event.target.closest("[data-meeting-action]");
       if (!action) return;
       event.stopPropagation();
-      if (action.dataset.meetingAction === "tag") { showToast("正在编辑会议标签"); return; }
+      if (action.dataset.meetingAction === "tag") { window.MeetingDetail?.editInfo(action.closest(".home-meeting-row").dataset.meeting); return; }
       const row = action.closest(".home-meeting-row");
       const title = $(".home-meeting-title strong", row)?.textContent.trim() || "录音文件";
       const size = $(".home-meeting-size", row)?.textContent.trim() || "-";
@@ -4156,6 +4158,7 @@
         meetingRowsById.set(id, { row, parent: row.parentElement, nextSibling });
         assetStore.deleteMeeting(id);
         row.remove();
+        window.MeetingDetail?.removed(id);
         filterMeetings();
         renderRecycleBin();
         showToast("已移入回收站，可在 30 天内恢复");
@@ -4167,13 +4170,14 @@
       event.preventDefault();
       row.click();
     });
-    const openNoteDetail = (title = "三季度产品复盘会议", meta = "今天 09:42 · 47 分钟 · 网页录音") => { $("#note-detail-title").textContent = title; $("#note-detail-meta").textContent = `${meta} · 已整理`; showMainView("note-detail", { silent: true }); };
+    const openNoteDetail = (title = "三季度产品复盘会议", meta = "今天 09:42 · 47 分钟 · 网页录音") => window.MeetingDetail?.open(title, meta);
+    const openEventDetail = (title, meta) => { $("#event-note-detail-title").textContent = title; $("#event-note-detail-meta").textContent = meta; showMainView("event-detail", { silent: true }); };
     $("#view-panorama").addEventListener("click", (event) => { if (!event.target.closest("[data-meeting-action]")) openNoteDetail(); });
     $$('[data-meeting]').forEach((row) => row.addEventListener("click", (event) => { if (!event.target.closest("[data-meeting-action]")) openNoteDetail(row.dataset.meeting, row.dataset.meta); }));
-    $("#note-detail-back").addEventListener("click", () => showMainView("home", { silent: true }));
-    $$('[data-today-schedule]').forEach((button) => button.addEventListener("click", () => openNoteDetail(button.dataset.todaySchedule, button.dataset.scheduleMeta)));
-    $("#note-detail-start-recording")?.addEventListener("click", () => startRecording());
-    $("#note-detail-audio-toggle")?.addEventListener("click", (event) => { const button = event.currentTarget; button.classList.toggle("playing"); button.querySelector(".event-audio-play").textContent = button.classList.contains("playing") ? "Ⅱ" : "▶"; showToast(button.classList.contains("playing") ? "正在播放原始捕获" : "已暂停播放"); });
+    $("#event-note-detail-back").addEventListener("click", () => showMainView("home", { silent: true }));
+    $$('[data-today-schedule]').forEach((button) => button.addEventListener("click", () => openEventDetail(button.dataset.todaySchedule, button.dataset.scheduleMeta)));
+    $("#event-note-detail-start-recording")?.addEventListener("click", () => startRecording());
+    $("#event-note-detail-audio-toggle")?.addEventListener("click", (event) => { const button = event.currentTarget; button.classList.toggle("playing"); button.querySelector(".event-audio-play").textContent = button.classList.contains("playing") ? "Ⅱ" : "▶"; showToast(button.classList.contains("playing") ? "正在播放原始捕获" : "已暂停播放"); });
     $$('[data-today-action]').forEach((button) => button.addEventListener("click", () => {
       const action = button.dataset.todayAction;
       if (action === "record") return startRecording();
@@ -4185,7 +4189,7 @@
     }));
     $$('[data-today-todo]').forEach((button) => button.addEventListener("click", () => { button.classList.toggle("done"); showToast(button.classList.contains("done") ? `已完成：${button.dataset.todayTodo}` : `已恢复：${button.dataset.todayTodo}`); }));
     $$('[data-today-thought]').forEach((button) => button.addEventListener("click", () => showToast(`已打开「${button.dataset.todayThought}」闪念`)));
-    $$('[data-note-detail-item]').forEach((item) => item.addEventListener("click", () => { $$('[data-note-detail-item]').forEach((row) => row.classList.remove("active")); item.classList.add("active"); $("#note-detail-title").textContent = item.dataset.noteDetailItem; $("#note-detail-meta").textContent = `${item.dataset.noteMeta} · 已整理`; }));
+    $$('[data-note-detail-item]').forEach((item) => item.addEventListener("click", () => { $$('[data-note-detail-item]').forEach((row) => row.classList.remove("active")); item.classList.add("active"); $("#event-note-detail-title").textContent = item.dataset.noteDetailItem; $("#event-note-detail-meta").textContent = `${item.dataset.noteMeta} · 已整理`; }));
     $$('[data-note-tab]').forEach((button) => button.addEventListener("click", () => { $$('[data-note-tab]').forEach((item) => item.classList.toggle("active", item === button)); $$('[data-note-panel]').forEach((panel) => { panel.hidden = panel.dataset.notePanel !== button.dataset.noteTab; }); }));
     const thoughtArchiveData = {
       inspiration: { name: "灵感", description: "记录随时产生的想法、观察和临时语音内容。", files: [
@@ -4897,7 +4901,7 @@
         const pageCrumb = document.querySelector("#page-crumb"); if (pageCrumb && pageCrumb.textContent.includes("企业AI")) pageCrumb.textContent = "团队 AI 工作台";
         const visibleView = [...document.querySelectorAll("[data-main-view]")].find((el) => !el.hidden);
         if (pageCrumb && visibleView) {
-          const viewTitle = visibleView.dataset.mainView === "apps" ? "应用数据" : visibleView.dataset.mainView === "contacts" ? "联系人" : visibleView.dataset.mainView === "recycle-bin" ? "回收站" : visibleView.dataset.mainView === "note-detail" ? "语音内容" : visibleView.dataset.mainView === "recording" ? "开始录音" : "";
+          const viewTitle = visibleView.dataset.mainView === "apps" ? "应用数据" : visibleView.dataset.mainView === "contacts" ? "联系人" : visibleView.dataset.mainView === "recycle-bin" ? "回收站" : visibleView.dataset.mainView === "note-detail" ? "语音笔记" : visibleView.dataset.mainView === "recording" ? "开始录音" : "";
           if (viewTitle && pageCrumb.textContent !== viewTitle) pageCrumb.textContent = viewTitle;
           if (visibleView.dataset.mainView === "recycle-bin") {
             const recordingRecycle = activeRecycleRepository === "recording";
@@ -4994,5 +4998,6 @@
     })();
   </script>
   <script src="assets/workspace-sidebar.js"></script>
+  <script src="assets/meeting-detail.js?v=1"></script>
 </body>
 </html>
