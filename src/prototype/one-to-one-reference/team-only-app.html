@@ -2704,6 +2704,7 @@
   <link rel="stylesheet" href="assets/meeting-workspace.css?v=ask-agent-layout-v1" />
   <link rel="stylesheet" href="assets/today-workbench.css?v=today-workbench-v3" />
   <link rel="stylesheet" href="assets/pc-capability-enhancements.css?v=pc-capabilities-v1" />
+  <link rel="stylesheet" href="assets/meeting-list.css?v=meeting-list-v1" />
 </head>
 <body>
   <section class="edition-gate" id="edition-gate" aria-labelledby="edition-gate-title">
@@ -2820,7 +2821,7 @@
             </div></div>
             <button class="side-sub-item knowledge-leaf contacts-nav-entry" data-main-target="contacts" data-contacts-entry="true" data-side-entry="联系人" data-knowledge-folder="联系人" type="button"><svg class="icon"><use href="#ico-user"/></svg><span class="tree-folder-name">联系人</span><span class="tree-count">6</span></button>
             <div class="knowledge-sidebar-tools">
-              <button class="recycle-bin-entry" id="recycle-bin-entry" type="button"><svg class="icon"><use href="#ico-trash"/></svg><span>知识库回收站</span></button>
+              <button class="recycle-bin-entry" id="recycle-bin-entry" type="button" hidden><svg class="icon"><use href="#ico-trash"/></svg><span>知识库回收站</span></button>
             </div>
           </div></section>
           <section class="side-group capability-hub"><button class="side-group-head" id="capability-entry" data-main-target="capabilities" aria-current="false"><span class="side-group-title"><svg class="icon"><use href="#ico-agent"/></svg><span class="side-group-label">AI专家· 技能·连接器</span></span></button></section>
@@ -2896,7 +2897,7 @@
         </section>
         <section class="home-meeting-library" id="recording-card" aria-labelledby="recent-meeting-title">
           <div class="home-meeting-head">
-            <div class="meeting-library-copy"><h2 id="recent-meeting-title">我的会议</h2><p id="meeting-view-description">管理录音、转写、纪要和待办</p></div>
+            <div class="meeting-library-copy"><h2 id="recent-meeting-title">我的会议</h2><p id="meeting-view-description">共 5 个会议笔记</p></div>
             <div class="home-meeting-toolbar" id="meeting-toolbar">
               <label class="meeting-search"><svg class="icon"><use href="#ico-search"/></svg><input id="meeting-search" type="search" placeholder="搜索会议" aria-label="搜索会议" /></label>
               <label class="meeting-source-filter meeting-origin-filter"><span class="sr-only">筛选来源</span><select id="meeting-source-filter" aria-label="筛选内容来源"><option value="all">全部来源</option><option value="网页录音">网页录音</option><option value="合并录音">合并录音</option><option value="M1">M1</option><option value="W1">W1</option><option value="W2">W2</option><option value="W-PEN">W-PEN</option></select><svg class="icon"><use href="#ico-chevron"/></svg></label>
@@ -2912,7 +2913,7 @@
             <div class="home-meeting-toolbar" id="thought-toolbar" hidden><label class="meeting-search"><svg class="icon"><use href="#ico-search"/></svg><input id="thought-file-search" type="search" placeholder="搜索月度文件" aria-label="搜索闪念月度文件" /></label><label class="meeting-source-filter meeting-date-filter"><span class="sr-only">筛选归档月份</span><svg class="icon date-icon"><use href="#ico-clock"/></svg><select id="thought-month-select" aria-label="筛选归档月份"><option value="all">全部月份</option><option value="2026-09">2026 年 9 月</option><option value="2026-08">2026 年 8 月</option><option value="2026-07">2026 年 7 月</option></select><svg class="icon"><use href="#ico-chevron"/></svg></label></div>
           </div>
           <nav class="enterprise-asset-tabs" id="enterprise-asset-tabs" aria-label="企业会议资产类型" hidden><button class="enterprise-asset-tab active" type="button" data-enterprise-asset="meeting" aria-current="page">会议录音</button><button class="enterprise-asset-tab" type="button" data-enterprise-asset="panorama">AI 全景数据</button></nav>
-          <div class="meeting-table-scroll" id="meeting-table-scroll"><div class="home-meeting-table-head"><span class="meeting-select-cell"><input id="meeting-select-all" type="checkbox" aria-label="选择全部会议" /></span><span id="meeting-name-column">文件名</span><span>文件大小</span><span id="meeting-creator-column">创建人</span><span id="meeting-source-column">文件来源</span><span>标签</span><span id="meeting-duration-column">录音时长</span><span id="meeting-status-column">文件状态</span><span id="meeting-time-column">录音时间</span><span>更新时间</span><span>操作</span></div>
+          <div class="meeting-table-scroll" id="meeting-table-scroll" role="region" aria-label="会议列表，可滚动查看更多" tabindex="0"><div class="home-meeting-table-head"><span id="meeting-name-column">文件名</span><span>文件大小</span><span id="meeting-creator-column">创建人</span><span id="meeting-source-column">文件来源</span><span>标签</span><span id="meeting-duration-column">录音时长</span><span id="meeting-status-column">文件状态</span><span id="meeting-time-column">录音时间</span><span>更新时间</span><span>操作</span></div>
           <div class="home-meeting-table" id="meeting-list">
             <button class="meeting-row home-meeting-row" id="view-panorama" data-view="my" data-date="today" data-source="网页录音"><span class="home-meeting-title"><i><svg class="icon"><use href="#ico-mic"/></svg></i><span><strong>三季度产品复盘会议</strong><small>6 位参与者 · 8 项行动项</small></span></span><span class="home-meeting-size">48.2 MB</span><span>网页录音</span><span class="home-meeting-tag">产品复盘</span><span>47 分钟</span><span class="home-meeting-status ready"><i></i>已总结</span><span class="home-meeting-time">2026-09-02 09:42</span><span class="home-meeting-updated">2026-09-02 10:36</span><em>查看<svg class="icon"><use href="#ico-chevron"/></svg></em></button>
             <button class="meeting-row home-meeting-row" data-view="my" data-date="7" data-source="合并录音" data-meeting="百销产品能力与市场匹配调研" data-meta="昨天 · 58 分钟 · 5 位参与者"><span class="home-meeting-title"><i><svg class="icon"><use href="#ico-mic"/></svg></i><span><strong>百销产品能力与市场匹配调研</strong><small>5 位参与者 · 3 项关键结论</small></span></span><span class="home-meeting-size">56.8 MB</span><span>合并录音</span><span class="home-meeting-tag">市场调研</span><span>58 分钟</span><span class="home-meeting-status ready"><i></i>已总结</span><span class="home-meeting-time">2026-09-01 16:28</span><span class="home-meeting-updated">2026-09-01 18:05</span><em>查看<svg class="icon"><use href="#ico-chevron"/></svg></em></button>
@@ -2923,9 +2924,8 @@
             <button class="meeting-row home-meeting-row" hidden data-view="enterprise" data-date="7" data-source="企业共享" data-meeting="客户需求复盘会" data-meta="昨天 · 41 分钟 · 王宁共享"><span class="home-meeting-title"><i><svg class="icon"><use href="#ico-users"/></svg></i><span><strong>客户需求复盘会</strong><small>王宁共享 · 等待补充业务背景</small></span></span><span class="home-meeting-size">40.3 MB</span><span>企业共享</span><span class="home-meeting-tag">需求复盘</span><span>41 分钟</span><span class="home-meeting-status processing"><i></i>待补充</span><span class="home-meeting-time">2026-09-01 17:36</span><span class="home-meeting-updated">2026-09-01 18:10</span><em>处理<svg class="icon"><use href="#ico-chevron"/></svg></em></button>
             <button class="meeting-row home-meeting-row" hidden data-view="enterprise" data-date="7" data-source="企业共享" data-meeting="区域销售周会" data-meta="8月28日 · 63 分钟 · 销售团队共享"><span class="home-meeting-title"><i><svg class="icon"><use href="#ico-users"/></svg></i><span><strong>区域销售周会</strong><small>销售团队共享 · 5 项重点机会</small></span></span><span class="home-meeting-size">61.9 MB</span><span>企业共享</span><span class="home-meeting-tag">销售周会</span><span>63 分钟</span><span class="home-meeting-status ready"><i></i>已总结</span><span class="home-meeting-time">2026-08-28 16:20</span><span class="home-meeting-updated">2026-08-28 18:02</span><em>查看<svg class="icon"><use href="#ico-chevron"/></svg></em></button>
             <button class="meeting-row home-meeting-row" hidden data-view="enterprise" data-date="30" data-source="企业共享" data-meeting="研发项目推进会" data-meta="8月23日 · 46 分钟 · 陈晨共享"><span class="home-meeting-title"><i><svg class="icon"><use href="#ico-users"/></svg></i><span><strong>研发项目推进会</strong><small>陈晨共享 · 4 项风险已标记</small></span></span><span class="home-meeting-size">45.2 MB</span><span>企业共享</span><span class="home-meeting-tag">项目推进</span><span>46 分钟</span><span class="home-meeting-status ready"><i></i>已总结</span><span class="home-meeting-time">2026-08-23 14:05</span><span class="home-meeting-updated">2026-08-23 15:42</span><em>查看<svg class="icon"><use href="#ico-chevron"/></svg></em></button>
-          </div></div>
+          </div><div class="meeting-filter-empty" id="meeting-filter-empty" hidden>没有找到匹配的会议</div><div class="meeting-load-footer"><span id="meeting-load-status" role="status" aria-live="polite"></span><button id="meeting-load-more" type="button" hidden>加载更多</button></div></div>
           <div class="thought-workspace" id="thought-workspace" hidden><aside class="thought-category-rail" aria-label="闪念分类"><strong>闪念分类</strong><button class="thought-category-button active" type="button" data-thought-category="inspiration" aria-current="true"><svg class="icon"><use href="#ico-spark"/></svg><span>灵感</span><em>18</em></button><button class="thought-category-button" type="button" data-thought-category="todo"><svg class="icon"><use href="#ico-task"/></svg><span>待办</span><em>12</em></button><button class="thought-category-button" type="button" data-thought-category="ledger"><svg class="icon"><use href="#ico-book"/></svg><span>记账</span><em>9</em></button><button class="thought-category-button" type="button" data-thought-category="other"><svg class="icon"><use href="#ico-more"/></svg><span>其他</span><em>6</em></button></aside><section class="thought-file-pane" aria-labelledby="thought-category-heading"><header class="thought-file-pane-head"><div><strong id="thought-category-heading">灵感</strong><span id="thought-category-description">记录随时产生的想法、观察和临时语音内容。</span></div></header><div class="thought-file-table-scroll"><div class="thought-file-table-head"><span>文件名</span><span>记录数量</span><span>更新时间</span><span>操作</span></div><div id="thought-file-list"></div></div></section></div>
-          <div class="meeting-filter-empty" id="meeting-filter-empty" hidden>没有找到匹配的会议</div>
           <div class="recording-empty-state" id="recording-empty-state" hidden><span class="empty-record-orbit"><svg class="icon"><use href="#ico-mic"/></svg></span><strong>记录第一场会议</strong><p>开始录音后，转写与纪要会出现在这里。</p><div><button id="empty-start-recording"><svg class="icon"><use href="#ico-mic"/></svg>开始录音</button></div></div>
           <section class="ai-panorama-library edition-enterprise-only" id="business-dashboard" hidden aria-label="AI 全景数据文件列表"><div class="ai-panorama-table-scroll"><div class="ai-panorama-table-head"><span>文件名</span><span>文件大小</span><span>文件来源</span><span>更新时间</span><span>操作</span></div><div id="ai-panorama-list">
             <button class="ai-panorama-row" type="button" data-panorama-file="企业-销售全景表.xlsx" data-panorama-size="19.2 MB" data-panorama-updated="2026-09-03 13:37" data-panorama-sheet="销售全景表" data-panorama-rows="1354"><span class="ai-panorama-file"><span class="ai-panorama-mark"><svg class="icon"><use href="#ico-file"/></svg></span><span class="ai-panorama-copy"><strong>企业-销售全景表.xlsx</strong><small>汇总销售会议中的客户、区域与机会信息</small></span></span><span class="ai-panorama-meta">19.2 MB</span><span class="ai-panorama-meta">AI 生成</span><span class="ai-panorama-meta">2026-09-03 13:37</span><span class="ai-panorama-action">AI 编辑</span></button>
@@ -4126,10 +4126,6 @@
       replacement.setAttribute("tabindex", "0");
       replacement.dataset.meetingId = `meeting-${index + 1}`;
       replacement.innerHTML = row.innerHTML;
-      const selectCell = document.createElement("span");
-      selectCell.className = "meeting-select-cell";
-      selectCell.innerHTML = `<input class="meeting-row-select" type="checkbox" aria-label="选择${$(".home-meeting-title strong", replacement)?.textContent.trim() || "会议"}" />`;
-      replacement.prepend(selectCell);
       const title = $(".home-meeting-title strong", replacement)?.textContent.trim() || "会议";
       const metadata = meetingMetadata[title] || { creator: replacement.dataset.view === "enterprise" ? "团队成员" : "张伟", department: "", date: "" };
       replacement.dataset.meetingCreator = metadata.creator;
@@ -4142,16 +4138,6 @@
       const previousAction = $("em", replacement);
       if (previousAction) previousAction.outerHTML = '<span class="meeting-row-actions"><button type="button" data-meeting-action="tag">编辑标签</button><button class="meeting-delete" type="button" data-meeting-action="delete" aria-label="删除会议"><svg class="icon"><use href="#ico-trash"/></svg></button></span>';
       row.replaceWith(replacement);
-    });
-    const meetingSelectAll = $("#meeting-select-all");
-    const meetingRowChecks = () => $$(".meeting-row-select", $("#meeting-list"));
-    meetingSelectAll?.addEventListener("change", () => meetingRowChecks().forEach((checkbox) => { checkbox.checked = meetingSelectAll.checked; }));
-    $("#meeting-list").addEventListener("change", (event) => {
-      if (!event.target.matches(".meeting-row-select") || !meetingSelectAll) return;
-      const checks = meetingRowChecks();
-      const selected = checks.filter((checkbox) => checkbox.checked).length;
-      meetingSelectAll.checked = checks.length > 0 && selected === checks.length;
-      meetingSelectAll.indeterminate = selected > 0 && selected < checks.length;
     });
     $("#meeting-list").addEventListener("click", (event) => {
       const action = event.target.closest("[data-meeting-action]");
@@ -4183,8 +4169,8 @@
       row.click();
     });
     const openNoteDetail = (title = "三季度产品复盘会议", meta = "今天 09:42 · 47 分钟 · 网页录音") => { $("#note-detail-title").textContent = title; $("#note-detail-meta").textContent = `${meta} · 已整理`; showMainView("note-detail", { silent: true }); };
-    $("#view-panorama").addEventListener("click", (event) => { if (!event.target.closest("[data-meeting-action], .meeting-select-cell")) openNoteDetail(); });
-    $$('[data-meeting]').forEach((row) => row.addEventListener("click", (event) => { if (!event.target.closest("[data-meeting-action], .meeting-select-cell")) openNoteDetail(row.dataset.meeting, row.dataset.meta); }));
+    $("#view-panorama").addEventListener("click", (event) => { if (!event.target.closest("[data-meeting-action]")) openNoteDetail(); });
+    $$('[data-meeting]').forEach((row) => row.addEventListener("click", (event) => { if (!event.target.closest("[data-meeting-action]")) openNoteDetail(row.dataset.meeting, row.dataset.meta); }));
     $("#note-detail-back").addEventListener("click", () => showMainView("home", { silent: true }));
     $$('[data-today-schedule]').forEach((button) => button.addEventListener("click", () => openNoteDetail(button.dataset.todaySchedule, button.dataset.scheduleMeta)));
     $("#pc-quick-capture-start")?.addEventListener("click", () => startRecording());
@@ -4272,23 +4258,55 @@
       thought: ["我的闪念", "按灵感、待办、记账和其他四类查看月度归档"],
       enterprise: ["企业会议", "查看企业成员共享的会议内容"]
     };
+    const MEETING_PAGE_SIZE = 10;
+    const meetingScroller = $("#meeting-table-scroll");
+    const meetingLoadMore = $("#meeting-load-more");
+    let matchingMeetingRows = [];
+    let loadedMeetingCount = MEETING_PAGE_SIZE;
+    const renderMeetingPage = () => {
+      const loadedRows = new Set(matchingMeetingRows.slice(0, loadedMeetingCount));
+      $$(".home-meeting-row", $("#meeting-list")).forEach((row) => { row.hidden = !loadedRows.has(row); });
+      const total = matchingMeetingRows.length;
+      const shown = Math.min(loadedMeetingCount, total);
+      $("#meeting-view-description").textContent = `共 ${total} 个会议笔记`;
+      $("#meeting-filter-empty").hidden = total !== 0;
+      $("#meeting-load-status").textContent = total === 0 ? "" : shown < total
+        ? `已显示 ${shown} / ${total} 条 · 向上滑动加载更多`
+        : `已显示全部 ${total} 条会议笔记`;
+      meetingLoadMore.hidden = shown >= total;
+    };
+    const loadMoreMeetings = () => {
+      if (loadedMeetingCount >= matchingMeetingRows.length) return;
+      loadedMeetingCount += MEETING_PAGE_SIZE;
+      renderMeetingPage();
+    };
+    meetingLoadMore.addEventListener("click", loadMoreMeetings);
+    // Only downward scrolling near the bottom advances a page; horizontal browsing does not.
+    let previousMeetingScrollTop = 0;
+    meetingScroller.addEventListener("scroll", () => {
+      const top = meetingScroller.scrollTop;
+      const movingDown = top > previousMeetingScrollTop;
+      previousMeetingScrollTop = top;
+      if (movingDown && top + meetingScroller.clientHeight >= meetingScroller.scrollHeight - 80) loadMoreMeetings();
+    }, { passive: true });
     const filterMeetings = () => {
       const teamMeetingMode = activeMeetingView === "enterprise" && document.body.dataset.workspace === "team";
       const keyword = teamMeetingMode ? $("#team-meeting-creator").value.trim().toLowerCase() : $("#meeting-search").value.trim().toLowerCase();
       const source = teamMeetingMode ? $("#team-meeting-source").value : $("#meeting-source-filter").value;
       const department = teamMeetingMode ? $("#team-meeting-department").value : "all";
       const date = teamMeetingMode ? $("#team-meeting-date").value : $("#meeting-date-filter").value;
-      let visibleCount = 0;
-      $$(".home-meeting-row", $("#meeting-list")).forEach((row) => {
+      matchingMeetingRows = $$(".home-meeting-row", $("#meeting-list")).filter((row) => {
         const matchesView = row.dataset.view === activeMeetingView;
         const matchesKeyword = !keyword || (teamMeetingMode ? row.dataset.meetingCreator.toLowerCase().includes(keyword) : row.textContent.toLowerCase().includes(keyword));
         const matchesSource = source === "all" || row.dataset.source === source;
         const matchesDepartment = department === "all" || row.dataset.meetingDepartment === department;
         const matchesDate = !date || row.dataset.recordingDate === date;
-        row.hidden = !(matchesView && matchesKeyword && matchesSource && matchesDepartment && matchesDate);
-        if (!row.hidden) visibleCount += 1;
+        return matchesView && matchesKeyword && matchesSource && matchesDepartment && matchesDate;
       });
-      $("#meeting-filter-empty").hidden = visibleCount !== 0;
+      loadedMeetingCount = MEETING_PAGE_SIZE;
+      previousMeetingScrollTop = 0;
+      meetingScroller.scrollTop = 0;
+      renderMeetingPage();
     };
     const syncEnterpriseAssetView = () => {
       const thoughtMode = activeMeetingView === "thought";
