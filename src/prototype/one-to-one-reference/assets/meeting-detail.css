@@ -45,11 +45,6 @@
 .md-workspace .md-icon-btn,.md-dialog .md-icon-btn { display:inline-grid; place-items:center; width:30px; height:30px; border:0; border-radius:6px; background:transparent; color:#777d8c; flex-shrink:0; }
 .md-icon-btn:hover { background:#f2f4f9!important; }
 .md-icon { width:16px; height:16px; vertical-align:middle; display:inline-block; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
-.md-menu-wrap { position:relative; }
-.md-menu { position:absolute; right:0; top:36px; z-index:10; min-width:150px; padding:6px; border:1px solid #e7e9ef; border-radius:10px; background:white; box-shadow:0 8px 24px #1a29451a; }
-.md-menu button { display:block; width:100%; padding:10px 14px; text-align:left; border-radius:6px; font-size:13px; }
-.md-menu button:hover { background:#f5f6fb; }
-.md-menu button:last-child { color:#d25a5a; }
 .md-scroll { overflow:auto; overscroll-behavior:contain; flex:1; min-height:0; padding:0 24px 30px; }
 .md-info { padding:16px 0 8px; color:#8a8e98; font-size:12px; }
 .md-info-line { display:flex; align-items:center; gap:20px; flex-wrap:wrap; }
@@ -167,3 +162,9 @@
 .md-radio-row { font-weight:400!important; margin:8px 0 12px; color:#727887; }
 .md-prose ul,.md-prose ol { padding-left:24px; }
 @media(max-width:800px) { .md-workspace { padding:12px; } .md-page-head h1 { display:block; } .md-frame { height:calc(100dvh - 180px); } }
+
+.md-top-actions .md-btn { display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
+.md-top-actions .md-delete-btn { color:#c34d55; }
+.md-top-actions .md-delete-btn:hover { color:#b63b44; border-color:#edc9cc; background:#fff5f5; }
+.md-top-actions [data-md-action="close"] { margin-left:auto; }
+@media(max-width:800px) { .md-top-actions { gap:6px; } .md-top-actions .md-btn { padding:8px 10px; } }

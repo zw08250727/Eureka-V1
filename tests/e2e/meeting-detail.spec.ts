@@ -91,8 +91,7 @@ test('templates, export, sharing boundaries and recycle are connected', async ({
   await page.getByRole('button', { name:'评分 8', exact:true }).click();
   await page.getByRole('button', { name:'提交反馈', exact:true }).click();
   await expect(page.locator('.md-feedback')).toContainText('已记录你的 8 分评价');
-  await page.getByRole('button', { name:'更多操作' }).click();
-  await page.locator('#md-menu').getByRole('button', { name:'导出', exact:true }).click();
+  await page.locator('.md-top-actions').getByRole('button', { name:'导出', exact:true }).click();
   await page.getByRole('button', { name:'下一步', exact:true }).click();
   await page.getByRole('radio', { name:/JSON/ }).check();
   const downloadPromise = page.waitForEvent('download');
@@ -102,8 +101,7 @@ test('templates, export, sharing boundaries and recycle are connected', async ({
   const exported = JSON.parse(await readFile((await download.path())!, 'utf8'));
   expect(exported.content).toContain('风险与待确认');
   expect(exported.demo).toBe(true);
-  await page.getByRole('button', { name:'更多操作' }).click();
-  await page.locator('#md-menu').getByRole('button', { name:'分享', exact:true }).click();
+  await page.locator('.md-top-actions').getByRole('button', { name:'分享', exact:true }).click();
   await page.getByRole('checkbox', { name:'全选', exact:true }).uncheck();
   await page.getByRole('button', { name:'预览分享内容' }).click();
   await expect(page.getByRole('dialog')).toContainText('请至少选择一项');
@@ -114,8 +112,7 @@ test('templates, export, sharing boundaries and recycle are connected', async ({
   await expect(page.getByRole('dialog')).toContainText('风险与待确认');
   await expect(page.getByRole('dialog')).not.toContainText('This is a demonstration');
   await page.getByRole('button', { name:'关闭弹窗' }).click();
-  await page.getByRole('button', { name:'更多操作' }).click();
-  await page.locator('#md-menu').getByRole('button', { name:'删除', exact:true }).click();
+  await page.locator('.md-top-actions').getByRole('button', { name:'删除', exact:true }).click();
   await page.locator('#delete-confirm-submit').click();
   await expect(page.locator('#meeting-detail-root')).toBeHidden();
   await expect(page.locator('#meeting-view-description')).toHaveText('共 19 个会议笔记');
@@ -129,6 +126,10 @@ test('templates, export, sharing boundaries and recycle are connected', async ({
 test('detail and dialogs fit desktop and narrow viewports', async ({ page }) => {
   for (const [width,height] of [[1920,1080],[1440,900],[1024,768],[390,844]]) {
     await page.setViewportSize({width,height});
+    for (const name of ['导出','分享','删除']) {
+      await expect(page.locator('.md-top-actions').getByRole('button', { name, exact:true })).toBeVisible();
+    }
+    await expect(page.locator('.md-top-actions [data-md-action="ppt"], .md-top-actions [data-md-action="report"], .md-top-actions [data-md-action="more"]')).toHaveCount(0);
     const frame = await page.locator('.md-frame').boundingBox();
     expect(frame!.x).toBeGreaterThanOrEqual(0);
     expect(frame!.x+frame!.width).toBeLessThanOrEqual(width+1);
