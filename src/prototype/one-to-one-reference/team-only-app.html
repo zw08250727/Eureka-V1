@@ -2702,7 +2702,7 @@
   <link rel="stylesheet" href="assets/aqua-clear-theme.css?v=calmai-workspace-v2" />
   <link rel="stylesheet" href="assets/workspace-sidebar.css?v=project-layout-v2" />
   <link rel="stylesheet" href="assets/meeting-workspace.css?v=ask-agent-layout-v1" />
-  <link rel="stylesheet" href="assets/today-workbench.css?v=today-workbench-v3" />
+  <link rel="stylesheet" href="assets/today-workbench.css?v=today-workbench-v4" />
   <link rel="stylesheet" href="assets/pc-capability-enhancements.css?v=pc-capabilities-v2" />
   <link rel="stylesheet" href="assets/meeting-list.css?v=meeting-list-v1" />
 </head>
@@ -2863,33 +2863,17 @@
         <section class="today-workbench" id="today-workbench" aria-labelledby="today-workbench-title">
           <header class="today-workbench-head">
             <div>
-              <span class="today-workbench-eyebrow"><i></i>今日工作台</span>
-              <h1 id="today-workbench-title">下午好，张伟</h1>
-              <p>从我的闪念、会议和待办中，提取今天值得继续推进的内容。</p>
+              <span class="today-workbench-eyebrow"><i></i><span id="today-date-label"></span><span class="today-demo-label">模拟数据</span></span>
+              <h1 id="today-workbench-title">今日闪念</h1>
+              <p id="today-assets-summary">汇集今天的记录、安排与提醒</p>
             </div>
             <div class="today-workbench-head-side">
               <div class="recording-command-actions"><button class="recording-primary" id="module-start-recording"><svg class="icon"><use href="#ico-mic"/></svg><span><strong>开始录音</strong><small>使用电脑麦克风</small></span></button><button class="xiaozhi-entry" id="xiaozhi-entry" aria-label="问问小智" aria-controls="xiaozhi-rail" aria-expanded="false"><span class="xiaozhi-entry-mark"><svg class="icon"><use href="#ico-spark"/></svg></span><span><strong id="xiaozhi-entry-label">问问小智</strong><small>使用会议与知识</small></span><svg class="icon xiaozhi-expand-icon"><use href="#ico-expand"/></svg></button></div>
-              <div class="today-workbench-meta"><span>星期二 · 9 月 22 日</span><small>基于我的闪念整理</small></div>
+              <button type="button" class="today-text-action" data-today-action="thoughts">查看全部闪念 →</button>
             </div>
           </header>
-          <div class="today-workbench-grid">
-            <section class="today-focus-card" aria-labelledby="today-focus-title">
-              <div class="today-card-head"><div><span class="today-card-kicker">今日提炼</span><h2 id="today-focus-title">今天值得推进的 3 件事</h2></div><span class="today-ai-badge">AI 摘要</span></div>
-              <p class="today-focus-intro">最近的闪念已经被整理成可执行的工作线索，打开会议或继续记录即可接着推进。</p>
-              <ul class="today-focus-list"><li><span class="today-focus-index">01</span><span><strong>补齐德国经销商联系人信息</strong><small>来自 2 条闪念 · 关联客户访谈</small></span><button type="button" data-today-action="open-contacts">查看</button></li><li><span class="today-focus-index">02</span><span><strong>确认产品评审 Demo 的演示路径</strong><small>来自昨日会议 · 3 项待确认</small></span><button type="button" data-today-action="open-meeting">查看</button></li><li><span class="today-focus-index">03</span><span><strong>启动储能市场研究的第一轮汇总</strong><small>来自 36 分钟前的闪念 · AI 建议</small><button type="button" data-today-action="ask-agent">交给 Agent</button></span></li></ul>
-              <div class="today-focus-actions"><button type="button" class="today-secondary-action" data-today-action="brief">查看日程简报</button><button type="button" class="today-primary-action" data-today-action="record"><svg class="icon"><use href="#ico-mic"/></svg>快速记录</button></div>
-            </section>
-            <section class="today-agenda-card" aria-labelledby="today-agenda-title">
-              <div class="today-card-head"><div><span class="today-card-kicker">今天的安排</span><h2 id="today-agenda-title">日程与待办</h2></div><button type="button" class="today-text-action" data-today-action="calendar">查看日程</button></div>
-              <div class="today-agenda-block"><span class="today-agenda-label">日程</span><div class="today-schedule-list"><button type="button" class="today-schedule-item" data-today-schedule="产品评审" data-schedule-meta="今天 09:30 · 45 分钟 · 网页录音"><time>09:30</time><span>产品评审</span><svg class="icon"><use href="#ico-chevron"/></svg></button><button type="button" class="today-schedule-item" data-today-schedule="投资人会议" data-schedule-meta="今天 14:00 · 60 分钟 · 待开始"><time>14:00</time><span>投资人会议</span><svg class="icon"><use href="#ico-chevron"/></svg></button><button type="button" class="today-schedule-item" data-today-schedule="AI 团队周会" data-schedule-meta="今天 16:30 · 30 分钟 · 待开始"><time>16:30</time><span>AI 团队周会</span><svg class="icon"><use href="#ico-chevron"/></svg></button></div></div>
-              <div class="today-inspiration-card"><div><span class="today-agenda-label">灵感</span><span class="today-inspiration-badge">AI 提醒</span></div><p>把一闪而过的念头，留到以后继续推进。</p><button type="button" data-today-action="thoughts">打开我的闪念<svg class="icon"><use href="#ico-chevron"/></svg></button></div>
-              <div class="today-agenda-block today-todo-block"><span class="today-agenda-label">待办</span><div class="today-todo-list"><button type="button" class="today-todo-item" data-today-todo="更新行动项"><i></i><span>更新行动项</span><time>9/20</time></button><button type="button" class="today-todo-item" data-today-todo="跟进经销商名单"><i></i><span>跟进经销商名单</span><time>9/21</time></button><button type="button" class="today-todo-item" data-today-todo="确认项目预算"><i></i><span>确认项目预算</span><time>9/22</time></button></div></div>
-            </section>
-          </div>
-          <section class="today-thoughts" aria-labelledby="today-thoughts-title">
-            <div class="today-thoughts-head"><div><span class="today-live-dot"></span><h2 id="today-thoughts-title">我的闪念</h2><small>最近记录中值得继续推进的内容</small></div><button type="button" class="today-text-action" data-today-action="thoughts">查看全部闪念</button></div>
-            <div class="today-thought-list"><button type="button" class="today-thought-card" data-today-thought="联系人"><span><small>刚刚</small><strong>工作想法</strong></span><p>德国经销商的联系人信息需要补充到项目中。</p></button><button type="button" class="today-thought-card" data-today-thought="会议跟进"><span><small>12 分钟前</small><strong>会议跟进</strong></span><p>下一次产品评审先确认 Demo 的演示路径。</p></button><button type="button" class="today-thought-card" data-today-thought="AI 建议"><span><small>36 分钟前</small><strong>AI 建议</strong></span><p>储能市场研究可以交给 Research Agent 做第一轮汇总。</p></button></div>
-          </section>
+          <div class="today-assets-grid" id="today-assets-grid" role="region" aria-label="今日五类闪念，窄屏可横向滚动" tabindex="0"></div>
+          <div class="today-assets-footnote"><span>按今日记录、待办截止与日程发生时间整理</span><span>灵感 · 待办 · 记账 · 日程 · 其他</span></div>
         </section>
         <section class="home-meeting-library" id="recording-card" aria-labelledby="recent-meeting-title">
           <div class="home-meeting-head">
@@ -2921,7 +2905,7 @@
             <button class="meeting-row home-meeting-row" hidden data-view="enterprise" data-date="7" data-source="企业共享" data-meeting="区域销售周会" data-meta="8月28日 · 63 分钟 · 销售团队共享"><span class="home-meeting-title"><i><svg class="icon"><use href="#ico-users"/></svg></i><span><strong>区域销售周会</strong><small>销售团队共享 · 5 项重点机会</small></span></span><span class="home-meeting-size">61.9 MB</span><span>企业共享</span><span class="home-meeting-tag">销售周会</span><span>63 分钟</span><span class="home-meeting-status ready"><i></i>已总结</span><span class="home-meeting-time">2026-08-28 16:20</span><span class="home-meeting-updated">2026-08-28 18:02</span><em>查看<svg class="icon"><use href="#ico-chevron"/></svg></em></button>
             <button class="meeting-row home-meeting-row" hidden data-view="enterprise" data-date="30" data-source="企业共享" data-meeting="研发项目推进会" data-meta="8月23日 · 46 分钟 · 陈晨共享"><span class="home-meeting-title"><i><svg class="icon"><use href="#ico-users"/></svg></i><span><strong>研发项目推进会</strong><small>陈晨共享 · 4 项风险已标记</small></span></span><span class="home-meeting-size">45.2 MB</span><span>企业共享</span><span class="home-meeting-tag">项目推进</span><span>46 分钟</span><span class="home-meeting-status ready"><i></i>已总结</span><span class="home-meeting-time">2026-08-23 14:05</span><span class="home-meeting-updated">2026-08-23 15:42</span><em>查看<svg class="icon"><use href="#ico-chevron"/></svg></em></button>
           </div><div class="meeting-filter-empty" id="meeting-filter-empty" hidden>没有找到匹配的会议</div><div class="meeting-load-footer"><span id="meeting-load-status" role="status" aria-live="polite"></span><button id="meeting-load-more" type="button" hidden>加载更多</button></div></div>
-          <div class="thought-workspace" id="thought-workspace" hidden><aside class="thought-category-rail" aria-label="闪念分类"><strong>闪念分类</strong><button class="thought-category-button active" type="button" data-thought-category="inspiration" aria-current="true"><svg class="icon"><use href="#ico-spark"/></svg><span>灵感</span><em>18</em></button><button class="thought-category-button" type="button" data-thought-category="todo"><svg class="icon"><use href="#ico-task"/></svg><span>待办</span><em>12</em></button><button class="thought-category-button" type="button" data-thought-category="ledger"><svg class="icon"><use href="#ico-book"/></svg><span>记账</span><em>9</em></button><button class="thought-category-button" type="button" data-thought-category="other"><svg class="icon"><use href="#ico-more"/></svg><span>其他</span><em>6</em></button></aside><section class="thought-file-pane" aria-labelledby="thought-category-heading"><header class="thought-file-pane-head"><div><strong id="thought-category-heading">灵感</strong><span id="thought-category-description">记录随时产生的想法、观察和临时语音内容。</span></div></header><div class="thought-file-table-scroll"><div class="thought-file-table-head"><span>文件名</span><span>记录数量</span><span>更新时间</span><span>操作</span></div><div id="thought-file-list"></div></div></section></div>
+          <div class="thought-workspace" id="thought-workspace" hidden><aside class="thought-category-rail" aria-label="闪念分类"><strong>闪念分类</strong><button class="thought-category-button active" type="button" data-thought-category="inspiration" aria-current="true"><svg class="icon"><use href="#ico-spark"/></svg><span>灵感</span><em>18</em></button><button class="thought-category-button" type="button" data-thought-category="todo"><svg class="icon"><use href="#ico-task"/></svg><span>待办</span><em>12</em></button><button class="thought-category-button" type="button" data-thought-category="ledger"><svg class="icon"><use href="#ico-book"/></svg><span>记账</span><em>9</em></button><button class="thought-category-button" type="button" data-thought-category="schedule"><svg class="icon"><use href="#ico-clock"/></svg><span>日程</span><em>2</em></button><button class="thought-category-button" type="button" data-thought-category="other"><svg class="icon"><use href="#ico-more"/></svg><span>其他</span><em>6</em></button></aside><section class="thought-file-pane" aria-labelledby="thought-category-heading"><header class="thought-file-pane-head"><div><strong id="thought-category-heading">灵感</strong><span id="thought-category-description">记录随时产生的想法、观察和临时语音内容。</span></div></header><div class="thought-file-table-scroll"><div class="thought-file-table-head"><span>文件名</span><span>记录数量</span><span>更新时间</span><span>操作</span></div><div id="thought-file-list"></div></div></section></div>
           <div class="recording-empty-state" id="recording-empty-state" hidden><span class="empty-record-orbit"><svg class="icon"><use href="#ico-mic"/></svg></span><strong>记录第一场会议</strong><p>开始录音后，转写与纪要会出现在这里。</p><div><button id="empty-start-recording"><svg class="icon"><use href="#ico-mic"/></svg>开始录音</button></div></div>
           <section class="ai-panorama-library edition-enterprise-only" id="business-dashboard" hidden aria-label="AI 全景数据文件列表"><div class="ai-panorama-table-scroll"><div class="ai-panorama-table-head"><span>文件名</span><span>文件大小</span><span>文件来源</span><span>更新时间</span><span>操作</span></div><div id="ai-panorama-list">
             <button class="ai-panorama-row" type="button" data-panorama-file="企业-销售全景表.xlsx" data-panorama-size="19.2 MB" data-panorama-updated="2026-09-03 13:37" data-panorama-sheet="销售全景表" data-panorama-rows="1354"><span class="ai-panorama-file"><span class="ai-panorama-mark"><svg class="icon"><use href="#ico-file"/></svg></span><span class="ai-panorama-copy"><strong>企业-销售全景表.xlsx</strong><small>汇总销售会议中的客户、区域与机会信息</small></span></span><span class="ai-panorama-meta">19.2 MB</span><span class="ai-panorama-meta">AI 生成</span><span class="ai-panorama-meta">2026-09-03 13:37</span><span class="ai-panorama-action">AI 编辑</span></button>
@@ -3725,7 +3709,10 @@
     $("#permanent-delete-submit").addEventListener("click", () => { const recycleId = pendingPermanentDeleteId; const record = assetStore.getRecycleItems({ edition: "enterprise", repository: activeRecycleRepository }).find((item) => item.recycleId === recycleId); pendingPermanentDeleteId = null; closeOverlays(); if (recycleId && assetStore.permanentlyDelete(recycleId)) { if (record?.type === "meeting") meetingRowsById.delete(record.item.id); renderRecycleBin(); showToast("已彻底删除，无法恢复"); } });
     $$("[data-knowledge-file]").forEach((item) => item.addEventListener("click", () => { $$(".knowledge-file-leaf").forEach((row) => row.classList.toggle("active", row === item)); openKnowledgeFolder("归档"); item.classList.add("active"); const file = knowledgeCatalog.file.find((entry) => entry.folder === activeKnowledgeFolder && entry.name.includes(item.dataset.knowledgeFile.replace(/\.[^.]+$/, ""))) || knowledgeCatalog.file.find((entry) => entry.folder === activeKnowledgeFolder && entry.preview !== "folder"); openKnowledgePreview(file); }));
     document.addEventListener("click", (event) => { if (!event.target.closest("#knowledge-tree-menu") && !event.target.closest("[data-folder-menu]")) closeKnowledgeTreeMenu(); });
-    $("#home-entry").addEventListener("click", () => showMainView("home"));
+    $("#home-entry").addEventListener("click", () => {
+      showMainView("home");
+      $("[data-meeting-view='my']")?.click();
+    });
     $$("[data-side-toggle]").forEach((button) => button.addEventListener("click", () => { const list = $("#" + button.dataset.sideToggle); const expanded = button.getAttribute("aria-expanded") !== "true"; button.setAttribute("aria-expanded", String(expanded)); list.classList.toggle("hide", !expanded); }));
     $$("[data-tree-toggle]").forEach((button) => button.addEventListener("click", () => { const children = $("#" + button.dataset.treeToggle); const expanded = button.getAttribute("aria-expanded") !== "true"; button.setAttribute("aria-expanded", String(expanded)); children.classList.toggle("hide", !expanded); openKnowledgeFolder(button.dataset.knowledgeFolder || $(".tree-folder-name", button).textContent, button); }));
     $$("[data-side-agent]").forEach((item) => item.addEventListener("click", () => selectActiveAgent(item.dataset.sideAgent)));
@@ -4198,11 +4185,71 @@
         { month: "2026-09", count: 4, updated: "2026-09-02 08:40", entries: [{ date: "2026-09-02", time: "08:40", title: "早餐", detail: "餐饮 · 支出 ¥18.00" }, { date: "2026-09-01", time: "19:26", title: "打车", detail: "出行 · 支出 ¥46.50" }] },
         { month: "2026-08", count: 5, updated: "2026-08-29 20:16", entries: [{ date: "2026-08-29", time: "20:16", title: "晚餐", detail: "餐饮 · 支出 ¥68.00" }, { date: "2026-08-25", time: "09:10", title: "报销到账", detail: "报销 · 收入 ¥320.00" }] }
       ] },
-      other: { name: "其他", description: "保存不属于前三类的临时记录与语音片段。", files: [
+      other: { name: "其他", description: "保存其他临时记录与语音片段。", files: [
         { month: "2026-09", count: 2, updated: "2026-09-01 22:06", entries: [{ date: "2026-09-01", time: "22:06", title: "周末想看的书", detail: "《设计心理学》与《信息架构》" }] },
         { month: "2026-08", count: 4, updated: "2026-08-27 12:35", entries: [{ date: "2026-08-27", time: "12:35", title: "客户提到的工具名称", detail: "后续确认具体版本与接入方式。" }, { date: "2026-08-20", time: "16:18", title: "临时备忘", detail: "下次会议前准备演示环境。" }] }
       ] }
     };
+    // Demo dates follow the user's local day; each type uses its business date.
+    const todayNow = new Date();
+    const localDay = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    const todayKey = localDay(todayNow);
+    const yesterdayKey = localDay(new Date(todayNow.getFullYear(), todayNow.getMonth(), todayNow.getDate() - 1));
+    const tomorrowKey = localDay(new Date(todayNow.getFullYear(), todayNow.getMonth(), todayNow.getDate() + 1));
+    const todayAssetTypes = [
+      { key: "inspiration", name: "灵感", icon: "ico-spark", dateField: "createdDate", caption: "今天的新想法" },
+      { key: "todo", name: "待办", icon: "ico-task", dateField: "dueDate", caption: "今天需要完成" },
+      { key: "ledger", name: "记账", icon: "ico-book", dateField: "transactionDate", caption: "今日支出" },
+      { key: "schedule", name: "日程", icon: "ico-clock", dateField: "eventDate", caption: "今天的安排" },
+      { key: "other", name: "其他", icon: "ico-file", dateField: "createdDate", caption: "今天的备忘" },
+    ];
+    const todayAssetRecords = [
+      { id: "idea-1", type: "inspiration", createdDate: todayKey, time: "09:10", title: "给产品演示增加真实客户场景", detail: "用客户访谈中的问题串联演示流程。" },
+      { id: "idea-2", type: "inspiration", createdDate: todayKey, time: "10:20", title: "把竞品信息整理成每周简报", detail: "按功能、定价与用户反馈三个维度归档。" },
+      { id: "todo-1", type: "todo", createdDate: yesterdayKey, dueDate: todayKey, time: "15:00", title: "发送修订后的合作方案", detail: "确认报价后发送给 Kevin。", done: false },
+      { id: "todo-2", type: "todo", createdDate: todayKey, dueDate: todayKey, time: "18:00", title: "确认下周产品演示材料", detail: "补齐客户案例与演示路径。", done: false },
+      { id: "ledger-1", type: "ledger", transactionDate: todayKey, time: "08:40", title: "客户拜访交通", detail: "出行 · 支出 ¥48.00", amount: 48 },
+      { id: "ledger-2", type: "ledger", transactionDate: todayKey, time: "12:10", title: "客户工作午餐", detail: "餐饮 · 支出 ¥200.00", amount: 200 },
+      { id: "schedule-1", type: "schedule", eventDate: todayKey, time: "14:00", end: "14:45", title: "产品方案评审", detail: "线上会议 · Kevin、张伟 · 提前 15 分钟提醒" },
+      { id: "schedule-2", type: "schedule", eventDate: todayKey, time: "16:30", end: "17:00", title: "客户需求沟通", detail: "会议室 A · Alice、张伟 · 提前 10 分钟提醒" },
+      { id: "other-1", type: "other", createdDate: todayKey, time: "10:35", title: "客户资料领取信息", detail: "前台取资料，联系人李女士，分机 802。" },
+      { id: "older-idea", type: "inspiration", createdDate: yesterdayKey, time: "17:00", title: "昨天的灵感", detail: "不出现在今日概览。" },
+      { id: "future-todo", type: "todo", dueDate: tomorrowKey, time: "09:00", title: "明日提交周报", detail: "不出现在今日提醒。", done: false },
+    ];
+    const assetsForToday = (type) => todayAssetRecords.filter((record) => record.type === type.key && record[type.dateField] === todayKey);
+    thoughtArchiveData.schedule = { name: "日程", description: "按日程发生日期归档会议、地点、参与人与提醒。", files: [] };
+    todayAssetTypes.forEach((type) => {
+      const entries = assetsForToday(type).map((record) => ({ date: todayKey, time: record.time, title: record.title, detail: record.detail, assetId: record.id }));
+      const category = thoughtArchiveData[type.key];
+      const month = todayKey.slice(0, 7);
+      let file = category.files.find((item) => item.month === month);
+      if (!file) { file = { month, count: 0, updated: "", entries: [] }; category.files.unshift(file); }
+      file.entries.unshift(...entries);
+      file.count += entries.length;
+      file.updated = `${todayKey} ${entries.at(-1)?.time || "00:00"}`;
+      document.querySelector(`[data-thought-category="${type.key}"] em`).textContent = category.files.reduce((sum, item) => sum + item.count, 0);
+    });
+    if (!Array.from($("#thought-month-select").options).some((option) => option.value === todayKey.slice(0, 7))) {
+      $("#thought-month-select").add(new Option(todayKey.slice(0, 7), todayKey.slice(0, 7)));
+    }
+    const renderTodayAssets = () => {
+      $("#today-date-label").textContent = todayNow.toLocaleDateString("zh-CN", { month: "long", day: "numeric", weekday: "long" });
+      const pending = assetsForToday(todayAssetTypes[1]).filter((record) => !record.done).length;
+      const total = todayAssetTypes.reduce((sum, type) => sum + assetsForToday(type).length, 0);
+      $("#today-assets-summary").textContent = `今日 ${total} 条闪念资产 · ${pending} 项待办未完成 · ${assetsForToday(todayAssetTypes[3]).length} 场日程`;
+      $("#today-assets-grid").innerHTML = todayAssetTypes.map((type) => {
+        const records = assetsForToday(type);
+        const amount = records.reduce((sum, record) => sum + (record.amount || 0), 0);
+        const rows = records.slice(0, 2).map((record) => {
+          const isTodo = type.key === "todo";
+          const action = isTodo ? `data-today-toggle="${record.id}" aria-pressed="${record.done}"` : `data-today-asset="${record.id}"`;
+          const meta = type.key === "ledger" ? `¥${record.amount.toFixed(2)}` : type.key === "schedule" ? `${record.time}–${record.end}` : isTodo ? `${record.time} 截止` : record.time;
+          return `<button type="button" class="today-asset-row${record.done ? " is-done" : ""}" ${action}>${isTodo ? '<span class="today-check" aria-hidden="true">' + (record.done ? "✓" : "") + '</span>' : ""}<span><small>${meta}</small><strong>${escapeHTML(record.title)}</strong></span></button>`;
+        }).join("");
+        return `<section class="today-asset-card" data-asset-type="${type.key}" aria-label="今日${type.name}"><header><span><svg class="icon"><use href="#${type.icon}"/></svg><h2>${type.name}</h2></span><span class="today-asset-count">${records.length}</span></header><p class="today-asset-caption">${type.caption}${type.key === "ledger" ? ` <b>¥${amount.toFixed(2)}</b>` : ""}</p><div class="today-asset-rows">${rows || '<p class="today-asset-empty">今天暂无记录</p>'}</div><button class="today-asset-more" type="button" data-today-category="${type.key}">查看${type.name}<span aria-hidden="true">↗</span></button></section>`;
+      }).join("");
+    };
+    renderTodayAssets();
     let activeThoughtCategory = "inspiration";
     let activeThoughtFile = null;
     const thoughtCategory = () => thoughtArchiveData[activeThoughtCategory];
@@ -4242,6 +4289,27 @@
     $("#thought-preview-close").addEventListener("click", () => { $("#thought-preview").hidden = true; activeThoughtFile = null; });
     $("#thought-preview-edit").addEventListener("click", () => showToast("正在打开闪念文件编辑模式"));
     $("#thought-preview-sort").addEventListener("click", () => showToast("当前按日期倒序展示"));
+    $("#today-assets-grid").addEventListener("click", (event) => {
+      const toggle = event.target.closest("[data-today-toggle]");
+      if (toggle) {
+        const record = todayAssetRecords.find((item) => item.id === toggle.dataset.todayToggle);
+        record.done = !record.done;
+        thoughtArchiveData.todo.files.forEach((file) => file.entries.forEach((entry) => {
+          if (entry.assetId === record.id) entry.detail = `${record.done ? "已完成" : "待完成"} · ${record.detail}`;
+        }));
+        renderTodayAssets();
+        document.querySelector(`[data-today-toggle="${record.id}"]`).focus({ preventScroll: true });
+        return;
+      }
+      const categoryButton = event.target.closest("[data-today-category]");
+      const assetButton = event.target.closest("[data-today-asset]");
+      const record = assetButton && todayAssetRecords.find((item) => item.id === assetButton.dataset.todayAsset);
+      const category = categoryButton?.dataset.todayCategory || record?.type;
+      if (!category) return;
+      $("[data-meeting-view='thought']")?.click();
+      document.querySelector(`[data-thought-category="${category}"]`).click();
+      if (record) renderThoughtPreview(thoughtArchiveData[category].files.find((file) => file.month === todayKey.slice(0, 7)), todayKey);
+    });
     $("#thought-file-search").addEventListener("input", renderThoughtFiles);
     $("#thought-month-select").addEventListener("change", renderThoughtFiles);
     renderThoughtFiles();
@@ -4249,7 +4317,7 @@
     let activeEnterpriseAsset = "meeting";
     const meetingViewContent = {
       my: ["我的会议", "管理录音、转写、纪要和待办"],
-      thought: ["我的闪念", "按灵感、待办、记账和其他四类查看月度归档"],
+      thought: ["我的闪念", "按灵感、待办、记账、日程和其他五类查看月度归档"],
       enterprise: ["企业会议", "查看企业成员共享的会议内容"]
     };
     const MEETING_PAGE_SIZE = 10;
