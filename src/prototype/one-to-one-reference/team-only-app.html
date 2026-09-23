@@ -1232,12 +1232,15 @@
     .recording-commandbar.meeting-viewbar {
       min-height: 42px;
       align-items: center;
+      justify-content: flex-end;
       padding: 0 0 24px;
       border: 0;
       border-radius: 0;
       background: transparent;
       box-shadow: none;
     }
+    /* 首页已经同时承载闪念工作台和会议列表，保留底层视图状态供脚本与后续恢复使用，界面不再展示重复 tab。 */
+    .meeting-viewbar .meeting-view-tabs { display: none !important; }
     /* Keep the three meeting views on a shared grid so the labels line up even
        when one tab is active (its border must not change the tab width). */
     .meeting-view-tabs {
@@ -2847,8 +2850,8 @@
       </div></div>
       <div class="main-inner" data-main-view="home">
       <section class="recording-home" aria-label="录音工作首页">
-        <section class="recording-commandbar meeting-viewbar" aria-label="会议视图与录音入口">
-          <nav class="meeting-view-tabs" aria-label="会议视图"><button class="meeting-view-tab active" data-meeting-view="my" aria-current="page">我的会议</button><button class="meeting-view-tab" data-meeting-view="thought">我的闪念</button><button class="meeting-view-tab edition-enterprise-only" data-meeting-view="enterprise">企业会议</button></nav>
+        <section class="recording-commandbar meeting-viewbar" aria-label="录音与智能入口">
+          <nav class="meeting-view-tabs" aria-label="会议视图" aria-hidden="true"><button class="meeting-view-tab active" data-meeting-view="my" aria-current="page">我的会议</button><button class="meeting-view-tab" data-meeting-view="thought">我的闪念</button><button class="meeting-view-tab edition-enterprise-only" data-meeting-view="enterprise">企业会议</button></nav>
           <div class="recording-command-actions"><button class="recording-primary" id="module-start-recording"><svg class="icon"><use href="#ico-mic"/></svg><span><strong>开始录音</strong><small>使用电脑麦克风</small></span></button><button class="xiaozhi-entry" id="xiaozhi-entry" aria-label="问问小智" aria-controls="xiaozhi-rail" aria-expanded="false"><span class="xiaozhi-entry-mark"><svg class="icon"><use href="#ico-spark"/></svg></span><span><strong id="xiaozhi-entry-label">问问小智</strong><small>使用会议与知识</small></span><svg class="icon xiaozhi-expand-icon"><use href="#ico-expand"/></svg></button></div>
         </section>
 
@@ -2877,7 +2880,7 @@
             </section>
           </div>
           <section class="today-thoughts" aria-labelledby="today-thoughts-title">
-            <div class="today-thoughts-head"><div><span class="today-live-dot"></span><h2 id="today-thoughts-title">实时闪念</h2><small>从我的闪念中提取最近值得关注的内容</small></div><button type="button" class="today-text-action" data-today-action="thoughts">查看全部</button></div>
+            <div class="today-thoughts-head"><div><span class="today-live-dot"></span><h2 id="today-thoughts-title">我的闪念</h2><small>最近记录中值得继续推进的内容</small></div><button type="button" class="today-text-action" data-today-action="thoughts">查看全部闪念</button></div>
             <div class="today-thought-list"><button type="button" class="today-thought-card" data-today-thought="联系人"><span><small>刚刚</small><strong>工作想法</strong></span><p>德国经销商的联系人信息需要补充到项目中。</p></button><button type="button" class="today-thought-card" data-today-thought="会议跟进"><span><small>12 分钟前</small><strong>会议跟进</strong></span><p>下一次产品评审先确认 Demo 的演示路径。</p></button><button type="button" class="today-thought-card" data-today-thought="AI 建议"><span><small>36 分钟前</small><strong>AI 建议</strong></span><p>储能市场研究可以交给 Research Agent 做第一轮汇总。</p></button></div>
           </section>
         </section>
