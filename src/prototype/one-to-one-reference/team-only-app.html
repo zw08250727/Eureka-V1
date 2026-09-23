@@ -2707,7 +2707,8 @@
   <link rel="stylesheet" href="assets/pc-capability-enhancements.css?v=pc-capabilities-v2" />
   <link rel="stylesheet" href="assets/meeting-list.css?v=meeting-list-v1" />
   <link rel="stylesheet" href="assets/meeting-detail.css?v=1" />
-  <link rel="stylesheet" href="assets/agent-history.css?v=1" />
+  <link rel="stylesheet" href="assets/agent-history.css?v=2" />
+  <link rel="stylesheet" href="assets/agent-composer.css?v=1" />
 </head>
 <body>
   <section class="edition-gate" id="edition-gate" aria-labelledby="edition-gate-title">
@@ -2943,7 +2944,19 @@
             <div class="xiaozhi-head"><div class="xiaozhi-identity"><span class="xiaozhi-mark"><svg class="icon"><use href="#ico-spark"/></svg></span><div><h2 id="xiaozhi-title">小智</h2><p>使用会议与知识库继续工作</p></div></div><div class="xiaozhi-head-actions"><button id="xiaozhi-history" aria-label="查看小智历史会话"><svg class="icon"><use href="#ico-clock"/></svg></button><button id="xiaozhi-collapse" aria-label="收起小智"><svg class="icon"><use href="#ico-x"/></svg></button></div></div>
             <div class="xiaozhi-body">
               <div class="xiaozhi-intro"><span class="xiaozhi-state"><i></i>资料准备好后</span><h3>交给小智继续处理</h3><p>引用已沉淀的会议或知识文件，再开始分析与创作。</p><div class="xiaozhi-suggestions"><button data-xiaozhi-prompt="整理本周会议并生成行动清单">整理行动项</button><button data-xiaozhi-prompt="结合知识库生成一份项目复盘报告">生成复盘</button><button data-xiaozhi-prompt="分析近期客户会议中的重点需求">分析需求</button></div></div>
-              <div class="xiaozhi-composer"><div class="xiaozhi-context"><span>引用资料</span><button id="xiaozhi-audio"><svg class="icon"><use href="#ico-mic"/></svg>音频文件</button><button id="xiaozhi-knowledge"><svg class="icon"><use href="#ico-book"/></svg>知识库</button></div><textarea id="xiaozhi-input" placeholder="输入要继续完成的工作…" aria-label="向小智输入任务"></textarea><div class="xiaozhi-composer-foot"><span id="xiaozhi-context-hint">先选择需要使用的资料</span><button class="xiaozhi-send" id="xiaozhi-send" aria-label="发送给小智" disabled><svg class="icon"><use href="#ico-send"/></svg></button></div></div>
+              <div class="agent-composer-wrap">
+                <div class="xiaozhi-composer">
+                  <textarea id="xiaozhi-input" placeholder="输入问题，按Enter发送..." aria-label="向 Ask Agent 输入问题" aria-describedby="agent-keyboard-hint xiaozhi-context-hint"></textarea>
+                  <div class="agent-composer-toolbar">
+                    <div class="agent-source-wrap"><button type="button" class="agent-tool-button" id="agent-sources-toggle" aria-label="引用资料" title="引用资料" aria-expanded="false" aria-controls="agent-sources-popover"><svg class="icon"><use href="#ico-book"/></svg></button><div id="agent-sources-popover" hidden><strong>引用资料</strong><div class="xiaozhi-context"><button id="xiaozhi-audio" aria-pressed="false"><svg class="icon"><use href="#ico-mic"/></svg>音频文件</button><button id="xiaozhi-knowledge" aria-pressed="false"><svg class="icon"><use href="#ico-book"/></svg>应用数据</button></div><p>选择资料，补充对话上下文</p></div></div>
+                    <button type="button" class="agent-tool-button" id="agent-web-toggle" aria-label="联网搜索" title="联网搜索（模拟）" aria-pressed="false"><svg class="icon"><use href="#ico-globe"/></svg></button>
+                    <label class="agent-mode-control"><svg class="icon" viewBox="0 0 24 24"><path d="M19.5 14A8 8 0 0 1 10 4.5 8 8 0 1 0 19.5 14Z"/></svg><select id="agent-response-mode" aria-label="回答模式"><option value="quick">快速</option><option value="deep">深度思考</option></select><svg class="icon agent-mode-chevron"><use href="#ico-chevron"/></svg></label>
+                    <button class="xiaozhi-send" id="xiaozhi-send" aria-label="发送给 Ask Agent" disabled><svg class="icon" viewBox="0 0 24 24"><path d="M6 18 18 6M6 6h12v12"/></svg></button>
+                  </div>
+                </div>
+                <span id="xiaozhi-context-hint" class="agent-context-hint" aria-live="polite">基于当前页面继续对话</span>
+                <div class="agent-composer-caption"><span id="agent-keyboard-hint">Enter 发送 / Shift+Enter 换行</span><span>由百智 AI 生成支持</span></div>
+              </div>
             </div>
           </div>
         </aside>
@@ -4086,7 +4099,14 @@
     const xiaozhiGrid = $("#meeting-agent-grid");
     const xiaozhiEntry = $("#xiaozhi-entry");
     const xiaozhiPanel = $(".xiaozhi-panel", xiaozhiRail);
+    const sizeAgentPanel = () => {
+      const top = $(".topbar").getBoundingClientRect().height + 12;
+      xiaozhiRail.style.setProperty("--agent-top", `${top}px`);
+      xiaozhiRail.style.scrollMarginTop = `${top}px`;
+    };
+    new ResizeObserver(sizeAgentPanel).observe($(".topbar"));
     const setXiaozhiExpanded = (expanded) => {
+      sizeAgentPanel();
       xiaozhiRail.classList.toggle("expanded", expanded);
       document.body.classList.toggle("xiaozhi-open", expanded);
       xiaozhiRail.setAttribute("aria-hidden", String(!expanded));
@@ -4095,6 +4115,7 @@
       $("#xiaozhi-entry-label").textContent = expanded ? "收起小智" : "问问小智";
       xiaozhiPanel.setAttribute("aria-hidden", String(!expanded));
       xiaozhiGrid.classList.toggle("agent-open", expanded);
+      if (expanded) requestAnimationFrame(() => xiaozhiRail.scrollIntoView({ block: "nearest", behavior: "instant" }));
     };
     xiaozhiEntry.addEventListener("click", () => setXiaozhiExpanded(!xiaozhiGrid.classList.contains("agent-open")));
     $("#xiaozhi-collapse").addEventListener("click", () => setXiaozhiExpanded(false));
@@ -4128,7 +4149,7 @@
       historySection.hidden = true;
       xiaozhiRail.classList.remove("history-mode");
       $(".xiaozhi-intro", xiaozhiRail).hidden = false;
-      xiaozhiInput.placeholder = "输入要继续完成的工作…";
+      xiaozhiInput.placeholder = "输入问题，按Enter发送...";
       historyRows.forEach(row => row.removeAttribute("aria-current"));
     };
     const openHistorySession = (index) => {
@@ -4142,7 +4163,7 @@
       toast.classList.remove("show");
       widgetAiContext = null;
       $("#xiaozhi-widget-context")?.remove();
-      $$(".xiaozhi-context button", xiaozhiRail).forEach(button => button.classList.remove("selected"));
+      $$(".xiaozhi-context button", xiaozhiRail).forEach(button => { button.classList.remove("selected"); button.setAttribute("aria-pressed", "false"); });
       historyRows.forEach((row, rowIndex) => {
         if (rowIndex === index) row.setAttribute("aria-current", "true");
         else row.removeAttribute("aria-current");
@@ -4156,7 +4177,7 @@
       $(".xiaozhi-intro", xiaozhiRail).hidden = true;
       xiaozhiRail.classList.add("history-mode");
       xiaozhiInput.value = activeHistorySession.draft;
-      xiaozhiInput.placeholder = "继续这个任务，或补充新的要求…";
+      xiaozhiInput.placeholder = "输入问题，按Enter发送...";
       setXiaozhiExpanded(true);
       renderHistoryMessages();
       updateXiaozhiComposer();
@@ -4182,23 +4203,49 @@
       updateXiaozhiComposer(); xiaozhiInput.focus({ preventScroll: true });
     });
     const updateXiaozhiComposer = () => {
+      $("#agent-sources-toggle").classList.toggle("has-sources", Boolean(activeHistorySession) || Boolean($(".xiaozhi-context button.selected", xiaozhiRail)));
       if (activeHistorySession) {
         $("#xiaozhi-context-hint").textContent = "已引用当前历史会话 · 继续对话";
         xiaozhiSend.disabled = !xiaozhiInput.value.trim();
         return;
       }
       const selectedSources = $$(".xiaozhi-context button.selected", xiaozhiRail);
-      $("#xiaozhi-context-hint").textContent = selectedSources.length ? `已引用 ${selectedSources.length} 类资料` : "先选择需要使用的资料";
-      xiaozhiSend.disabled = !xiaozhiInput.value.trim() || !selectedSources.length;
+      $("#xiaozhi-context-hint").textContent = selectedSources.length ? `已引用 ${selectedSources.length} 类资料` : "基于当前页面继续对话";
+      xiaozhiSend.disabled = !xiaozhiInput.value.trim();
     };
-    [$("#xiaozhi-audio"), $("#xiaozhi-knowledge")].forEach((button) => button.addEventListener("click", () => { button.classList.toggle("selected"); updateXiaozhiComposer(); }));
+    [$("#xiaozhi-audio"), $("#xiaozhi-knowledge")].forEach((button) => button.addEventListener("click", () => { button.classList.toggle("selected"); button.setAttribute("aria-pressed", String(button.classList.contains("selected"))); updateXiaozhiComposer(); }));
+    const sourcesToggle = $("#agent-sources-toggle");
+    const sourcesPopover = $("#agent-sources-popover");
+    const closeSources = () => { sourcesPopover.hidden = true; sourcesToggle.setAttribute("aria-expanded", "false"); };
+    sourcesToggle.addEventListener("click", () => {
+      sourcesPopover.hidden = !sourcesPopover.hidden;
+      sourcesToggle.setAttribute("aria-expanded", String(!sourcesPopover.hidden));
+    });
+    document.addEventListener("click", event => { if (!event.target.closest(".agent-source-wrap")) closeSources(); });
+    sourcesPopover.addEventListener("keydown", event => { if (event.key === "Escape") { event.stopPropagation(); closeSources(); sourcesToggle.focus(); } });
+    $("#agent-web-toggle").addEventListener("click", event => {
+      const button = event.currentTarget;
+      const enabled = button.getAttribute("aria-pressed") !== "true";
+      button.setAttribute("aria-pressed", String(enabled));
+      button.title = enabled ? "已开启联网搜索（模拟）" : "联网搜索（模拟）";
+    });
+    xiaozhiInput.addEventListener("keydown", event => {
+      if (event.key === "Enter" && !event.shiftKey && !event.isComposing && event.keyCode !== 229) {
+        event.preventDefault(); if (!xiaozhiSend.disabled) xiaozhiSend.click();
+      }
+    });
     xiaozhiInput.addEventListener("input", updateXiaozhiComposer);
     $$('[data-xiaozhi-prompt]').forEach((button) => button.addEventListener("click", () => { xiaozhiInput.value = button.dataset.xiaozhiPrompt; xiaozhiInput.focus(); updateXiaozhiComposer(); }));
     xiaozhiSend.addEventListener("click", () => {
+      if (!xiaozhiInput.value.trim()) return;
+      closeSources();
+      const mode = $("#agent-response-mode").value === "deep" ? "深度思考" : "快速";
+      const webEnabled = $("#agent-web-toggle").getAttribute("aria-pressed") === "true";
+      const simulationNote = `${mode} · ${webEnabled ? "联网搜索已选，当前仅模拟，未执行真实检索。" : "模拟回复，尚未调用 AI 服务。"}`;
       if (activeHistorySession) {
         const text = xiaozhiInput.value.trim();
         if (!text) return;
-        activeHistorySession.messages.push({ role: "user", text }, { role: "assistant", text: `收到你的补充：“${text}”\n\n结合这条会话的已有记录，${activeHistorySession.followup}\n\n以上是基于该会话的模拟续接，尚未调用 AI 服务。` });
+        activeHistorySession.messages.push({ role: "user", text }, { role: "assistant", text: `收到你的补充：“${text}”\n\n结合这条会话的已有记录，${activeHistorySession.followup}\n\n${simulationNote}` });
         activeHistorySession.draft = "";
         xiaozhiInput.value = "";
         renderHistoryMessages(); updateXiaozhiComposer();
@@ -4212,7 +4259,13 @@
         const items = records.map(record => type === "schedule" ? `${record.time} ${record.title}：提前核对议题和材料，列出需要参会人确认的问题。` : type === "todo" ? `${record.done ? "已完成" : record.time + " 前"} · ${record.title}${record.done ? "，可在复盘时回顾结果。" : "：先确认所需资料，再完成交付。"}` : `${record.title}：先写下目标与一个可验证的小步骤，再补齐需要的信息。`);
         result.innerHTML = `<span>AI · 演示建议</span><h4>${title}</h4><p class="widget-agent-request">${escapeHTML(xiaozhiInput.value.split("\n")[0])}</p><ol>${items.map(item => `<li>${escapeHTML(item)}</li>`).join("")}</ol><small>基于已引用的今日记录整理，仅供参考。</small>`;
         result.scrollIntoView({ block: "nearest", behavior: "smooth" });
-      } else { showToast("小智正在结合所选资料处理"); }
+      } else {
+        const message = document.createElement("article");
+        message.className = "agent-history-message assistant";
+        message.innerHTML = `<span>Ask Agent · ${mode}</span><p>${escapeHTML(xiaozhiInput.value)}</p><p>${mode === "deep" ? "可以先明确目标，再梳理已有资料、拆解执行步骤，最后逐项检查结果。你可以继续补充具体要求。" : "已收到你的问题，可以继续补充背景，或引用资料展开讨论。"}</p><small>${simulationNote}</small>`;
+        $(".xiaozhi-intro", xiaozhiRail).append(message);
+        message.scrollIntoView({ block: "nearest", behavior: "instant" });
+      }
       xiaozhiInput.value = ""; updateXiaozhiComposer();
     });
     const meetingMetadata = {
