@@ -2,13 +2,13 @@ import { expect, test } from "@playwright/test";
 
 test.use({ channel: process.env.PLAYWRIGHT_CHANNEL || undefined, timezoneId: "Asia/Shanghai" });
 
-test("today assets cover five types, filter by business date, and open their archives", async ({ page }) => {
+test("today assets cover four overview types, filter by business date, and open their archives", async ({ page }) => {
   await page.clock.install({ time: new Date("2026-09-23T04:00:00Z") });
   await page.goto("/prototype/one-to-one-reference/team-only-app.html?edition=personal&personal=1");
-  await expect(page.locator(".today-asset-card")).toHaveCount(5);
+  await expect(page.locator(".today-asset-card")).toHaveCount(4);
   await expect(page.locator("#today-date-label")).toContainText("9月23日");
   await expect(page.locator("#today-assets-summary")).toContainText("今天有 2 场日程，2 项待办等你推进。");
-  await expect(page.locator("#today-assets-source")).toContainText("今日 9 条闪念");
+  await expect(page.locator("#today-assets-source")).toContainText("今日 8 条闪念");
   await expect(page.locator("[data-asset-type=ledger] .today-asset-caption")).toContainText("¥248.00");
   await expect(page.locator("#today-assets-grid")).not.toContainText("昨天的灵感");
   await expect(page.locator("#today-assets-grid")).not.toContainText("明日提交周报");
@@ -17,7 +17,7 @@ test("today assets cover five types, filter by business date, and open their arc
   await expect(page.locator('[data-today-toggle="todo-1"]')).toHaveAttribute("aria-pressed", "true");
   await page.locator('[data-today-toggle="todo-1"]').click();
   await expect(page.locator("#today-assets-summary")).toContainText("2 项待办等你推进");
-  for (const key of ["inspiration", "todo", "ledger", "schedule", "other"]) {
+  for (const key of ["inspiration", "todo", "ledger", "schedule"]) {
     await page.locator(`[data-today-category="${key}"]`).click();
     await expect(page.locator(`[data-thought-category="${key}"]`)).toHaveAttribute("aria-current", "true");
     await page.locator('[data-thought-file="2026-09"]').click();
@@ -39,6 +39,8 @@ test("compact today overview leaves meetings visible on desktop", async ({ page 
   const overview = await page.locator("#today-workbench").boundingBox();
   expect(overview!.width).toBeLessThanOrEqual(390);
   expect(overview!.height).toBeLessThan(480);
-  await page.locator('[data-today-category="other"]').click();
+  await expect(page.locator('[data-today-category="other"]')).toHaveCount(0);
+  await page.locator('[data-today-action="thoughts"]').click();
+  await page.locator('[data-thought-category="other"]').click();
   await expect(page.locator('[data-thought-category="other"]')).toHaveAttribute("aria-current", "true");
 });
