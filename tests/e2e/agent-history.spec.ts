@@ -35,11 +35,11 @@ test("history opens the selected conversation, preserves drafts and resumes inde
   await page.keyboard.press("Enter");
   await expect(page.locator("#agent-history-title")).toBeFocused();
   await expect(input).toHaveValue("下次继续确认负责人");
-  await page.locator('[data-widget-ai="schedule"]').click();
+  await page.locator('[data-widget-ai="brief"]').click();
   await expect(page.locator("#agent-history-session")).toBeHidden();
   await page.locator("#xiaozhi-send").click();
   await expect(page.locator("#widget-agent-result")).toBeVisible();
-  await expect(page.locator("#widget-agent-result")).toContainText("会前准备清单");
+  await expect(page.locator("#widget-agent-result")).toContainText("把今天的记录连成下一步");
 });
 
 test("opening history anchors a usable conversation below the topbar on desktop and mobile", async ({ page }) => {
