@@ -42,55 +42,6 @@
 .today-inspiration-card button:hover { color: #4e3790; }
 .today-inspiration-card button .icon { width: 10px; height: 10px; transform: rotate(-90deg); }
 
-.pc-quick-capture {
-  position: fixed;
-  right: auto;
-  bottom: 22px;
-  left: calc(50% + 118px);
-  z-index: 18;
-  display: flex;
-  width: 224px;
-  height: 48px;
-  align-items: center;
-  gap: 5px;
-  padding: 4px;
-  border: 1px solid #dce6f3;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, .9);
-  box-shadow: 0 12px 30px rgba(38, 76, 132, .18), 0 0 0 5px rgba(255, 255, 255, .58);
-  transform: translateX(-50%);
-  backdrop-filter: blur(18px) saturate(140%);
-}
-
-.pc-quick-capture-start {
-  display: flex;
-  min-width: 0;
-  height: 38px;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 0 16px;
-  border: 0;
-  border-radius: 999px;
-  color: #fff;
-  background: linear-gradient(120deg, #2d7cf2, #087de8 56%, #06a8df);
-  box-shadow: 0 6px 14px rgba(37, 121, 232, .26);
-  cursor: pointer;
-  flex: 1;
-  font: 11px var(--font);
-  font-weight: 650;
-}
-
-.pc-quick-capture-start:hover { filter: saturate(1.08) brightness(1.03); transform: translateY(-1px); }
-.pc-quick-capture-wave { display: inline-flex; height: 18px; align-items: center; gap: 2px; }
-.pc-quick-capture-wave i { display: block; width: 2px; height: 5px; border-radius: 2px; background: rgba(255, 255, 255, .95); animation: pcCaptureWave 1.4s ease-in-out infinite; }
-.pc-quick-capture-wave i:nth-child(2n) { height: 10px; animation-delay: -.25s; }
-.pc-quick-capture-wave i:nth-child(3n) { height: 15px; animation-delay: -.5s; }
-.pc-quick-capture-wave i:nth-child(5n) { height: 8px; animation-delay: -.75s; }
-.pc-quick-capture-add { display: inline-flex; width: 38px; height: 38px; align-items: center; justify-content: center; border: 0; border-radius: 50%; color: #fff; background: #2b84ee; box-shadow: 0 4px 12px rgba(39, 115, 224, .24); cursor: pointer; font: 22px/1 var(--font); font-weight: 300; }
-.pc-quick-capture-add:hover { background: #1d72db; transform: translateY(-1px); }
-@keyframes pcCaptureWave { 0%, 100% { opacity: .68; transform: scaleY(.72); } 50% { opacity: 1; transform: scaleY(1.16); } }
-
 /* 日程详情：把时间、参与人、原始捕获与 AI 处理结果组织成连续的会前到会后流程。 */
 .event-detail-panel { max-width: 980px; margin: 0 auto; }
 .event-detail-intro { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; }
@@ -153,13 +104,11 @@
 .event-start-recording .icon { width: 14px; height: 14px; }
 
 @media (max-width: 980px) {
-  .pc-quick-capture { left: 50%; }
   .event-detail-grid { grid-template-columns: 1fr; }
   .event-summary-card { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 760px) {
-  .pc-quick-capture { right: 14px; bottom: 14px; left: 14px; width: auto; transform: none; }
   .event-detail-intro { align-items: flex-start; flex-direction: column; gap: 5px; }
   .event-detail-intro p { text-align: left; }
   .event-detail-panel { max-width: none; }

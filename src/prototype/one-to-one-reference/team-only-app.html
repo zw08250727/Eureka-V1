@@ -2703,7 +2703,7 @@
   <link rel="stylesheet" href="assets/workspace-sidebar.css?v=project-layout-v2" />
   <link rel="stylesheet" href="assets/meeting-workspace.css?v=ask-agent-layout-v1" />
   <link rel="stylesheet" href="assets/today-workbench.css?v=today-workbench-v3" />
-  <link rel="stylesheet" href="assets/pc-capability-enhancements.css?v=pc-capabilities-v1" />
+  <link rel="stylesheet" href="assets/pc-capability-enhancements.css?v=pc-capabilities-v2" />
   <link rel="stylesheet" href="assets/meeting-list.css?v=meeting-list-v1" />
 </head>
 <body>
@@ -2857,10 +2857,6 @@
           <nav class="meeting-view-tabs" aria-label="会议视图" aria-hidden="true"><button class="meeting-view-tab active" data-meeting-view="my" aria-current="page">我的会议</button><button class="meeting-view-tab" data-meeting-view="thought">我的闪念</button><button class="meeting-view-tab edition-enterprise-only" data-meeting-view="enterprise">企业会议</button></nav>
         </section>
 
-        <aside class="pc-quick-capture" id="pc-quick-capture" aria-label="快速记录">
-          <button class="pc-quick-capture-start" id="pc-quick-capture-start" type="button"><span class="pc-quick-capture-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span>快速记录</span></button>
-          <button class="pc-quick-capture-add" id="pc-quick-capture-add" type="button" aria-label="新增记录"><span aria-hidden="true">+</span></button>
-        </aside>
 
         <div class="meeting-agent-grid" id="meeting-agent-grid">
         <div class="home-content-stack">
@@ -4173,8 +4169,6 @@
     $$('[data-meeting]').forEach((row) => row.addEventListener("click", (event) => { if (!event.target.closest("[data-meeting-action]")) openNoteDetail(row.dataset.meeting, row.dataset.meta); }));
     $("#note-detail-back").addEventListener("click", () => showMainView("home", { silent: true }));
     $$('[data-today-schedule]').forEach((button) => button.addEventListener("click", () => openNoteDetail(button.dataset.todaySchedule, button.dataset.scheduleMeta)));
-    $("#pc-quick-capture-start")?.addEventListener("click", () => startRecording());
-    $("#pc-quick-capture-add")?.addEventListener("click", () => showToast("可从快速记录开始语音捕获，录音会自动归档到会议列表"));
     $("#note-detail-start-recording")?.addEventListener("click", () => startRecording());
     $("#note-detail-audio-toggle")?.addEventListener("click", (event) => { const button = event.currentTarget; button.classList.toggle("playing"); button.querySelector(".event-audio-play").textContent = button.classList.contains("playing") ? "Ⅱ" : "▶"; showToast(button.classList.contains("playing") ? "正在播放原始捕获" : "已暂停播放"); });
     $$('[data-today-action]').forEach((button) => button.addEventListener("click", () => {
