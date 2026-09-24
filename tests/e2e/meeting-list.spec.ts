@@ -4,6 +4,7 @@ test.use({ channel: process.env.PLAYWRIGHT_CHANNEL || undefined });
 const pageUrl = "/prototype/one-to-one-reference/team-only-app.html?edition=personal&personal=1";
 
 test("meeting history loads ten at a time and resets after filtering", async ({ page }) => {
+  await page.clock.setFixedTime(new Date("2026-09-23T12:00:00"));
   await page.goto(pageUrl);
   const rows = page.locator("#meeting-list .home-meeting-row:visible");
   const scroller = page.locator("#meeting-table-scroll");
@@ -32,13 +33,17 @@ test("meeting history loads ten at a time and resets after filtering", async ({ 
   await page.locator("#meeting-load-more").dispatchEvent("click");
   await expect(rows).toHaveCount(20);
   await expect(page.locator("#meeting-load-more")).toBeHidden();
-  await page.locator("#meeting-source-filter").selectOption("M1");
+  await page.locator("#meeting-source-filter-trigger").click();
+  await page.getByRole("option", {name:"M1",exact:true}).click();
   await expect(rows).toHaveCount(4);
   await expect(page.locator("#meeting-view-description")).toHaveText("共 4 个会议笔记");
-  await page.locator("#meeting-source-filter").selectOption("all");
-  await page.locator("#meeting-date-filter").fill("2026-09-02");
+  await page.getByRole("button", {name:"清除来源筛选",exact:true}).click();
+  await page.locator("#meeting-date-filter-trigger").click();
+  await page.getByRole("button", {name:"2026年9月2日",exact:true}).click();
   await expect(rows).toHaveCount(1);
-  await page.locator("#meeting-date-filter").fill("2026-08-05");
+  await page.locator("#meeting-date-filter-trigger").click();
+  await page.getByRole("button", {name:"上个月",exact:true}).click();
+  await page.getByRole("button", {name:"2026年8月5日",exact:true}).click();
   await expect(rows).toHaveCount(1);
   await expect(rows.first()).toContainText("下月产品规划讨论");
   await rows.first().click();
