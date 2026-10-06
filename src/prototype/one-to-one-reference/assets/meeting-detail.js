@@ -409,6 +409,7 @@
   rows().forEach(record);
   window.MeetingDetail = {
     open,
+    snapshot() { return rows().map(record).map(r => ({id:r.id,title:r.title,summary:r.summary,transcript:r.verbatim || linesFor(r).map(line=>`${line.at}s ${r.speakers[line.speaker]}：${line.text}`).join('\n'),created:r.date,source:r.source})); },
     editInfo(title) { open(title); info(); },
     removed(id) { if (current?.id === id) { audio.pause(); showMainView('home',{silent:true}); } },
   };
