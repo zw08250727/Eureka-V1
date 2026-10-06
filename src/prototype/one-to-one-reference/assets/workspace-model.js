@@ -89,10 +89,23 @@
   function trash(w,fid,restore=false,uid=SELF) {writable(w);const f=w.files.find(f=>f.id===fid&&f.owner===uid)||fail('只有文件所有者可以操作');f.deleted=!restore;log(w,`${restore?'恢复':'移入回收站'}：${f.title}`,uid);}
   function exportFile(w,fid,uid=SELF) {return {format:'eureka-note-v1',title:getFile(w,fid,uid).title,summary:getFile(w,fid,uid).summary,transcript:getFile(w,fid,uid).transcript,duration:getFile(w,fid,uid).duration};}
   function importFile(w,data,uid=SELF) {if(data?.demo===true&&typeof data.title==='string'&&typeof data.content==='string')data={format:'eureka-note-v1',title:data.title,summary:data.type==='summary'?data.content:'',transcript:data.type==='summary'?'':data.content};if(!data||data.format!=='eureka-note-v1'||typeof data.title!=='string'||typeof data.summary!=='string'||typeof data.transcript!=='string')fail('请选择 EurekaMind 导出的 JSON 文件');return addFile(w,{...data,source:'手动导入'},uid);}
+  function registerDevice(s,wid,{serial,model,user},uid=SELF) {
+    const w=get(s,wid);access(w,uid);writable(w);
+    if(user!==uid&&!admin(w,uid))fail('仅管理员可以为其他成员录入设备');
+    const owner=member(w,user)||fail('请选择当前空间内已加入的有效成员');
+    // SN is an identifier: preserve long numeric values and leading zeroes as text.
+    if(typeof serial!=='string')fail('请以文本填写 SN 码');
+    serial=serial.trim().toUpperCase();model=String(model||'').trim();
+    if(!/^[A-Z0-9-]{1,64}$/.test(serial))fail('SN 码须为 1–64 位字母、数字或短横线');
+    if(!model||model.length>40)fail('请填写 1–40 字的设备型号');
+    if(s.devices.some(d=>String(d.serial).trim().toUpperCase()===serial))fail('该 SN 码已录入，请勿重复添加；已有设备请使用绑定入口');
+    const d={id:id('device'),name:`${owner.name}的 ${model}`,serial,model,spaceId:wid,user,createdAt:stamp(),registeredBy:uid,registrationMethod:'manual',lastSync:null};
+    s.devices.push(d);log(w,`录入设备 ${serial} · ${model}，绑定成员：${owner.name}`,uid);return d;
+  }
   function bind(s,did,wid,uid=SELF) {const d=s.devices.find(d=>d.id===did)||fail('设备不存在');if(d.user!==uid)fail('只能绑定自己的设备');const w=get(s,wid);access(w,uid);writable(w);d.spaceId=wid;log(w,`模拟 App 重新绑定设备：${d.name}`,uid);}
   function sync(s,did,uid=SELF) {const d=s.devices.find(d=>d.id===did)||fail('设备不存在');if(d.user!==uid)fail('只能同步自己的设备');if(!d.spaceId)fail('设备尚未绑定工作空间');const w=get(s,d.spaceId);const f=addFile(w,{title:`${d.name} · 新录音`,source:d.model,duration:12},uid);d.lastSync=stamp();return {space:w,file:f};}
   function ask(w,prompt,fid,uid=SELF) {access(w,uid);writable(w);prompt=String(prompt).trim();if(!prompt)fail('请输入问题');if(w.credits.total-w.credits.used<200)fail('AI 积分不足，请联系管理员补充');const files=fid?[getFile(w,fid,uid)]:visible(w,uid);const names=files.slice(0,3).map(f=>f.title);const answer=names.length?`已基于${names.map(n=>'「'+n+'」').join('、')}整理下一步：\n\n1. 确认当前方案的负责人和交付范围。\n2. 汇总仍待回应的客户问题。\n3. 在下一次例会前同步行动清单。\n\n引用 ${names.length} 份已授权资料；此结果为本地模拟。`:'当前空间没有可引用的文件。可以先录音或导入资料，再继续这个任务。';if(!names.length)return {answer,cost:0};w.credits.used+=200;w.credits.logs.unshift({id:id('usage'),user:uid,task:prompt.slice(0,80),amount:200,time:stamp()});w.threads.unshift({id:id('chat'),user:uid,prompt,answer,time:stamp(),files:files.map(f=>f.id)});return {answer,cost:200};}
   function acceptInvite(s,iid) {const i=s.invitations.find(i=>i.id===iid&&i.status==='pending')||fail('邀请已失效或已处理');const w=baseTeam(id('team'),i.teamName,[person('wang','王晨','wang.chen@eureka.example','admin'),person(SELF,s.account.name,s.account.email)],3);w.files=[file(id('file'),'欢迎加入 · 研究项目说明','wang',[SELF])];s.spaces.push(w);i.status='accepted';s.activeId=w.id;return w;}
   function load(storage) {try {const s=JSON.parse(storage.getItem(KEY));if(s?.version===2&&Array.isArray(s.spaces)&&s.spaces.some(w=>w.id==='personal'))return s;}catch{/* recover demo state */}return seed();}
-  global.WorkspaceModel={KEY,SELF,id,clone,seed,get,member,admin,usedSeats,writable,govern,visible,getFile,price,create,invite,memberAction,seats,advanceCycle,addFile,edit,share,trash,exportFile,importFile,bind,sync,ask,acceptInvite,load,log};
+  global.WorkspaceModel={KEY,SELF,id,clone,seed,get,member,admin,usedSeats,writable,govern,visible,getFile,price,create,invite,memberAction,seats,advanceCycle,addFile,edit,share,trash,exportFile,importFile,registerDevice,bind,sync,ask,acceptInvite,load,log};
 })(typeof window==='undefined'?globalThis:window);

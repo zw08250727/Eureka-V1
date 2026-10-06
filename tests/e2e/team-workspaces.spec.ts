@@ -68,11 +68,59 @@ test('Agent and management fit common viewports without page overflow',async({pa
   }
   await action(page,'agent-close').click();expect(errors).toEqual([]);
 });
-test('member device requests, admin fulfillment and next-cycle seat reduction work end to end',async({page})=>{
-  await switchTo(page,'team-eureka');await page.locator('#ws-actor').selectOption('kevin');await action(page,'page','devices').click();
-  await action(page,'request-device').click();await page.locator('#ws-dialog [name=reason]').fill('客户拜访录音');await page.locator('#ws-dialog button[type=submit]').click();await expect(page.locator('#ws-view')).toContainText('待处理');
-  await page.locator('#ws-actor').selectOption('zhang');await action(page,'page','devices').click();await action(page,'fulfill-device').click();await page.locator('#ws-dialog [data-ws-action=confirm]').click();await expect(page.locator('#ws-view')).toContainText('Kevin的 Eureka Note');
+test('admin manually registers a device for a member and next-cycle seat reduction works',async({page})=>{
+  await switchTo(page,'team-eureka');await action(page,'page','devices').click();
+  await expect(page.locator('#ws-view')).not.toContainText('设备申请');
+  await action(page,'register-device').click();
+  await expect(page.locator('#ws-dialog [name=user] option')).toHaveCount(3);
+  await page.getByLabel('SN 码',{exact:true}).fill('474204126010000027');
+  await page.getByLabel('设备型号',{exact:true}).fill('W2');
+  await page.getByRole('combobox',{name:'绑定成员',exact:true}).selectOption('kevin');
+  await page.getByRole('button',{name:'保存并绑定',exact:true}).click();
+  const row=page.locator('#ws-view tr').filter({hasText:'474204126010000027'});
+  await expect(row).toContainText('Kevin的 W2');await expect(row).toContainText('尚未同步');
+  await expect(row.locator('[data-ws-action=sync]')).toHaveCount(0);
+  await action(page,'register-device').click();await page.getByLabel('SN 码',{exact:true}).fill('474204126010000027');
+  await page.getByLabel('设备型号',{exact:true}).fill('W2');await page.getByRole('button',{name:'保存并绑定',exact:true}).click();
+  await expect(page.locator('#ws-dialog .ws-form-error')).toContainText('已录入');
+  await page.getByLabel('SN 码',{exact:true}).fill('SN INVALID');await page.getByRole('button',{name:'保存并绑定',exact:true}).click();
+  await expect(page.locator('#ws-dialog .ws-form-error')).toContainText('SN 码须为');
+  await page.locator('#ws-dialog [data-ws-action=close-dialog]').last().click();
+  await page.reload();await action(page,'page','devices').click();await expect(row).toContainText('474204126010000027');
+  await page.locator('#ws-actor').selectOption('kevin');await action(page,'page','devices').click();
+  await row.locator('[data-ws-action=sync]').click();
+  await section(page,'files');await expect(page.locator('#ws-view')).toContainText('Kevin的 W2 · 新录音');
+  await page.locator('#ws-actor').selectOption('zhang');await section(page,'files');
+  await expect(page.locator('#ws-view')).not.toContainText('Kevin的 W2 · 新录音');
   await section(page,'billing');await action(page,'seats').click();await page.locator('#ws-dialog [name=seats]').fill('4');await page.locator('#ws-dialog button[type=submit]').click();
   await action(page,'cycle').click();await page.locator('#ws-dialog [data-ws-action=confirm]').click();await expect(page.locator('#ws-view')).toContainText('下周期改为 月付');
   await action(page,'advance-cycle').click();await page.locator('#ws-dialog [data-ws-action=confirm]').click();await expect(page.locator('#ws-view')).toContainText('模拟续费 · 4 席位');await expect(page.locator('.ws-plan-amount')).toContainText('796.00');
+});
+
+test('device entry keeps drafts on storage conflict and failure, and members can only bind themselves',async({page})=>{
+  await switchTo(page,'team-eureka');await page.locator('#ws-actor').selectOption('kevin');await action(page,'page','devices').click();
+  await action(page,'register-device').click();await expect(page.locator('#ws-dialog [name=user] option')).toHaveCount(1);
+  await page.getByLabel('SN 码',{exact:true}).fill('00000474204126010000027');await page.getByLabel('设备型号',{exact:true}).fill('W2');
+  await page.evaluate(()=>{const original=Storage.prototype.setItem;Storage.prototype.setItem=function(key,value){if(key==='eureka:workspaces:v2')throw new Error('quota');original.call(this,key,value);};});
+  await page.getByRole('button',{name:'保存并绑定',exact:true}).click();await expect(page.locator('#ws-dialog .ws-form-error')).toContainText('存储空间不足');
+  await expect(page.getByLabel('SN 码',{exact:true})).toHaveValue('00000474204126010000027');
+  await page.reload();await action(page,'page','devices').click();await expect(page.locator('#ws-view')).not.toContainText('00000474204126010000027');
+  await action(page,'register-device').click();await page.getByLabel('SN 码',{exact:true}).fill('00000474204126010000027');await page.getByLabel('设备型号',{exact:true}).fill('W2');
+  await page.evaluate(()=>{const key='eureka:workspaces:v2',data=JSON.parse(localStorage.getItem(key)!);data.spaces.find((w:{id:string})=>w.id==='team-eureka').members.find((m:{id:string})=>m.id==='kevin').status='removed';localStorage.setItem(key,JSON.stringify(data));});
+  await page.getByRole('button',{name:'保存并绑定',exact:true}).click();await expect(page.locator('#ws-dialog .ws-form-error')).toContainText('数据已更新');
+  await expect(page.getByLabel('SN 码',{exact:true})).toHaveValue('00000474204126010000027');
+});
+
+test('manual device form fits a laptop and phone and stores leading zeroes',async({page})=>{
+  await switchTo(page,'team-eureka');await page.locator('#ws-actor').selectOption('kevin');await action(page,'page','devices').click();
+  await action(page,'register-device').click();
+  for(const [width,height] of [[1366,768],[390,844]]){
+    await page.setViewportSize({width,height});await expect(page.getByRole('button',{name:'保存并绑定',exact:true})).toBeInViewport({ratio:1});
+    expect(await page.locator('#ws-dialog').evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThan(3);
+  }
+  await page.getByLabel('SN 码',{exact:true}).fill('00000474204126010000027');await page.getByLabel('设备型号',{exact:true}).fill('W2');
+  await page.getByRole('button',{name:'保存并绑定',exact:true}).click();
+  await expect(page.locator('#ws-view')).toContainText('00000474204126010000027');
+  await page.setViewportSize({width:1366,height:768});await page.screenshot({path:'/tmp/eureka-manual-device-list.png'});
+  await action(page,'register-device').click();await page.screenshot({path:'/tmp/eureka-manual-device-form.png'});
 });
