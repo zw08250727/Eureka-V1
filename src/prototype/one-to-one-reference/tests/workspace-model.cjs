@@ -84,3 +84,27 @@ assert(M.ask(intel,'生成团队会议简报').answer.includes('星海试点'));
 assert(M.ask(intel,'对比会议中的关键决策').answer.startsWith('会议决策对照'));
 assert(M.ask(intel,'梳理客户反馈').answer.startsWith('客户反馈摘要'));
 assert(intel.threads.every(t=>!t.files.includes('team-private')));
+
+// Cross-member insight evidence, permissions, migration and contextual analysis.
+{
+  const state=M.seed(),team=M.get(state,'team-eureka');
+  const report=M.insights(team);assert.equal(report.items.length,3);assert.equal(report.members,3);
+  for(const item of report.items){
+    assert(new Set(item.sources.map(e=>e.owner)).size>=2);
+    for(const e of item.sources){assert(M.getFile(team,e.fileId).summary.includes(e.quote));assert.notEqual(e.fileId,'team-private');}
+  }
+  const risk=report.items.find(i=>i.id==='delivery-risk');
+  const balance=team.credits.used;
+  const response=M.ask(team,risk.title);assert(response.answer.includes('10 月 12 日'));assert(response.answer.includes('10 月 17 日'));
+  assert.equal(team.credits.used,balance+200);assert.deepEqual(new Set(team.threads[0].files),new Set(risk.sources.map(e=>e.fileId)));
+  assert(!response.answer.includes('星海试点复盘'));
+  const sales=team.files.find(f=>f.id==='team-demo-sales');sales.shared=[];
+  const used=team.credits.used;assert.equal(M.ask(team,risk.title).cost,0);assert.equal(team.credits.used,used);
+  assert(!M.insights(team).items.some(i=>i.id==='delivery-risk'));
+  sales.shared=['zhang'];sales.deleted=true;assert(!M.insights(team).items.some(i=>i.id==='delivery-risk'));sales.deleted=false;
+  const planning=team.files.find(f=>f.id==='team-demo-planning');planning.summary='排期已调整，无旧日期。';assert(!M.insights(team).items.some(i=>i.id==='delivery-risk'));
+  delete team.teamInsightsVersion;M.enrich(state);assert.equal(planning.summary,'排期已调整，无旧日期。');
+  const count=sales.summary.match(/10 月 12 日/g).length;M.enrich(state);assert.equal(sales.summary.match(/10 月 12 日/g).length,count);
+  assert.equal(M.insights(M.get(state,'team-design')).items.length,0);
+  assert.throws(()=>M.insights(team,'outsider'),/访问权限/);
+}

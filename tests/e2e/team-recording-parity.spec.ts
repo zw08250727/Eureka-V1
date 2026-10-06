@@ -9,7 +9,7 @@ test('team recording home has full columns, custom filters and no personal flash
   await page.clock.setFixedTime(new Date('2026-10-07T12:00:00Z'));
   await expect(page.locator('#ws-team-nav')).not.toContainText('团队文件');
   await expect(page.locator('#ws-view')).not.toContainText(/今日日程|待办清单|全部闪念|今日记账|帮我安排/);
-  await expect(page.locator('.ws-meeting-intelligence')).toContainText('会议洞察');
+  await expect(page.locator('.ws-meeting-intelligence')).toContainText('团队情报');
   const headings=await page.locator('.ws-recording-table th').allTextContents();
   for(const label of ['文件名','文件大小','创建人','文件来源','标签','录音时长','文件状态','录音时间','更新时间','创建成员','操作'])expect(headings.join(',')).toContain(label);
   await expect(page.locator('.ws-recording-table tbody tr')).toHaveCount(10);
@@ -22,7 +22,7 @@ test('team recording home has full columns, custom filters and no personal flash
   await page.getByRole('button',{name:'清除录音日期',exact:true}).filter({visible:true}).click();
   await page.getByRole('searchbox',{name:'搜索团队会议'}).fill('不存在的会议');await expect(page.locator('#ws-view')).toContainText('没有符合条件');
   await page.getByRole('searchbox',{name:'搜索团队会议'}).fill('');
-  await act(page,'meeting-prompt').click();await expect(page.locator('.ws-composer textarea')).toHaveValue('生成团队会议简报');
+  await act(page,'meeting-prompt').click();await expect(page.locator('.ws-composer textarea')).toHaveValue('客户承诺与研发排期相差 5 天');
 });
 test('team recordings reuse six tabs, inline editing, player, sharing, export and recycle',async({page})=>{
   const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
@@ -74,4 +74,29 @@ test('meeting Agent remains reachable at laptop sizes and history restores the s
   for(const [width,height] of [[1920,1080],[1366,768],[1280,650]]){await page.setViewportSize({width,height});await expect(page.locator('#md-agent-host textarea')).toBeInViewport({ratio:1});await expect(page.locator('#md-agent-host [aria-label="收起 Agent"]')).toBeInViewport({ratio:1});}
   await page.locator('#md-agent-host textarea').fill('继续团队会议决策整理');await page.locator('#md-agent-host button[type=submit]').click();await page.locator('#home-entry').click();
   await page.locator('#ws-history button').filter({hasText:'继续团队会议决策整理'}).click();await expect(page.locator('#ws-view .ws-chat-user')).toHaveText('继续团队会议决策整理');await expect(page.locator('#ws-view .ws-composer textarea')).toBeInViewport({ratio:1});
+});
+
+test('team intelligence connects members, cites evidence and continues the exact issue in Agent',async({page})=>{
+  await expect(page.locator('.ws-insight-card')).toHaveCount(3);
+  if(process.env.PRD_CAPTURE){await page.setViewportSize({width:1440,height:900});await expect(page.locator('#ws-toast')).toBeHidden();await page.screenshot({path:'src/prototype/prd/images/team.png'});}
+  await expect(page.locator('.ws-intelligence-top')).toContainText('3 位成员 · 11 场会议');
+  await expect(page.locator('.ws-insight-card.risk')).toContainText('相差 5 天');
+  await act(page,'insight-detail','delivery-risk').click();
+  await expect(page.locator('.ws-evidence')).toHaveCount(2);
+  if(process.env.PRD_CAPTURE)await page.screenshot({path:'src/prototype/prd/images/team-insight-evidence.png'});
+  await expect(page.locator('#ws-dialog')).toContainText('林晓');await expect(page.locator('#ws-dialog')).toContainText('张伟');
+  await expect(page.locator('#ws-dialog')).toContainText('10 月 12 日');await expect(page.locator('#ws-dialog')).toContainText('10 月 17 日');
+  await page.locator('#ws-dialog [data-ws-action=meeting-prompt]').click();
+  await expect(page.locator('#ws-dialog')).not.toBeVisible();await expect(page.locator('.ws-composer textarea')).toHaveValue('客户承诺与研发排期相差 5 天');
+  await page.locator('.ws-composer button[type=submit]').click();await expect(page.locator('#ws-view .ws-chat-answer').last()).toContainText('会议依据');await expect(page.locator('#ws-view .ws-chat-answer').last()).toContainText('渠道合作沟通');
+  await act(page,'agent-close').click();await act(page,'insight-detail','customer-pattern').click();
+  await page.locator('#ws-dialog [data-ws-action=file][data-value=team-demo-research]').click();await expect(page.locator('#meeting-detail-root')).toContainText('语音记录用户访谈');
+  await page.locator('#home-entry').click();
+  for(const [width,height] of [[1920,1080],[1366,768],[1280,650]]){
+    await page.setViewportSize({width,height});expect(await page.locator('.main').evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThan(3);
+  }
+  await page.setViewportSize({width:1440,height:1000});await page.screenshot({path:'/tmp/eureka-team-insights.png',fullPage:false});
+  await page.evaluate(()=>{const key='eureka:workspaces:v2',s=JSON.parse(localStorage.getItem(key)!);s.spaces.find((w:{id:string})=>w.id==='team-eureka').files.find((f:{id:string})=>f.id==='team-demo-sales').shared=[];localStorage.setItem(key,JSON.stringify(s));});
+  await page.reload();await expect(page.locator('.ws-insight-card.risk')).toHaveCount(0);
+  await switchTo(page,'team-design');await expect(page.locator('.ws-insight-empty')).toContainText('尚无可交叉验证');await expect(page.locator('#ws-view')).not.toContainText('相差 5 天');
 });
