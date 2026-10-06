@@ -76,26 +76,32 @@ test('meeting Agent remains reachable at laptop sizes and history restores the s
   await page.locator('#ws-history button').filter({hasText:'继续团队会议决策整理'}).click();await expect(page.locator('#ws-view .ws-chat-user')).toHaveText('继续团队会议决策整理');await expect(page.locator('#ws-view .ws-composer textarea')).toBeInViewport({ratio:1});
 });
 
-test('team intelligence connects members, cites evidence and continues the exact issue in Agent',async({page})=>{
+test('team intelligence has one dated heading and one contextual Agent action per insight',async({page})=>{
+  await page.clock.setFixedTime(new Date('2026-10-07T12:00:00Z'));await page.reload();
+  await expect(page.locator('.ws-home-date')).toHaveText('10月7日 · 星期三');
+  await expect(page.locator('.ws-team-home-head h1')).toHaveText('让分散的讨论，成为共同的判断。');
+  await expect(page.locator('.ws-team-intelligence h2')).toHaveCount(0);
   await expect(page.locator('.ws-insight-card')).toHaveCount(3);
+  await expect(page.locator('.ws-team-home-head')).toContainText('3 位成员 · 11 场会议');
+  await expect(page.locator('.ws-team-intelligence')).not.toContainText(/待核实|待评审|查看依据|分析影响|评估需求/);
+  await expect(page.locator('.ws-insight-card button')).toHaveCount(3);
   if(process.env.PRD_CAPTURE){await page.setViewportSize({width:1440,height:900});await expect(page.locator('#ws-toast')).toBeHidden();await page.screenshot({path:'src/prototype/prd/images/team.png'});}
-  await expect(page.locator('.ws-intelligence-top')).toContainText('3 位成员 · 11 场会议');
-  await expect(page.locator('.ws-insight-card.risk')).toContainText('相差 5 天');
-  await act(page,'insight-detail','delivery-risk').click();
-  await expect(page.locator('.ws-evidence')).toHaveCount(2);
-  if(process.env.PRD_CAPTURE)await page.screenshot({path:'src/prototype/prd/images/team-insight-evidence.png'});
-  await expect(page.locator('#ws-dialog')).toContainText('林晓');await expect(page.locator('#ws-dialog')).toContainText('张伟');
-  await expect(page.locator('#ws-dialog')).toContainText('10 月 12 日');await expect(page.locator('#ws-dialog')).toContainText('10 月 17 日');
-  await page.locator('#ws-dialog [data-ws-action=meeting-prompt]').click();
-  await expect(page.locator('#ws-dialog')).not.toBeVisible();await expect(page.locator('.ws-composer textarea')).toHaveValue('客户承诺与研发排期相差 5 天');
-  await page.locator('.ws-composer button[type=submit]').click();await expect(page.locator('#ws-view .ws-chat-answer').last()).toContainText('会议依据');await expect(page.locator('#ws-view .ws-chat-answer').last()).toContainText('渠道合作沟通');
-  await act(page,'agent-close').click();await act(page,'insight-detail','customer-pattern').click();
-  await page.locator('#ws-dialog [data-ws-action=file][data-value=team-demo-research]').click();await expect(page.locator('#meeting-detail-root')).toContainText('语音记录用户访谈');
+  await page.locator('.ws-insight-card.risk button').click();
+  await expect(page.locator('#ws-dialog')).not.toBeVisible();await expect(page.locator('.ws-layout')).toHaveClass(/with-agent/);
+  await expect(page.locator('.ws-composer textarea')).toHaveValue('客户承诺与研发排期相差 5 天');
+  await expect(page.locator('.ws-agent-insight-context')).toContainText('渠道合作沟通');
+  await expect(page.locator('.ws-agent-insight-context')).toContainText('研发迭代排期确认');
+  if(process.env.PRD_CAPTURE)await page.screenshot({path:'src/prototype/prd/images/team-insight-agent.png'});
+  await page.locator('.ws-composer button[type=submit]').click();await expect(page.locator('#ws-view .ws-chat-answer').last()).toContainText('会议依据');await expect(page.locator('#ws-view .ws-chat-answer').last()).toContainText('10 月 17 日');
+  await page.locator('.ws-composer textarea').fill('具体需要哪些人对齐？');await page.locator('.ws-composer button[type=submit]').click();await expect(page.locator('#ws-view .ws-chat-answer').last()).toContainText('渠道合作沟通');
+  await act(page,'agent-close').click();await expect(page.locator('.ws-layout')).not.toHaveClass(/with-agent/);
+  await page.locator('.ws-insight-card.opportunity button').click();await expect(page.locator('.ws-agent-insight-context')).toContainText('跨会议追溯');
+  await page.locator('.ws-agent-insight-sources [data-value=team-demo-research]').click();await expect(page.locator('#meeting-detail-root')).toContainText('语音记录用户访谈');
   await page.locator('#home-entry').click();
   for(const [width,height] of [[1920,1080],[1366,768],[1280,650]]){
     await page.setViewportSize({width,height});expect(await page.locator('.main').evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThan(3);
+    await page.locator('.ws-insight-card.gap button').click();await expect(page.locator('.ws-composer textarea')).toBeInViewport({ratio:1});await act(page,'agent-close').click();
   }
-  await page.setViewportSize({width:1440,height:1000});await page.screenshot({path:'/tmp/eureka-team-insights.png',fullPage:false});
   await page.evaluate(()=>{const key='eureka:workspaces:v2',s=JSON.parse(localStorage.getItem(key)!);s.spaces.find((w:{id:string})=>w.id==='team-eureka').files.find((f:{id:string})=>f.id==='team-demo-sales').shared=[];localStorage.setItem(key,JSON.stringify(s));});
   await page.reload();await expect(page.locator('.ws-insight-card.risk')).toHaveCount(0);
   await switchTo(page,'team-design');await expect(page.locator('.ws-insight-empty')).toContainText('尚无可交叉验证');await expect(page.locator('#ws-view')).not.toContainText('相差 5 天');
