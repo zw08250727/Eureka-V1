@@ -7,7 +7,7 @@ const key='eureka:prd:draft:v1';
 
 test('PRD navigation, safe content, editing, persistence and published baseline are independent',async({page,context})=>{
   const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(url);
-  await expect(page.locator('.chapter')).toHaveCount(37);
+  await expect(page.locator('.chapter')).toHaveCount(34);
   await page.locator('#search').fill('BILL-01');await expect(page.locator('#navigation')).toContainText('订阅、席位与账单');
   await page.locator('#navigation a[href="#billing"]').click();await expect(page).toHaveURL(/#billing$/);await expect(page.locator('#navigation a[href="#billing"]')).toHaveAttribute('aria-current','location');
   await page.locator('[data-edit=billing]').click();await page.locator('#edit-title').fill('订阅账单 · 已评审');
@@ -27,7 +27,7 @@ test('PRD navigation, safe content, editing, persistence and published baseline 
 test('revision export/import is lossless, invalid input does not modify data and publishing is explicit',async({page})=>{
   await page.goto(url);await page.locator('[data-edit=overview]').click();await page.locator('#edit-summary').fill('导出与导入验证');await page.locator('[data-editor=save]').click();
   await page.locator('#export-button').click();const event=page.waitForEvent('download');await page.locator('#export-json').click();const d=await event;const data=JSON.parse(await readFile((await d.path())!,'utf8'));expect(data.sections[0].summary).toBe('导出与导入验证');
-  await page.locator('#reset-button').click();await page.locator('[data-dialog=reset]').click();await expect(page.locator('#overview')).not.toContainText('导出与导入验证');
+  await page.evaluate(()=>localStorage.removeItem('eureka:prd:draft:v1'));await page.reload();await expect(page.locator('#overview')).not.toContainText('导出与导入验证');
   await page.locator('#import-file').setInputFiles({name:'revision.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(data))});await page.locator('#confirm-import').click();await expect(page.locator('#overview')).toContainText('导出与导入验证');
   await page.locator('#import-file').setInputFiles({name:'bad.json',mimeType:'application/json',buffer:Buffer.from('{invalid')});await expect(page.locator('#toast')).toContainText('JSON 无法解析');await expect(page.locator('#overview')).toContainText('导出与导入验证');
   const malicious={...data,sections:[...data.sections,data.sections[0]]};await page.locator('#import-file').setInputFiles({name:'duplicate.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(malicious))});await expect(page.locator('#toast')).toContainText('重复');
@@ -60,11 +60,11 @@ test('PRD layout, deep links, screenshots and prototype review entry work',async
   await page.goto(url+'#agent');await expect(page.locator('#agent h2')).toBeInViewport();
   for(const [width,height] of [[1440,900],[1280,720],[390,844]]){
     await page.setViewportSize({width,height});expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
-    if(width===390){await page.locator('#nav-toggle').click();await expect(page.locator('#sidebar')).toBeInViewport();await page.locator('#search').fill('覆盖对照');await page.locator('#navigation a[href="#reference"]').click();await expect(page.locator('#reference h2')).toBeInViewport();}
+    if(width===390){await page.locator('#nav-toggle').click();await expect(page.locator('#sidebar')).toBeInViewport();await page.locator('#search').fill('验收矩阵');await page.locator('#navigation a[href="#acceptance"]').click();await expect(page.locator('#acceptance h2')).toBeInViewport();}
   }
   await page.setViewportSize({width:1440,height:900});await page.goto(url+'#screens');
   for(const img of await page.locator('#screens img').all()){await img.scrollIntoViewIfNeeded();await expect.poll(()=>img.evaluate(el=>(el as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);}
-  await page.goto(app);const entry=page.locator('.prd-review-entry');await expect(entry).toBeVisible();const popup=page.waitForEvent('popup');await entry.click();const prd=await popup;await expect(prd.locator('.chapter')).toHaveCount(37);
+  await page.goto(app);const entry=page.locator('.prd-review-entry');await expect(entry).toBeVisible();const popup=page.waitForEvent('popup');await entry.click();const prd=await popup;await expect(prd.locator('.chapter')).toHaveCount(34);
 });
 
 test('capture current prototype illustrations for the PRD',async({page})=>{

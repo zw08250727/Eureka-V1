@@ -1,30 +1,43 @@
 # EurekaMind PRD 内容维护
 
-本目录由现有 `prepare-prototype.mjs` 原样拷贝到静态站，访问 `/prototype/prd/index.html`。不依赖额外后端或 CDN。
+本目录由 `prepare-prototype.mjs` 拷贝到静态站，访问 `/prototype/prd/index.html`，不依赖额外后端或 CDN。目前共 34 章，版本切换、打印 / PDF、导入、导出和发布位于顶栏。
 
 ## 数据格式
 
-`content.json` 为唯一发布内容源，schemaVersion=1、documentId 固定。sections 中每章包含：
+`content.json` 是发布内容源，schemaVersion=1、documentId 固定。每章包含稳定锚点 id、title、group、summary、body 和纯文本 reviewNotes。正文支持标题、表格、列表、粗体、行内代码、引用、本目录 images 图片和 flow 流程图；原始 HTML 不执行。
 
-- id：稳定锚点，现有章节修改时不变。
-- title / group / summary：标题、导航分组和摘要。
-- body：安全 Markdown 子集（标题、表格、列表、粗体、行内代码、引用以及本目录 images 图片）。原始 HTML 不执行。
-- reviewNotes：纯文本评审记录。
-
-`revision` 在每次正式发布时更新；编辑器额外比较完整发布内容摘要，因此忘记更新 revision 也能检测已有本地稿的基线冲突。
-
-网页编辑只改章节，不增删结构。新增章节或重排通过仓库修改 JSON；结构不匹配的导入会拒绝，避免静默丢失章节。
+每次发布更新 revision。编辑器比较完整发布内容摘要，避免旧本地稿静默覆盖新基线。网页编辑不增删章节；结构变化由仓库维护。旧 37 章稿件读取时只隐藏已撤下的 evidence、reference、review 三章，保留其他章节修改和原存储；再次保存生成 34 章版本。其他结构不匹配的导入仍拒绝。
 
 ## 编辑、备份和发布
 
-1. 章节「编辑」修改文本，保存本地；右上角可导出 JSON 备份。
-2. 发布面板生成新的 revision 和日期，复制完整 JSON，或下载为 content.json。
-3. GitHub 登录有写权限的账号，打开 `develop/src/prototype/prd/content.json`，替换并提交。分支保护开启时按 GitHub 引导创建 PR。
-4. CI 和 Pages 成功后核对线上 JSON revision，再切换「仓库发布版」。
-5. 确认线上已含本地改动后可「恢复发布版」清理本地副本；不要在上线前清理唯一草稿。
+1. 章节「编辑」修改文本并保存本地；顶栏导出 JSON 备份。
+2. 发布面板生成新的 revision 和日期，复制完整 JSON，或下载 content.json。
+3. 用有仓库写权限的 GitHub 账号更新 `develop/src/prototype/prd/content.json`；按分支保护流程提交或创建 PR。
+4. CI 和 Pages 成功后核对线上 revision，切换「仓库发布版」。
+5. 若仓库基线变更，保留当前工作稿、对照发布版合并，再确认新基线。版本切换本身不删除草稿。
 
-网站不能验证某个人是否已提交 GitHub，所以不会显示虚假的发布成功。只有 Actions 成功和线上版本核对证明全员版本生效。读取网站无需仓库写权限；本地编辑不授予任何线上写权限。
+浏览器内修改只在本机当前浏览器生效；提交仓库并成功部署后所有访客才可看到。网站不会把复制发布内容或打开 GitHub 当作发布成功。
 
-## 覆盖证据
+## 交互配图
 
-基于原型 c64f4b2、用户迭代指令和 `V1.0【0612】企业信息分析师Agent_需求PRD.pdf` 全部 24 页。参考 PDF 不复制入公共站点。第 reference 章提供逐页维度映射；价格、指标、日期、生产服务等未确认内容明确区分。
+图片紧邻功能说明，点击可打开原图；集中索引也保留。新增截图来自本仓库运行中的原型。更新交互配图：
+
+```sh
+npm run build
+PRD_ILLUSTRATIONS=1 PLAYWRIGHT_CHANNEL=chrome npm run test:e2e -- tests/e2e/prd-illustrations.spec.ts --workers=1
+npm run build
+```
+
+`PRD_CAPTURE=1` 仅用于显式刷新 prd-review.spec.ts 的概览截图。参考 PDF 不复制到公共站点。
+
+## 流程图
+
+在正文的 flow 围栏代码块中填写 JSON，编辑器实时预览，正文和打印使用本地 SVG 渲染。例如：
+
+````text
+```flow
+{"title":"确认流程","nodes":[{"id":"a","label":"提交需求","x":0,"y":0,"kind":"start"},{"id":"b","label":"确认结论","x":1,"y":0,"kind":"end"}],"edges":[["a","b","评审"]]}
+```
+````
+
+节点 x/y 为 0–10 的网格位置；kind 支持 start、step、decision、end、error。节点 ID 唯一，文字最多 42 字，最多 40 个节点 / 60 条边。节点与连接文字均转义，非法 JSON 显示错误说明。布图时避免长边穿过节点，保留分支间距。移动端可横向滚动图形，打印输出矢量图。

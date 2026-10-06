@@ -14,8 +14,12 @@
     const cells=l=>l.trim().replace(/^\||\|$/g,'').split('|').map(s=>s.trim());
     while(i<lines.length){const line=lines[i].trim();
       if(!line){i++;continue;}
+      if(line==='```flow'){
+        i++;const block=[];while(i<lines.length&&lines[i].trim()!=='```')block.push(lines[i++]);if(i<lines.length)i++;
+        out+=window.PRDFlow.render(block.join('\n'));continue;
+      }
       const picture=line.match(/^!\[([^\]]*)\]\((images\/[\w.-]+\.(?:png|jpg|webp))\)$/);
-      if(picture){out+=`<figure><a href="${picture[2]}" target="_blank" rel="noopener"><img src="${picture[2]}" alt="${escape(picture[1])}" loading="lazy" width="1440" height="900"></a><figcaption>${escape(picture[1])}</figcaption></figure>`;i++;continue;}
+      if(picture){const size=baseline?.imageSizes?.[picture[2]]||[1440,900];out+=`<figure><a href="${picture[2]}" target="_blank" rel="noopener"><img src="${picture[2]}" alt="${escape(picture[1])}" loading="lazy" width="${Number(size[0])||1440}" height="${Number(size[1])||900}"></a><figcaption>${escape(picture[1])}</figcaption></figure>`;i++;continue;}
       if(/^#{1,4}\s/.test(line)){out+=`<h3>${inline(line.replace(/^#{1,4}\s+/,''))}</h3>`;i++;continue;}
       if(line.startsWith('|')&&/^\s*\|?[\s:|-]+\|\s*$/.test(lines[i+1]||'')){
         const head=cells(line);i+=2;out+='<div class="table-wrap" tabindex="0" role="region" aria-label="需求规则表格"><table><thead><tr>'+head.map(c=>`<th scope="col">${inline(c)}</th>`).join('')+'</tr></thead><tbody>';
@@ -24,7 +28,7 @@
       }
       if(/^(?:[-*]|\d+\.)\s/.test(line)){const ordered=/^\d/.test(line),tag=ordered?'ol':'ul',re=ordered?/^\d+\.\s/:/^[-*]\s/;out+=`<${tag}>`;while(i<lines.length&&re.test(lines[i].trim()))out+=`<li>${inline(lines[i++].trim().replace(re,''))}</li>`;out+=`</${tag}>`;continue;}
       if(line.startsWith('> ')){out+=`<blockquote>${inline(line.slice(2))}</blockquote>`;i++;continue;}
-      let para=lines[i++];while(i<lines.length&&lines[i].trim()&&!/^(?:#{1,4}\s|[-*]\s|\d+\.\s|\||!\[|> )/.test(lines[i].trim()))para+=' '+lines[i++].trim();
+      let para=lines[i++];while(i<lines.length&&lines[i].trim()&&!/^(?:#{1,4}\s|[-*]\s|\d+\.\s|\||!\[|```|> )/.test(lines[i].trim()))para+=' '+lines[i++].trim();
       out+=`<p>${inline(para)}</p>`;
     }return out;
   }
@@ -32,7 +36,11 @@
     if(!doc||doc.schemaVersion!==1||doc.documentId!=='eurekamind-product-prd'||!Array.isArray(doc.sections)||doc.sections.length<1||doc.sections.length>100)throw Error('文档格式不匹配，请选择本网站导出的修订 JSON。');
     for(const key of ['title','version','revision','updatedAt','referenceStatus'])if(typeof doc[key]!=='string'||doc[key].length>500)throw Error('文档版本信息缺失或超长。');
     const ids=new Set();for(const s of doc.sections){if(!s||typeof s.id!=='string'||!/^[a-z][a-z0-9-]{0,60}$/.test(s.id)||ids.has(s.id))throw Error('章节 ID 无效或重复。');ids.add(s.id);for(const key of ['title','summary','group','body','reviewNotes'])if(typeof s[key]!=='string'||s[key].length>(key==='body'?120000:10000))throw Error('章节字段缺失或内容超过限制。');if(!s.title.trim()||!s.body.trim())throw Error('章节标题和正文不能为空。');}
-    if(baseline&&baseline.sections.map(s=>s.id).join()!==doc.sections.map(s=>s.id).join())throw Error('章节结构与当前发布版不一致，请先通过仓库合并结构变更。');
+    if(baseline&&baseline.sections.map(s=>s.id).join()!==doc.sections.map(s=>s.id).join()){
+      const removed=new Set(['evidence','reference','review']), retained=doc.sections.filter(s=>!removed.has(s.id));
+      if(retained.map(s=>s.id).join()!==baseline.sections.map(s=>s.id).join())throw Error('章节结构与当前发布版不一致，请先通过仓库合并结构变更。');
+      doc=clone(doc);doc.sections=retained;
+    }
     return doc;
   }
   function notify(message){$('#toast').textContent=message;$('#toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').hidden=true,4500);}
@@ -44,7 +52,7 @@
     el.textContent=publishedView?'仓库发布版':n?`本地修订 · ${n} 章`:'与发布版一致';
     $('#draft-view').setAttribute('aria-pressed',String(!publishedView));$('#published-view').setAttribute('aria-pressed',String(publishedView));
     $('#meta-version').textContent=`V${baseline.version} · ${baseline.updatedAt}`;$('#meta-count').textContent=`${baseline.sections.length} 个章节`;
-    $('#reference-status').textContent=baseline.referenceStatus;
+
   }
   function notices(){
     const host=$('#notices');host.replaceChildren();
@@ -65,9 +73,14 @@
   function chapter(s,i){return `<article class="chapter" id="${s.id}" aria-labelledby="title-${s.id}"><div class="chapter-header"><div><div class="chapter-overline">${String(i+1).padStart(2,'0')} / ${escape(s.group)}${!publishedView&&changed(s)?'<span class="local-marker">本地修订</span>':''}</div><h2 id="title-${s.id}">${escape(s.title)}</h2></div><div class="chapter-tools"><button data-link="${s.id}" aria-label="复制${escape(s.title)}章节链接">↗ 链接</button><button data-edit="${s.id}">编辑</button></div></div><p class="chapter-summary">${escape(s.summary)}</p><div class="prose">${markdown(s.body)}</div><details class="review-note ${s.reviewNotes?'has-note':''}" ${s.reviewNotes?'open':''}><summary>${s.reviewNotes?'评审记录':'添加评审结论：点击本章「编辑」'}</summary><p>${escape(s.reviewNotes||'尚未填写。建议记录结论、确认人、日期与影响范围。')}</p></details></article>`;}
   function render(){
     $('#sections').innerHTML=activeDoc().sections.map(chapter).join('');navigation();status();notices();
-    if(observer)observer.disconnect();observer=new IntersectionObserver(entries=>{const first=entries.filter(e=>e.isIntersecting).sort((a,b)=>a.boundingClientRect.top-b.boundingClientRect.top)[0];if(first)highlight(first.target.id);},{rootMargin:'-90px 0px -65% 0px',threshold:0});document.querySelectorAll('.chapter').forEach(el=>observer.observe(el));
+    if(observer)observer.disconnect();observer=new IntersectionObserver(followReading,{rootMargin:'-90px 0px -65% 0px',threshold:0});document.querySelectorAll('.chapter').forEach(el=>observer.observe(el));
   }
-  function safeHash(){const id=location.hash.slice(1);if(activeDoc().sections.some(s=>s.id===id))document.getElementById(id)?.scrollIntoView();}
+  function followReading(){
+    const line=$('.toolbar').getBoundingClientRect().bottom+60;
+    let current=null;for(const section of document.querySelectorAll('.chapter')){if(section.getBoundingClientRect().top<=line)current=section;else break;}
+    if(current)highlight(current.id);
+  }
+  function safeHash(){const aliases={evidence:'milestones',reference:'overview',review:'overview'};if(aliases[location.hash.slice(1)])history.replaceState(null,'','#'+aliases[location.hash.slice(1)]);const id=location.hash.slice(1);if(activeDoc().sections.some(s=>s.id===id))document.getElementById(id)?.scrollIntoView();}
   function dialog(title,html){$('#dialog-title').textContent=title;$('#dialog-body').innerHTML=html;$('#action-dialog').showModal();}
   function closeDialog(){$('#action-dialog').close();}
   async function copy(text){try{await navigator.clipboard.writeText(text);notify('已复制');return true;}catch{if(!$('#action-dialog').open)dialog('复制内容','<p>浏览器未允许自动复制，可手动复制下方内容。</p>');const area=document.createElement('textarea');area.className='fallback-copy';area.value=text;area.setAttribute('aria-label','请手动复制内容');$('#dialog-body').append(area);area.focus();area.select();notify('浏览器限制自动复制，请手动复制选中内容');return false;}}
@@ -89,7 +102,7 @@
     editor={id,initial:recovered?.base||JSON.stringify(s),baseDigest:recovered?.baseDigest||digest(baseline)};
     const v=recovered?.values||s, el=document.getElementById(id);el.classList.add('editing');
     el.querySelector('.chapter-tools').hidden=true;el.querySelector('.prose').hidden=true;el.querySelector('.review-note').hidden=true;
-    el.insertAdjacentHTML('beforeend',`<div class="editor"><div class="editor-fields"><label>章节标题<input id="edit-title" maxlength="180" value="${escape(v.title)}"></label><label>章节摘要<input id="edit-summary" maxlength="1000" value="${escape(v.summary)}"></label><label>正文 · Markdown（标题、表格、列表、粗体）<textarea id="edit-body" spellcheck="false">${escape(v.body)}</textarea></label><label>评审记录 · 结论 / 确认人 / 日期<textarea class="notes-input" id="edit-notes">${escape(v.reviewNotes)}</textarea></label></div><details open><summary>实时预览</summary><div class="live-preview prose"></div></details><span class="chapter-edit-status" role="status"></span><div class="editor-actions"><small>保存只在当前浏览器生效，发布需提交仓库。</small><button data-editor="cancel">退出编辑</button><button data-editor="export">导出当前内容</button><button data-editor="save" class="primary">保存本地</button></div></div>`);
+    el.insertAdjacentHTML('beforeend',`<div class="editor"><div class="editor-fields"><label>章节标题<input id="edit-title" maxlength="180" value="${escape(v.title)}"></label><label>章节摘要<input id="edit-summary" maxlength="1000" value="${escape(v.summary)}"></label><label>正文 · Markdown（图片、flow 流程图、标题、表格、列表）<textarea id="edit-body" spellcheck="false">${escape(v.body)}</textarea></label><label>评审记录 · 结论 / 确认人 / 日期<textarea class="notes-input" id="edit-notes">${escape(v.reviewNotes)}</textarea></label></div><details open><summary>实时预览</summary><div class="live-preview prose"></div></details><span class="chapter-edit-status" role="status"></span><div class="editor-actions"><small>保存只在当前浏览器生效，发布需提交仓库。</small><button data-editor="cancel">退出编辑</button><button data-editor="export">导出当前内容</button><button data-editor="save" class="primary">保存本地</button></div></div>`);
     el.querySelectorAll('input,textarea').forEach(input=>input.addEventListener('input',preview));preview();notices();el.scrollIntoView();$('#edit-title').focus({preventScroll:true});
   }
   function cancelEdit(){const current=JSON.stringify({...working.sections.find(s=>s.id===editor.id),...values()});if(current===editor.initial){finishEditor();return;}dialog('退出本次编辑？','<p>未保存的输入将被丢弃，已保存的本地修订保留。</p><div class="dialog-actions"><button data-dialog="close">继续编辑</button><button data-dialog="discard">放弃未保存修改</button></div>');}
@@ -116,21 +129,20 @@
       $('#confirm-import').onclick=()=>{try{saveDoc(clone(imported),imported.revision===baseline.revision?digest(baseline):'imported-version');publishedView=false;closeDialog();render();notify('修订已导入本地，尚未发布');}catch(e){notify(e.message);}};
     }catch(e){notify(e instanceof SyntaxError?'JSON 无法解析，当前文档未改变。':e.message);}finally{$('#import-file').value='';}
   }
-  function reset(){guarded(()=>dialog('恢复仓库发布版？','<p>将清除当前浏览器已保存的 PRD 修订。仓库内容和产品演示数据不会改变。建议先导出备份。</p><div class="dialog-actions"><button data-dialog="close">取消</button><button data-dialog="reset">确认恢复发布版</button></div>'));}
   function closeNav(){document.body.classList.remove('nav-open');$('#nav-backdrop').hidden=true;$('#nav-toggle').setAttribute('aria-expanded','false');}
   async function start(){
     try{
       const response=await fetch('content.json',{cache:'no-store'});if(!response.ok)throw Error(`HTTP ${response.status}`);baseline=valid(await response.json());working=clone(baseline);
-      try{const saved=storage();if(saved){valid(saved.doc);local=saved;expected=saved.stamp;working=clone(saved.doc);}}catch{notify('本地草稿无法读取，已展示发布版；未删除原存储，可导出或检查后恢复。');}
+      try{const saved=storage();if(saved){const compatible=valid(saved.doc);local=saved;expected=saved.stamp;working=clone(compatible);}}catch{notify('本地草稿无法读取，已展示发布版；未删除原存储，可导出或检查后恢复。');}
       $('#load-state').hidden=true;$('#doc-content').hidden=false;render();requestAnimationFrame(safeHash);
       $('#search').oninput=navigation;
       $('#navigation').addEventListener('click',e=>{if(e.target.closest('a'))closeNav();});
       $('#sections').onclick=e=>{const editButton=e.target.closest('[data-edit]'),link=e.target.closest('[data-link]'),action=e.target.closest('[data-editor]');if(editButton)edit(editButton.dataset.edit);if(link){const url=new URL(location.href);url.hash=link.dataset.link;copy(url.href);}if(action){if(action.dataset.editor==='save')saveEdit();if(action.dataset.editor==='cancel')cancelEdit();if(action.dataset.editor==='export')download('eurekamind-prd-unsaved.json',JSON.stringify(exportDoc(true),null,2),'application/json');}};
       $('#draft-view').onclick=()=>guarded(()=>{publishedView=false;render();safeHash();});$('#published-view').onclick=()=>guarded(()=>{publishedView=true;render();safeHash();});
-      $('#export-button').onclick=exportMenu;$('#publish-button').onclick=publish;$('#reset-button').onclick=reset;$('#print-button').onclick=()=>guarded(()=>window.print());
+      $('#export-button').onclick=exportMenu;$('#publish-button').onclick=publish;$('#print-button').onclick=()=>guarded(async()=>{const images=[...document.querySelectorAll('.prose img')];images.forEach(img=>img.loading='eager');await Promise.allSettled(images.map(img=>img.decode()));window.print();});
       $('#import-button').onclick=()=>guarded(()=>$('#import-file').click());$('#import-file').onchange=e=>importFile(e.target.files[0]);
       $('#dialog-close').onclick=closeDialog;
-      $('#dialog-body').onclick=e=>{const a=e.target.closest('[data-dialog]');if(!a)return;const action=a.dataset.dialog;if(action==='close')closeDialog();if(action==='discard'){closeDialog();finishEditor();}if(action==='reset'){try{if((storage()?.stamp||null)!==expected)throw Error('另一个标签页已保存新稿，请先重新载入后再恢复。');localStorage.removeItem(KEY);local=null;expected=null;working=clone(baseline);publishedView=false;closeDialog();render();notify('已恢复仓库发布版');}catch(err){notify(err.message);}}};
+      $('#dialog-body').onclick=e=>{const a=e.target.closest('[data-dialog]');if(!a)return;const action=a.dataset.dialog;if(action==='close')closeDialog();if(action==='discard'){closeDialog();finishEditor();}};
       $('#notices').onclick=e=>{const a=e.target.closest('[data-global]');if(!a)return;const action=a.dataset.global;
         if(action==='compare')$('#published-view').click();
         if(action==='recover'){try{const p=JSON.parse(sessionStorage.getItem(PENDING));if(p&&working.sections.some(s=>s.id===p.id)&&p.values)edit(p.id,p);}catch{notify('暂存编辑无法恢复，请检查浏览器存储。');}}
@@ -139,6 +151,7 @@
       };
       $('#nav-toggle').onclick=()=>{const open=!document.body.classList.contains('nav-open');document.body.classList.toggle('nav-open',open);$('#nav-backdrop').hidden=!open;$('#nav-toggle').setAttribute('aria-expanded',String(open));};$('#nav-backdrop').onclick=closeNav;
       addEventListener('hashchange',()=>highlight(location.hash.slice(1)));
+      let scrollPending=false;addEventListener('scroll',()=>{if(!scrollPending){scrollPending=true;requestAnimationFrame(()=>{scrollPending=false;followReading();});}},{passive:true});
       addEventListener('keydown',e=>{if(e.key==='/'&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();if(innerWidth<=800)$('#nav-toggle').click();$('#search').focus();}if(e.key==='Escape')closeNav();});
       addEventListener('beforeunload',e=>{if(editor){e.preventDefault();e.returnValue='';}});
       addEventListener('storage',e=>{if(e.key===KEY){const n=document.createElement('div');n.className='notice';n.innerHTML='<span>另一个标签页修改了本地稿。为避免覆盖，先导出当前修改，再载入最新稿。</span><button data-global="reload-local">载入最新稿</button>';$('#notices').prepend(n);}});
