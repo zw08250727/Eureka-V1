@@ -64,12 +64,53 @@
     else fail('操作无效');
     log(w,`${{remove:'移除',role:'调整角色',accept:'模拟接受邀请',resend:'重发邀请'}[action]}：${m.name}`,actor);
   }
-  function seats(w,count,actor=SELF) {
+  function validateSeatCount(w,count,actor=SELF) {
     govern(w,actor);writable(w);count=Number(count);
-    if(!Number.isInteger(count)||count<Math.max(2,usedSeats(w))||count>50)fail(`席位须为 ${Math.max(2,usedSeats(w))}–50，待接受邀请也占用席位`);
-    if(count<w.seats)w.pendingSeats=count;
-    else {if(count>w.seats)w.invoices.unshift({id:id('INV'),date:stamp(),amount:(count-w.seats)*price(w.cycle),label:`增加 ${count-w.seats} 席位（演示整周期计费）`,status:'已支付'});w.seats=count;w.pendingSeats=null;}
-    log(w,`调整席位至 ${count}`,actor);
+    if(w.type!=='team'||!Number.isInteger(count)||count<Math.max(2,usedSeats(w))||count>50)fail(`席位须为 ${Math.max(2,usedSeats(w))}–50，待接受邀请也占用席位`);
+    return count;
+  }
+  const seatSnapshot=w=>JSON.stringify([w.id,w.seats,w.cycle,w.nextDate,w.pendingSeats??null,w.pendingCycle??null,w.renew,w.status]);
+  function seats(w,count,actor=SELF) {
+    count=validateSeatCount(w,count,actor);
+    if(count>w.seats)fail('增加席位需要先完成支付');
+    w.pendingSeats=count<w.seats?count:null;
+    (w.seatOrders||[]).filter(o=>['pending','failed'].includes(o.status)).forEach(o=>{o.status='cancelled';o.updated=stamp();});
+    log(w,`调整下期席位至 ${count}`,actor);
+  }
+  function seatQuote(w,count,actor=SELF) {
+    count=validateSeatCount(w,count,actor);
+    if(count<=w.seats)fail('请选择大于当前已购数量的席位');
+    const added=count-w.seats;
+    return {workspaceId:w.id,currency:'CNY',fromSeats:w.seats,targetSeats:count,added,cycle:w.cycle,unitPrice:price(w.cycle),amount:added*price(w.cycle),nextDate:w.nextDate,nextCycle:w.pendingCycle||w.cycle,nextAmount:count*price(w.pendingCycle||w.cycle),snapshot:seatSnapshot(w)};
+  }
+  function createSeatOrder(w,count,actor=SELF) {
+    const quote=seatQuote(w,count,actor);w.seatOrders ||= [];
+    const existing=w.seatOrders.find(o=>['pending','failed'].includes(o.status)&&o.snapshot===quote.snapshot&&o.targetSeats===quote.targetSeats);
+    if(existing)return existing;
+    // Replacing the quantity cancels an unpaid quote, never an already paid order.
+    w.seatOrders.filter(o=>['pending','failed'].includes(o.status)).forEach(o=>{o.status='cancelled';o.updated=stamp();});
+    const order={id:id('SEAT'),...quote,requestedBy:actor,created:stamp(),status:'pending'};w.seatOrders.unshift(order);log(w,`创建加席订单 · ${quote.added} 席位`,actor);return order;
+  }
+  function getSeatOrder(w,orderId,actor=SELF) {govern(w,actor);return (w.seatOrders||[]).find(o=>o.id===orderId&&o.workspaceId===w.id)||fail('加席订单不存在或不属于此空间');}
+  function cancelSeatOrder(w,orderId,actor=SELF) {
+    const order=getSeatOrder(w,orderId,actor);
+    if(order.status==='paid')fail('已支付的订单不能取消，请通过管理席位安排下期调整');
+    if(order.status!=='cancelled'){order.status='cancelled';order.updated=stamp();log(w,'取消加席订单',actor);}return order;
+  }
+  function paySeatOrder(w,orderId,outcome,actor=SELF) {
+    const order=getSeatOrder(w,orderId,actor);
+    if(!['success','failure'].includes(outcome))fail('请选择有效的模拟支付结果');
+    if(order.status==='paid')return order;
+    writable(w);
+    if(!['pending','failed'].includes(order.status))fail('订单已取消，请重新选择席位');
+    if(order.snapshot!==seatSnapshot(w))fail('席位或订阅已变化，请返回重新确认费用');
+    const quote=seatQuote(w,order.targetSeats,actor);
+    if(order.amount!==quote.amount||order.unitPrice!==quote.unitPrice)fail('订单金额已变化，请重新确认费用');
+    if(outcome==='failure'){order.status='failed';order.updated=stamp();log(w,'加席模拟支付失败',actor);return order;}
+    const invoice={id:id('INV'),orderId:order.id,date:stamp(),amount:order.amount,label:`增加 ${order.added} 席位（演示整周期计费）`,status:'已支付'};
+    w.seats=order.targetSeats;w.pendingSeats=null;
+    w.invoices.unshift(invoice);order.status='paid';order.paidAt=invoice.date;order.paidBy=actor;order.invoiceId=invoice.id;
+    log(w,`加席支付成功 · ${order.fromSeats} → ${order.targetSeats} 席位`,actor);return order;
   }
   function advanceCycle(w,actor=SELF) {
     govern(w,actor);
@@ -240,5 +281,5 @@
     w.credits.used+=200;w.credits.logs.unshift({id:id('usage'),user:uid,task:prompt.slice(0,80),amount:200,time:stamp()});w.threads.unshift({id:id('chat'),user:uid,prompt,answer,time:stamp(),contactId:cid,files:[]});return answer;
   }
   function load(storage) {try {const s=JSON.parse(storage.getItem(KEY));if(s?.version===2&&Array.isArray(s.spaces)&&s.spaces.some(w=>w.id==='personal'))return enrich(s);}catch{/* recover demo state */}return enrich(seed());}
-  global.WorkspaceModel={KEY,SELF,id,clone,seed:()=>enrich(seed()),enrich,insights,history,getThread,conversation,saveDetail,saveContacts,askContact,purge,get,member,admin,usedSeats,writable,govern,teamRecording,visible,getFile,price,create,invite,memberAction,seats,advanceCycle,addFile,edit,share,trash,exportFile,importFile,registerDevice,bind,sync,ask,acceptInvite,load,log};
+  global.WorkspaceModel={KEY,SELF,id,clone,seed:()=>enrich(seed()),enrich,insights,history,getThread,conversation,saveDetail,saveContacts,askContact,purge,get,member,admin,usedSeats,writable,govern,teamRecording,visible,getFile,price,create,invite,memberAction,seats,seatQuote,createSeatOrder,getSeatOrder,cancelSeatOrder,paySeatOrder,advanceCycle,addFile,edit,share,trash,exportFile,importFile,registerDevice,bind,sync,ask,acceptInvite,load,log};
 })(typeof window==='undefined'?globalThis:window);

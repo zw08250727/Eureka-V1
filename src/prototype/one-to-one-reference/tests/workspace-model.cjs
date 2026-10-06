@@ -16,7 +16,7 @@ M.memberAction(s,w,inv.id,'accept');assert.equal(inv.status,'active');
 M.memberAction(s,w,inv.id,'remove');assert.equal(M.usedSeats(w),4);assert.equal(w.seats,6);
 M.seats(w,4);assert.equal(w.seats,6);assert.equal(w.pendingSeats,4);
 assert.throws(()=>M.invite(w,'blocked@example.com'),/不足/);
-M.seats(w,8);assert.equal(w.seats,8);assert.equal(w.pendingSeats,null);
+const seatOrder=M.createSeatOrder(w,8);M.paySeatOrder(w,seatOrder.id,'success');assert.equal(w.seats,8);assert.equal(w.pendingSeats,null);
 assert.throws(()=>M.seats(w,3),/4–50/);
 const own=M.addFile(w,{title:'新记录'});assert.deepEqual(own.shared,[]);
 M.share(w,own.id,['kevin']);assert(M.visible(w,'kevin').some(f=>f.id===own.id));
@@ -148,3 +148,27 @@ assert(intel.threads.every(t=>!t.files.includes('team-private')));
   const legacy=M.seed(),lw=M.get(legacy,'team-eureka');lw.threads=[];delete lw.memberHistoryVersion;M.enrich(legacy);assert.equal(M.history(lw).length,4);
 }
 console.log('PASS: member history ownership, scoped continuation, access revocation and additive migration.');
+
+// Adding capacity requires a paid, workspace-scoped and idempotent order.
+{
+  const state=M.seed(),team=M.get(state,'team-eureka'),originalBills=team.invoices.length;
+  assert.throws(()=>M.seats(team,8),/需要先完成支付/);
+  const order=M.createSeatOrder(team,8);assert.equal(order.amount,3816);assert.equal(order.added,2);assert.equal(order.targetSeats,8);
+  assert.equal(team.seats,6);assert.equal(team.invoices.length,originalBills);assert.equal(M.createSeatOrder(team,8).id,order.id);
+  M.paySeatOrder(team,order.id,'failure');assert.equal(order.status,'failed');assert.equal(team.seats,6);assert.equal(team.invoices.length,originalBills);
+  assert.throws(()=>M.paySeatOrder(team,order.id,'success','kevin'),/管理员/);
+  assert.throws(()=>M.paySeatOrder(M.get(state,'team-design'),order.id,'success','lin'),/订单不存在/);
+  team.status='expired';assert.throws(()=>M.paySeatOrder(team,order.id,'success'),/只读/);team.status='active';
+  M.paySeatOrder(team,order.id,'success');assert.equal(team.seats,8);assert.equal(team.invoices.length,originalBills+1);assert.equal(team.invoices[0].orderId,order.id);
+  M.paySeatOrder(team,order.id,'success');assert.equal(team.seats,8);assert.equal(team.invoices.length,originalBills+1);
+  assert.throws(()=>M.cancelSeatOrder(team,order.id),/已支付/);
+  const cancelled=M.createSeatOrder(team,9);M.cancelSeatOrder(team,cancelled.id);assert.throws(()=>M.paySeatOrder(team,cancelled.id,'success'),/已取消/);assert.equal(team.seats,8);
+  const stale=M.createSeatOrder(team,10);team.pendingCycle='month';assert.throws(()=>M.paySeatOrder(team,stale.id,'success'),/已变化/);assert.equal(team.seats,8);
+  const replacement=M.createSeatOrder(team,10);assert.equal(stale.status,'cancelled');assert.equal(replacement.amount,3816);assert.equal(replacement.nextAmount,1990);
+  team.pendingSeats=4;assert.throws(()=>M.paySeatOrder(team,replacement.id,'success'),/已变化/);
+  const decrease=M.createSeatOrder(team,9);M.paySeatOrder(team,decrease.id,'success');assert.equal(team.pendingSeats,null);assert.equal(team.pendingCycle,'month');
+  team.cycle='month';const monthly=M.createSeatOrder(team,10);assert.equal(monthly.amount,199);M.paySeatOrder(team,monthly.id,'success');assert.equal(team.seats,10);
+  for(const count of [0,3,10,51,10.5,'invalid'])assert.throws(()=>M.createSeatOrder(team,count));
+  const tampered=M.createSeatOrder(team,11);tampered.amount=0;assert.throws(()=>M.paySeatOrder(team,tampered.id,'success'),/金额/);assert.equal(team.seats,10);
+}
+console.log('PASS: seat purchase payment, retry, cancellation, stale quotes, permissions and idempotent fulfillment.');

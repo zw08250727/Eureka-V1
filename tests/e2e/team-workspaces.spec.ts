@@ -37,7 +37,7 @@ test('seats, billing, credits and readonly subscription states are functional',a
   await switchTo(page,'team-eureka');await action(page,'page','billing').click();
   await action(page,'seats').click();await page.locator('#ws-dialog [name=seats]').fill('4');await page.locator('#ws-dialog button[type=submit]').click();
   await expect(page.locator('#ws-view')).toContainText('下周期调整为 4 席位');await action(page,'cancel-reduction').click();
-  await action(page,'seats').click();await page.locator('#ws-dialog [name=seats]').fill('8');await page.locator('#ws-dialog button[type=submit]').click();await expect(page.locator('#ws-view')).toContainText('增加 2 席位');
+  await action(page,'seats').click();await page.locator('#ws-dialog [name=seats]').fill('8');await page.locator('#ws-dialog button[type=submit]').click();await expect(page.locator('#ws-dialog')).toContainText('确认加席订单');await page.locator('#ws-dialog button[type=submit]').click();await expect(page.locator('#ws-dialog')).toContainText('模拟支付成功');await action(page,'close-dialog').click();await expect(page.locator('#ws-view')).toContainText('增加 2 席位');
   await action(page,'billing-info').click();await page.locator('#ws-dialog [name=company]').fill('测试公司');await page.locator('#ws-dialog button[type=submit]').click();await expect(page.locator('#ws-view')).toContainText('测试公司');
   const bill=page.waitForEvent('download');await action(page,'invoice').click();expect((await bill).suggestedFilename()).toMatch(/\.txt$/);
   await action(page,'page','credits').click();await action(page,'topup').click();await page.locator('#ws-dialog button[type=submit]').click();await expect(page.locator('.ws-credit-summary')).toContainText('47,600');

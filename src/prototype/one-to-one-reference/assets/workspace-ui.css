@@ -71,3 +71,22 @@ body[data-ws-type=team] [data-contacts-entry],body[data-ws-type=team] .sidebar-q
 .ws-agent-history-context p{display:flex;gap:10px;align-items:center;color:#8b9aaf;font-size:10px}
 .ws-chat-member{font-size:10px;color:#8b9aaf;margin:20px 0 6px}
 .ws-chat-member+.ws-chat-user{margin-top:0}
+
+.ws-seat-estimate{padding:16px;background:#f1f6ff;border:1px solid #dce7f6;border-radius:12px;color:#536f95;line-height:1.8}
+.ws-seat-estimate strong{display:block;font-size:25px;color:#315782;margin:4px 0;font-variant-numeric:tabular-nums}
+.ws-seat-estimate small{font-size:11px;color:#8699b1}
+.ws-seat-order>p{font-size:10px;overflow-wrap:anywhere}
+.ws-seat-order .ws-seat-total{font-size:17px;color:#2e598f}
+.ws-seat-pending{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 20px;margin:0 0 18px;border:1px solid #dce7f6;border-radius:12px;background:#f2f7ff}
+.ws-seat-pending strong,.ws-seat-pending span{display:block}.ws-seat-pending span{font-size:11px;color:#7f92ab;margin-top:6px}
+.ws-seat-payment-method{display:flex;justify-content:space-between;gap:12px;border:1px solid #e1e8f2;padding:14px;border-radius:10px;font-size:12px;color:#6e819a}
+.ws-seat-payment-error{padding:12px 14px;border-radius:10px;background:#fff4ed;color:#a86636;font-size:12px;line-height:1.8}
+@media(max-width:600px){.ws-seat-pending{align-items:flex-start;flex-direction:column}.ws-seat-order>div{gap:10px;flex-wrap:wrap}}
+
+#ws-dialog[open]:has([data-ws-form=seat-pay]){display:flex;flex-direction:column;overflow:hidden}
+#ws-dialog:has([data-ws-form=seat-pay])>.ws-dialog-head{flex-shrink:0}
+#ws-dialog [data-ws-form=seat-pay]{overflow:auto;min-height:0;overscroll-behavior:contain}
+#ws-dialog [data-ws-form=seat-pay] .ws-steps{margin-bottom:16px}
+#ws-dialog [data-ws-form=seat-pay] .ws-order>div{margin-top:14px}
+#ws-dialog [data-ws-form=seat-pay] .ws-dialog-footer{position:sticky;bottom:-24px;background:#fff;padding:14px 0;margin-top:18px;border-top:1px solid #e8eef5}
+@media(max-width:600px){#ws-dialog [data-ws-form=seat-pay] .ws-dialog-footer{bottom:-18px}}
