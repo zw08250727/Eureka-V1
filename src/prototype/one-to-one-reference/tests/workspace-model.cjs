@@ -88,7 +88,7 @@ assert(intel.threads.every(t=>!t.files.includes('team-private')));
 // Cross-member insight evidence, permissions, migration and contextual analysis.
 {
   const state=M.seed(),team=M.get(state,'team-eureka');
-  const report=M.insights(team);assert.equal(report.items.length,3);assert.equal(report.members,3);
+  const report=M.insights(team);assert.equal(report.items.length,2);assert.equal(report.members,3);
   for(const item of report.items){
     assert(new Set(item.sources.map(e=>e.owner)).size>=2);
     for(const e of item.sources){assert(M.getFile(team,e.fileId).summary.includes(e.quote));assert.notEqual(e.fileId,'team-private');}
@@ -97,7 +97,7 @@ assert(intel.threads.every(t=>!t.files.includes('team-private')));
   const balance=team.credits.used;
   const response=M.ask(team,risk.title);assert(response.answer.includes('10 月 12 日'));assert(response.answer.includes('10 月 17 日'));
   assert.equal(team.credits.used,balance+200);assert.deepEqual(new Set(team.threads[0].files),new Set(risk.sources.map(e=>e.fileId)));
-  assert(!response.answer.includes('星海试点复盘'));
+  assert(response.answer.includes('星海试点复盘'));
   const sales=team.files.find(f=>f.id==='team-demo-sales');sales.shared=[];
   const used=team.credits.used;assert.equal(M.ask(team,risk.title).cost,0);assert.equal(team.credits.used,used);
   assert(!M.insights(team).items.some(i=>i.id==='delivery-risk'));

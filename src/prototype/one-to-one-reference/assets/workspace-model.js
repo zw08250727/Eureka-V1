@@ -113,9 +113,9 @@
       return quote?[{fileId:f.id,title:f.title,owner:f.owner,created:f.created,quote}]:[];
     });
     const rules=[
-      {id:'delivery-risk',kind:'risk',label:'交付预警',title:'客户承诺与研发排期相差 5 天',description:'渠道已承诺 10 月 12 日交付，研发计划 10 月 17 日完成联调；试点验收可能受到影响。',impact:'涉及客户预期与试点验收，需要销售、研发共同核实。',next:'核实 10 月 12 日承诺的交付范围，确认是否依赖 10 月 17 日的联调结果，再统一对外口径。',patterns:[/星海.*10 月 12 日.*交付/,/星海.*10 月 17 日.*联调/]},
-      {id:'ownership-gap',kind:'gap',label:'协作断点',title:'验收标准已明确，异常处理仍未对齐',description:'客户把同步失败重试列为验收条件，交付评审仍未明确异常处理流程。',impact:'客户要求已进入团队视野，但交付闭环尚缺一环。',next:'对照客户验收条件与交付检查表，确认同步异常的处理流程、负责人和验收证据。',patterns:[/星海.*同步失败重试.*验收/,/尚待确认设备同步异常.*处理流程/]},
-      {id:'customer-pattern',kind:'opportunity',label:'需求共识',title:'跨会议追溯，正在成为共同需求',description:'客户共创与用户访谈都指向同一价值：从结论找到原始讨论，并延续上下文。',impact:'跨成员收集的反馈汇成产品方向，可作为路线图优先级的依据。',next:'把两场会议的原始需求对照整理，区分客户明确要求与产品推断，形成待评审的优先级建议。',patterns:[/客户共创.*会议纪要可追溯/,/用户访谈.*跨会议检索与上下文延续/]}
+      {id:'delivery-risk',topic:'星海试点',kind:'risk',label:'交付预警',title:'客户承诺与研发排期相差 5 天',description:'渠道已承诺 10 月 12 日交付，研发计划 10 月 17 日完成联调；试点验收可能受到影响。',impact:'涉及客户预期与试点验收，需要销售、研发共同核实。',next:'核实 10 月 12 日承诺的交付范围，确认是否依赖 10 月 17 日的联调结果，再统一对外口径。',patterns:[/星海.*10 月 12 日.*交付/,/星海.*10 月 17 日.*联调/]},
+      {id:'ownership-gap',topic:'星海试点',kind:'gap',label:'协作断点',title:'验收标准已明确，异常处理仍未对齐',description:'客户把同步失败重试列为验收条件，交付评审仍未明确异常处理流程。',impact:'客户要求已进入团队视野，但交付闭环尚缺一环。',next:'对照客户验收条件与交付检查表，确认同步异常的处理流程、负责人和验收证据。',patterns:[/星海.*同步失败重试.*验收/,/尚待确认设备同步异常.*处理流程/]},
+      {id:'customer-pattern',topic:'跨会议追溯',kind:'opportunity',label:'需求共识',title:'跨会议追溯，正在成为共同需求',description:'客户共创与用户访谈都指向同一价值：从结论找到原始讨论，并延续上下文。',impact:'跨成员收集的反馈汇成产品方向，可作为路线图优先级的依据。',next:'把两场会议的原始需求对照整理，区分客户明确要求与产品推断，形成待评审的优先级建议。',patterns:[/客户共创.*会议纪要可追溯/,/用户访谈.*跨会议检索与上下文延续/]}
     ];
     const items=rules.flatMap(r=>{
       const groups=r.patterns.map(evidence);if(groups.some(g=>!g.length))return [];
@@ -123,12 +123,15 @@
       if(sources.length<2||new Set(sources.map(e=>e.owner)).size<2)return [];
       return [{...r,patterns:undefined,sources}];
     });
-    return {items,meetings:files.length,members:new Set(files.map(f=>f.owner)).size};
+    // Related observations form one narrative topic, not one UI slot per category.
+    const topics=new Map();for(const item of items){const group=topics.get(item.topic)||[];group.push(item);topics.set(item.topic,group);}
+    const findings=[...topics.values()].map(group=>group.length===1?group[0]:({...group[0],title:'星海试点的交付承诺与验收准备尚未对齐',description:group.map(i=>i.description).join(''),impact:group.map(i=>i.impact).join(''),next:group.map(i=>i.next).join(''),sources:[...new Map(group.flatMap(i=>i.sources).map(e=>[e.fileId,e])).values()]}));
+    return {items:findings,meetings:files.length,members:new Set(files.map(f=>f.owner)).size};
   }
   function ask(w,prompt,fid,uid=SELF) {
     access(w,uid);writable(w);prompt=String(prompt).trim();if(!prompt)fail('请输入问题');
     const insight=!fid&&insights(w,uid).items.find(i=>prompt.includes(i.title));
-    if(!fid&&!insight&&/客户承诺与研发排期相差 5 天|验收标准已明确，异常处理仍未对齐|跨会议追溯，正在成为共同需求/.test(prompt))return {answer:'该团队线索的来源或内容已变化，当前依据不足，请返回首页查看最新线索。本次未扣积分。',cost:0};
+    if(!fid&&!insight&&/星海试点的交付承诺与验收准备尚未对齐|客户承诺与研发排期相差 5 天|验收标准已明确，异常处理仍未对齐|跨会议追溯，正在成为共同需求/.test(prompt))return {answer:'该团队线索的来源或内容已变化，当前依据不足，请返回首页查看最新线索。本次未扣积分。',cost:0};
     let files=insight?insight.sources.map(e=>getFile(w,e.fileId,uid)):fid?[getFile(w,fid,uid)]:visible(w,uid);
     if(!fid&&!insight&&/客户|反馈/.test(prompt))files=files.filter(f=>/客户|访谈|试点|验收/.test(f.title));
     if(!insight)files=files.slice().sort((a,b)=>String(b.created).localeCompare(String(a.created))).slice(0,3);
