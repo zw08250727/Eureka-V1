@@ -43,18 +43,33 @@ test('team recordings reuse six tabs, inline editing, player, sharing, export an
   await act(page,'recycle').click();await act(page,'file','team-review').click();await expect(page.locator('#md-content .md-prose')).toContainText('团队迭代专属结论');
   await switchTo(page,'personal');await expect(page.locator('#meeting-list')).not.toContainText('团队迭代专属');expect(errors).toEqual([]);
 });
-test('team contacts reuse all relationship tabs, notes, followups and scoped Agent',async({page})=>{
-  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));await page.locator('[data-contacts-entry]').click();
-  await expect(page.locator('.contacts-person-card')).toHaveCount(4);await expect(page.locator('#contacts-root')).not.toContainText('John Chen');
-  await page.locator('[data-contact-action=person][data-value=c-team-1]').click();
-  for(const name of ['概览','时间线','承诺','主题','记忆']){await page.getByRole('tab',{name,exact:true}).click();await expect(page.locator('.contacts-main')).not.toContainText('德国经销商');}
-  await page.locator('[data-contact-action=note]').click();await page.locator('[data-contact-form=note] textarea').fill('仅团队空间的客户补充信息');await page.locator('[data-contact-form=note] button[type=submit]').click();
-  await expect(page.locator('.contacts-main')).toContainText('仅团队空间');
-  await page.locator('[data-contact-action=followup]').first().click();await page.locator('[data-contact-form=followup] [name=title]').fill('确认试点反馈');await page.locator('[data-contact-form=followup] button[type=submit]').click();await expect(page.locator('.contacts-main')).toContainText('确认试点反馈');
-  await page.locator('.contacts-xiaozhi-entry').click();await page.locator('[data-contact-action=ask]').filter({hasText:'准备下一次'}).click();await expect(page.locator('.contacts-xiaozhi-answer')).toContainText('陈明');await expect(page.locator('.contacts-xiaozhi-answer')).not.toContainText('德国经销商');
-  for(const [width,height] of [[1920,1080],[1366,768],[1280,650]]){await page.setViewportSize({width,height});await expect(page.locator('[data-contact-xiaozhi-input]')).toBeInViewport({ratio:1});expect(await page.locator('.main').evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThan(3);}
-  await switchTo(page,'team-design');await page.locator('[data-contacts-entry]').click();await expect(page.locator('.contacts-person-card')).toHaveCount(0);
-  await switchTo(page,'personal');await page.locator('[data-contacts-entry]').click();await expect(page.locator('#contacts-root')).toContainText('John Chen');await expect(page.locator('#contacts-root')).not.toContainText('仅团队空间');expect(errors).toEqual([]);
+test('team hides contacts while personal contacts remain available',async({page})=>{
+  await expect(page.locator('[data-contacts-entry]')).toBeHidden();
+  await page.evaluate(()=>{(window as unknown as {EurekaSpaces:{open:(page:string)=>void}}).EurekaSpaces.open('contacts');});
+  await expect(page.locator('#ws-view')).toBeVisible();await expect(page.locator('#contacts-root')).toBeHidden();
+  await switchTo(page,'team-design');await expect(page.locator('[data-contacts-entry]')).toBeHidden();
+  await switchTo(page,'personal');await expect(page.locator('[data-contacts-entry]')).toBeVisible();
+  await page.locator('[data-contacts-entry]').click();await expect(page.locator('#contacts-root')).toContainText('John Chen');
+  await page.locator('.contacts-xiaozhi-entry').click();await expect(page.locator('#contacts-xiaozhi-rail')).toBeVisible();
+});
+test('member history opens in place with ownership, preserves context and survives reload',async({page})=>{
+  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+  await expect(page.locator('#ws-history [data-ws-action=history]')).toHaveCount(4);
+  await expect(page.locator('#ws-history')).toContainText('林晓');await expect(page.locator('#ws-history')).toContainText('Kevin');await expect(page.locator('#ws-history')).toContainText('张伟');
+  const item=page.locator('#ws-history [data-value=team-history-research]');await item.click();
+  await expect(item).toHaveAttribute('aria-current','true');await expect(page.locator('.ws-agent-history-context')).toContainText('Kevin');
+  await expect(page.locator('.ws-chat-user')).toHaveText('把用户访谈和交互评审串起来，找出值得优先解决的问题。');
+  await expect(page.locator('.ws-chat-answer')).toContainText('上下文连续性');
+  if(process.env.PRD_CAPTURE){await page.setViewportSize({width:1440,height:900});await expect(page.locator('#ws-toast')).toBeHidden();await page.screenshot({path:'src/prototype/prd/images/team-history-agent.png'});}
+  for(const [width,height] of [[1920,1080],[1366,768],[1280,650]]){await page.setViewportSize({width,height});await expect(page.locator('.ws-composer textarea')).toBeInViewport({ratio:1});await expect(page.locator('[aria-label="收起 Agent"]')).toBeInViewport({ratio:1});expect(await page.locator('.main').evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThan(3);}
+  await page.locator('.ws-composer textarea').fill('补充下一轮验证重点');await page.locator('.ws-composer button[type=submit]').click();
+  await expect(page.locator('.ws-chat-user')).toHaveCount(2);await expect(page.locator('.ws-chat-answer').last()).toContainText('语音记录用户访谈');await expect(page.locator('.ws-chat-answer').last()).not.toContainText('星海试点');
+  await expect(page.locator('.ws-agent-history-context .ws-history-owner')).toHaveText('张伟');
+  await expect(page.locator('#ws-history [data-value=team-history-research] .ws-history-owner')).toHaveText('Kevin');
+  await act(page,'agent-close').click();await page.reload();await page.locator('#ws-history button').filter({hasText:'补充下一轮验证重点'}).click();await expect(page.locator('.ws-chat-user')).toHaveCount(2);
+  await page.locator('#ws-actor').selectOption('lin');await expect(page.locator('#ws-history')).not.toContainText('补充下一轮验证重点');await expect(page.locator('#ws-history')).toContainText('用户访谈中的高频需求');
+  await switchTo(page,'team-design');await expect(page.locator('#ws-history')).toContainText('暂无会话');
+  await switchTo(page,'personal');await expect(page.locator('#ws-history')).toBeEmpty();await expect(page.locator('[data-contacts-entry]')).toBeVisible();expect(errors).toEqual([]);
 });
 test('team recording pause, resume, mark and finish save to the originating workspace',async({page})=>{
   await act(page,'record').click();await page.locator('#ws-dialog [name=title]').fill('团队录音链路验证');await page.locator('#ws-dialog button[type=submit]').click();

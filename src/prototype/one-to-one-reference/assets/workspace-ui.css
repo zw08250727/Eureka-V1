@@ -57,3 +57,17 @@ html[data-sidebar-collapsed=true] .ws-space-copy,html[data-sidebar-collapsed=tru
 @media(max-width:800px){.ws-team-brief.ws-meeting-intelligence{padding:20px}.ws-team-brief .ws-intelligence-top{flex-wrap:wrap;gap:8px}.ws-brief-paragraph{font-size:13px}}
 
 .ws-brief-paragraph .ws-brief-attribution{display:inline;margin:0 0 0 10px;line-height:inherit}.ws-brief-attribution>span{white-space:nowrap}.ws-brief-paragraph .ws-brief-ask{display:inline-flex;vertical-align:baseline;margin-left:12px;padding:0;min-height:0;line-height:inherit;white-space:nowrap}.ws-brief-paragraph .ws-brief-ask .ws-icon{align-self:center}
+
+/* Team history follows the personal sidebar density; ownership remains visible. */
+body[data-ws-type=team] [data-contacts-entry],body[data-ws-type=team] .sidebar-quick-nav>.knowledge-tree-leaf-row:has([data-contacts-entry]){display:none!important}
+#ws-history>.ws-btn{gap:8px;padding:10px 8px;border-radius:8px;min-width:0;text-align:left}
+#ws-history>.ws-btn:hover,#ws-history>.ws-btn.active{background:#eaf1ff;color:#365e99}
+#ws-history>.ws-btn:focus-visible{outline:2px solid #6394dd;outline-offset:2px}
+#ws-history .ws-icon{width:14px;height:14px;flex-shrink:0}
+.ws-history-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ws-history-owner{display:inline-block;flex-shrink:0;background:#edf2f8;color:#637b99;border-radius:5px;padding:3px 6px;font-size:10px;line-height:1.4;font-weight:500;white-space:nowrap}
+.ws-agent-history-context{margin:16px 0 22px}
+.ws-agent-history-context h3{overflow-wrap:anywhere;line-height:1.5}
+.ws-agent-history-context p{display:flex;gap:10px;align-items:center;color:#8b9aaf;font-size:10px}
+.ws-chat-member{font-size:10px;color:#8b9aaf;margin:20px 0 6px}
+.ws-chat-member+.ws-chat-user{margin-top:0}

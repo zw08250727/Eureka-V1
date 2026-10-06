@@ -129,21 +129,33 @@
     const findings=[...topics.values()].map(group=>group.length===1?group[0]:({...group[0],title:'星海试点的交付承诺与验收准备尚未对齐',description:group.map(i=>i.description).join(''),impact:group.map(i=>i.impact).join(''),next:group.map(i=>i.next).join(''),sources:[...new Map(group.flatMap(i=>i.sources).map(e=>[e.fileId,e])).values()]}));
     return {items:findings,meetings:files.length,members:new Set(files.map(f=>f.owner)).size};
   }
-  function ask(w,prompt,fid,uid=SELF) {
+  function history(w,uid=SELF) {
+    const ids=new Set(visible(w,uid).map(f=>f.id));
+    return (w.threads||[]).filter(t=>!t.contactId&&(t.user===uid||t.visibility==='team')&&(t.files||[]).every(fid=>ids.has(fid))).slice().sort((a,b)=>new Date(String(b.time).replace(' ','T')).getTime()-new Date(String(a.time).replace(' ','T')).getTime());
+  }
+  function getThread(w,tid,uid=SELF) {return history(w,uid).find(t=>t.id===tid)||fail('会话已失效或无权访问，请选择其他会话');}
+  function conversation(w,tid,uid=SELF) {
+    const list=[],seen=new Set();let current=getThread(w,tid,uid);
+    while(current&&!seen.has(current.id)&&list.length<20){list.unshift(current);seen.add(current.id);current=current.parentThreadId?history(w,uid).find(t=>t.id===current.parentThreadId):null;}
+    return list;
+  }
+  function ask(w,prompt,fid,uid=SELF,historyId=null) {
     access(w,uid);writable(w);prompt=String(prompt).trim();if(!prompt)fail('请输入问题');
-    const insight=!fid&&insights(w,uid).items.find(i=>prompt.includes(i.title));
-    if(!fid&&!insight&&/星海试点的交付承诺与验收准备尚未对齐|客户承诺与研发排期相差 5 天|验收标准已明确，异常处理仍未对齐|跨会议追溯，正在成为共同需求/.test(prompt))return {answer:'该团队线索的来源或内容已变化，当前依据不足，请返回首页查看最新线索。本次未扣积分。',cost:0};
-    let files=insight?insight.sources.map(e=>getFile(w,e.fileId,uid)):fid?[getFile(w,fid,uid)]:visible(w,uid);
-    if(!fid&&!insight&&/客户|反馈/.test(prompt))files=files.filter(f=>/客户|访谈|试点|验收/.test(f.title));
-    if(!insight)files=files.slice().sort((a,b)=>String(b.created).localeCompare(String(a.created))).slice(0,3);
+    const previous=historyId?getThread(w,historyId,uid):null;
+    const insight=!previous&&!fid&&insights(w,uid).items.find(i=>prompt.includes(i.title));
+    if(!previous&&!fid&&!insight&&/星海试点的交付承诺与验收准备尚未对齐|客户承诺与研发排期相差 5 天|验收标准已明确，异常处理仍未对齐|跨会议追溯，正在成为共同需求/.test(prompt))return {answer:'该团队线索的来源或内容已变化，当前依据不足，请返回首页查看最新线索。本次未扣积分。',cost:0};
+    let files=previous?(previous.files||[]).map(fid=>getFile(w,fid,uid)):insight?insight.sources.map(e=>getFile(w,e.fileId,uid)):fid?[getFile(w,fid,uid)]:visible(w,uid);
+    if(!previous&&!fid&&!insight&&/客户|反馈/.test(prompt))files=files.filter(f=>/客户|访谈|试点|验收/.test(f.title));
+    if(!previous&&!insight)files=files.slice().sort((a,b)=>String(b.created).localeCompare(String(a.created))).slice(0,3);
     if(!files.length)return {answer:'当前没有可引用的相关会议。请先录音、导入纪要，或调整问题。',cost:0};
     if(w.credits.total-w.credits.used<200)fail('AI 积分不足，请联系管理员补充');
     const excerpts=files.map((f,i)=>`${i+1}. 「${f.title}」\n${f.summary.split('\n').filter(Boolean)[0].slice(0,300)}`).join('\n\n');
     const label=/对比|决策/.test(prompt)?'会议决策对照':/客户|反馈/.test(prompt)?'客户反馈摘要':/简报|总结/.test(prompt)?'团队会议简报':'会议上下文与下一步';
     const next=/对比|决策/.test(prompt)?'以上按来源并列展示会议结论；未在纪要中明确的差异与负责人，需要回到原录音确认。':/客户|反馈/.test(prompt)?'建议在下次沟通前，逐项确认客户提出的问题、对应方案和验收口径。':'建议围绕上述结论，确认负责人、交付范围与仍待澄清的问题。';
-    const answer=insight?`${insight.label}\n${insight.title}\n\n${insight.description}\n\n会议依据\n${insight.sources.map(e=>`「${e.title}」 · ${w.members.find(m=>m.id===e.owner)?.name||e.owner}\n${e.quote}`).join("\n\n")}\n\n建议核实\n${insight.next}\n\n以上为跨会议线索，不代表已确认风险或已通知成员。仅引用当前授权资料；本地模拟。`:`${label}\n\n${excerpts}\n\n${next}\n\n引用 ${files.length} 份已授权资料；此结果为本地模拟。`;
+    const answer=previous?`接续「${previous.title||previous.prompt}」\n\n关于「${prompt}」，仍基于原会话的 ${files.length} 场会议：\n\n${excerpts}\n\n${next}\n\n本地模拟 · 未通知成员或创建任务。`:insight?`${insight.label}\n${insight.title}\n\n${insight.description}\n\n会议依据\n${insight.sources.map(e=>`「${e.title}」 · ${w.members.find(m=>m.id===e.owner)?.name||e.owner}\n${e.quote}`).join("\n\n")}\n\n建议核实\n${insight.next}\n\n以上为跨会议线索，不代表已确认风险或已通知成员。仅引用当前授权资料；本地模拟。`:`${label}\n\n${excerpts}\n\n${next}\n\n引用 ${files.length} 份已授权资料；此结果为本地模拟。`;
     w.credits.used+=200;w.credits.logs.unshift({id:id('usage'),user:uid,task:prompt.slice(0,80),amount:200,time:stamp()});
-    w.threads.unshift({id:id('chat'),user:uid,prompt,answer,time:stamp(),files:files.map(f=>f.id)});return {answer,cost:200};
+    const thread={id:id('chat'),user:uid,prompt,answer,time:stamp(),files:files.map(f=>f.id),visibility:'private',...(previous?{parentThreadId:previous.id}: {})};
+    w.threads.unshift(thread);return {answer,cost:200,threadId:thread.id};
   }
   function acceptInvite(s,iid) {const i=s.invitations.find(i=>i.id===iid&&i.status==='pending')||fail('邀请已失效或已处理');const w=baseTeam(id('team'),i.teamName,[person('wang','王晨','wang.chen@eureka.example','admin'),person(SELF,s.account.name,s.account.email)],3);w.files=[file(id('file'),'欢迎加入 · 研究项目说明','wang',[SELF])];s.spaces.push(w);i.status='accepted';s.activeId=w.id;return w;}
   // Versioned, additive migration: never replace user recordings or edited contacts.
@@ -195,6 +207,20 @@
         }
         w.teamDeviceVisibilityVersion=1;
       }
+      if(w.id==='team-eureka'&&!w.memberHistoryVersion){
+        const demos=[
+          ['delivery','lin','星海试点交付对齐','梳理星海试点里客户承诺与验收准备的关键问题。',['team-demo-sales','team-demo-pilot'],'2026-10-07 09:40','渠道沟通承诺 10 月 12 日交付；试点复盘强调同步失败重试属于验收条件。下一步应由渠道与交付共同确认演示范围、重试案例和验收清单。'],
+          ['research','kevin','用户访谈中的高频需求','把用户访谈和交互评审串起来，找出值得优先解决的问题。',['team-demo-research','team-demo-design'],'2026-10-07 09:05','两场讨论都强调上下文连续性：用户希望从结论回到录音原文，并继续追问；交互评审确认 Agent 在当前页面展开，小屏也应保留输入区。建议优先验证会议内追问与原位编辑链路。'],
+          ['review',SELF,'会议工作台体验复盘','汇总试点复盘和交互评审，整理下一轮体验验证重点。',['team-demo-pilot','team-demo-design'],'2026-10-06 17:20','试点关注交付与验收口径，交互评审关注正文编辑与页面内 Agent。下一轮验证可以覆盖：会议正文原位编辑、设备同步异常重试、小屏连续提问。上述建议尚未创建任务。'],
+          ['partner','lin','渠道演示沟通准备','根据渠道合作沟通，整理下一次演示前需要确认的内容。',['team-demo-sales'],'2026-10-06 16:10','先统一真实客户会议的演示脚本与试点范围，再确认设备同步、失败重试能力的交付承诺。报价应在交付范围确认后讨论。']
+        ];
+        for(const [key,user,title,prompt,files,time,answer] of demos){
+          const tid='team-history-'+key;
+          // Shared sample conversations only cite known team-visible device recordings.
+          if(!w.threads.some(t=>t.id===tid)&&files.every(fid=>w.files.some(f=>f.id===fid&&!f.deleted&&teamRecording(w,f))))w.threads.push({id:tid,user,title,prompt,answer:answer+'\n\n本地模拟 · 基于团队会议记录，未连接 AI 服务。',files,time,visibility:'team',demo:true});
+        }
+        w.memberHistoryVersion=1;
+      }
       w.files.forEach((f,i)=>{const defaults={size:(f.duration*0.82).toFixed(1)+' MB',creator:w.members.find(m=>m.id===f.owner)?.name||'已移除成员',status:'已总结',tags:['会议记录'],updated:f.created,detail:{}};for(const [k,v]of Object.entries(defaults))if(f[k]==null)f[k]=v;});
     }
     return s;
@@ -214,5 +240,5 @@
     w.credits.used+=200;w.credits.logs.unshift({id:id('usage'),user:uid,task:prompt.slice(0,80),amount:200,time:stamp()});w.threads.unshift({id:id('chat'),user:uid,prompt,answer,time:stamp(),contactId:cid,files:[]});return answer;
   }
   function load(storage) {try {const s=JSON.parse(storage.getItem(KEY));if(s?.version===2&&Array.isArray(s.spaces)&&s.spaces.some(w=>w.id==='personal'))return enrich(s);}catch{/* recover demo state */}return enrich(seed());}
-  global.WorkspaceModel={KEY,SELF,id,clone,seed:()=>enrich(seed()),enrich,insights,saveDetail,saveContacts,askContact,purge,get,member,admin,usedSeats,writable,govern,teamRecording,visible,getFile,price,create,invite,memberAction,seats,advanceCycle,addFile,edit,share,trash,exportFile,importFile,registerDevice,bind,sync,ask,acceptInvite,load,log};
+  global.WorkspaceModel={KEY,SELF,id,clone,seed:()=>enrich(seed()),enrich,insights,history,getThread,conversation,saveDetail,saveContacts,askContact,purge,get,member,admin,usedSeats,writable,govern,teamRecording,visible,getFile,price,create,invite,memberAction,seats,advanceCycle,addFile,edit,share,trash,exportFile,importFile,registerDevice,bind,sync,ask,acceptInvite,load,log};
 })(typeof window==='undefined'?globalThis:window);
