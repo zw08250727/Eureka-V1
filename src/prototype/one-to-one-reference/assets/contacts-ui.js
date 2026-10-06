@@ -9,7 +9,7 @@
   const esc = (value) => String(value == null ? "" : value).replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[character]));
   const edition = () => document.body.dataset.edition === "personal" ? "personal" : "enterprise";
   const workspace = () => document.body.dataset.workspace === "team" ? "team" : "";
-  const state = { page: "list", contactId: "john", tab: "概览", query: "", dialog: null, answer: "", xiaozhiExpanded: false };
+  const state = { page: "list", contactId: "john", tab: "概览", query: "", dialog: null, answer: "", draft: "", xiaozhiExpanded: false };
   let store = model.load(edition(), workspace());
 
   const tags = (value) => `<span class="contacts-tag ${["需关注", "待回复"].includes(value) ? "warm" : ["已完成", "进行中"].includes(value) ? "green" : ""}">${esc(value)}</span>`;
@@ -26,7 +26,7 @@
   };
   const xiaozhiEntry = () => `<button type="button" class="contacts-xiaozhi-entry" data-contact-action="toggle-xiaozhi" aria-controls="contacts-xiaozhi-rail" aria-expanded="${String(state.xiaozhiExpanded)}" aria-label="${state.xiaozhiExpanded ? "收起小智" : "问问小智"}"><span class="contacts-xiaozhi-mark"><svg class="icon"><use href="#ico-spark"/></svg></span><span><strong>${state.xiaozhiExpanded ? "收起小智" : "问问小智"}</strong><small>使用联系人关系继续工作</small></span><svg class="icon contacts-xiaozhi-arrow"><use href="${state.xiaozhiExpanded ? "#ico-collapse" : "#ico-expand"}"/></svg></button>`;
   const header = (title, description, actions = "") => `<header class="contacts-head"><div><div class="contacts-breadcrumb"><button type="button" data-contact-action="back-library">知识库</button><span>/</span><span>联系人</span></div><h1>${esc(title)}</h1><p>${esc(description)}</p></div><div class="contacts-actions">${actions}</div></header>`;
-  const xiaozhiPanel = (person) => `<aside class="contacts-xiaozhi-rail${state.xiaozhiExpanded ? " expanded" : ""}" id="contacts-xiaozhi-rail" aria-labelledby="contacts-xiaozhi-title" aria-hidden="${String(!state.xiaozhiExpanded)}"><div class="xiaozhi-panel"><div class="xiaozhi-head"><div class="xiaozhi-identity"><span class="xiaozhi-mark"><svg class="icon"><use href="#ico-spark"/></svg></span><div><h2 id="contacts-xiaozhi-title">小智</h2><p>使用联系人关系继续工作</p></div></div><div class="xiaozhi-head-actions"><button type="button" data-contact-action="toggle-xiaozhi" aria-label="收起小智"><svg class="icon"><use href="#ico-x"/></svg></button></div></div><div class="xiaozhi-body"><div class="xiaozhi-intro"><span class="xiaozhi-state"><i></i>资料准备好后</span><h3>交给小智继续处理</h3><p>引用联系人关系、互动与承诺，再开始分析与创作。</p><div class="xiaozhi-suggestions">${["总结这位联系人的最新进展", "准备下一次沟通", "整理开放承诺"].map((prompt) => `<button type="button" data-contact-action="ask" data-value="${esc(prompt)}">${esc(prompt)}</button>`).join("")}</div></div><div class="contacts-xiaozhi-answer" aria-live="polite">${esc(state.answer || person?.summary || "暂无关系摘要")}</div><small class="contacts-xiaozhi-note">示例回答 · 未连接 AI 服务</small><div class="xiaozhi-composer"><div class="xiaozhi-context"><span>引用资料</span><button type="button" class="selected"><svg class="icon"><use href="#ico-user"/></svg>联系人</button><button type="button"><svg class="icon"><use href="#ico-book"/></svg>知识库</button></div><textarea name="question" data-contact-xiaozhi-input placeholder="输入要继续完成的工作…" aria-label="向小智输入任务"></textarea><div class="xiaozhi-composer-foot"><span>已引用联系人关系</span><button type="button" class="xiaozhi-send" data-contact-action="send-xiaozhi" aria-label="发送给小智" disabled><svg class="icon"><use href="#ico-send"/></svg></button></div></div></div></div></aside>`;
+  const xiaozhiPanel = (person) => `<aside class="contacts-xiaozhi-rail${state.xiaozhiExpanded ? " expanded" : ""}" id="contacts-xiaozhi-rail" aria-labelledby="contacts-xiaozhi-title" aria-hidden="${String(!state.xiaozhiExpanded)}"><div class="xiaozhi-panel"><div class="xiaozhi-head"><div class="xiaozhi-identity"><span class="xiaozhi-mark"><svg class="icon"><use href="#ico-spark"/></svg></span><div><h2 id="contacts-xiaozhi-title">小智</h2><p>使用联系人关系继续工作</p></div></div><div class="xiaozhi-head-actions"><button type="button" data-contact-action="toggle-xiaozhi" aria-label="收起小智"><svg class="icon"><use href="#ico-x"/></svg></button></div></div><div class="xiaozhi-body"><div class="contacts-xiaozhi-messages"><div class="xiaozhi-intro"><span class="xiaozhi-state"><i></i>资料准备好后</span><h3>交给小智继续处理</h3><p>引用联系人关系、互动与承诺，再开始分析与创作。</p><div class="xiaozhi-suggestions">${["总结这位联系人的最新进展", "准备下一次沟通", "整理开放承诺"].map((prompt) => `<button type="button" data-contact-action="ask" data-value="${esc(prompt)}">${esc(prompt)}</button>`).join("")}</div></div><div class="contacts-xiaozhi-answer" aria-live="polite">${esc(state.answer || person?.summary || "暂无关系摘要")}</div><small class="contacts-xiaozhi-note">示例回答 · 未连接 AI 服务</small></div><div class="xiaozhi-composer"><div class="xiaozhi-context"><span>引用资料</span><button type="button" class="selected"><svg class="icon"><use href="#ico-user"/></svg>联系人</button><button type="button"><svg class="icon"><use href="#ico-book"/></svg>知识库</button></div><textarea name="question" data-contact-xiaozhi-input placeholder="输入要继续完成的工作…" aria-label="向小智输入任务">${esc(state.draft)}</textarea><div class="xiaozhi-composer-foot"><span>已引用联系人关系</span><button type="button" class="xiaozhi-send" data-contact-action="send-xiaozhi" aria-label="发送给小智" ${state.draft.trim() ? "" : "disabled"}><svg class="icon"><use href="#ico-send"/></svg></button></div></div></div></div></aside>`;
 
   const renderList = () => {
     const people = model.filter(store.data.contacts, state.query, "全部");
@@ -78,8 +78,8 @@
     entry.setAttribute("aria-expanded", String(state.xiaozhiExpanded)); entry.setAttribute("aria-label", state.xiaozhiExpanded ? "收起小智" : "问问小智");
     const label = entry.querySelector("strong"); if (label) label.textContent = state.xiaozhiExpanded ? "收起小智" : "问问小智";
     entry.querySelector(".contacts-xiaozhi-arrow use")?.setAttribute("href", state.xiaozhiExpanded ? "#ico-collapse" : "#ico-expand");
-    if (state.xiaozhiExpanded) rail.querySelector("[data-contact-xiaozhi-input]")?.focus();
-    else entry.focus();
+    if (state.xiaozhiExpanded) rail.querySelector("[data-contact-xiaozhi-input]")?.focus({preventScroll:true});
+    else entry.focus({preventScroll:true});
   };
   const renderCurrent = () => state.page === "detail" ? renderDetail() : renderList();
   const open = () => {
@@ -95,10 +95,10 @@
   const action = (name, value) => {
     if (name === "close-dialog") return closeModal();
     if (name === "toggle-xiaozhi") return setXiaozhiExpanded(!state.xiaozhiExpanded);
-    if (name === "send-xiaozhi") { const input = root.querySelector("[data-contact-xiaozhi-input]"); if (input?.value.trim()) { state.answer = answer(input.value.trim(), activeContact()); input.value = ""; renderCurrent(); } return; }
+    if (name === "send-xiaozhi") { const input = root.querySelector("[data-contact-xiaozhi-input]"); if (input?.value.trim()) { state.answer = answer(input.value.trim(), activeContact()); input.value = ""; state.draft = ""; renderCurrent(); } return; }
     if (name === "list") { state.page = "list"; state.answer = ""; return renderList(); }
     if (name === "back-library") { document.querySelector('[data-knowledge-folder="我的文件"]')?.click(); return; }
-    if (name === "person") { state.page = "detail"; state.contactId = value; state.tab = "概览"; state.answer = ""; return renderDetail(); }
+    if (name === "person") { state.page = "detail"; state.contactId = value; state.draft = ""; state.tab = "概览"; state.answer = ""; return renderDetail(); }
     if (name === "tab") { state.tab = value; return renderDetail(); }
     if (name === "ask") { state.answer = answer(value, activeContact()); return renderCurrent(); }
     if (["add", "note", "followup"].includes(name)) return openModal(name, value);
@@ -106,11 +106,11 @@
   root.addEventListener("click", (event) => { const trigger = event.target.closest("[data-contact-action]"); if (trigger) action(trigger.dataset.contactAction, trigger.dataset.value); });
   root.addEventListener("input", (event) => {
     if (event.target.id === "contacts-search") { state.query = event.target.value; const cursor = event.target.selectionStart; renderList(); const next = root.querySelector("#contacts-search"); next?.focus(); next?.setSelectionRange(cursor, cursor); }
-    if (event.target.matches("[data-contact-xiaozhi-input]")) { const send = root.querySelector('[data-contact-action="send-xiaozhi"]'); if (send) send.disabled = !event.target.value.trim(); }
+    if (event.target.matches("[data-contact-xiaozhi-input]")) { state.draft = event.target.value; const send = root.querySelector('[data-contact-action="send-xiaozhi"]'); if (send) send.disabled = !event.target.value.trim(); }
   });
   root.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && state.xiaozhiExpanded) setXiaozhiExpanded(false);
-    if (event.target.matches("[data-contact-xiaozhi-input]") && event.key === "Enter" && !event.shiftKey) {
+    if (event.target.matches("[data-contact-xiaozhi-input]") && event.key === "Enter" && !event.shiftKey && !event.isComposing) {
       event.preventDefault();
       root.querySelector('[data-contact-action="send-xiaozhi"]')?.click();
     }
@@ -127,6 +127,16 @@
   });
   document.addEventListener("click", (event) => { if (event.target === state.dialog) closeModal(); });
   nav?.addEventListener("click", () => open());
+  const fitWorkspace = () => {
+    if (view.hidden) return;
+    const top = view.getBoundingClientRect().top + (document.querySelector('.main')?.scrollTop || 0);
+    const value = `${top}px`;
+    if (view.style.getPropertyValue('--contacts-top') !== value) view.style.setProperty('--contacts-top',value);
+  };
+  new ResizeObserver(fitWorkspace).observe(view);
+  new ResizeObserver(fitWorkspace).observe(document.querySelector('.topbar'));
+  new MutationObserver(fitWorkspace).observe(view,{attributes:true,attributeFilter:['hidden']});
+  window.addEventListener('resize',fitWorkspace);
   global.ContactsUI = { open, render: open };
   if (new URLSearchParams(location.search).get("page") === "contacts") open(); else renderList();
 })(window);

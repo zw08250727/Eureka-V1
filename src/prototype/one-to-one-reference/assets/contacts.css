@@ -8,9 +8,11 @@
 /* v14 shell alignment: contacts is a first-level knowledge surface, not a
    separate dashboard. Keep the relationship content while reusing the same
    bordered workspace, header rhythm and tool language as other directories. */
-.contacts-workspace{position:relative;display:flex;width:calc(100% - 40px);max-width:1440px;min-height:calc(100vh - 100px);margin:20px auto;overflow:hidden;border:1px solid #e1e5ea;border-radius:16px;background:#fff;padding:0;color:#263247;flex-direction:column}
-.contacts-shell{position:relative;min-height:calc(100vh - 100px);background:#fff}
-.contacts-content{display:flex;min-height:calc(100vh - 100px);flex-direction:column}
+.contacts-workspace{position:relative;display:flex;width:calc(100% - 40px);max-width:none;height:calc(100dvh - var(--contacts-top,84px) - 16px);min-height:0;margin:20px auto 16px;overflow:hidden;border:1px solid #e1e5ea;border-radius:16px;background:#fff;padding:0;color:#263247;flex-direction:column}
+#contacts-root{flex:1;min-height:0;min-width:0}
+.contacts-shell{position:relative;display:grid;grid-template-columns:minmax(0,1fr);height:100%;min-height:0;background:#fff}
+.contacts-shell:has(.contacts-xiaozhi-rail.expanded){grid-template-columns:minmax(0,1fr) clamp(320px,28vw,384px)}
+.contacts-content{display:flex;min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain;flex-direction:column;container-type:inline-size}
 .contacts-main{min-width:0;flex:1}
 .contacts-head{min-height:82px;align-items:center;margin:0;padding:16px 22px;border-bottom:1px solid #edf0f4}
 .contacts-breadcrumb{margin-bottom:0;color:#8993a2;font-size:10px}
@@ -46,20 +48,28 @@
 .contacts-xiaozhi-mark{display:inline-flex;width:25px;height:25px;align-items:center;justify-content:center;border-radius:8px;color:#fff;background:#24a3c3}
 .contacts-xiaozhi-mark .icon{width:13px;height:13px}
 .contacts-xiaozhi-arrow{width:11px;height:11px;transform:none}
-.contacts-xiaozhi-rail{position:absolute;z-index:12;top:0;right:0;bottom:0;display:block;width:384px;overflow:hidden;border-left:1px solid #dce5ef;background:#fff;box-shadow:-18px 0 42px rgba(31,52,83,.11);opacity:0;visibility:hidden;transform:translateX(100%);pointer-events:none;transition:opacity 160ms ease,transform 240ms cubic-bezier(.2,.8,.2,1),visibility 160ms ease}
-.contacts-xiaozhi-rail.expanded{visibility:visible;opacity:1;transform:none;pointer-events:auto}
+.contacts-xiaozhi-rail{position:relative;display:none;min-width:0;min-height:0;overflow:hidden;border-left:1px solid #dce5ef;background:#fff}
+.contacts-xiaozhi-rail.expanded{display:block}
 .contacts-xiaozhi-rail .xiaozhi-panel{display:flex;width:100%;height:100%;min-height:0;opacity:1}
-.contacts-workspace:has(.contacts-xiaozhi-rail.expanded){width:calc(100% - 424px);margin-left:20px;margin-right:404px}
-.contacts-workspace:has(.contacts-xiaozhi-rail.expanded) .contacts-head{align-items:flex-start;flex-direction:column}
-.contacts-workspace:has(.contacts-xiaozhi-rail.expanded) .contacts-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 .contacts-main>.contacts-card{margin:0 22px 22px}
 .contacts-nav-entry{padding-left:26px}
-.contacts-xiaozhi-rail .xiaozhi-head{min-height:72px;padding-right:18px;padding-left:18px}
-.contacts-xiaozhi-rail .xiaozhi-body{padding:20px 18px 18px}
-.contacts-xiaozhi-rail .xiaozhi-composer{min-height:188px}
+.contacts-xiaozhi-rail .xiaozhi-head{flex-shrink:0;min-height:64px;padding-right:18px;padding-left:18px}
+.contacts-xiaozhi-rail .xiaozhi-body{min-height:0;overflow:hidden;padding:16px 14px 14px;gap:14px}
+.contacts-xiaozhi-messages{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain}
+.contacts-xiaozhi-rail .xiaozhi-suggestions{display:flex;flex-wrap:wrap;gap:7px}
+.contacts-xiaozhi-rail .xiaozhi-composer{flex-shrink:0;min-height:144px;margin-top:0}
+.contacts-xiaozhi-rail .xiaozhi-composer textarea{min-height:64px;height:64px}
+.contacts-xiaozhi-rail .xiaozhi-composer-foot{margin-top:auto}
 .contacts-xiaozhi-rail .xiaozhi-send{border:0}
 .contacts-xiaozhi-answer{min-height:78px;margin-top:13px;padding:11px;border-radius:8px;color:#5e6b80;background:#f5f7fa;font-size:10px;line-height:18px}
 .contacts-xiaozhi-note{color:#a1a9b5;font-size:9px}
 @media(max-width:1120px){.contacts-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:760px){.contacts-workspace{width:calc(100% - 24px);min-height:calc(100vh - 84px);margin:12px auto}.contacts-shell,.contacts-content{min-height:calc(100vh - 84px)}.contacts-head,.contacts-toolbar{align-items:flex-start;flex-direction:column}.contacts-head{gap:12px}.contacts-actions{width:100%;justify-content:flex-start;overflow-x:auto}.contacts-search{width:100%;min-width:0}.contacts-grid{grid-template-columns:1fr;padding:14px}.contacts-profile{padding:16px 14px}.contacts-metrics{padding:0 14px}.contacts-tabs.detail{margin-right:14px;margin-left:14px}.contacts-detail-grid{padding:0 14px 14px}.contacts-xiaozhi-rail{top:0;width:min(384px,100%)}}
-@media(max-width:900px){.contacts-workspace:has(.contacts-xiaozhi-rail.expanded){width:calc(100% - 24px);margin:12px auto}.contacts-workspace:has(.contacts-xiaozhi-rail.expanded) .contacts-grid{grid-template-columns:1fr}}
+@media(max-width:760px){.contacts-workspace{width:calc(100% - 24px);min-height:0;margin:12px auto 16px}.contacts-head,.contacts-toolbar{align-items:flex-start;flex-direction:column}.contacts-head{gap:12px}.contacts-actions{width:100%;justify-content:flex-start;overflow-x:auto}.contacts-search{width:100%;min-width:0}.contacts-grid{grid-template-columns:1fr;padding:14px}.contacts-profile{padding:16px 14px}.contacts-metrics{padding:0 14px}.contacts-tabs.detail{margin-right:14px;margin-left:14px}.contacts-detail-grid{padding:0 14px 14px}}
+/* Size cards by their actual column, including when the Agent is expanded. */
+@container(max-width:850px){.contacts-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.contacts-head{align-items:flex-start;flex-direction:column;gap:14px}.contacts-actions{justify-content:flex-start}}
+@container(max-width:520px){.contacts-grid{grid-template-columns:minmax(0,1fr);padding:16px}.contacts-head,.contacts-toolbar{padding:16px}.contacts-detail-grid{grid-template-columns:minmax(0,1fr)}.contacts-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.contacts-toolbar{flex-wrap:wrap}.contacts-search{min-width:0;width:100%}.contacts-actions{flex-wrap:wrap}.contacts-tabs.detail{max-width:calc(100% - 44px);overflow-x:auto}}
+#contacts-root .contacts-xiaozhi-rail{background:#fff;box-shadow:none}
+@media(max-width:1000px){
+  .contacts-shell:has(.contacts-xiaozhi-rail.expanded){grid-template-columns:minmax(0,1fr)}
+  #contacts-root .contacts-xiaozhi-rail.expanded{position:absolute;inset:0 0 0 auto;z-index:12;width:min(384px,100%);box-shadow:-12px 0 32px #243b621c}
+}
