@@ -82,7 +82,7 @@ test('team intelligence has one dated heading and one contextual Agent action pe
   await expect(page.locator('.ws-team-home-head h1')).toHaveText('让分散的讨论，成为共同的判断。');
   await expect(page.locator('.ws-team-intelligence h2')).toHaveCount(0);
   await expect(page.locator('.ws-brief-finding')).toHaveCount(2);
-  await expect(page.locator('.ws-team-home-head')).toContainText('3 位成员 · 11 场会议');
+  await expect(page.locator('.ws-team-home-head p')).toHaveCount(0);
   await expect(page.locator('.ws-team-intelligence')).not.toContainText(/交付预警|协作断点|需求共识|待核实|待评审|查看依据|分析影响|评估需求/);
   await expect(page.locator('.ws-brief-finding button')).toHaveCount(2);
   await expect(page.locator('.ws-brief-paragraph > .ws-brief-attribution')).toHaveCount(2);
