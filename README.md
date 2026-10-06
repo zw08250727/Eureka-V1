@@ -55,3 +55,16 @@ EurekaMind 独立采用 Team AI 积分池：Agent 分析每次扣除 200 演示�
 数据模型：`assets/workspace-model.js`；界面：`assets/workspace-ui.js` / `.css`。新增状态保存在 localStorage 的 `eureka:workspaces:v2` 中，不覆盖旧团队原型或个人会议存储。付款、邀请邮件、设备通信和 Agent 均为本地模拟；下载的账单不是有效发票。所有价格为 EurekaMind 演示假设。生产环境仍需接入身份认证、租户级授权、支付和设备服务。
 
 参考：实际访问 [Plaud Web](https://web.plaud.ai/) 与 [团队方案页面](https://web.plaud.ai/member/workspace/plan?from=profile_dropdown)，并核对 [工作空间](https://support.plaud.ai/hc/en-us/articles/57744144794393-What-is-a-workspace)、[席位规则](https://support.plaud.ai/hc/en-us/articles/57744114159641-What-is-a-seat)、[设备绑定](https://support.plaud.ai/hc/en-us/articles/57674058082841-Device-management) 官方说明。参考其账号与空间边界，UI 沿用 EurekaMind 现有设计。
+
+## 产品 PRD 与需求评审网站
+
+- 网站：`/prototype/prd/index.html`（与交互原型使用不同 URL，同一仓库 / Pages 部署）。
+- 原型顶部新增「需求评审」入口，新标签打开 PRD，不打断当前工作内容。
+- 内容源：`src/prototype/prd/content.json`。37 章涵盖个人版与 Team、用户故事、功能优先级、页面规则、异常、数据、上线约束和验收；附当前原型截图及 24 页参考 PDF 覆盖对照。参考 PDF 本身不入库。
+- 支持章节导航、全文匹配搜索、链接锚点、逐章 Markdown 编辑和实时预览、评审记录、JSON / Markdown 导出、JSON 导入和打印。
+- **保存本地**：立即更新当前浏览器，持久化到 `eureka:prd:draft:v1`；未保存输入按标签页存入 sessionStorage。其他访客不会看到本地稿。存储失败保留输入；并发标签页修改会阻止旧稿覆盖。
+- **发布给所有人**：点击「发布修订」，复制 / 下载完整 `content.json`，通过 GitHub 编辑页提交到 `develop`（受保护时提 PR 合入）。Pages 成功后所有访客刷新可读取新基线。网站不存 GitHub Token，不模拟自动提交，不宣称复制等于发布。
+- 新发布基线与旧本地稿冲突时，明确对照并确认合并。恢复发布版会要求确认，产品的会议 / Team 数据不会被清除。
+- 实时多人协作尚未提供；需要另行接入身份、授权、数据库和版本合并服务。当前采用静态文档 + Git 版本发布，适合当前部署条件。
+
+验证：`tests/e2e/prd-review.spec.ts` 覆盖编辑刷新、取消、独立浏览器基线、导入导出、无效输入、脚本净化、跨标签页冲突、存储异常、旧基线冲突、响应式、深链接和原型入口。刷新演示截图时先构建，再显式运行 `PRD_CAPTURE=1 PLAYWRIGHT_CHANNEL=chrome npm run test:e2e -- tests/e2e/prd-review.spec.ts -g 'capture current'`，随后重新构建。

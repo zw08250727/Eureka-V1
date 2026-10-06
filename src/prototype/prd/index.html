@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EurekaMind · 产品需求文档</title>
+<meta name="description" content="EurekaMind 个人与团队工作空间产品需求文档：功能、交互、权限、计费、验收与评审。">
+<link rel="stylesheet" href="style.css">
+<script src="app.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#document">跳到正文</a>
+<aside id="sidebar" aria-label="PRD 导航">
+<a class="brand" href="#overview"><span class="brand-mark">E<span>·</span></span><span>EurekaMind<small>PRODUCT DOCUMENTATION</small></span></a>
+<div class="nav-intro"><span class="eyebrow">产品需求文档</span><span class="version">V1.0</span></div>
+<label class="search-label" for="search">搜索章节、功能或需求编号</label>
+<div class="search-wrap"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="搜索文档…" autocomplete="off"><kbd>/</kbd></div>
+<div id="search-info" role="status"></div>
+<nav id="navigation" aria-label="章节目录"></nav>
+<div class="sidebar-foot"><div><i></i><span>需求评审 · 首轮基线</span></div><a href="../one-to-one-reference/team-only-app.html?edition=personal&personal=1" target="_blank" rel="noopener">打开交互原型 <span>↗</span></a></div>
+</aside>
+<button id="nav-backdrop" aria-label="关闭导航" hidden></button>
+<div id="workspace">
+<header class="toolbar">
+<div class="toolbar-left"><button id="nav-toggle" class="icon-button" aria-label="展开章节导航" aria-expanded="false">☰</button><span class="breadcrumb">产品 / <strong>需求评审</strong></span><span id="save-status" class="state-pill">正在载入</span></div>
+<div class="toolbar-actions"><button id="import-button">导入修订</button><button id="export-button">导出</button><button id="publish-button" class="primary">发布修订 <span>↗</span></button></div>
+</header>
+<div id="notices" aria-live="polite"></div>
+<main id="document" tabindex="-1">
+<div id="load-state">正在载入产品需求文档…</div>
+<div id="doc-content" hidden>
+<section class="cover" aria-labelledby="cover-title">
+<div class="eyebrow">EUREKAMIND / PRODUCT REQUIREMENTS</div>
+<div class="cover-title-row"><div><h1 id="cover-title">从记录，<br>到每一个下一步<span>。</span></h1><p class="cover-subtitle">个人与团队工作空间 · 完整产品需求文档</p></div><div class="cover-monogram" aria-hidden="true">E<span>✦</span></div></div>
+<div class="cover-meta"><span><small>文档版本</small><strong id="meta-version">V1.0</strong></span><span><small>需求范围</small><strong>Personal + Team</strong></span><span><small>文档规模</small><strong id="meta-count">—</strong></span><span><small>评审状态</small><strong>待评审</strong></span></div>
+<div class="cover-bottom"><p id="reference-status"></p><a href="#reference">查看样例覆盖对照 ↗</a></div>
+</section>
+<div class="reading-bar"><div class="view-switch" role="group" aria-label="文档版本"><button id="draft-view" aria-pressed="true">当前工作稿</button><button id="published-view" aria-pressed="false">仓库发布版</button></div><div><button id="print-button">打印 / PDF</button><button id="reset-button">恢复发布版</button></div></div>
+<div class="document-map"><span>记录</span><b>→</b><span>理解</span><b>→</b><span>关联</span><b>→</b><span>行动</span><small>统一账号 · 独立空间 · 授权上下文</small></div>
+<div id="sections"></div>
+<footer class="document-footer"><strong>EurekaMind</strong><span>需求是团队的共同约定。修改可追踪，结论有依据。</span><a href="#overview">回到文档顶部 ↑</a></footer>
+</div>
+</main>
+</div>
+<div id="toast" role="status" hidden></div>
+<dialog id="action-dialog" aria-labelledby="dialog-title"><div class="dialog-heading"><h2 id="dialog-title"></h2><button id="dialog-close" class="icon-button" aria-label="关闭对话框">×</button></div><div id="dialog-body"></div></dialog>
+<input type="file" id="import-file" accept=".json,application/json" hidden>
+<noscript>此文档需要 JavaScript 展示导航和编辑功能。请启用 JavaScript，或下载同目录的 content.json 查看源文档。</noscript>
+</body>
+</html>
