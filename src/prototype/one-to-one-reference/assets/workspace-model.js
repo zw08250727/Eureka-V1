@@ -30,7 +30,8 @@
   const govern = (w,uid=SELF) => { if(!admin(w,uid)) fail('仅管理员可执行此操作'); };
   const access = (w,uid=SELF) => { if(!member(w,uid)) fail('你没有此工作空间的访问权限'); };
   const log = (w,action,uid=SELF) => { if(w.type==='team')w.audit.unshift({time:stamp(),actor:member(w,uid)?.name||uid,action}); };
-  const visible = (w,uid=SELF) => { access(w,uid); return w.files.filter(f=>!f.deleted&&(f.owner===uid||f.shared.includes(uid))); };
+  const teamRecording = (w,f) => w.type==='team'&&f.visibility==='team'&&f.recordedWorkspaceId===w.id;
+  const visible = (w,uid=SELF) => { access(w,uid); return w.files.filter(f=>!f.deleted&&(teamRecording(w,f)||f.owner===uid||f.shared.includes(uid))); };
   const getFile = (w,fid,uid=SELF) => visible(w,uid).find(f=>f.id===fid) || fail('文件不存在或未获得访问权限');
   function create(s,{name,country,cycle,seats,orderId}) {
     name=String(name||'').trim(); seats=Number(seats);
@@ -85,7 +86,7 @@
     duration=Number(duration);if(!Number.isFinite(duration)||duration<0||duration>1440)duration=0;const f=file(id('file'),title.slice(0,150),uid,[],duration);f.created=stamp();f.source=source;if(summary!=null)f.summary=String(summary).slice(0,100000);if(transcript!=null)f.transcript=String(transcript).slice(0,100000);f.size=(duration*.82).toFixed(1)+' MB';f.creator=member(w,uid)?.name||uid;f.tags=['会议记录'];f.status='已总结';f.updated=f.created;f.detail={};w.files.unshift(f);log(w,`创建私有文件：${f.title}`,uid);return f;
   }
   function edit(w,fid,patch,uid=SELF) {writable(w);const f=getFile(w,fid,uid);if(f.owner!==uid)fail('仅文件所有者可以编辑');if(patch.title!=null){if(!String(patch.title).trim())fail('文件名称不能为空');f.title=String(patch.title).trim().slice(0,150);}['summary','transcript'].forEach(k=>{if(patch[k]!=null)f[k]=String(patch[k]).slice(0,100000);});log(w,`编辑文件：${f.title}`,uid);return f;}
-  function share(w,fid,users,uid=SELF) {writable(w);const f=getFile(w,fid,uid);if(f.owner!==uid)fail('仅文件所有者可以管理分享');if(users.some(u=>!member(w,u)||u===uid))fail('只能邀请当前空间内的有效成员');f.shared=[...new Set(users)];log(w,`更新文件访问权限：${f.title}`,uid);}
+  function share(w,fid,users,uid=SELF) {writable(w);const f=getFile(w,fid,uid);if(teamRecording(w,f))fail('团队设备录音已向团队成员开放，无需分享');if(f.owner!==uid)fail('仅文件所有者可以管理分享');if(users.some(u=>!member(w,u)||u===uid))fail('只能邀请当前空间内的有效成员');f.shared=[...new Set(users)];log(w,`更新文件访问权限：${f.title}`,uid);}
   function trash(w,fid,restore=false,uid=SELF) {access(w,uid);writable(w);const f=w.files.find(f=>f.id===fid&&f.owner===uid)||fail('只有文件所有者可以操作');if(restore&&f.deletedAt&&Date.now()-new Date(f.deletedAt).getTime()>=30*86400000)fail('录音已超过 30 天恢复期限');f.deleted=!restore;f.deletedAt=restore?null:stamp();log(w,`${restore?'恢复':'移入回收站'}：${f.title}`,uid);}
   function exportFile(w,fid,uid=SELF) {return {format:'eureka-note-v1',title:getFile(w,fid,uid).title,summary:getFile(w,fid,uid).summary,transcript:getFile(w,fid,uid).transcript,duration:getFile(w,fid,uid).duration};}
   function importFile(w,data,uid=SELF) {if(data?.demo===true&&typeof data.title==='string'&&typeof data.content==='string')data={format:'eureka-note-v1',title:data.title,summary:data.type==='summary'?data.content:'',transcript:data.type==='summary'?'':data.content};if(!data||data.format!=='eureka-note-v1'||typeof data.title!=='string'||typeof data.summary!=='string'||typeof data.transcript!=='string')fail('请选择 EurekaMind 导出的 JSON 文件');return addFile(w,{...data,source:'手动导入'},uid);}
@@ -103,7 +104,7 @@
     s.devices.push(d);log(w,`录入设备 ${serial} · ${model}，绑定成员：${owner.name}`,uid);return d;
   }
   function bind(s,did,wid,uid=SELF) {const d=s.devices.find(d=>d.id===did)||fail('设备不存在');if(d.user!==uid)fail('只能绑定自己的设备');const w=get(s,wid);access(w,uid);writable(w);d.spaceId=wid;log(w,`模拟 App 重新绑定设备：${d.name}`,uid);}
-  function sync(s,did,uid=SELF) {const d=s.devices.find(d=>d.id===did)||fail('设备不存在');if(d.user!==uid)fail('只能同步自己的设备');if(!d.spaceId)fail('设备尚未绑定工作空间');const w=get(s,d.spaceId);const f=addFile(w,{title:`${d.name} · 新录音`,source:d.model,duration:12},uid);d.lastSync=stamp();return {space:w,file:f};}
+  function sync(s,did,uid=SELF) {const d=s.devices.find(d=>d.id===did)||fail('设备不存在');if(d.user!==uid)fail('只能同步自己的设备');if(!d.spaceId)fail('设备尚未绑定工作空间');const w=get(s,d.spaceId);const f=addFile(w,{title:`${d.name} · 新录音`,source:d.model,duration:12},uid);f.deviceId=d.id;f.origin='device';f.recordedWorkspaceId=w.id;f.visibility=w.type==='team'?'team':'private';d.lastSync=stamp();if(w.type==='team')log(w,`团队设备录音自动进入会议：${f.title}`,uid);return {space:w,file:f};}
   // Cross-meeting signals are derived only from currently readable summaries.
   // These rules model the experience; they are not a remote AI inference service.
   function insights(w,uid=SELF) {
@@ -187,6 +188,13 @@
         }
         w.teamInsightsVersion=1;
       }
+      if(w.id==='team-eureka'&&!w.teamDeviceVisibilityVersion){
+        // Only known device demo recordings are migrated; never infer ownership from arbitrary text.
+        for(const fid of ['team-demo-pilot','team-demo-research','team-demo-sales','team-demo-design']){
+          const f=w.files.find(f=>f.id===fid);if(f){f.origin='device';f.recordedWorkspaceId=w.id;f.visibility='team';}
+        }
+        w.teamDeviceVisibilityVersion=1;
+      }
       w.files.forEach((f,i)=>{const defaults={size:(f.duration*0.82).toFixed(1)+' MB',creator:w.members.find(m=>m.id===f.owner)?.name||'已移除成员',status:'已总结',tags:['会议记录'],updated:f.created,detail:{}};for(const [k,v]of Object.entries(defaults))if(f[k]==null)f[k]=v;});
     }
     return s;
@@ -206,5 +214,5 @@
     w.credits.used+=200;w.credits.logs.unshift({id:id('usage'),user:uid,task:prompt.slice(0,80),amount:200,time:stamp()});w.threads.unshift({id:id('chat'),user:uid,prompt,answer,time:stamp(),contactId:cid,files:[]});return answer;
   }
   function load(storage) {try {const s=JSON.parse(storage.getItem(KEY));if(s?.version===2&&Array.isArray(s.spaces)&&s.spaces.some(w=>w.id==='personal'))return enrich(s);}catch{/* recover demo state */}return enrich(seed());}
-  global.WorkspaceModel={KEY,SELF,id,clone,seed:()=>enrich(seed()),enrich,insights,saveDetail,saveContacts,askContact,purge,get,member,admin,usedSeats,writable,govern,visible,getFile,price,create,invite,memberAction,seats,advanceCycle,addFile,edit,share,trash,exportFile,importFile,registerDevice,bind,sync,ask,acceptInvite,load,log};
+  global.WorkspaceModel={KEY,SELF,id,clone,seed:()=>enrich(seed()),enrich,insights,saveDetail,saveContacts,askContact,purge,get,member,admin,usedSeats,writable,govern,teamRecording,visible,getFile,price,create,invite,memberAction,seats,advanceCycle,addFile,edit,share,trash,exportFile,importFile,registerDevice,bind,sync,ask,acceptInvite,load,log};
 })(typeof window==='undefined'?globalThis:window);

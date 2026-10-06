@@ -60,7 +60,7 @@ assert.throws(()=>M.registerDevice(registry,'personal',{serial:registered.serial
 registry.activeId='personal';const synced=M.sync(registry,registered.id,'kevin');
 assert.equal(synced.space.id,team.id);assert.equal(synced.file.owner,'kevin');assert.deepEqual(synced.file.shared,[]);
 assert.throws(()=>M.sync(registry,registered.id,M.SELF),/自己的设备/);
-assert(!M.visible(team).some(f=>f.id===synced.file.id));
+assert(M.visible(team).some(f=>f.id===synced.file.id));assert(M.teamRecording(team,synced.file));
 team.status='expired';assert.throws(()=>register({serial:'another-device'}),/只读/);team.status='active';
 M.memberAction(registry,team,'kevin','remove');assert.equal(registered.spaceId,null);
 assert.throws(()=>register({serial:'another-device'}),/有效成员/);
@@ -98,13 +98,30 @@ assert(intel.threads.every(t=>!t.files.includes('team-private')));
   const response=M.ask(team,risk.title);assert(response.answer.includes('10 月 12 日'));assert(response.answer.includes('10 月 17 日'));
   assert.equal(team.credits.used,balance+200);assert.deepEqual(new Set(team.threads[0].files),new Set(risk.sources.map(e=>e.fileId)));
   assert(response.answer.includes('星海试点复盘'));
-  const sales=team.files.find(f=>f.id==='team-demo-sales');sales.shared=[];
+  const sales=team.files.find(f=>f.id==='team-demo-sales');assert.throws(()=>M.share(team,sales.id,[],'lin'),/无需分享/);sales.deleted=true;
   const used=team.credits.used;assert.equal(M.ask(team,risk.title).cost,0);assert.equal(team.credits.used,used);
   assert(!M.insights(team).items.some(i=>i.id==='delivery-risk'));
-  sales.shared=['zhang'];sales.deleted=true;assert(!M.insights(team).items.some(i=>i.id==='delivery-risk'));sales.deleted=false;
+  sales.deleted=true;assert(!M.insights(team).items.some(i=>i.id==='delivery-risk'));sales.deleted=false;
   const planning=team.files.find(f=>f.id==='team-demo-planning');planning.summary='排期已调整，无旧日期。';assert(!M.insights(team).items.some(i=>i.id==='delivery-risk'));
   delete team.teamInsightsVersion;M.enrich(state);assert.equal(planning.summary,'排期已调整，无旧日期。');
   const count=sales.summary.match(/10 月 12 日/g).length;M.enrich(state);assert.equal(sales.summary.match(/10 月 12 日/g).length,count);
   assert.equal(M.insights(M.get(state,'team-design')).items.length,0);
   assert.throws(()=>M.insights(team,'outsider'),/访问权限/);
+}
+
+// Team-bound device recordings are team-owned context without per-recipient sharing.
+{
+  const state=M.seed(),team=M.get(state,'team-eureka'),personal=M.get(state,'personal');
+  const d=state.devices.find(d=>d.id==='dev-personal');
+  const old=M.sync(state,d.id).file;assert(!M.teamRecording(personal,old));
+  M.bind(state,d.id,team.id);state.activeId='personal';const {file:record}=M.sync(state,d.id);
+  assert.equal(record.deviceId,d.id);assert.equal(record.recordedWorkspaceId,team.id);assert.equal(record.visibility,'team');assert.deepEqual(record.shared,[]);
+  assert(M.getFile(team,record.id,'kevin'));assert(M.ask(team,'总结团队设备会议',record.id,'kevin').answer.includes(record.title));
+  assert.throws(()=>M.getFile(team,record.id,'alice'),/访问权限/);assert.throws(()=>M.getFile(M.get(state,'team-design'),record.id),/访问权限/);
+  assert.throws(()=>M.edit(team,record.id,{summary:'unauthorized'},'kevin'),/所有者/);assert.throws(()=>M.share(team,record.id,[]),/无需分享/);
+  M.memberAction(state,team,'alice','accept');assert(M.getFile(team,record.id,'alice'));
+  M.trash(team,record.id);assert.throws(()=>M.getFile(team,record.id,'kevin'),/访问权限/);M.trash(team,record.id,true);assert(M.getFile(team,record.id,'kevin'));
+  M.bind(state,d.id,'personal');assert(M.getFile(team,record.id,'kevin'));const next=M.sync(state,d.id).file;assert(!team.files.some(f=>f.id===next.id));
+  M.memberAction(state,team,'kevin','remove');assert.throws(()=>M.getFile(team,record.id,'kevin'),/访问权限/);
+  assert.equal(personal.files.find(f=>f.id===old.id).visibility,'private');
 }

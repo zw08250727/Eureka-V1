@@ -49,7 +49,7 @@ test('seats, billing, credits and readonly subscription states are functional',a
 test('device bindings do not follow workspace switching and exported notes import as private copies',async({page})=>{
   await switchTo(page,'team-eureka');await action(page,'page','devices').click();await action(page,'bind').click();await expect(page.locator('#ws-dialog')).toContainText('个人工作空间');await page.locator('#ws-dialog button[type=submit]').click();
   await action(page,'sync','dev-personal').click();await section(page,'files');await expect(page.locator('#ws-view')).toContainText('我的 Eureka Note · 新录音');
-  const downloaded=page.waitForEvent('download');await action(page,'export','team-review').click();const downloadedFile=await downloaded;const exported=JSON.parse(await readFile((await downloadedFile.path())!,'utf8'));expect(exported.format).toBe('eureka-note-v1');
+  await action(page,'file','team-review').click();await page.locator('[data-md-action=export]').click();await page.locator('[data-md-action=export-next]').click();await page.locator('[name=md-format][value=json]').check();const downloaded=page.waitForEvent('download');await page.locator('[data-md-action=download]').click();const downloadedFile=await downloaded;const exported=JSON.parse(await readFile((await downloadedFile.path())!,'utf8'));expect(exported.demo).toBe(true);
   await switchTo(page,'team-design');await section(page,'files');await action(page,'import').click();await page.locator('#ws-dialog input[type=file]').setInputFiles({name:'team-note.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(exported))});await page.locator('#ws-dialog button[type=submit]').click();
   await expect(page.locator('#note-detail-title')).toContainText('团队产品周会');await expect(page.locator('[data-md-action=edit]')).toBeEnabled();
   await switchTo(page,'personal');await section(page,'devices');await expect(page.locator('#ws-view')).not.toContainText('我的 Eureka Note');
@@ -91,7 +91,8 @@ test('admin manually registers a device for a member and next-cycle seat reducti
   await row.locator('[data-ws-action=sync]').click();
   await section(page,'files');await expect(page.locator('#ws-view')).toContainText('Kevin的 W2 · 新录音');
   await page.locator('#ws-actor').selectOption('zhang');await section(page,'files');
-  await expect(page.locator('#ws-view')).not.toContainText('Kevin的 W2 · 新录音');
+  await expect(page.locator('#ws-view')).toContainText('Kevin的 W2 · 新录音');
+  await page.locator('.ws-recording-table [data-ws-action=file]').filter({hasText:'Kevin的 W2 · 新录音'}).click();await expect(page.locator('[data-md-action=share]')).toHaveCount(0);await expect(page.locator('[data-md-action=edit]')).toBeDisabled();await page.locator('[data-md-action=ask]').click();await page.locator('#md-agent-host textarea').fill('总结设备录音');await page.locator('#md-agent-host button[type=submit]').click();await expect(page.locator('#md-agent-host .ws-chat-answer')).toContainText('Kevin的 W2');await page.locator('#home-entry').click();
   await section(page,'billing');await action(page,'seats').click();await page.locator('#ws-dialog [name=seats]').fill('4');await page.locator('#ws-dialog button[type=submit]').click();
   await action(page,'cycle').click();await page.locator('#ws-dialog [data-ws-action=confirm]').click();await expect(page.locator('#ws-view')).toContainText('下周期改为 月付');
   await action(page,'advance-cycle').click();await page.locator('#ws-dialog [data-ws-action=confirm]').click();await expect(page.locator('#ws-view')).toContainText('模拟续费 · 4 席位');await expect(page.locator('.ws-plan-amount')).toContainText('796.00');

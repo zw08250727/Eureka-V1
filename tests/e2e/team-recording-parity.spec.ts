@@ -11,7 +11,8 @@ test('team recording home has full columns, custom filters and no personal flash
   await expect(page.locator('#ws-view')).not.toContainText(/今日日程|待办清单|全部闪念|今日记账|帮我安排/);
   await expect(page.locator('.ws-meeting-intelligence')).toContainText('Agent 团队简报');
   const headings=await page.locator('.ws-recording-table th').allTextContents();
-  for(const label of ['文件名','文件大小','创建人','文件来源','标签','录音时长','文件状态','录音时间','更新时间','创建成员','操作'])expect(headings.join(',')).toContain(label);
+  for(const label of ['文件名','文件大小','创建人','文件来源','标签','录音时长','文件状态','录音时间','更新时间','操作'])expect(headings.join(',')).toContain(label);
+  expect(headings).not.toContain('创建成员');await expect(page.locator('.ws-recording-table [data-ws-action=export], .ws-recording-table [data-ws-action=share]')).toHaveCount(0);
   await expect(page.locator('.ws-recording-table tbody tr')).toHaveCount(10);
   await act(page,'list-next').click();await expect(page.locator('.ws-recording-table tbody tr')).toHaveCount(1);
   await page.locator('#ws-meeting-source-trigger').click();await page.getByRole('option',{name:'W2',exact:true}).click();
@@ -104,7 +105,7 @@ test('team intelligence has one dated heading and one contextual Agent action pe
     await page.setViewportSize({width,height});expect(await page.locator('.main').evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThan(3);
     await page.locator('.ws-brief-finding button').first().click();await expect(page.locator('.ws-composer textarea')).toBeInViewport({ratio:1});await act(page,'agent-close').click();
   }
-  await page.evaluate(()=>{const key='eureka:workspaces:v2',s=JSON.parse(localStorage.getItem(key)!);s.spaces.find((w:{id:string})=>w.id==='team-eureka').files.find((f:{id:string})=>f.id==='team-demo-sales').shared=[];localStorage.setItem(key,JSON.stringify(s));});
+  await page.evaluate(()=>{const key='eureka:workspaces:v2',s=JSON.parse(localStorage.getItem(key)!);s.spaces.find((w:{id:string})=>w.id==='team-eureka').files.find((f:{id:string})=>f.id==='team-demo-sales').deleted=true;localStorage.setItem(key,JSON.stringify(s));});
   await page.reload();await expect(page.locator('.ws-brief-finding[data-insight-id=delivery-risk]')).toHaveCount(0);await expect(page.locator('.ws-brief-finding[data-insight-id=ownership-gap]')).toHaveCount(1);
   await switchTo(page,'team-design');await expect(page.locator('.ws-insight-empty')).toContainText('暂时没有形成新的跨会议发现');await expect(page.locator('#ws-view')).not.toContainText('相差 5 天');
 });
