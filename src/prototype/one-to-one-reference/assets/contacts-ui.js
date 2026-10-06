@@ -10,6 +10,7 @@
   const edition = () => document.body.dataset.edition === "personal" ? "personal" : "enterprise";
   const workspace = () => document.body.dataset.workspace === "team" ? "team" : "";
   const state = { page: "list", contactId: "john", tab: "概览", query: "", dialog: null, answer: "", draft: "", xiaozhiExpanded: false };
+  let workspaceAdapter=null;
   let store = model.load(edition(), workspace());
 
   const tags = (value) => `<span class="contacts-tag ${["需关注", "待回复"].includes(value) ? "warm" : ["已完成", "进行中"].includes(value) ? "green" : ""}">${esc(value)}</span>`;
@@ -18,15 +19,15 @@
   const line = (title, sub) => `<div class="contacts-line"><strong>${title}</strong><small>${sub}</small></div>`;
   const metrics = (items) => `<div class="contacts-metrics">${items.map(([value, label]) => `<div><strong>${esc(value)}</strong><span>${esc(label)}</span></div>`).join("")}</div>`;
   const activeContact = () => store.data.contacts.find((person) => person.id === state.contactId) || store.data.contacts[0];
-  const persist = () => model.update(store.key, store.data);
+  const persist = () => workspaceAdapter ? workspaceAdapter.save(store.data) : model.update(store.key, store.data);
   const notify = (message) => {
     let toast = root.querySelector(".contacts-toast");
     if (!toast) { toast = document.createElement("div"); toast.className = "contacts-toast"; root.appendChild(toast); }
     toast.textContent = message; toast.classList.add("show"); clearTimeout(toast._timer); toast._timer = setTimeout(() => toast.classList.remove("show"), 2200);
   };
-  const xiaozhiEntry = () => `<button type="button" class="contacts-xiaozhi-entry" data-contact-action="toggle-xiaozhi" aria-controls="contacts-xiaozhi-rail" aria-expanded="${String(state.xiaozhiExpanded)}" aria-label="${state.xiaozhiExpanded ? "收起小智" : "问问小智"}"><span class="contacts-xiaozhi-mark"><svg class="icon"><use href="#ico-spark"/></svg></span><span><strong>${state.xiaozhiExpanded ? "收起小智" : "问问小智"}</strong><small>使用联系人关系继续工作</small></span><svg class="icon contacts-xiaozhi-arrow"><use href="${state.xiaozhiExpanded ? "#ico-collapse" : "#ico-expand"}"/></svg></button>`;
-  const header = (title, description, actions = "") => `<header class="contacts-head"><div><div class="contacts-breadcrumb"><button type="button" data-contact-action="back-library">知识库</button><span>/</span><span>联系人</span></div><h1>${esc(title)}</h1><p>${esc(description)}</p></div><div class="contacts-actions">${actions}</div></header>`;
-  const xiaozhiPanel = (person) => `<aside class="contacts-xiaozhi-rail${state.xiaozhiExpanded ? " expanded" : ""}" id="contacts-xiaozhi-rail" aria-labelledby="contacts-xiaozhi-title" aria-hidden="${String(!state.xiaozhiExpanded)}"><div class="xiaozhi-panel"><div class="xiaozhi-head"><div class="xiaozhi-identity"><span class="xiaozhi-mark"><svg class="icon"><use href="#ico-spark"/></svg></span><div><h2 id="contacts-xiaozhi-title">小智</h2><p>使用联系人关系继续工作</p></div></div><div class="xiaozhi-head-actions"><button type="button" data-contact-action="toggle-xiaozhi" aria-label="收起小智"><svg class="icon"><use href="#ico-x"/></svg></button></div></div><div class="xiaozhi-body"><div class="contacts-xiaozhi-messages"><div class="xiaozhi-intro"><span class="xiaozhi-state"><i></i>资料准备好后</span><h3>交给小智继续处理</h3><p>引用联系人关系、互动与承诺，再开始分析与创作。</p><div class="xiaozhi-suggestions">${["总结这位联系人的最新进展", "准备下一次沟通", "整理开放承诺"].map((prompt) => `<button type="button" data-contact-action="ask" data-value="${esc(prompt)}">${esc(prompt)}</button>`).join("")}</div></div><div class="contacts-xiaozhi-answer" aria-live="polite">${esc(state.answer || person?.summary || "暂无关系摘要")}</div><small class="contacts-xiaozhi-note">示例回答 · 未连接 AI 服务</small></div><div class="xiaozhi-composer"><div class="xiaozhi-context"><span>引用资料</span><button type="button" class="selected"><svg class="icon"><use href="#ico-user"/></svg>联系人</button><button type="button"><svg class="icon"><use href="#ico-book"/></svg>知识库</button></div><textarea name="question" data-contact-xiaozhi-input placeholder="输入要继续完成的工作…" aria-label="向小智输入任务">${esc(state.draft)}</textarea><div class="xiaozhi-composer-foot"><span>已引用联系人关系</span><button type="button" class="xiaozhi-send" data-contact-action="send-xiaozhi" aria-label="发送给小智" ${state.draft.trim() ? "" : "disabled"}><svg class="icon"><use href="#ico-send"/></svg></button></div></div></div></div></aside>`;
+  const xiaozhiEntry = () => `<button type="button" class="contacts-xiaozhi-entry" data-contact-action="toggle-xiaozhi" aria-controls="contacts-xiaozhi-rail" aria-expanded="${String(state.xiaozhiExpanded)}" aria-label="${state.xiaozhiExpanded ? "收起 Ask Agent" : "Ask Agent"}"><span class="contacts-xiaozhi-mark"><svg class="icon"><use href="#ico-spark"/></svg></span><span><strong>${state.xiaozhiExpanded ? "收起 Ask Agent" : "Ask Agent"}</strong><small>使用联系人关系继续工作</small></span><svg class="icon contacts-xiaozhi-arrow"><use href="${state.xiaozhiExpanded ? "#ico-collapse" : "#ico-expand"}"/></svg></button>`;
+  const header = (title, description, actions = "") => `<header class="contacts-head"><div><div class="contacts-breadcrumb"><button type="button" data-contact-action="back-library">${workspaceAdapter?"团队工作台":"首页"}</button><span>/</span><span>联系人</span></div><h1>${esc(title)}</h1><p>${esc(description)}</p></div><div class="contacts-actions">${actions}</div></header>`;
+  const xiaozhiPanel = (person) => `<aside class="contacts-xiaozhi-rail${state.xiaozhiExpanded ? " expanded" : ""}" id="contacts-xiaozhi-rail" aria-labelledby="contacts-xiaozhi-title" aria-hidden="${String(!state.xiaozhiExpanded)}"><div class="xiaozhi-panel"><div class="xiaozhi-head"><div class="xiaozhi-identity"><span class="xiaozhi-mark"><svg class="icon"><use href="#ico-spark"/></svg></span><div><h2 id="contacts-xiaozhi-title">Ask Agent</h2><p>使用联系人关系继续工作</p></div></div><div class="xiaozhi-head-actions"><button type="button" data-contact-action="toggle-xiaozhi" aria-label="收起 Ask Agent"><svg class="icon"><use href="#ico-x"/></svg></button></div></div><div class="xiaozhi-body"><div class="contacts-xiaozhi-messages"><div class="xiaozhi-intro"><span class="xiaozhi-state"><i></i>资料准备好后</span><h3>继续这段关系的工作</h3><p>引用联系人关系、互动与承诺，再开始分析与创作。</p><div class="xiaozhi-suggestions">${["总结这位联系人的最新进展", "准备下一次沟通", "整理开放承诺"].map((prompt) => `<button type="button" data-contact-action="ask" data-value="${esc(prompt)}">${esc(prompt)}</button>`).join("")}</div></div><div class="contacts-xiaozhi-answer" aria-live="polite">${esc(state.answer || person?.summary || "暂无关系摘要")}</div><small class="contacts-xiaozhi-note">示例回答 · 未连接 AI 服务</small></div><div class="xiaozhi-composer"><div class="xiaozhi-context"><span>引用资料</span><span class="selected"><svg class="icon"><use href="#ico-user"/></svg>${esc(person?.name||"联系人")}</span></div><textarea name="question" data-contact-xiaozhi-input placeholder="输入要继续完成的工作…" aria-label="向 Ask Agent 输入任务">${esc(state.draft)}</textarea><div class="xiaozhi-composer-foot"><span>已引用联系人关系</span><button type="button" class="xiaozhi-send" data-contact-action="send-xiaozhi" aria-label="发送给 Ask Agent" ${state.draft.trim() ? "" : "disabled"}><svg class="icon"><use href="#ico-send"/></svg></button></div></div></div></div></aside>`;
 
   const renderList = () => {
     const people = model.filter(store.data.contacts, state.query, "全部");
@@ -39,16 +40,16 @@
   const detailContent = (person) => {
     const john = person.id === "john";
     const notes = store.data.notes[person.id] || [];
-    if (state.tab === "概览") return `<div class="contacts-detail-grid"><div class="contacts-wide">${card("AI 关系摘要", `<p>${esc(contactSummary(person))}</p>`)}</div>${card("档案", `<dl class="contacts-facts"><dt>公司</dt><dd>${esc(person.company)}</dd><dt>角色</dt><dd>${esc(person.role)}</dd><dt>地区</dt><dd>${esc(person.region || "待补充")}</dd><dt>邮箱</dt><dd>${esc(person.email || "待补充")}</dd><dt>关系</dt><dd>${tags(person.tag)}</dd></dl>`)}${card("开放承诺", john ? person.commitments.map(([title, due, status]) => line(`${esc(title)} ${tags(status)}`, `截止 ${esc(due)}`)).join("") : "<p>暂无开放承诺</p>")}<div class="contacts-wide">${card("关键主题", (person.themes || []).map((item) => tags(item)).join(" ") || "<p>暂无主题</p>")}</div></div>`;
+    if (state.tab === "概览") return `<div class="contacts-detail-grid"><div class="contacts-wide">${card("AI 关系摘要", `<p>${esc(contactSummary(person))}</p>`)}</div>${card("档案", `<dl class="contacts-facts"><dt>公司</dt><dd>${esc(person.company)}</dd><dt>角色</dt><dd>${esc(person.role)}</dd><dt>地区</dt><dd>${esc(person.region || "待补充")}</dd><dt>邮箱</dt><dd>${esc(person.email || "待补充")}</dd><dt>关系</dt><dd>${tags(person.tag)}</dd></dl>`)}${card("开放承诺", (person.commitments||[]).length ? person.commitments.map(([title, due, status]) => line(`${esc(title)} ${tags(status)}`, `截止 ${esc(due)}`)).join("") : "<p>暂无开放承诺</p>")}<div class="contacts-wide">${card("关键主题", (person.themes || []).map((item) => tags(item)).join(" ") || "<p>暂无主题</p>")}</div></div>`;
     if (state.tab === "时间线") return card("关系时间线", person.timeline?.length ? `<div class="contacts-timeline">${person.timeline.map(([title, meta, description]) => line(esc(title), `${esc(meta)}<br>${esc(description)}`)).join("")}</div>` : '<div class="contacts-empty">暂无时间线记录</div>');
-    if (state.tab === "承诺") return john ? `<div class="contacts-detail-grid">${card("来自 John 的承诺", person.commitments.map(([title, due, status]) => line(`${esc(title)} ${tags(status)}`, `截止 ${esc(due)}`)).join(""))}${card("我的承诺", person.myCommitments.map(([title, due, status]) => line(`${esc(title)} ${tags(status)}`, esc(due))).join(""))}<div class="contacts-wide">${card("跟进建议", `<p>建议优先确认经销商名单交付时间，并将 Demo 环境准备情况同步给 John。</p>${button("创建跟进任务", "followup", person.name, true)}`)}</div></div>` : card("承诺", '<div class="contacts-empty">暂无承诺</div>');
+    if (state.tab === "承诺") return (person.commitments||[]).length ? `<div class="contacts-detail-grid">${card(`来自 ${person.name} 的承诺`, person.commitments.map(([title, due, status]) => line(`${esc(title)} ${tags(status)}`, `截止 ${esc(due)}`)).join(""))}${card("我的承诺", (person.myCommitments||[]).map(([title, due, status]) => line(`${esc(title)} ${tags(status)}`, esc(due))).join(""))}<div class="contacts-wide">${card("跟进建议", `<p>${esc(john ? "建议优先确认经销商名单交付时间，并将 Demo 环境准备情况同步给 John。" : person.summary)}</p>${button("创建跟进任务", "followup", person.name, true)}`)}</div></div>` : card("承诺", '<div class="contacts-empty">暂无承诺</div>');
     if (state.tab === "主题") return card("主题", (person.themes || []).map((item) => tags(item)).join(" ") || '<div class="contacts-empty">暂无主题</div>') + (john ? `<br>${card("主题动态", line("德国市场", "最近讨论：德国储能渠道策略与潜在经销商名单 · 最近 30 天") + line("价格", "最近讨论：德国渠道的定价反馈与售后支持 · 最近 30 天") + line("Pilot", "最近讨论：首批试点客户的认证节奏与 Demo 支持 · 最近 30 天"))}` : "");
     return `${card("已确认记忆", (person.memories || []).map((item) => `<p>• ${esc(item)}</p>`).join("") || "<p>暂无已确认记忆</p>")}<br>${card("AI 推断", (person.inferences || []).length ? person.inferences.map((item) => `<p>• ${esc(item)}</p>`).join("") + '<p class="contacts-muted">以上推断需要后续互动确认。</p>' : "<p>暂无推断</p>")}${notes.length ? `<br>${card("我的备注", notes.map((note) => line(esc(note.text), esc(note.time))).join(""))}` : ""}`;
   };
   const renderDetail = () => {
     const person = activeContact();
     if (!person) return renderList();
-    root.innerHTML = `<div class="contacts-shell"><div class="contacts-content"><div class="contacts-main">${header("联系人详情", "保留关系上下文，方便继续跟进与交给 Agent 处理。", button("← 返回联系人", "list") + button("＋ 添加备注", "note", person.id) + button("创建跟进", "followup", person.name, true) + xiaozhiEntry())}<div class="contacts-profile"><span class="contacts-avatar large">${esc(person.initials)}</span><div><h1>${esc(person.name)} ${tags("活跃")}</h1><p>${esc(person.role)} · ${esc(person.company)}${person.id === "john" ? " · 德国业务" : ""}</p><p>最近互动：${esc(person.recent)}${person.id === "john" ? " · 首次认识：2026/06/12" : ""}</p></div></div>${metrics([[person.count, "互动"], [(person.id === "john" ? 23 : 0) + (store.data.notes[person.id] || []).length, "备注"], [person.id === "john" ? 2 : 0, "开放承诺"], [person.id === "john" ? 5 : 0, "活跃主题"]])}<div class="contacts-tabs detail" role="tablist" aria-label="联系人详情">${["概览", "时间线", "承诺", "主题", "记忆"].map((tab) => `<button type="button" role="tab" aria-selected="${state.tab === tab}" data-contact-action="tab" data-value="${tab}">${tab}</button>`).join("")}</div>${detailContent(person)}</div></div>${xiaozhiPanel(person)}</div>`;
+    root.innerHTML = `<div class="contacts-shell"><div class="contacts-content"><div class="contacts-main">${header("联系人详情", "保留关系上下文，方便继续跟进与交给 Agent 处理。", button("← 返回联系人", "list") + button("＋ 添加备注", "note", person.id) + button("创建跟进", "followup", person.name, true) + xiaozhiEntry())}<div class="contacts-profile"><span class="contacts-avatar large">${esc(person.initials)}</span><div><h1>${esc(person.name)} ${tags("活跃")}</h1><p>${esc(person.role)} · ${esc(person.company)}${person.id === "john" ? " · 德国业务" : ""}</p><p>最近互动：${esc(person.recent)}${person.id === "john" ? " · 首次认识：2026/06/12" : ""}</p></div></div>${metrics([[person.count, "互动"], [(person.id === "john" ? 23 : 0) + (store.data.notes[person.id] || []).length, "备注"], [(person.commitments||[]).length, "开放承诺"], [(person.themes||[]).length, "活跃主题"]])}<div class="contacts-tabs detail" role="tablist" aria-label="联系人详情">${["概览", "时间线", "承诺", "主题", "记忆"].map((tab) => `<button type="button" role="tab" aria-selected="${state.tab === tab}" data-contact-action="tab" data-value="${tab}">${tab}</button>`).join("")}</div>${detailContent(person)}${store.data.tasks.filter(t=>t.contactId===person.name||t.contactId===person.id).length ? card("跟进任务",store.data.tasks.filter(t=>t.contactId===person.name||t.contactId===person.id).map(t=>line(esc(t.title),esc(t.owner)+" · "+esc(t.createdAt))).join("")) : ""}</div></div>${xiaozhiPanel(person)}</div>`;
   };
 
   const modal = (title, body) => {
@@ -62,6 +63,7 @@
   };
   const answer = (question, person) => {
     if (!person) return "当前没有可用联系人上下文。";
+    if(workspaceAdapter)return workspaceAdapter.ask(question,person.id);
     if (question.includes("第一次")) return "首次联系发生在 2026 年 6 月 12 日的 Energy Storage Summit。";
     if (question.includes("三个")) return "当前重点是认证、交付周期与渠道支持。";
     if (question.includes("会议") || question.includes("下一次")) return "建议先确认德国经销商名单，再同步 Demo 环境准备情况，并讨论认证时间表。";
@@ -75,15 +77,15 @@
     const entry = root.querySelector(".contacts-xiaozhi-entry");
     if (!rail || !entry) return;
     rail.classList.toggle("expanded", state.xiaozhiExpanded); rail.setAttribute("aria-hidden", String(!state.xiaozhiExpanded));
-    entry.setAttribute("aria-expanded", String(state.xiaozhiExpanded)); entry.setAttribute("aria-label", state.xiaozhiExpanded ? "收起小智" : "问问小智");
-    const label = entry.querySelector("strong"); if (label) label.textContent = state.xiaozhiExpanded ? "收起小智" : "问问小智";
+    entry.setAttribute("aria-expanded", String(state.xiaozhiExpanded)); entry.setAttribute("aria-label", state.xiaozhiExpanded ? "收起 Ask Agent" : "Ask Agent");
+    const label = entry.querySelector("strong"); if (label) label.textContent = state.xiaozhiExpanded ? "收起 Ask Agent" : "Ask Agent";
     entry.querySelector(".contacts-xiaozhi-arrow use")?.setAttribute("href", state.xiaozhiExpanded ? "#ico-collapse" : "#ico-expand");
     if (state.xiaozhiExpanded) rail.querySelector("[data-contact-xiaozhi-input]")?.focus({preventScroll:true});
     else entry.focus({preventScroll:true});
   };
   const renderCurrent = () => state.page === "detail" ? renderDetail() : renderList();
   const open = () => {
-    store = model.load(edition(), workspace());
+    store = workspaceAdapter ? {key:workspaceAdapter.id,data:workspaceAdapter.load()} : model.load(edition(), workspace());
     view.hidden = false; view.setAttribute("aria-hidden", "false");
     document.querySelectorAll('[data-main-view]').forEach((item) => { if (item !== view) { item.hidden = true; item.setAttribute("aria-hidden", "true"); } });
     document.querySelector("#page-crumb").textContent = "联系人";
@@ -97,13 +99,13 @@
     if (name === "toggle-xiaozhi") return setXiaozhiExpanded(!state.xiaozhiExpanded);
     if (name === "send-xiaozhi") { const input = root.querySelector("[data-contact-xiaozhi-input]"); if (input?.value.trim()) { state.answer = answer(input.value.trim(), activeContact()); input.value = ""; state.draft = ""; renderCurrent(); } return; }
     if (name === "list") { state.page = "list"; state.answer = ""; return renderList(); }
-    if (name === "back-library") { document.querySelector('[data-knowledge-folder="我的文件"]')?.click(); return; }
+    if (name === "back-library") { if(workspaceAdapter)return workspaceAdapter.close(); if(typeof showMainView==='function')showMainView('home',{silent:true}); return; }
     if (name === "person") { state.page = "detail"; state.contactId = value; state.draft = ""; state.tab = "概览"; state.answer = ""; return renderDetail(); }
     if (name === "tab") { state.tab = value; return renderDetail(); }
     if (name === "ask") { state.answer = answer(value, activeContact()); return renderCurrent(); }
-    if (["add", "note", "followup"].includes(name)) return openModal(name, value);
+    if (["add", "note", "followup"].includes(name)) { workspaceAdapter?.check(); return openModal(name, value); }
   };
-  root.addEventListener("click", (event) => { const trigger = event.target.closest("[data-contact-action]"); if (trigger) action(trigger.dataset.contactAction, trigger.dataset.value); });
+  root.addEventListener("click", (event) => { const trigger = event.target.closest("[data-contact-action]"); if (trigger) { try {action(trigger.dataset.contactAction, trigger.dataset.value);}catch(e){notify(e.message);} } });
   root.addEventListener("input", (event) => {
     if (event.target.id === "contacts-search") { state.query = event.target.value; const cursor = event.target.selectionStart; renderList(); const next = root.querySelector("#contacts-search"); next?.focus(); next?.setSelectionRange(cursor, cursor); }
     if (event.target.matches("[data-contact-xiaozhi-input]")) { state.draft = event.target.value; const send = root.querySelector('[data-contact-action="send-xiaozhi"]'); if (send) send.disabled = !event.target.value.trim(); }
@@ -118,12 +120,14 @@
   root.addEventListener("submit", (event) => {
     const form = event.target.closest("[data-contact-form]"); if (!form) return; event.preventDefault(); const values = Object.fromEntries(new FormData(form));
     if (form.dataset.contactForm === "ask") { state.answer = answer(values.question, activeContact()); closeModal(); return renderCurrent(); }
+    try {workspaceAdapter?.check();}catch(e){notify(e.message);return;}
+    const before=JSON.parse(JSON.stringify(store.data));
     let result = { ok: true };
     if (form.dataset.contactForm === "note") { result.ok = model.addNote(store.data, values.person, values.text); if (!result.ok) result.message = "备注内容不能为空"; }
     if (form.dataset.contactForm === "add") result = model.add(store.data, values);
     if (form.dataset.contactForm === "followup") { const title = String(values.title || "").trim(); if (!title) result = { ok: false, message: "请填写任务标题" }; else store.data.tasks.unshift({ id: `contact-task-${Date.now()}`, title, description: values.description, owner: values.owner, contactId: values.person, createdAt: new Date().toLocaleString("zh-CN") }); }
     if (!result.ok) { const error = form.querySelector(".contacts-form-error"); if (error) error.textContent = result.message || "保存失败"; return; }
-    persist(); closeModal(); notify(form.dataset.contactForm === "followup" ? "跟进任务已创建" : "联系人信息已保存"); if (form.dataset.contactForm === "add") state.page = "list"; if (form.dataset.contactForm === "note") state.page = "detail"; state.answer = ""; state.contactId = result.record?.id || state.contactId; renderCurrent();
+    try {persist();}catch(e){store.data=before;notify(e.message);return;} closeModal(); notify(form.dataset.contactForm === "followup" ? "跟进任务已创建" : "联系人信息已保存"); if (form.dataset.contactForm === "add") state.page = "list"; if (form.dataset.contactForm === "note") state.page = "detail"; state.answer = ""; state.contactId = result.record?.id || state.contactId; renderCurrent();
   });
   document.addEventListener("click", (event) => { if (event.target === state.dialog) closeModal(); });
   nav?.addEventListener("click", () => open());
@@ -137,6 +141,9 @@
   new ResizeObserver(fitWorkspace).observe(document.querySelector('.topbar'));
   new MutationObserver(fitWorkspace).observe(view,{attributes:true,attributeFilter:['hidden']});
   window.addEventListener('resize',fitWorkspace);
-  global.ContactsUI = { open, render: open };
+  global.ContactsUI = { open, render: open,
+    openWorkspace(adapter){workspaceAdapter=adapter;Object.assign(state,{page:'list',contactId:'',tab:'概览',query:'',dialog:null,answer:'',draft:'',xiaozhiExpanded:false});open();},
+    leaveWorkspace(){workspaceAdapter=null;Object.assign(state,{page:'list',contactId:'john',query:'',dialog:null,answer:'',draft:'',xiaozhiExpanded:false});}
+  };
   if (new URLSearchParams(location.search).get("page") === "contacts") open(); else renderList();
 })(window);

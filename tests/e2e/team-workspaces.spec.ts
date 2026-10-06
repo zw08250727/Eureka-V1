@@ -12,12 +12,12 @@ test('one account switches isolated workspaces, private files stay private and s
   await expect(page.locator('#ws-view')).toContainText('团队产品周会');
   await expect(page.locator('#ws-view')).not.toContainText('林晓的个人绩效沟通');
   await action(page,'file','team-review').click();
-  await action(page,'edit').click();await page.locator('#ws-editor').fill('团队专属纪要，不应进入个人空间');await action(page,'save-edit').click();
-  await action(page,'share').click();await page.locator('#ws-dialog input[value=kevin]').check();await page.locator('#ws-dialog button[type=submit]').click();
-  await page.locator('#ws-actor').selectOption('kevin');
+  await page.locator('[data-md-action=edit]').click();await page.getByRole('textbox',{name:'编辑正文'}).fill('团队专属纪要，不应进入个人空间');await page.locator('[data-md-action=save-inline]').click();
+  await page.locator('[data-md-action=share]').click();await page.locator('#ws-dialog input[value=kevin]').check();await page.locator('#ws-dialog button[type=submit]').click();
+  await page.locator('#home-entry').click();await page.locator('#ws-actor').selectOption('kevin');
   await expect(page.locator('#ws-team-nav')).not.toContainText('空间管理');
   await expect(page.locator('#ws-view')).toContainText('团队产品周会');
-  await action(page,'file','team-review').click();await expect(action(page,'edit')).toHaveCount(0);await expect(page.locator('.ws-prose')).toContainText('团队专属纪要');
+  await action(page,'file','team-review').click();await expect(page.locator('[data-md-action=edit]')).toBeDisabled();await expect(page.locator('#md-content .md-prose')).toContainText('团队专属纪要');
   await switchTo(page,'team-design');await expect(page.locator('#ws-view')).not.toContainText('团队产品周会');
   await switchTo(page,'personal');await expect(page.locator('#ws-view')).toBeHidden();await expect(page.locator('#meeting-list')).not.toContainText('团队专属');
   await section(page,'files');await expect(page.locator('#ws-view')).toContainText('三季度产品复盘会议');
@@ -51,7 +51,7 @@ test('device bindings do not follow workspace switching and exported notes impor
   await action(page,'sync','dev-personal').click();await section(page,'files');await expect(page.locator('#ws-view')).toContainText('我的 Eureka Note · 新录音');
   const downloaded=page.waitForEvent('download');await action(page,'export','team-review').click();const downloadedFile=await downloaded;const exported=JSON.parse(await readFile((await downloadedFile.path())!,'utf8'));expect(exported.format).toBe('eureka-note-v1');
   await switchTo(page,'team-design');await section(page,'files');await action(page,'import').click();await page.locator('#ws-dialog input[type=file]').setInputFiles({name:'team-note.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(exported))});await page.locator('#ws-dialog button[type=submit]').click();
-  await expect(page.locator('.ws-page-head')).toContainText('团队产品周会');await expect(page.locator('.ws-note-footer')).toContainText('仅自己可见');
+  await expect(page.locator('#note-detail-title')).toContainText('团队产品周会');await expect(page.locator('[data-md-action=edit]')).toBeEnabled();
   await switchTo(page,'personal');await section(page,'devices');await expect(page.locator('#ws-view')).not.toContainText('我的 Eureka Note');
 });
 test('incoming team invitation joins as member without changing personal plan',async({page})=>{

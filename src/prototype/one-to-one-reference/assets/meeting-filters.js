@@ -8,7 +8,8 @@
   const dateLabel = date => `${date.getFullYear()}年${date.getMonth()+1}月${date.getDate()}日`;
   function enhance(id, kind) {
     const input = document.getElementById(id);
-    if (!input) return;
+    for(let i=controls.length-1;i>=0;i--)if(!controls[i].input.isConnected){controls[i].popup.remove();controls.splice(i,1);}
+    if (!input || input.closest('.mf-control')) return;
     const old = input.parentElement;
     const wrap = document.createElement('div');
     wrap.className = `${old.className} mf-control`;
@@ -149,9 +150,10 @@
     // Match native popovers: light-dismiss on outside clicks, and no stale open
     // menus after switching views or scrolling the trigger out of the viewport.
     input.addEventListener('change',sync);
-    controls.push({sync,position,close:()=>{if(isOpen()) popup.hidePopover();}});
+    controls.push({input,popup,sync,position,close:()=>{if(isOpen()) popup.hidePopover();}});
     sync();
   }
+  window.MeetingFilters={enhance};
   ['meeting-source-filter','team-meeting-source'].forEach(id=>enhance(id,'source'));
   ['meeting-date-filter','team-meeting-date'].forEach(id=>enhance(id,'date'));
   document.addEventListener('meeting-filters-reset',()=>controls.forEach(c=>{c.close();c.sync();}));

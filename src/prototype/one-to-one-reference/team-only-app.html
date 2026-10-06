@@ -2706,7 +2706,7 @@
   <link rel="stylesheet" href="assets/today-workbench.css?v=today-workbench-v19" />
   <link rel="stylesheet" href="assets/pc-capability-enhancements.css?v=pc-capabilities-v2" />
   <link rel="stylesheet" href="assets/meeting-list.css?v=meeting-list-v1" />
-  <link rel="stylesheet" href="assets/meeting-filters.css?v=1" />
+  <link rel="stylesheet" href="assets/meeting-filters.css?v=2" />
   <link rel="stylesheet" href="assets/meeting-detail.css?v=5" />
   <link rel="stylesheet" href="assets/agent-history.css?v=2" />
   <link rel="stylesheet" href="assets/agent-composer.css?v=1" />
@@ -3317,6 +3317,7 @@
     };
     const beginRecording = () => {
       closeOverlays();
+      $("#recording-name").textContent="新录音 · 产品沟通";
       recordingSeconds = 0; recordingPaused = false; recordingEnded = false; updateRecordingClock();
       $$(".recording-session-generated").forEach((item) => item.remove());
       if (!$("#transcript-live-line")) { const liveLine = document.createElement("article"); liveLine.className = "transcript-item pending"; liveLine.id = "transcript-live-line"; liveLine.innerHTML = '<time>实时转写</time><p>正在识别新的语音内容<span class="transcript-cursor"></span></p>'; $("#transcript-stream").appendChild(liveLine); }
@@ -3330,6 +3331,7 @@
       startRecordingClock();
       showToast("授权完成，已开始录音");
     };
+    window.RecordingUI={start:beginRecording,seconds:()=>recordingSeconds,ended:()=>recordingEnded,stop:()=>{clearInterval(recordingTimer);recordingEnded=true;}};
     $("#permission-skip").addEventListener("click", closeOverlays);
     $("#permission-authorize").addEventListener("click", () => {
       const button = $("#permission-authorize");
@@ -3358,7 +3360,8 @@
       $("#recording-live-state").innerHTML = "<i></i>已结束";
       $("#transcript-live-line").remove();
       const finalLine = document.createElement("article"); finalLine.className = "transcript-item recording-session-generated"; finalLine.innerHTML = `<time>${formatRecordingTime(recordingSeconds)}　系统</time><p>录音已结束，演示转写内容已保存，可以继续交给小智总结和整理。</p>`; $("#transcript-stream").appendChild(finalLine);
-      showToast("录音已结束，正在保存转写内容");
+      document.dispatchEvent(new CustomEvent("recording-finished",{detail:{seconds:recordingSeconds}}));
+      showToast("录音已结束，转写内容已保存");
     });
     $("#recording-mark").addEventListener("click", () => {
       if (recordingEnded) { showToast("录音已结束"); return; }
@@ -4865,8 +4868,8 @@
     if (previewSpaceMenu === "1" && previewEdition !== "personal") { $("#space-menu").classList.add("show"); $("#space-switcher").setAttribute("aria-expanded", "true"); }
   </script>
   <script src="assets/team-workspace.js?v=enterprise-cleanup"></script>
-  <script src="assets/contacts-model.js?v=contacts-v14"></script>
-  <script src="assets/contacts-ui.js?v=contacts-v17"></script>
+  <script src="assets/contacts-model.js?v=contacts-v15"></script>
+  <script src="assets/contacts-ui.js?v=contacts-v18"></script>
   <script>
     (() => {
       const root = document.documentElement;
@@ -5298,10 +5301,10 @@
     })();
   </script>
   <script src="assets/workspace-sidebar.js"></script>
-  <script src="assets/meeting-detail.js?v=6"></script>
-  <script src="assets/meeting-filters.js?v=1"></script>
-  <link rel="stylesheet" href="assets/workspace-ui.css?v=1" />
-  <script src="assets/workspace-model.js?v=2"></script>
-  <script src="assets/workspace-ui.js?v=2"></script>
+  <script src="assets/meeting-detail.js?v=7"></script>
+  <script src="assets/meeting-filters.js?v=2"></script>
+  <link rel="stylesheet" href="assets/workspace-ui.css?v=3" />
+  <script src="assets/workspace-model.js?v=3"></script>
+  <script src="assets/workspace-ui.js?v=3"></script>
 </body>
 </html>

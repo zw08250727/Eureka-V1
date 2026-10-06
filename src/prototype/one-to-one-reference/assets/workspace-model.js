@@ -82,11 +82,11 @@
   }
   function addFile(w,{title,summary,transcript,source='网页录音',duration=0},uid=SELF) {
     access(w,uid);writable(w);title=String(title||'').trim();if(!title)fail('请输入文件名称');
-    duration=Number(duration);if(!Number.isFinite(duration)||duration<0||duration>1440)duration=0;const f=file(id('file'),title.slice(0,150),uid,[],duration);f.created=stamp();f.source=source;if(summary!=null)f.summary=String(summary).slice(0,100000);if(transcript!=null)f.transcript=String(transcript).slice(0,100000);w.files.unshift(f);log(w,`创建私有文件：${f.title}`,uid);return f;
+    duration=Number(duration);if(!Number.isFinite(duration)||duration<0||duration>1440)duration=0;const f=file(id('file'),title.slice(0,150),uid,[],duration);f.created=stamp();f.source=source;if(summary!=null)f.summary=String(summary).slice(0,100000);if(transcript!=null)f.transcript=String(transcript).slice(0,100000);f.size=(duration*.82).toFixed(1)+' MB';f.creator=member(w,uid)?.name||uid;f.tags=['会议记录'];f.status='已总结';f.updated=f.created;f.detail={};w.files.unshift(f);log(w,`创建私有文件：${f.title}`,uid);return f;
   }
   function edit(w,fid,patch,uid=SELF) {writable(w);const f=getFile(w,fid,uid);if(f.owner!==uid)fail('仅文件所有者可以编辑');if(patch.title!=null){if(!String(patch.title).trim())fail('文件名称不能为空');f.title=String(patch.title).trim().slice(0,150);}['summary','transcript'].forEach(k=>{if(patch[k]!=null)f[k]=String(patch[k]).slice(0,100000);});log(w,`编辑文件：${f.title}`,uid);return f;}
   function share(w,fid,users,uid=SELF) {writable(w);const f=getFile(w,fid,uid);if(f.owner!==uid)fail('仅文件所有者可以管理分享');if(users.some(u=>!member(w,u)||u===uid))fail('只能邀请当前空间内的有效成员');f.shared=[...new Set(users)];log(w,`更新文件访问权限：${f.title}`,uid);}
-  function trash(w,fid,restore=false,uid=SELF) {writable(w);const f=w.files.find(f=>f.id===fid&&f.owner===uid)||fail('只有文件所有者可以操作');f.deleted=!restore;log(w,`${restore?'恢复':'移入回收站'}：${f.title}`,uid);}
+  function trash(w,fid,restore=false,uid=SELF) {access(w,uid);writable(w);const f=w.files.find(f=>f.id===fid&&f.owner===uid)||fail('只有文件所有者可以操作');if(restore&&f.deletedAt&&Date.now()-new Date(f.deletedAt).getTime()>=30*86400000)fail('录音已超过 30 天恢复期限');f.deleted=!restore;f.deletedAt=restore?null:stamp();log(w,`${restore?'恢复':'移入回收站'}：${f.title}`,uid);}
   function exportFile(w,fid,uid=SELF) {return {format:'eureka-note-v1',title:getFile(w,fid,uid).title,summary:getFile(w,fid,uid).summary,transcript:getFile(w,fid,uid).transcript,duration:getFile(w,fid,uid).duration};}
   function importFile(w,data,uid=SELF) {if(data?.demo===true&&typeof data.title==='string'&&typeof data.content==='string')data={format:'eureka-note-v1',title:data.title,summary:data.type==='summary'?data.content:'',transcript:data.type==='summary'?'':data.content};if(!data||data.format!=='eureka-note-v1'||typeof data.title!=='string'||typeof data.summary!=='string'||typeof data.transcript!=='string')fail('请选择 EurekaMind 导出的 JSON 文件');return addFile(w,{...data,source:'手动导入'},uid);}
   function registerDevice(s,wid,{serial,model,user},uid=SELF) {
@@ -104,8 +104,67 @@
   }
   function bind(s,did,wid,uid=SELF) {const d=s.devices.find(d=>d.id===did)||fail('设备不存在');if(d.user!==uid)fail('只能绑定自己的设备');const w=get(s,wid);access(w,uid);writable(w);d.spaceId=wid;log(w,`模拟 App 重新绑定设备：${d.name}`,uid);}
   function sync(s,did,uid=SELF) {const d=s.devices.find(d=>d.id===did)||fail('设备不存在');if(d.user!==uid)fail('只能同步自己的设备');if(!d.spaceId)fail('设备尚未绑定工作空间');const w=get(s,d.spaceId);const f=addFile(w,{title:`${d.name} · 新录音`,source:d.model,duration:12},uid);d.lastSync=stamp();return {space:w,file:f};}
-  function ask(w,prompt,fid,uid=SELF) {access(w,uid);writable(w);prompt=String(prompt).trim();if(!prompt)fail('请输入问题');if(w.credits.total-w.credits.used<200)fail('AI 积分不足，请联系管理员补充');const files=fid?[getFile(w,fid,uid)]:visible(w,uid);const names=files.slice(0,3).map(f=>f.title);const answer=names.length?`已基于${names.map(n=>'「'+n+'」').join('、')}整理下一步：\n\n1. 确认当前方案的负责人和交付范围。\n2. 汇总仍待回应的客户问题。\n3. 在下一次例会前同步行动清单。\n\n引用 ${names.length} 份已授权资料；此结果为本地模拟。`:'当前空间没有可引用的文件。可以先录音或导入资料，再继续这个任务。';if(!names.length)return {answer,cost:0};w.credits.used+=200;w.credits.logs.unshift({id:id('usage'),user:uid,task:prompt.slice(0,80),amount:200,time:stamp()});w.threads.unshift({id:id('chat'),user:uid,prompt,answer,time:stamp(),files:files.map(f=>f.id)});return {answer,cost:200};}
+  function ask(w,prompt,fid,uid=SELF) {
+    access(w,uid);writable(w);prompt=String(prompt).trim();if(!prompt)fail('请输入问题');
+    let files=fid?[getFile(w,fid,uid)]:visible(w,uid);
+    if(!fid&&/客户|反馈/.test(prompt))files=files.filter(f=>/客户|访谈|试点|验收/.test(f.title));
+    files=files.slice().sort((a,b)=>String(b.created).localeCompare(String(a.created))).slice(0,3);
+    if(!files.length)return {answer:'当前没有可引用的相关会议。请先录音、导入纪要，或调整问题。',cost:0};
+    if(w.credits.total-w.credits.used<200)fail('AI 积分不足，请联系管理员补充');
+    const excerpts=files.map((f,i)=>`${i+1}. 「${f.title}」\n${f.summary.split('\n').filter(Boolean)[0].slice(0,300)}`).join('\n\n');
+    const label=/对比|决策/.test(prompt)?'会议决策对照':/客户|反馈/.test(prompt)?'客户反馈摘要':/简报|总结/.test(prompt)?'团队会议简报':'会议上下文与下一步';
+    const next=/对比|决策/.test(prompt)?'以上按来源并列展示会议结论；未在纪要中明确的差异与负责人，需要回到原录音确认。':/客户|反馈/.test(prompt)?'建议在下次沟通前，逐项确认客户提出的问题、对应方案和验收口径。':'建议围绕上述结论，确认负责人、交付范围与仍待澄清的问题。';
+    const answer=`${label}\n\n${excerpts}\n\n${next}\n\n引用 ${files.length} 份已授权资料；此结果为本地模拟。`;
+    w.credits.used+=200;w.credits.logs.unshift({id:id('usage'),user:uid,task:prompt.slice(0,80),amount:200,time:stamp()});
+    w.threads.unshift({id:id('chat'),user:uid,prompt,answer,time:stamp(),files:files.map(f=>f.id)});return {answer,cost:200};
+  }
   function acceptInvite(s,iid) {const i=s.invitations.find(i=>i.id===iid&&i.status==='pending')||fail('邀请已失效或已处理');const w=baseTeam(id('team'),i.teamName,[person('wang','王晨','wang.chen@eureka.example','admin'),person(SELF,s.account.name,s.account.email)],3);w.files=[file(id('file'),'欢迎加入 · 研究项目说明','wang',[SELF])];s.spaces.push(w);i.status='accepted';s.activeId=w.id;return w;}
-  function load(storage) {try {const s=JSON.parse(storage.getItem(KEY));if(s?.version===2&&Array.isArray(s.spaces)&&s.spaces.some(w=>w.id==='personal'))return s;}catch{/* recover demo state */}return seed();}
-  global.WorkspaceModel={KEY,SELF,id,clone,seed,get,member,admin,usedSeats,writable,govern,visible,getFile,price,create,invite,memberAction,seats,advanceCycle,addFile,edit,share,trash,exportFile,importFile,registerDevice,bind,sync,ask,acceptInvite,load,log};
+  // Versioned, additive migration: never replace user recordings or edited contacts.
+  function enrich(s) {
+    for (const w of s.spaces.filter(w=>w.type==='team')) {
+      if (!w.recordingWorkbenchVersion) {
+        if (w.id==='team-eureka') {
+          const demos=[['delivery','交付验收标准评审','lin',38,'合并录音','交付评审'],['pilot','星海试点复盘',SELF,42,'W2','客户复盘'],['research','语音记录用户访谈','kevin',27,'M1','用户研究'],['planning','研发迭代排期确认',SELF,35,'网页录音','研发排期'],['sales','渠道合作沟通','lin',51,'W1','商务沟通'],['design','录音详情交互评审',SELF,29,'W-PEN','设计评审'],['launch','产品发布准备会','kevin',44,'合并录音','产品发布'],['retro','团队协作复盘',SELF,32,'网页录音','团队复盘']];
+          demos.forEach(([key,title,owner,duration,source,tag],i)=>{const fid='team-demo-'+key;if(!w.files.some(f=>f.id===fid))w.files.push({...file(fid,title,owner,owner===SELF?[]:[SELF],duration),source,tags:[tag],created:`2026-10-${String(6-Math.floor(i/2)).padStart(2,'0')} ${i%2?'16:00':'09:30'}`});});
+          const people=[['c-team-3','周宁','云帆制造','数字化负责人','确认设备接入与试点扩容计划。'],['c-team-4','王珊','启明渠道','合作伙伴经理','下周一起复核渠道演示材料。']];
+          for(const [id,name,company,role,summary] of people)if(!w.contacts.some(c=>c.id===id))w.contacts.push({id,name,company,role,summary});
+        }
+        w.recordingWorkbenchVersion=1;
+      }
+      w.contactNotes ||= {};w.contactTasks ||= [];
+      w.contacts.forEach((c,i)=>{const defaults={initials:c.name.slice(0,2),region:'中国',email:'',tag:i%2?'待回复':'需关注',count:6+i,recent:'2 天前',themes:['产品试点','交付方案'],commitments:[[c.summary,'2026/10/09','待跟进']],myCommitments:[['准备下一轮演示资料','2026/10/08','进行中']],timeline:[['方案沟通','2026/10/06 · 团队会议',c.summary]],memories:[c.summary],inferences:[]};for(const [k,v]of Object.entries(defaults))if(c[k]==null)c[k]=v;});
+      const summaries={
+        'team-review':'十月路线图以录音归档、会议检索和团队协作为主线。评审确认先完善共享权限与会议详情，再验证团队使用链路；由产品和研发共同确认交付范围。',
+        'team-customer':'客户共创中明确了三个验收重点：会议纪要可追溯、负责人可识别、分享范围可控。客户成功团队将在下一轮试点前提供验收清单。',
+        'team-market':'海外渠道访谈集中反馈多语言转写、设备同步与会议导出的需求。市场侧将先验证两个试点场景，再决定是否扩大投放。',
+        'team-demo-pilot':'星海试点已完成首轮会议记录验证。客户最关注交付范围与验收口径，建议在扩大试点前补齐共享权限说明和验收清单。',
+        'team-demo-delivery':'验收评审统一了会议检索、录音导出和成员共享的检查口径。尚待确认设备同步异常的处理流程，交付团队将补充失败重试案例。',
+        'team-demo-research':'用户访谈发现，跨会议检索与上下文延续比文件夹分类更重要。受访者希望保留录音原文入口，并在会议页面直接继续提问。',
+        'team-demo-planning':'研发确认先完成团队录音索引与权限校验，再接入异步转写。测试将重点覆盖切换空间、撤回分享与网络异常后的恢复。',
+        'team-demo-sales':'渠道合作方希望通过真实客户会议演示产品价值。双方约定先统一演示脚本与试点范围，报价将在交付范围确认后讨论。',
+        'team-demo-design':'交互评审确认会议正文采用原位编辑，导出、分享、删除直接展示。Agent 在当前页面展开，桌面小屏必须保留可见输入区。',
+        'team-demo-launch':'发布准备会确认演示材料需包含录音、纪要与团队共享完整链路。设备素材与成员邀请说明仍待复核。',
+        'team-demo-retro':'团队复盘认为信息重复录入是主要协作成本。后续以会议上下文复用为重点，减少孤立模块和无来源的自动建议。'
+      };
+      for(const f of w.files)if(summaries[f.id]&&f.summary===`本次会议围绕「${f.title}」展开，明确本阶段目标、交付范围与协作分工。\n\n下一步：补齐客户反馈，确认方案负责人，并在下次例会跟进交付进度。`)f.summary=summaries[f.id];
+      w.files.forEach((f,i)=>{const defaults={size:(f.duration*0.82).toFixed(1)+' MB',creator:w.members.find(m=>m.id===f.owner)?.name||'已移除成员',status:'已总结',tags:['会议记录'],updated:f.created,detail:{}};for(const [k,v]of Object.entries(defaults))if(f[k]==null)f[k]=v;});
+    }
+    return s;
+  }
+  function saveDetail(w,fid,patch,uid=SELF) {
+    const f=edit(w,fid,patch,uid);
+    const allowed=['template','language','detail','speakers','tags','customer','project','location','updated','generated','feedback','verbatim','summaryHtml','verbatimHtml','customerType','projectType'];
+    f.detail ||= {};for(const k of allowed)if(patch[k]!=null)f.detail[k]=clone(patch[k]);
+    if(patch.tags)f.tags=clone(patch.tags);f.updated=stamp();return f;
+  }
+  function purge(w,fid,uid=SELF) { access(w,uid);writable(w);const f=w.files.find(f=>f.id===fid&&f.owner===uid&&f.deleted)||fail('只能永久删除自己的回收站录音');w.files=w.files.filter(x=>x!==f);log(w,'永久删除回收站录音',uid); }
+  function saveContacts(w,data,uid=SELF) {access(w,uid);writable(w);w.contacts=clone(data.contacts);w.contactNotes=clone(data.notes);w.contactTasks=clone(data.tasks);log(w,'更新联系人关系与跟进',uid);}
+  function askContact(w,prompt,cid,uid=SELF) {
+    access(w,uid);writable(w);const c=w.contacts.find(c=>c.id===cid)||fail('请先选择联系人');
+    if(w.credits.total-w.credits.used<200)fail('AI 积分不足，请联系管理员补充');
+    const answer=`基于${c.name}的团队联系人记录：\n\n${c.summary}\n\n开放承诺：${(c.commitments||[]).map(x=>x[0]).join('；')||'暂无'}。\n下一步：确认负责人和截止时间，在沟通后更新备注与跟进任务。\n\n仅引用当前联系人；本地模拟，未连接 AI 服务。`;
+    w.credits.used+=200;w.credits.logs.unshift({id:id('usage'),user:uid,task:prompt.slice(0,80),amount:200,time:stamp()});w.threads.unshift({id:id('chat'),user:uid,prompt,answer,time:stamp(),contactId:cid,files:[]});return answer;
+  }
+  function load(storage) {try {const s=JSON.parse(storage.getItem(KEY));if(s?.version===2&&Array.isArray(s.spaces)&&s.spaces.some(w=>w.id==='personal'))return enrich(s);}catch{/* recover demo state */}return enrich(seed());}
+  global.WorkspaceModel={KEY,SELF,id,clone,seed:()=>enrich(seed()),enrich,saveDetail,saveContacts,askContact,purge,get,member,admin,usedSeats,writable,govern,visible,getFile,price,create,invite,memberAction,seats,advanceCycle,addFile,edit,share,trash,exportFile,importFile,registerDevice,bind,sync,ask,acceptInvite,load,log};
 })(typeof window==='undefined'?globalThis:window);

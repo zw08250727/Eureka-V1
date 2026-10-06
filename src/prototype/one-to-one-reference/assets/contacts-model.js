@@ -32,7 +32,7 @@
     return { key, data };
   };
   const update = (key, data) => { const all = read(); all[key] = data; return write(all); };
-  const searchable = (person) => [person.name, person.company, person.role, person.summary, person.region].join(" ").toLowerCase();
+  const searchable = (person) => [person.name, person.company, person.role, person.summary, person.region, ...(person.themes || [])].join(" ").toLowerCase();
   const filter = (contacts, query = "", tag = "全部") => {
     const needle = String(query || "").trim().toLowerCase();
     return contacts.filter((person) => {
