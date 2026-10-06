@@ -1,0 +1,18 @@
+const assert=require('node:assert/strict');
+const M=require('../assets/personal-assets-model.js');
+const memory=()=>{const map=new Map();return {getItem:k=>map.get(k)??null,setItem:(k,v)=>map.set(k,v)};};
+const base={type:'schedule',title:'方案讨论',start:'2026-10-08T14:00',end:'2026-10-08T15:00',reminder:'15',source:'manual',notes:''};
+const store=memory(),a=M.create(store);
+assert.throws(()=>a.save({...base,end:base.start}),/结束时间/);
+assert.throws(()=>a.save({...base,start:'2026-02-30T12:00'}),/开始时间/);
+const r=a.save(base);assert.equal(M.create(store).snapshot().records[0].id,r.id);
+assert.equal(a.save({...r,title:'修改',source:'agent'}).source,'manual');
+assert.throws(()=>a.save({...r,title:'旧草稿'}),/已更新/);
+a.session({id:'session',prompt:'安排讨论',created:'2026-10-07'});
+const created=a.confirm('session',base),repeat=a.confirm('session',base);assert.equal(created.id,repeat.id);assert.equal(created.source,'agent');assert.equal(a.snapshot().records.length,2);
+const b=M.create(store);a.settings({notifications:true});assert.throws(()=>b.save(base),/另一页面/);
+const failing={getItem:()=>null,setItem:()=>{throw Error('quota')}};const c=M.create(failing);assert.throws(()=>c.save(base),/保存失败/);assert.equal(c.snapshot().records.length,0);
+const parsed=M.parse('明天 14:00–15:00，安排「产品讨论」',new Date('2026-10-07T10:00:00Z'));assert.equal(parsed.start,'2026-10-08T14:00');assert.equal(parsed.end,'2026-10-08T15:00');assert.equal(parsed.title,'产品讨论');
+assert.equal(M.parse('帮我安排一个会议').start,'');
+assert.equal(M.parse('明天 23:45 安排评审',new Date('2026-10-07T10:00:00Z')).end,'2026-10-09T00:15');
+console.log('Personal action model: validation, persistence, source immutability, idempotency, concurrency, rollback and date parsing passed');
