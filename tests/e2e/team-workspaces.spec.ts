@@ -47,12 +47,11 @@ test('seats, billing, credits and readonly subscription states are functional',a
   await section(page,'billing');await action(page,'renew').click();await action(page,'confirm').click();await expect(page.locator('.ws-readonly')).toHaveCount(0);
 });
 test('device bindings stay fixed, detail export remains and audio upload rejects legacy note JSON',async({page})=>{
-  await switchTo(page,'team-eureka');await action(page,'page','devices').click();await action(page,'bind').click();await expect(page.locator('#ws-dialog')).toContainText('个人工作空间');await page.locator('#ws-dialog button[type=submit]').click();
-  await action(page,'sync','dev-personal').click();await section(page,'files');await expect(page.locator('#ws-view')).toContainText('我的 Eureka Note · 新录音');
+  await switchTo(page,'team-eureka');await action(page,'page','devices').click();await action(page,'bind').click();await expect(page.locator('#ws-dialog')).toContainText('已经有设备？');await expect(page.locator('#ws-dialog [type=submit]')).toHaveCount(0);await page.keyboard.press('Escape');await section(page,'files');
   await action(page,'file','team-review').click();await page.locator('[data-md-action=export]').click();await page.locator('[data-md-action=export-next]').click();await page.locator('[name=md-format][value=json]').check();const downloaded=page.waitForEvent('download');await page.locator('[data-md-action=download]').click();const downloadedFile=await downloaded;const exported=JSON.parse(await readFile((await downloadedFile.path())!,'utf8'));expect(exported.demo).toBe(true);
   await switchTo(page,'team-design');await section(page,'files');await expect(page.locator('[data-ws-action="import"]')).toHaveCount(0);
   await page.locator('.ws-team-home-head [data-audio-upload]').click();await page.locator('#audio-upload-input').setInputFiles({name:'team-note.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(exported))});await expect(page.locator('#audio-upload-error')).toContainText('暂不支持');await expect(page.locator('#audio-upload-submit')).toBeDisabled();await page.keyboard.press('Escape');
-  await switchTo(page,'personal');await section(page,'devices');await expect(page.locator('#ws-view')).not.toContainText('我的 Eureka Note');
+  await switchTo(page,'personal');await section(page,'devices');await expect(page.locator('#ws-view')).toContainText('我的 Eureka Note');
 });
 test('incoming team invitation joins as member without changing personal plan',async({page})=>{
   await page.locator('#ws-switcher').click();await action(page,'invites').click();await action(page,'join').click();
@@ -124,4 +123,20 @@ test('manual device form fits a laptop and phone and stores leading zeroes',asyn
   await expect(page.locator('#ws-view')).toContainText('00000474204126010000027');
   await page.setViewportSize({width:1366,height:768});await page.screenshot({path:'/tmp/eureka-manual-device-list.png'});
   await action(page,'register-device').click();await page.screenshot({path:'/tmp/eureka-manual-device-form.png'});
+});
+
+
+test('device binding guide routes to app and shop without changing device ownership',async({page,context})=>{
+  await page.setViewportSize({width:1440,height:900});await switchTo(page,'team-eureka');await section(page,'devices');
+  const snapshot=()=>page.evaluate(()=>JSON.stringify(JSON.parse(localStorage.getItem('eureka:workspaces:v2')!).devices));const before=await snapshot();
+  await action(page,'bind').click();const guide=page.locator('#ws-dialog');await expect(guide).toContainText('已经有设备？');await expect(guide).toContainText('还没有设备？');await expect(guide.locator('select,[type=submit]')).toHaveCount(0);
+  for(const image of await guide.locator('img').all())await expect.poll(()=>image.evaluate(e=>(e as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+  if(process.env.PRD_CAPTURE)await page.screenshot({path:'src/prototype/prd/images/device-binding-guide.png'});
+  for(const [name,url] of [['下载 App','https://eurekamind.ai/download'],['购买设备','https://eurekamind.ai/shop']]){
+    const link=guide.getByRole('link',{name});await expect(link).toHaveAttribute('href',url);await context.route(url,route=>route.fulfill({body:'External destination preview'}));const opened=page.waitForEvent('popup');await link.click();const popup=await opened;await popup.waitForLoadState();expect(popup.url()).toBe(url);await popup.close();expect(await snapshot()).toBe(before);
+  }
+  await page.keyboard.press('Escape');await expect(guide).not.toBeVisible();expect(await snapshot()).toBe(before);
+  await switchTo(page,'personal');await section(page,'devices');await action(page,'bind').click();await expect(guide).toContainText('个人工作空间');await page.keyboard.press('Escape');
+  await page.evaluate(()=>{const k='eureka:workspaces:v2',d=JSON.parse(localStorage.getItem(k)!);d.devices=[];localStorage.setItem(k,JSON.stringify(d));});await page.reload();await section(page,'devices');await action(page,'bind').click();await expect(guide).toContainText('下载 App');await expect(guide.locator('[name=serial]')).toHaveCount(0);
+  await page.setViewportSize({width:390,height:844});await guide.getByRole('link',{name:'购买设备'}).scrollIntoViewIfNeeded();await expect(guide.getByRole('link',{name:'购买设备'})).toBeInViewport({ratio:1});expect(await guide.evaluate(e=>e.scrollWidth-e.clientWidth)).toBeLessThan(2);await page.keyboard.press('Escape');
 });
