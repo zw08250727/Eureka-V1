@@ -15,13 +15,13 @@ test('PRD navigation, safe content, editing, persistence and published baseline 
   await page.locator('#edit-notes').fill('评审通过 · 演示评审人');
   await expect(page.locator('.live-preview')).toContainText('下一账期生效');await expect(page.locator('.live-preview script')).toHaveCount(0);
   await page.locator('[data-editor=save]').click();await expect(page.locator('#save-status')).toContainText('本地修订');
-  await page.reload();await expect(page.locator('#billing h2')).toHaveText('订阅账单 · 已评审');
+  await page.reload();await expect(page.locator('#billing h2')).toHaveText('4.6 订阅账单 · 已评审');
   await expect(page.locator('#billing .review-note')).toContainText('评审通过');
-  await page.locator('#published-view').click();await expect(page.locator('#billing h2')).toHaveText('订阅、席位与账单');
-  await page.locator('#draft-view').click();await expect(page.locator('#billing h2')).toHaveText('订阅账单 · 已评审');
+  await page.locator('#published-view').click();await expect(page.locator('#billing h2')).toHaveText('4.6 订阅、席位与账单');
+  await page.locator('#draft-view').click();await expect(page.locator('#billing h2')).toHaveText('4.6 订阅账单 · 已评审');
   await page.locator('[data-edit=billing]').click();await page.locator('#edit-body').fill('需要放弃的内容');await page.locator('[data-editor=cancel]').click();
   await page.locator('[data-dialog=discard]').click();await expect(page.locator('#billing')).not.toContainText('需要放弃的内容');
-  const other=await context.browser()!.newContext();const clean=await other.newPage();await clean.goto('http://127.0.0.1:3100'+url);await expect(clean.locator('#billing h2')).toHaveText('订阅、席位与账单');await other.close();expect(errors).toEqual([]);
+  const other=await context.browser()!.newContext();const clean=await other.newPage();await clean.goto('http://127.0.0.1:3100'+url);await expect(clean.locator('#billing h2')).toHaveText('4.6 订阅、席位与账单');await other.close();expect(errors).toEqual([]);
 });
 
 test('revision export/import is lossless, invalid input does not modify data and publishing is explicit',async({page})=>{

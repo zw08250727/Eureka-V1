@@ -9,7 +9,30 @@
   function inline(text) {
     return escape(text).replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
   }
-  function markdown(source) {
+  function outline(doc) {
+    const groups=[], counts=new Map();
+    const chinese=['一','二','三','四','五','六','七','八','九','十'];
+    return new Map(doc.sections.map(section=>{
+      const group=section.group.replace(/^\d+\s*[·：:]\s*/, '');
+      if(!groups.includes(group))groups.push(group);
+      const major=groups.indexOf(group)+1, minor=(counts.get(group)||0)+1;
+      counts.set(group,minor);
+      return [section.id,{number:`${major}.${minor}`,group:`${chinese[major-1]||major}：${group}`}];
+    }));
+  }
+  function numberedBody(source,prefix) {
+    let ordinal=0, fenced=false;
+    return source.split('\n').map(line=>{
+      if(line.trim().startsWith('```')){fenced=!fenced;return line;}
+      if(!fenced && /^#{1,4}\s/.test(line.trim())){
+        const title=line.trim().replace(/^#{1,4}\s+/, '').replace(/^\d+(?:\.\d+){2,}\s+/, '');
+        return `### ${prefix}.${++ordinal} ${title}`;
+      }
+      return line;
+    }).join('\n');
+  }
+  function markdown(source,prefix) {
+    if(prefix)source=numberedBody(source,prefix);
     const lines=source.replace(/\r/g,'').split('\n');let out='',i=0;
     const cells=l=>l.trim().replace(/^\||\|$/g,'').split('|').map(s=>s.trim());
     while(i<lines.length){const line=lines[i].trim();
@@ -51,7 +74,7 @@
     const n=working.sections.filter(changed).length, el=$('#save-status');el.classList.toggle('local',!!n&&!publishedView);
     el.textContent=publishedView?'仓库发布版':n?`本地修订 · ${n} 章`:'与发布版一致';
     $('#draft-view').setAttribute('aria-pressed',String(!publishedView));$('#published-view').setAttribute('aria-pressed',String(publishedView));
-    $('#meta-version').textContent=`V${baseline.version} · ${baseline.updatedAt}`;$('#meta-count').textContent=`${baseline.sections.length} 个章节`;
+    $('.nav-intro .version').textContent=`V${baseline.version}`;$('#meta-version').textContent=`V${baseline.version} · ${baseline.updatedAt}`;$('#meta-count').textContent=`${baseline.sections.length} 个章节`;
 
   }
   function notices(){
@@ -63,14 +86,14 @@
     try{if(!editor&&sessionStorage.getItem(PENDING)){const n=document.createElement('div');n.className='notice';n.innerHTML='<span>发现未完成的章节编辑，可继续恢复。</span><button data-global="recover">恢复编辑</button>';host.append(n);}}catch{/* editing still works without storage */}
   }
   function navigation(){
-    const q=$('#search').value.trim().toLowerCase();let group='';
-    const matched=activeDoc().sections.filter(s=>!q||`${s.title} ${s.summary} ${s.body} ${s.reviewNotes}`.toLowerCase().includes(q));
-    $('#navigation').innerHTML=matched.map(s=>{let html='';if(s.group!==group){group=s.group;html=`<div class="nav-group">${escape(group)}</div>`;}const idx=baseline.sections.findIndex(v=>v.id===s.id)+1;return html+`<a class="nav-link" href="#${s.id}"><span>${String(idx).padStart(2,'0')}</span>${escape(s.title)}</a>`;}).join('');
+    const q=$('#search').value.trim().toLowerCase(), entries=outline(activeDoc());let group='';
+    const matched=activeDoc().sections.filter(s=>!q||`${entries.get(s.id).number} ${entries.get(s.id).group} ${s.title} ${s.summary} ${s.body} ${s.reviewNotes}`.toLowerCase().includes(q));
+    $('#navigation').innerHTML=matched.map(s=>{const entry=entries.get(s.id);let html='';if(entry.group!==group){group=entry.group;html=`<div class="nav-group" role="heading" aria-level="2">${escape(group)}</div>`;}return html+`<a class="nav-link" href="#${s.id}"><span>${entry.number}</span>${escape(s.title)}</a>`;}).join('');
     $('#search-info').textContent=q?`${matched.length} 个匹配章节`:`${baseline.sections.length} 个章节 · 点击跳转`;
     highlight(location.hash.slice(1)||'overview');
   }
   function highlight(id){for(const a of document.querySelectorAll('.nav-link')){if(a.hash===`#${id}`)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current');}}
-  function chapter(s,i){return `<article class="chapter" id="${s.id}" aria-labelledby="title-${s.id}"><div class="chapter-header"><div><div class="chapter-overline">${String(i+1).padStart(2,'0')} / ${escape(s.group)}${!publishedView&&changed(s)?'<span class="local-marker">本地修订</span>':''}</div><h2 id="title-${s.id}">${escape(s.title)}</h2></div><div class="chapter-tools"><button data-link="${s.id}" aria-label="复制${escape(s.title)}章节链接">↗ 链接</button><button data-edit="${s.id}">编辑</button></div></div><p class="chapter-summary">${escape(s.summary)}</p><div class="prose">${markdown(s.body)}</div><details class="review-note ${s.reviewNotes?'has-note':''}" ${s.reviewNotes?'open':''}><summary>${s.reviewNotes?'评审记录':'添加评审结论：点击本章「编辑」'}</summary><p>${escape(s.reviewNotes||'尚未填写。建议记录结论、确认人、日期与影响范围。')}</p></details></article>`;}
+  function chapter(s){const entry=outline(activeDoc()).get(s.id);return `<article class="chapter" id="${s.id}" aria-labelledby="title-${s.id}"><div class="chapter-header"><div><div class="chapter-overline">${escape(entry.group)}${!publishedView&&changed(s)?'<span class="local-marker">本地修订</span>':''}</div><h2 id="title-${s.id}"><span class="chapter-number">${entry.number}</span> ${escape(s.title)}</h2></div><div class="chapter-tools"><button data-link="${s.id}" aria-label="复制${escape(s.title)}章节链接">↗ 链接</button><button data-edit="${s.id}">编辑</button></div></div><p class="chapter-summary">${escape(s.summary)}</p><div class="prose">${markdown(s.body,entry.number)}</div><details class="review-note ${s.reviewNotes?'has-note':''}" ${s.reviewNotes?'open':''}><summary>${s.reviewNotes?'评审记录':'添加评审结论：点击本章「编辑」'}</summary><p>${escape(s.reviewNotes||'尚未填写。建议记录结论、确认人、日期与影响范围。')}</p></details></article>`;}
   function render(){
     $('#sections').innerHTML=activeDoc().sections.map(chapter).join('');window.PRDReader.enhance($('#sections'));navigation();status();notices();
     if(observer)observer.disconnect();observer=new IntersectionObserver(followReading,{rootMargin:'-90px 0px -65% 0px',threshold:0});document.querySelectorAll('.chapter').forEach(el=>observer.observe(el));
@@ -93,7 +116,7 @@
   }
   function values(){return {title:$('#edit-title').value.trim(),summary:$('#edit-summary').value.trim(),body:$('#edit-body').value,reviewNotes:$('#edit-notes').value};}
   function pending(){if(!editor)return;try{sessionStorage.setItem(PENDING,JSON.stringify({id:editor.id,values:values(),base:editor.initial,baseDigest:editor.baseDigest}));$('.chapter-edit-status').textContent='未保存输入已暂存，可刷新恢复';}catch{$('.chapter-edit-status').textContent='浏览器无法暂存，请复制或导出后离开';}}
-  function preview(){const v=values();$('.live-preview').innerHTML=`<h3>${escape(v.title)}</h3><p>${escape(v.summary)}</p>${markdown(v.body)}`;pending();}
+  function preview(){const v=values();$('.live-preview').innerHTML=`<h3>${escape(v.title)}</h3><p>${escape(v.summary)}</p>${markdown(v.body,outline(working).get(editor.id).number)}`;pending();}
   function finishEditor(){editor=null;try{sessionStorage.removeItem(PENDING);}catch{}render();}
   function edit(id,recovered){
     window.PRDReader.close();
@@ -123,7 +146,7 @@
     dialog('将修订发布给所有人',`<p>当前站点是静态网站。以下操作通过 GitHub 提交文档，<strong>部署成功后</strong>才会对所有访问者生效。</p><ol class="publish-steps"><li>复制完整发布内容，或下载 content.json。</li><li>用有仓库权限的账号打开 GitHub 编辑页，全选替换文件内容。</li><li>提交到 develop；受保护时创建分支和 PR，合入后触发部署。</li><li>在 Actions 确认 Pages 成功，刷新本页并切到「仓库发布版」核对版本。</li></ol><div class="dialog-callout">不会向浏览器索取或存储 GitHub Token。没有写权限时，将导出的修订交给仓库维护者。复制内容不等于已发布。</div><p class="dialog-code">src/prototype/prd/content.json<br>待发布版本：${escape(doc.revision)}</p><div class="dialog-actions"><button id="copy-publish" class="primary">1. 复制发布内容</button><a href="https://github.com/zw08250727/Eureka-V1/edit/develop/src/prototype/prd/content.json" target="_blank" rel="noopener">2. 打开 GitHub 编辑页 ↗</a><button id="download-publish">下载 content.json</button><a href="https://github.com/zw08250727/Eureka-V1/actions/workflows/pages.yml" target="_blank" rel="noopener">查看部署状态 ↗</a></div>`);
     $('#copy-publish').onclick=()=>copy(payload);$('#download-publish').onclick=()=>download('content.json',payload,'application/json');
   });}
-  function exportMenu(){dialog('导出需求文档','<p>导出当前工作稿，包含本地修订和评审记录。编辑未保存时，JSON 也会包含当前输入。</p><div class="dialog-actions"><button id="export-json" class="primary">修订 JSON</button><button id="export-md">阅读版 Markdown</button></div>');$('#export-json').onclick=()=>{download('eurekamind-prd-revision.json',JSON.stringify(exportDoc(true),null,2),'application/json');closeDialog();};$('#export-md').onclick=()=>{const d=exportDoc(true);download('EurekaMind-产品需求文档.md',`# ${d.title}\n\n版本 ${d.version} · ${d.revision}\n\n`+d.sections.map((s,i)=>`## ${String(i+1).padStart(2,'0')} ${s.title}\n\n${s.summary}\n\n${s.body}${s.reviewNotes?'\n\n### 评审记录\n\n'+s.reviewNotes:''}`).join('\n\n---\n\n'),'text/markdown;charset=utf-8');closeDialog();};}
+  function exportMenu(){dialog('导出需求文档','<p>导出当前工作稿，包含本地修订和评审记录。编辑未保存时，JSON 也会包含当前输入。</p><div class="dialog-actions"><button id="export-json" class="primary">修订 JSON</button><button id="export-md">阅读版 Markdown</button></div>');$('#export-json').onclick=()=>{download('eurekamind-prd-revision.json',JSON.stringify(exportDoc(true),null,2),'application/json');closeDialog();};$('#export-md').onclick=()=>{const d=exportDoc(true);download('EurekaMind-产品需求文档.md',`# ${d.title}\n\n版本 ${d.version} · ${d.revision}\n\n`+d.sections.map((s,i)=>{const entry=outline(d).get(s.id),previous=i?outline(d).get(d.sections[i-1].id):null;return `${previous?.group===entry.group?'':`## ${entry.group}\n\n`}### ${entry.number} ${s.title}\n\n${s.summary}\n\n${numberedBody(s.body,entry.number).replace(/^### /gm,'#### ')}${s.reviewNotes?'\n\n评审记录\n\n'+s.reviewNotes:''}`;}).join('\n\n---\n\n'),'text/markdown;charset=utf-8');closeDialog();};}
   async function importFile(file){
     try{if(!file)return;if(file.size>2000000)throw Error('文件超过 2 MB，请检查是否为 PRD 修订 JSON。');imported=valid(JSON.parse(await file.text()));const count=imported.sections.filter((s,i)=>JSON.stringify(s)!==JSON.stringify(working.sections[i])).length;
       dialog('导入修订预览',`<p>文件：${escape(file.name)}</p><p>${imported.sections.length} 个章节，${count} 个章节与当前工作稿不同。导入会替换当前本地稿，<strong>不会修改仓库发布版</strong>。</p><p class="dialog-callout">请先导出重要修订。${imported.revision!==baseline.revision?'该文件版本与当前发布版不同，导入后需对照并确认合并。':'当前结构与发布版一致。'}</p><div class="dialog-actions"><button data-dialog="close">取消</button><button id="confirm-import" class="primary">确认导入为本地稿</button></div>`);

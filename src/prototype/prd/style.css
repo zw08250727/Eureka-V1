@@ -21,3 +21,17 @@
 @media(max-width:1199px){#reference-panel{inset:12px 12px 12px auto;width:min(760px,calc(100vw - 24px));height:calc(100dvh - 24px);z-index:60}}
 @media(max-width:600px){.prose .rule-illustration{width:100%;margin-right:0}.chapter{padding:22px 18px}.prose{font-size:13px}.prose table{font-size:12px}.reference-controls{gap:6px;padding:10px}.reference-controls a{font-size:11px}.reference-canvas{padding:8px}#reference-panel footer{align-items:flex-start;flex-direction:column}.rule-block{padding:18px 0}}
 @media print{.reference-open #document{margin:0;padding:0}#reference-panel{display:none!important}.rule-selected{outline:0;background:none}.rule-block{border:0;padding:12px 0}.prose .rule-illustration{display:block;width:100%;margin:15px 0}.rule-image-button{display:block;border:0;padding:0;background:none}.rule-image-button span{display:none}.prose .rule-image-button img{width:100%;height:auto;max-height:210mm;object-fit:contain}.rule-illustration figcaption{display:block}.prose{font-size:10pt}.prose table{font-size:8pt}}
+
+/* Hierarchical outline and compact diagrams; numbering is shared with Markdown export. */
+.nav-group{font-size:12px;color:#536b85;letter-spacing:0;margin-top:20px}
+.nav-link span{min-width:29px;font-size:11px;flex-shrink:0}
+.chapter-number{font-variant-numeric:tabular-nums;color:#6d86a0;margin-right:4px}
+.rule-block>h3{font-variant-numeric:tabular-nums;font-size:15px;line-height:1.65}
+.prose li{margin:5px 0}.prose ul,.prose ol{margin:10px 0}
+.prose .flow-figure{width:100%;max-width:720px;margin:14px 0}
+#journeys .flow-figure{max-width:620px}
+.flow-svg{width:100%;min-width:620px}
+.flow-node text{font-size:17px}.flow-edge-label{font-size:14px}
+.flow-scroll{border-radius:7px}
+@media(max-width:600px){.chapter-header{flex-wrap:wrap}.chapter h2{font-size:19px}.rule-block>h3{font-size:14px}}
+@media print{.flow-svg{min-width:0}.prose .flow-figure,#journeys .flow-figure{max-width:155mm}}
