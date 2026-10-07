@@ -11,6 +11,12 @@ npm run dev
 
 访问 <http://localhost:3000>，进入登录 / 注册演示；完成后直接进入个人工作台首页，无用途问卷或信息收集步骤。
 
+## React 迁移试点
+
+`codex/next-workbench-migration` 分支提供 `/workbench/` 原生 React 个人首页，使用 Next.js + TypeScript + Tailwind CSS。运行 `npm run dev` 后访问 <http://localhost:3000/workbench/>。根入口和 PRD 原地址仍保持可用。
+
+基线版本为 `prototype-baseline-20261007`。组件、数据兼容、验收及后续逐页迁移说明见 [React 迁移记录](docs/react-migration.md)。
+
 ## 质量检查
 
 ```bash
