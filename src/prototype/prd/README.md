@@ -1,12 +1,12 @@
 # EurekaMind PRD 内容维护
 
-本目录由 `prepare-prototype.mjs` 拷贝到静态站，访问 `/prototype/prd/index.html`，不依赖额外后端或 CDN。目前共 34 章，版本切换、打印 / PDF、导入、导出和发布位于顶栏。
+本目录由 `prepare-prototype.mjs` 拷贝到静态站，访问 `/prototype/prd/index.html`，不依赖额外后端或 CDN。目前共 35 章，版本切换、打印 / PDF、导入、导出和发布位于顶栏。
 
 ## 数据格式
 
 `content.json` 是发布内容源，schemaVersion=1、documentId 固定。每章包含稳定锚点 id、title、group、summary、body 和纯文本 reviewNotes。正文支持标题、表格、列表、粗体、行内代码、引用、本目录 images 图片和 flow 流程图；原始 HTML 不执行。
 
-每次发布更新 revision。编辑器比较完整发布内容摘要，避免旧本地稿静默覆盖新基线。网页编辑不增删章节；结构变化由仓库维护。旧 37 章稿件读取时只隐藏已撤下的 evidence、reference、review 三章，保留其他章节修改和原存储；再次保存生成 34 章版本。其他结构不匹配的导入仍拒绝。
+每次发布更新 revision。编辑器比较完整发布内容摘要，避免旧本地稿静默覆盖新基线。网页编辑不增删章节；结构变化由仓库维护。旧稿移除已撤下的 evidence、reference、review 三章后，若剩余结构与当前版一致，可保留其他章节修改和原存储。缺少个人订阅章节的 34 / 37 章旧稿，需要先通过仓库合并结构变化再导入；不会静默覆盖或丢弃旧章节内容。
 
 ## 编辑、备份和发布
 
@@ -28,7 +28,7 @@ PRD_ILLUSTRATIONS=1 PLAYWRIGHT_CHANNEL=chrome npm run test:e2e -- tests/e2e/prd-
 npm run build
 ```
 
-`PRD_CAPTURE=1` 仅用于显式刷新 prd-review.spec.ts 的概览截图。参考 PDF 不复制到公共站点。
+`PRD_CAPTURE=1` 用于显式刷新相应功能测试内的截图；使用测试文件及 `-g` 限定范围，避免覆盖无关配图。参考 PDF 不复制到公共站点。
 
 ## 流程图
 

@@ -161,3 +161,26 @@ test('space chooser shows active team counts and keeps account actions only in M
   await action(page,'member-remove','alice').click();await action(page,'confirm').click();await expect(page.locator('#ws-switcher')).toContainText('3 位成员');await page.reload();await expect(page.locator('#ws-switcher')).toContainText('3 位成员');
   await switchTo(page,'team-design');await expect(page.locator('#ws-switcher')).toContainText('2 位成员');await switchTo(page,'personal');await expect(page.locator('#ws-switcher')).not.toContainText('位成员');
 });
+
+
+test('workspace popup invites members into current team with capacity and role guards',async({page})=>{
+  await page.setViewportSize({width:1440,height:1000});
+  const menu=page.locator('#ws-menu'), dialog=page.locator('#ws-dialog');
+  await page.locator('#ws-switcher').click();await expect(menu.locator('[data-ws-action=invite]')).toHaveCount(0);await page.keyboard.press('Escape');
+  await switchTo(page,'team-design');await page.locator('#ws-switcher').click();await expect(menu.locator('[data-ws-action=invite]')).toHaveCount(0);await page.keyboard.press('Escape');
+  await switchTo(page,'team-eureka');await page.locator('#ws-switcher').click();
+  await menu.getByRole('button',{name:'邀请空间成员',exact:true}).click();
+  await expect(menu).toBeHidden();await expect(page.locator('#ws-switcher')).toHaveAttribute('aria-expanded','false');
+  await expect(dialog).toContainText('邀请加入 EurekaMind 产品团队');await expect(dialog).toContainText('当前可邀请 2 位伙伴');
+  if(process.env.PRD_CAPTURE){await expect(page.locator('#ws-toast')).toBeHidden();await page.screenshot({path:'src/prototype/prd/images/member-invite.png'});}
+  const emails=dialog.locator('[name=emails]');
+  await emails.fill('one@example.com,two@example.com,three@example.com');await dialog.getByRole('button',{name:'发送模拟邀请'}).click();
+  await expect(dialog.locator('.ws-form-error')).toContainText('席位');await expect(emails).toHaveValue('one@example.com,two@example.com,three@example.com');
+  await emails.fill('newcolleague@example.com');await dialog.locator('[name=role]').selectOption('admin');await dialog.getByRole('button',{name:'发送模拟邀请'}).click();
+  const member=page.locator('#ws-view tr').filter({hasText:'newcolleague@example.com'});
+  await expect(member).toContainText('管理员');await expect(member).toContainText('待接受');await expect(page.locator('#ws-switcher')).toContainText('3 位成员');
+  await member.locator('[data-ws-action=member-accept]').click();await expect(page.locator('#ws-switcher')).toContainText('4 位成员');
+  await page.reload();await expect(page.locator('#ws-switcher')).toContainText('4 位成员');await action(page,'page','members').click();await expect(member).toContainText('已加入');
+  await page.locator('#ws-switcher').click();await menu.getByRole('button',{name:'邀请空间成员',exact:true}).click();await dialog.getByRole('button',{name:'增加席位',exact:true}).click();await expect(dialog).toBeHidden();await expect(page.locator('#ws-view')).toContainText('订阅与席位');
+  await action(page,'expire').click();await action(page,'confirm').click();await page.locator('#ws-switcher').click();await menu.getByRole('button',{name:'邀请空间成员',exact:true}).click();await expect(dialog).toBeHidden();await expect(page.locator('#ws-toast')).toContainText('只读');
+});
