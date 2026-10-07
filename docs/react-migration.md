@@ -70,3 +70,16 @@ DEPLOYMENT_URL=https://zw08250727.github.io/Eureka-V1 PLAYWRIGHT_CHANNEL=chrome 
 ## 发布与回退
 
 静态导出启用 `trailingSlash`，统一通过 `NEXT_PUBLIC_BASE_PATH` 生成业务路由与资源 URL。发布后验证根入口、原生工作台、PRD 和原型基线四类入口。回退可恢复基线标签对应的 `develop` 内容再运行现有 Pages 工作流；用户浏览器中的个人数据不在发布中清空。
+
+## 迁移后迭代：登录注册界面（2026-10-07）
+
+- 原生 `/` 入口调整左侧布局：品牌左上、表单居中，主操作位于协议上方；复用现有 Button、Icon、品牌素材及字体与蓝绿配色。`auth.css` 样式限制在认证页内，避免影响工作台。
+- 右侧三个场景覆盖 Personal、Team 和 Agent；6 秒轮播，支持手动选择与暂停，悬停、键盘聚焦及后台时暂停。960px 及以下隐藏展示并停止轮播；减少动态效果时关闭动画与自动切换。
+- 原有模拟邮箱 / Google / Apple 入口、协议校验、验证码校验、直接进入个人首页保持；修改邮箱后可以重新获取演示验证码。真实认证、邮件与 OAuth 未接入。
+- PRD 更新为 `prd-20261007-41`，同步认证章节、范围引用、AC-01 和三张实测配图，章节锚点及 PRD URL 保持。
+- 冻结原型认证页保持基线；新版认证页不再参与原型逐像素相等比较，`check-ui-parity.cjs` 移除两个认证对比场景，其余工作台场景保持。认证改用 `auth-entry.spec.ts` 的行为、动效和响应式截图验证。
+- 截图覆盖登录 / 注册的 1440×1000、1024×768、768×1024、390×844、320×568；短屏允许纵向滚动。输出在 `test-results/auth/`，PRD 截图在 `src/prototype/prd/images/auth*.png`。
+- 配图更新命令：`PRD_CAPTURE=1 PLAYWRIGHT_CHANNEL=chrome npm run test:e2e -- tests/e2e/auth-entry.spec.ts --workers=2`，截图后重新构建使 PRD 产物包含新图。
+- 实测结果：`npm run check`、`npm run build` 均通过；认证、PRD 大纲/编辑/配图与原生工作台迁移回归共 41 项通过、1 项显式批量截图任务按配置跳过。登录/注册五种尺寸共 10 张截图及三个桌面场景已人工视觉检查，无横向溢出。
+- 按后续确认移除表单底部模拟账号说明，收紧注册引导上方的空状态间距；演示服务边界仍在 PRD 中保留。
+- 发布通过功能分支 CI、合入 `develop` 与现有 Pages 流程完成；实际发布状态以工作流结果与线上验证为准。

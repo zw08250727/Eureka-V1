@@ -1,6 +1,9 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-import { appUrl } from "@/lib/routes";
+import { Button } from "@/components/ui/button";
+import { AuthShowcase } from "./auth-showcase";
+import Image from "next/image";
+import { appUrl, assetUrl } from "@/lib/routes";
 import "./auth.css";
 export function Auth() {
   const [mode, setMode] = useState("login"),
@@ -42,6 +45,20 @@ export function Auth() {
   return (
     <main className="auth">
       <section className="auth-form">
+        <div className="brand">
+          <Image
+            className="mark"
+            src={assetUrl("eurekamind-logo.png")}
+            alt=""
+            width={36}
+            height={36}
+            unoptimized
+          />
+          <div>
+            <strong>EurekaMind</strong>
+            <small>Personal & Team</small>
+          </div>
+        </div>
         <form
           id="auth-form"
           className="form"
@@ -52,38 +69,59 @@ export function Auth() {
             enter();
           }}
         >
-          <div className="brand">
-            <span className="mark">e·</span>
-            <div>
-              <strong>EurekaMind</strong>
-              <small>Personal workspace</small>
-            </div>
-          </div>
           <h1>{login ? "欢迎回来" : "创建你的账号"}</h1>
           <p className="desc">
             {login
-              ? "使用你的 EurekaMind 账号进入个人工作台。"
-              : "注册后即可进入个人工作台。"}
+              ? "一个账号，连接个人灵感与团队协作。"
+              : "从一个想法开始，与团队一起向前。"}
           </p>
           <div className="oauth">
-            <button
+            <Button
               id="google"
               type="button"
               disabled={busy}
               onClick={() => enter(true)}
             >
-              <span className="oauth-mark google">G</span>
+              <svg
+                className="oauth-mark"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  fill="#4285F4"
+                  d="M21.6 12.23c0-.71-.06-1.39-.18-2.05H12v3.88h5.38a4.6 4.6 0 0 1-2 3.02v2.51h3.24c1.9-1.75 2.98-4.33 2.98-7.36Z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 22c2.7 0 4.96-.9 6.62-2.41l-3.24-2.51c-.9.6-2.04.97-3.38.97-2.6 0-4.8-1.76-5.59-4.13H3.07v2.59A10 10 0 0 0 12 22Z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M6.41 13.92a6 6 0 0 1 0-3.84V7.49H3.07a10 10 0 0 0 0 9.02l3.34-2.59Z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 5.95c1.47 0 2.79.51 3.82 1.51l2.87-2.87A9.61 9.61 0 0 0 12 2a10 10 0 0 0-8.93 5.49l3.34 2.59C7.2 7.71 9.4 5.95 12 5.95Z"
+                />
+              </svg>
               {login ? "使用 Google 登录" : "使用 Google 注册"}
-            </button>
-            <button
+            </Button>
+            <Button
               id="apple"
               type="button"
               disabled={busy}
               onClick={() => enter(true)}
             >
-              <span className="oauth-mark apple">●</span>
+              <svg
+                className="oauth-mark"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path d="M16.7 1.4c.1 1.3-.4 2.6-1.2 3.5-.8.9-2 1.5-3.2 1.4-.2-1.2.4-2.5 1.1-3.3.8-.9 2.1-1.6 3.3-1.6ZM20.9 17.6c-.5 1.2-.8 1.8-1.5 2.8-.9 1.3-2.2 2.9-3.7 2.9-1.3 0-1.7-.8-3.5-.8s-2.2.8-3.5.8c-1.5 0-2.8-1.5-3.7-2.8C2.5 16.9 1.8 12 3.4 9.3a5.3 5.3 0 0 1 4.3-2.6c1.4 0 2.3.8 3.5.8 1.1 0 1.9-.8 3.5-.8 1.4 0 2.8.8 3.6 1.8-3.2 1.8-2.7 6.5.6 7.8l2 1.3Z" />
+              </svg>
               {login ? "使用 Apple 登录" : "使用 Apple 注册"}
-            </button>
+            </Button>
           </div>
           <div className="divider">
             <span>或使用邮箱</span>
@@ -98,7 +136,10 @@ export function Auth() {
             type="email"
             autoComplete="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setSent(false);
+            }}
           />
           <label className="label" htmlFor="code">
             验证码
@@ -110,10 +151,11 @@ export function Auth() {
               placeholder="请输入 6 位验证码"
               inputMode="numeric"
               autoComplete="one-time-code"
+              maxLength={6}
               value={code}
               onChange={(e) => setCode(e.target.value)}
             />
-            <button
+            <Button
               className="plain"
               id="send"
               type="button"
@@ -128,8 +170,16 @@ export function Auth() {
               }}
             >
               {sent ? "已发送" : "获取验证码"}
-            </button>
+            </Button>
           </div>
+          <Button id="submit" className="primary" type="submit" disabled={busy}>
+            {busy
+              ? "正在进入首页…"
+              : login
+                ? "登录并进入首页"
+                : "注册并进入首页"}
+          </Button>
+          <p className="auth-entry-note">登录后可创建或加入 Team 工作空间。</p>
           <label className="check">
             <input
               id="terms"
@@ -167,22 +217,12 @@ export function Auth() {
             <input id="updates" type="checkbox" defaultChecked />
             <span>接收 EurekaMind 产品更新与服务通知。</span>
           </label>
-          <button id="submit" className="primary" type="submit" disabled={busy}>
-            {busy
-              ? "正在进入首页…"
-              : login
-                ? "登录并进入首页"
-                : "注册并进入首页"}
-          </button>
-          <p className="auth-demo">
-            交互演示：邮箱与第三方登录均使用模拟账号。
-          </p>
           <div id="status" className="status" role="status" aria-live="polite">
             {status}
           </div>
           <div className="switch">
             {login ? "还没有账号？" : "已有账号？"}{" "}
-            <button
+            <Button
               type="button"
               onClick={() => {
                 setMode(login ? "register" : "login");
@@ -194,56 +234,11 @@ export function Auth() {
               }}
             >
               {login ? "立即注册" : "返回登录"}
-            </button>
+            </Button>
           </div>
         </form>
       </section>
-      <section className="auth-visual">
-        <div className="visual-inner">
-          <span className="visual-kicker">
-            <i /> EurekaMind Personal workspace
-          </span>
-          <h2>
-            把每一次交流，
-            <br />
-            变成个人知识资产。
-          </h2>
-          <p>
-            记录会议、沉淀闪念、协作跟进，在同一个空间里把想法推进到下一步。
-          </p>
-          <div className="workspace-preview">
-            <div className="preview-top">
-              <span className="preview-dot" />
-              个人 AI 工作台
-            </div>
-            <div className="preview-grid">
-              <div className="preview-side">
-                {["首页", "开始录音", "联系人"].map((t, i) => (
-                  <div
-                    key={t}
-                    className={"preview-nav " + (!i ? "active" : "")}
-                  >
-                    {t}
-                  </div>
-                ))}
-              </div>
-              <div className="preview-main">
-                <div className="preview-card">
-                  <strong>我的会议</strong>
-                  <span>管理录音、转写、纪要和待办</span>
-                </div>
-                <div className="preview-card">
-                  <strong>Ask Agent</strong>
-                  <span>围绕当前页面继续工作</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="visual-footer">
-          登录后进入个人工作台 · 记录会议与整理知识
-        </div>
-      </section>
+      <AuthShowcase />
     </main>
   );
 }

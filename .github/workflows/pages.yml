@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       skip_browser_acceptance:
-        description: Skip browser acceptance for a verified metadata-only update
+        description: Skip browser acceptance for an explicitly requested release
         type: boolean
         default: false
 
