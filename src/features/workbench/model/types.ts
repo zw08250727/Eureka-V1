@@ -21,7 +21,14 @@ export interface ActionState {
   version: number;
   records: ActionRecord[];
   meetings: { id: string; title: string; created: string; seconds: number }[];
-  sessions: unknown[];
+  sessions: {
+    id: string;
+    prompt?: string;
+    recordId?: string;
+    draft?: unknown;
+    created?: string;
+    [key: string]: unknown;
+  }[];
   settings: Record<string, unknown>;
   calendarDemoVersion?: number;
 }
@@ -34,6 +41,10 @@ export interface ThoughtRecord {
   detail: string;
   amount?: number;
   direction?: string;
+  revision?: number;
+  source?: string;
+  capture?: string;
+  updated?: string;
 }
 export interface Meeting {
   id: string;
@@ -76,12 +87,21 @@ export interface WorkbenchSnapshot {
 }
 export interface WorkbenchRepository {
   load(): Promise<WorkbenchSnapshot>;
+  setMeetingTag(id: string, tag: string): Promise<WorkbenchSnapshot>;
   toggleTodo(id: string): Promise<WorkbenchSnapshot>;
   setUploadDeleted(id: string, deleted: boolean): Promise<WorkbenchSnapshot>;
   purgeUpload(id: string): Promise<WorkbenchSnapshot>;
   upload(file: Pick<File, "name" | "size">): Promise<WorkbenchSnapshot>;
 }
 export interface AgentContext {
+  widget?: "brief" | "thoughts";
+  records?: {
+    title: string;
+    time: string;
+    date?: string;
+    detail: string;
+    done?: boolean;
+  }[];
   kind: "page" | "daily";
   title: string;
   lines: string[];
@@ -95,7 +115,12 @@ export interface AgentGateway {
   send(
     prompt: string,
     context: AgentContext,
-    options: { web: boolean; audio: boolean; apps: boolean },
+    options: {
+      web: boolean;
+      audio: boolean;
+      apps: boolean;
+      fileIds?: string[];
+    },
     signal: AbortSignal,
   ): Promise<AgentReply>;
 }

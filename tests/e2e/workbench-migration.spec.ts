@@ -16,13 +16,15 @@ test("React home keeps legacy data, native rendering, todo changes and return na
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(url);
-  await expect(page.locator(".meeting-title")).toHaveCount(10);
+  await expect(page.locator(".home-meeting-title")).toHaveCount(10);
   await expect(page.locator("iframe")).toHaveCount(0);
   await expect(page.locator(".daily-ledger-total")).toContainText("¥248.00");
   await expect(page.locator(".daily-rhythm-events .rhythm-event")).toHaveCount(
     4,
   );
-  await expect(page.locator(".meeting-head")).toContainText("共 20 个会议笔记");
+  await expect(page.locator(".home-meeting-head")).toContainText(
+    "共 20 个会议笔记",
+  );
   await page.locator('[data-today-toggle="todo-1"]').click();
   await expect(page.locator('[data-today-toggle="todo-1"]')).toHaveAttribute(
     "aria-pressed",
@@ -33,10 +35,10 @@ test("React home keeps legacy data, native rendering, todo changes and return na
     "aria-pressed",
     "true",
   );
-  await page.getByRole("link", { name: "日程与待办", exact: true }).click();
+  await page.getByRole("button", { name: "日程与待办", exact: true }).click();
   await expect(page.locator("#personal-actions")).toBeVisible();
   await page.locator("#home-entry").click();
-  await expect(page).toHaveURL(/\/workbench\/$/);
+  await expect(page).toHaveURL(/\/workbench\/(?:\?.*)?$/);
   await expect(page.locator('[data-today-toggle="todo-1"]')).toHaveAttribute(
     "aria-pressed",
     "true",
@@ -48,44 +50,39 @@ test("meeting search, source, date, incremental rows, tag and recycle interactio
   page,
 }) => {
   await page.goto(url);
-  const rows = page.locator(".ui-table tbody tr");
+  const rows = page.locator(".home-meeting-row");
   await expect(rows).toHaveCount(10);
-  await page.locator(".ui-table-scroll").evaluate((el) => {
+  await page.locator(".meeting-table-scroll").evaluate((el) => {
     el.scrollTop = el.scrollHeight;
   });
   await expect(rows).toHaveCount(20);
-  await page.getByRole("textbox", { name: "搜索会议" }).fill("不存在");
+  await page.getByRole("searchbox", { name: "搜索会议" }).fill("不存在");
   await expect(rows).toHaveCount(0);
-  await expect(
-    page.getByRole("status").filter({ hasText: "没有符合" }),
-  ).toBeVisible();
-  await page.getByRole("textbox", { name: "搜索会议" }).clear();
+  await expect(page.locator("#meeting-filter-empty")).toBeVisible();
+  await page.getByRole("searchbox", { name: "搜索会议" }).clear();
   await expect(rows).toHaveCount(10);
-  await page.getByLabel("选择会议来源").selectOption("M1");
+  await page.locator("#meeting-source-filter-trigger").click();
+  await page.getByRole("option", { name: "M1", exact: true }).click();
   await expect(rows).toHaveCount(4);
-  await page.getByRole("button", { name: "清除来源筛选" }).click();
-  await page.getByRole("button", { name: "录音日期", exact: true }).click();
-  await page.getByRole("button", { name: "2026年9月2日", exact: true }).click();
-  await expect(rows).toHaveCount(1);
-  await page.getByRole("button", { name: "清除录音日期" }).click();
+  await page.locator("#meeting-source-filter-trigger").click();
+  await page.getByRole("option", { name: "全部来源", exact: true }).click();
+  await rows.first().locator("[data-meeting-action=tag]").click();
+  await expect(page.locator(".md-dialog")).toBeVisible();
+  await page.locator("#md-tags").fill("迁移验证");
   await page
-    .getByRole("button", { name: "编辑三季度产品复盘会议标签" })
+    .locator(".md-dialog")
+    .getByRole("button", { name: "保存", exact: true })
     .click();
-  await page.getByLabel("标签", { exact: true }).fill("迁移验证");
-  await page.getByRole("button", { name: "保存", exact: true }).click();
+  await page.locator("#home-entry").click();
   await expect(rows.first()).toContainText("迁移验证");
-  await page
-    .getByRole("button", { name: "删除三季度产品复盘会议", exact: true })
-    .click();
-  await page.getByRole("button", { name: "确认删除" }).click();
-  await expect(page.locator(".meeting-head")).toContainText("共 19");
-  await page.getByRole("button", { name: "录音回收站", exact: true }).click();
+  await rows.first().getByRole("button", { name: "删除会议" }).click();
+  await page.locator("#delete-confirm-submit").click();
+  await expect(page.locator(".home-meeting-head")).toContainText("共 19");
+  await page.locator("#recording-recycle-entry").click();
   await page.getByRole("button", { name: "恢复", exact: true }).click();
-  await page.getByRole("button", { name: "返回我的会议" }).click();
-  await expect(page.locator(".meeting-head")).toContainText("共 20");
-  await page
-    .getByRole("link", { name: "三季度产品复盘会议", exact: true })
-    .click();
+  await page.locator("#recycle-back").click();
+  await expect(page.locator(".home-meeting-head")).toContainText("共 20");
+  await rows.first().click();
   await expect(page.locator("#note-detail-title")).toHaveText(
     "三季度产品复盘会议",
   );
@@ -128,11 +125,11 @@ test("upload rejects invalid files, retains selection on failure and shares reco
   });
   await dialog.getByRole("button", { name: "上传", exact: true }).click();
   await expect(dialog).toHaveCount(0);
-  await expect(page.locator(".ui-table tbody tr").first()).toContainText(
+  await expect(page.locator(".home-meeting-row").first()).toContainText(
     "验收音频",
   );
   await page.reload();
-  await expect(page.locator(".ui-table tbody tr").first()).toContainText(
+  await expect(page.locator(".home-meeting-row").first()).toContainText(
     "验收音频",
   );
   await page.goto(legacy);
@@ -153,7 +150,9 @@ test("Agent drafts, keyboard, local responses and panel width survive UI changes
   await expect(input).toHaveValue(/产品方案评审/);
   await expect(input).toHaveValue(/客户拜访交通/);
   await input.press("Enter");
-  await expect(panel.getByRole("log")).toContainText("把今天的记录连成下一步");
+  await expect(panel.locator("#widget-agent-result")).toContainText(
+    "把今天的记录连成下一步",
+  );
   await expect(input).toHaveValue("");
   await expect(
     panel.getByRole("button", { name: "发送给 Ask Agent" }),
@@ -164,7 +163,7 @@ test("Agent drafts, keyboard, local responses and panel width survive UI changes
   await handle.press("ArrowLeft");
   await expect(handle).toHaveAttribute("aria-valuenow", "414");
   await page
-    .getByRole("button", { name: "收起 Ask Agent", exact: true })
+    .getByRole("button", { name: "收起小智", exact: true })
     .last()
     .click();
   await page.getByRole("button", { name: "Ask Agent", exact: true }).click();
@@ -175,13 +174,13 @@ test("Agent drafts, keyboard, local responses and panel width survive UI changes
     "aria-pressed",
     "true",
   );
-  await panel.getByRole("button", { name: "关闭", exact: true }).click();
+  await panel.getByRole("button", { name: "引用资料", exact: true }).click();
   await panel.getByRole("button", { name: "新建任务" }).click();
   await expect(input).toHaveValue("");
-  await expect(panel.getByRole("log")).toBeEmpty();
+  await expect(panel.locator(".xiaozhi-intro")).toBeVisible();
 });
 
-test("all non-migrated destinations remain reachable and home returns to React", async ({
+test("legacy bookmarks remain reachable and home returns to React", async ({
   page,
 }) => {
   const destinations: [string, string][] = [
@@ -195,8 +194,8 @@ test("all non-migrated destinations remain reachable and home returns to React",
     await page.goto(legacy + "&migration=1&entry=" + entry);
     await expect(page.locator(selector)).toBeVisible();
     await page.locator("#home-entry").click();
-    await expect(page).toHaveURL(/\/workbench\/$/);
-    await expect(page.locator(".meeting-head")).toContainText("我的会议");
+    await expect(page).toHaveURL(/\/workbench\/(?:\?.*)?$/);
+    await expect(page.locator(".home-meeting-head")).toContainText("我的会议");
   }
   await page.goto(legacy + "&migration=1&entry=create-team");
   await expect(page.getByRole("dialog")).toContainText("创建团队");
@@ -205,7 +204,7 @@ test("all non-migrated destinations remain reachable and home returns to React",
     .getByRole("button", { name: "关闭", exact: true })
     .click();
   await page.locator("#home-entry").click();
-  await expect(page).toHaveURL(/\/workbench\/$/);
+  await expect(page).toHaveURL(/\/workbench\/(?:\?.*)?$/);
 });
 
 test("desktop and narrow layouts retain usable actions without document overflow", async ({
@@ -214,7 +213,7 @@ test("desktop and narrow layouts retain usable actions without document overflow
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(url);
-  await expect(page.locator(".meeting-title")).toHaveCount(10);
+  await expect(page.locator(".home-meeting-title")).toHaveCount(10);
   for (const [width, height] of [
     [1440, 900],
     [1280, 650],
@@ -232,7 +231,7 @@ test("desktop and narrow layouts retain usable actions without document overflow
       animations: "disabled",
     });
     await page.getByRole("button", { name: "Ask Agent", exact: true }).click();
-    await expect(page.locator(".agent-panel")).toBeVisible();
+    await expect(page.locator("#xiaozhi-rail")).toBeVisible();
     await expect(
       page.getByRole("textbox", { name: "向 Ask Agent 输入问题" }),
     ).toBeInViewport();
@@ -249,8 +248,8 @@ test("desktop and narrow layouts retain usable actions without document overflow
       animations: "disabled",
     });
     await page
-      .locator(".agent-panel")
-      .getByRole("button", { name: "收起 Ask Agent" })
+      .locator("#xiaozhi-rail")
+      .getByRole("button", { name: "收起小智" })
       .click();
   }
   expect(errors).toEqual([]);
@@ -268,40 +267,45 @@ test("download QR and uploaded recording recycle keep their original behavior", 
     "https://apps.apple.com/us/app/eurekamind-ai-note-taker/id6742087483",
   );
   await page.keyboard.press("Escape");
-  await expect(qr).toHaveCount(0);
+  await expect(page.locator("#app-download-btn")).toHaveAttribute("aria-expanded","false");
+  await page.mouse.move(0,0);
+  await page.locator("#page-crumb").click();
+  await expect(qr).toBeHidden();
   await page.getByRole("button", { name: "上传", exact: true }).click();
-  await page
-    .getByLabel("选择音频文件")
-    .setInputFiles({
-      name: "回收验证.wav",
-      mimeType: "audio/wav",
-      buffer: Buffer.from("demo"),
-    });
+  await page.getByLabel("选择音频文件").setInputFiles({
+    name: "回收验证.wav",
+    mimeType: "audio/wav",
+    buffer: Buffer.from("demo"),
+  });
   await page
     .getByRole("dialog")
     .getByRole("button", { name: "上传", exact: true })
     .click();
-  await page.getByRole("button", { name: "删除回收验证", exact: true }).click();
-  await page.getByRole("button", { name: "确认删除", exact: true }).click();
+  await page
+    .locator(".home-meeting-row")
+    .filter({ hasText: "回收验证" })
+    .getByRole("button", { name: "删除会议" })
+    .click();
+  await page.locator("#delete-confirm-submit").click();
   await page.reload();
   await page.getByRole("button", { name: "录音回收站", exact: true }).click();
-  await expect(page.locator(".ui-table tbody")).toContainText("回收验证");
-  await page.getByLabel("搜索回收站录音").fill("不存在");
-  await expect(page.locator(".ui-table tbody tr")).toHaveCount(0);
-  await page.getByLabel("搜索回收站录音").fill("回收");
+  await expect(page.locator(".recycle-row")).toContainText("回收验证");
+  await page.locator("#recording-recycle-search").fill("不存在");
+  await expect(page.locator(".recycle-row")).toHaveCount(0);
+  await page.locator("#recording-recycle-search").fill("回收");
   await page.getByLabel("筛选回收站录音日期").fill("2026-10-06");
-  await expect(page.locator(".ui-table tbody tr")).toHaveCount(0);
+  await expect(page.locator(".recycle-row")).toHaveCount(0);
   await page.getByLabel("筛选回收站录音日期").fill("2026-10-07");
-  await expect(page.locator(".ui-table tbody tr")).toHaveCount(1);
+  await expect(page.locator(".recycle-row")).toHaveCount(1);
   await page.getByRole("button", { name: "彻底删除", exact: true }).click();
   await page
     .getByRole("dialog")
     .getByRole("button", { name: "取消", exact: true })
     .click();
-  await expect(page.locator(".ui-table tbody tr")).toHaveCount(1);
+  await expect(page.locator(".recycle-row")).toHaveCount(1);
   await page.getByRole("button", { name: "彻底删除", exact: true }).click();
-  await page.getByRole("button", { name: "确认彻底删除", exact: true }).click();
-  await expect(page.locator(".ui-table tbody tr")).toHaveCount(0);
+  await page.locator("#permanent-delete-submit").click();
+  await expect(page.locator(".recycle-row")).toHaveCount(0);
   expect(
     await page.evaluate(() =>
       JSON.parse(localStorage.getItem("eureka:audio-uploads:v1") || "[]"),

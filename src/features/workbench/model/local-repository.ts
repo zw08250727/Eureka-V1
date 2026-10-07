@@ -11,8 +11,9 @@ import type {
 export const ACTION_KEY = "eureka:personal-actions:v1";
 export const THOUGHT_KEY = "eureka:thoughts:v1";
 export const UPLOAD_KEY = "eureka:audio-uploads:v1";
+const DETAIL_KEY = "eureka:meeting-details:v1";
 const clone = <T>(v: T): T => structuredClone(v);
-function seedActions(now: Date): ActionState {
+export function seedActions(now: Date): ActionState {
   // Only relative demo dates move. Historical records keep their original dates.
   const offset = Math.round(
     (Date.parse(localDay(now) + "T12:00:00Z") -
@@ -28,7 +29,7 @@ function seedActions(now: Date): ActionState {
     );
   return JSON.parse(shift(JSON.stringify(baseline.actions))) as ActionState;
 }
-function seedThoughts(now: Date): ThoughtRecord[] {
+export function seedThoughts(now: Date): ThoughtRecord[] {
   const day = localDay(now),
     yesterday = localDay(
       new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1),
@@ -89,6 +90,8 @@ export function createLocalRepository(
 ): WorkbenchRepository {
   let rawActions: string | null = null,
     rawUploads: string | null = null,
+    rawDetails: string | null = null,
+    details: Record<string, Record<string, unknown>> = {},
     actions: ActionState,
     uploads: Upload[] = [];
   function snapshot(): WorkbenchSnapshot {
@@ -187,6 +190,24 @@ export function createLocalRepository(
         String(personal.personalSubscription.endsAt) > now().toISOString()
       )
         personalPlan = "Pro";
+      if (object(personal) && Array.isArray(personal.files)) {
+        for (const f of personal.files) {
+          if (!object(f) || f.deleted) continue;
+          meetings.unshift({
+            id: String(f.id),
+            title: String(f.title),
+            date: String(f.created).slice(0, 10),
+            source: String(f.source),
+            size: String(f.size || "演示音频"),
+            creator: accountName,
+            tag: Array.isArray(f.tags) ? f.tags.join("、") : "设备录音",
+            duration: `${f.duration || 0} 分钟`,
+            status: String(f.status),
+            created: String(f.created),
+            updated: String(f.updated),
+          });
+        }
+      }
       spaces.splice(
         0,
         spaces.length,
@@ -212,6 +233,18 @@ export function createLocalRepository(
           })),
       );
     }
+    for (let i = meetings.length - 1; i >= 0; i--) {
+      const m = meetings[i],
+        patch = patches[m.id];
+      const p: Record<string, unknown> = object(patch) ? patch : {};
+      if (typeof p.title === "string") m.title = p.title;
+      if (Array.isArray(p.tags)) m.tag = p.tags.join("、");
+      if (p.deleted || p.purged) {
+        meetings.splice(i, 1);
+        if (!p.purged)
+          recycled.unshift({ ...m, deletedAt: String(p.deletedAt) });
+      }
+    }
     const contacts = parse(
       storage.getItem("baizhi-v14-contacts"),
       {},
@@ -236,6 +269,10 @@ export function createLocalRepository(
     };
   }
   function read() {
+    rawDetails = storage.getItem(DETAIL_KEY);
+    const parsed = parse(rawDetails, {}, "会议详情");
+    if (!object(parsed)) throw Error("会议详情格式无效");
+    details = parsed as Record<string, Record<string, unknown>>;
     rawActions = storage.getItem(ACTION_KEY);
     const value = parse(rawActions, seedActions(now()), "个人记录");
     if (!actionState(value))
@@ -274,6 +311,15 @@ export function createLocalRepository(
     async load() {
       return read();
     },
+    async setMeetingTag(id, tag) {
+      const next = {
+        ...details,
+        [id]: { ...details[id], tags: tag.split(/[、,，]/).filter(Boolean) },
+      };
+      rawDetails = persist(DETAIL_KEY, rawDetails, next);
+      details = next;
+      return snapshot();
+    },
     async toggleTodo(id) {
       const next = clone(actions),
         r = next.records.find((r) => r.id === id && r.type === "todo");
@@ -286,7 +332,19 @@ export function createLocalRepository(
       return snapshot();
     },
     async setUploadDeleted(id, deleted) {
-      if (!id.startsWith("upload-")) return snapshot();
+      if (!id.startsWith("upload-")) {
+        const next = {
+          ...details,
+          [id]: {
+            ...details[id],
+            deleted,
+            deletedAt: deleted ? now().toISOString() : undefined,
+          },
+        };
+        rawDetails = persist(DETAIL_KEY, rawDetails, next);
+        details = next;
+        return snapshot();
+      }
       if (!uploads.some((f) => f.id === id)) throw Error("上传记录不存在");
       const next = uploads.map((f) =>
         f.id === id
@@ -302,7 +360,13 @@ export function createLocalRepository(
       return snapshot();
     },
     async purgeUpload(id) {
-      if (!id.startsWith("upload-")) return snapshot();
+      if (!id.startsWith("upload-")) {
+        if (!details[id]?.deleted) throw Error("仅能彻底删除回收站中的录音");
+        const next = { ...details, [id]: { ...details[id], purged: true } };
+        rawDetails = persist(DETAIL_KEY, rawDetails, next);
+        details = next;
+        return snapshot();
+      }
       const record = uploads.find((f) => f.id === id);
       if (!record?.deleted) throw Error("仅能彻底删除回收站中的录音");
       const next = uploads.filter((f) => f.id !== id);

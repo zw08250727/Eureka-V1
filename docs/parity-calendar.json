@@ -1,0 +1,653 @@
+{
+  "scope": "calendar and thoughts native source parity",
+  "updated": "2026-10-07",
+  "sources": [
+    "src/prototype/one-to-one-reference/assets/personal-assets-ui.js",
+    "src/prototype/one-to-one-reference/assets/personal-action-popup.js",
+    "src/prototype/one-to-one-reference/assets/thoughts-ui.js",
+    "src/prototype/one-to-one-reference/team-only-app.html"
+  ],
+  "files": [
+    "src/features/personal/calendar.tsx",
+    "src/features/personal/calendar-dialogs.tsx",
+    "src/features/personal/calendar-agent.tsx",
+    "src/features/personal/thoughts.tsx",
+    "src/features/personal/thoughts-dialogs.tsx"
+  ],
+  "verification": {
+    "functional": "Passed native-personal-reference.spec.ts on the static production build; final run in migration-integrity.json",
+    "visual": "See migration-integrity.json for measured screenshot cases. Source-reviewed inventory entries below are not claimed as separately screenshot-tested."
+  },
+  "states": [
+    {
+      "area": "calendar",
+      "id": "calendar-day",
+      "selector": ".pa-calendar-grid.day, .pa-day-section",
+      "setup": "Open calendar; click [data-pa=calendar-mode][data-id=day].",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar",
+      "id": "calendar-week",
+      "selector": ".pa-calendar-grid.week, .pa-day-section",
+      "setup": "Open calendar; click [data-pa=calendar-mode][data-id=week].",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar",
+      "id": "calendar-month",
+      "selector": ".pa-calendar-grid.month, .pa-day-section",
+      "setup": "Open calendar; click [data-pa=calendar-mode][data-id=month].",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar",
+      "id": "navigation",
+      "selector": "#pa-calendar-date",
+      "setup": "Previous/next/today/date input; month navigation starts on day 1.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar",
+      "id": "calendar-empty",
+      "selector": ".pa-empty",
+      "setup": "Choose a date with no records; both schedule and todo sections have their own empty message.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar",
+      "id": "cross-midnight",
+      "selector": ".pa-calendar-entry.schedule",
+      "setup": "Create schedule 2026-10-24 23:30 to 2026-10-25 00:30; inspect both days.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar",
+      "id": "same-time-overlap",
+      "selector": ".pa-calendar-entry",
+      "setup": "Schedule and todo at 09:30 are separate entries.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar",
+      "id": "month-more",
+      "selector": "[data-pa=calendar-day].plain",
+      "setup": "Seed more than three entries in a day; More switches to that day.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar",
+      "id": "create-schedule",
+      "selector": ".pa-create-dialog",
+      "setup": "Click [data-pa=new-schedule]; save returns to calendar and sets selected date.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar",
+      "id": "quick-edit-schedule",
+      "selector": "#action-quick-dialog",
+      "setup": "Use [data-pa=quick-edit] for a schedule in day/week/month; save without full detail.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar",
+      "id": "detail-schedule",
+      "selector": ".pa-detail-grid",
+      "setup": "Click [data-personal-open] on schedule; back returns to selected date.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar",
+      "id": "full-edit-schedule",
+      "selector": "#pa-edit-form.pa-editor",
+      "setup": "Open schedule full detail then [data-pa=edit].",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar",
+      "id": "create-todo",
+      "selector": ".pa-create-dialog",
+      "setup": "Click [data-pa=new-todo]; save returns to calendar and sets selected date.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar",
+      "id": "quick-edit-todo",
+      "selector": "#action-quick-dialog",
+      "setup": "Use [data-pa=quick-edit] for a todo in day/week/month; save without full detail.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar",
+      "id": "detail-todo",
+      "selector": ".pa-detail-grid",
+      "setup": "Click [data-personal-open] on todo; back returns to selected date.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar",
+      "id": "full-edit-todo",
+      "selector": "#pa-edit-form.pa-editor",
+      "setup": "Open todo full detail then [data-pa=edit].",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar",
+      "id": "todo-completion",
+      "selector": ".pa-complete, .pa-status",
+      "setup": "Toggle todo from list/detail; status persists across views.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar",
+      "id": "reminder-editor",
+      "selector": "#pa-edit-form [name=reminder]",
+      "setup": "Click reminder on detail; original full editor opens.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar",
+      "id": "source-capture",
+      "selector": ".pa-origin",
+      "setup": "Open record with source capture; original audio/context/manual message/session button as applicable.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar",
+      "id": "source-manual",
+      "selector": ".pa-origin",
+      "setup": "Open record with source manual; original audio/context/manual message/session button as applicable.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar",
+      "id": "source-agent",
+      "selector": ".pa-origin",
+      "setup": "Open record with source agent; original audio/context/manual message/session button as applicable.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar",
+      "id": "notes-editor",
+      "selector": ".pa-dialog [name=notes]",
+      "setup": "Open Add/Edit notes, save <=2000 characters.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar",
+      "id": "notes-unsaved",
+      "selector": ".pa-dialog",
+      "setup": "Change note and close; save or discard in 保留备注修改.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar",
+      "id": "linked-meetings",
+      "selector": ".pa-meeting-choices",
+      "setup": "Manage links; expand summaries, select/unselect multiple and confirm.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar",
+      "id": "linked-meetings-empty",
+      "selector": ".pa-meeting-choices",
+      "setup": "Current personal space has no meetings.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar",
+      "id": "linked-meeting-unavailable",
+      "selector": ".pa-detail-main .pa-hint",
+      "setup": "A linked id is absent/deleted; show original unavailable line.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar",
+      "id": "recording-route",
+      "selector": "[data-pa=record]",
+      "setup": "Starts /workbench/?view=recording&id=<action>; recording owner maintains link-on-finish.",
+      "result": "external-owner",
+      "notes": "Native route supplied; recording implementation and return behavior are outside this scope."
+    },
+    {
+      "area": "calendar",
+      "id": "edit-unsaved",
+      "selector": ".pa-dialog",
+      "setup": "New/full editor changed: Escape/exit/navigation opens Cancel, Discard, Save and continue.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar",
+      "id": "quick-edit-unsaved",
+      "selector": ".ap-guard",
+      "setup": "Quick editor changed: Escape/cancel opens Continue/Discard; restore focus.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar",
+      "id": "edit-validation",
+      "selector": "[data-pa-error], .th-error",
+      "setup": "Missing title/date; end <= start; limits enforced; preserve input.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar",
+      "id": "edit-quota-conflict",
+      "selector": ".th-error",
+      "setup": "Storage write fails or another tab updates record; draft remains, no partial write.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar",
+      "id": "external-navigation-draft",
+      "selector": ".pa-dialog",
+      "setup": "Changed full editor and click sidebar / space item; guard before navigation.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar-agent",
+      "id": "agent-welcome",
+      "selector": "#pa-agent",
+      "setup": "Open Ask Agent.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar-agent",
+      "id": "agent-summary",
+      "selector": "#pa-agent",
+      "setup": "Submit 哪些安排需要优先关注？; only current range/selected record/references.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar-agent",
+      "id": "agent-summary-empty",
+      "selector": "#pa-agent",
+      "setup": "Empty date then summary.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar-agent",
+      "id": "agent-sources",
+      "selector": ".pa-dialog",
+      "setup": "Open 引用日程与待办; select/clear, confirm.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar-agent",
+      "id": "agent-web",
+      "selector": "#pa-agent",
+      "setup": "Toggle 联网搜索; local simulation toast.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar-agent",
+      "id": "agent-new-task",
+      "selector": "#pa-agent",
+      "setup": "Click new-task with and without a pending draft.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar-agent",
+      "id": "agent-draft-schedule",
+      "selector": "#pa-agent-form",
+      "setup": "明天 14:00–15:00，安排「产品方案讨论」.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar-agent",
+      "id": "agent-draft-todo",
+      "selector": "#pa-agent-form",
+      "setup": "明天 18:00 创建待办「核对原生实现」.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar-agent",
+      "id": "agent-draft-missing-time",
+      "selector": "#pa-agent-form",
+      "setup": "创建日程「项目评审」; fill missing time.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar-agent",
+      "id": "agent-draft-error",
+      "selector": "#pa-agent-form",
+      "setup": "Set end <= start or simulate storage failure.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar-agent",
+      "id": "agent-draft-guard",
+      "selector": "#pa-agent-form",
+      "setup": "Close/new task/navigation while draft pending; save/discard/continue.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar-agent",
+      "id": "agent-confirmed",
+      "selector": "#pa-agent",
+      "setup": "Confirm draft; source session has view record link.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar-agent",
+      "id": "agent-source-session",
+      "selector": "#pa-agent",
+      "setup": "Open agent-created record then source-session.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "calendar-agent",
+      "id": "agent-resizing",
+      "selector": "#pa-agent",
+      "setup": "Pointer and keyboard resize; persisted preference; 390/1024/1280/1440 widths.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "thoughts",
+      "id": "category-schedule",
+      "selector": "[data-thought-category=schedule]",
+      "setup": "Select tab; real total count, chronological groups and type-specific rows.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "thoughts",
+      "id": "category-todo",
+      "selector": "[data-thought-category=todo]",
+      "setup": "Select tab; real total count, chronological groups and type-specific rows.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "thoughts",
+      "id": "category-inspiration",
+      "selector": "[data-thought-category=inspiration]",
+      "setup": "Select tab; real total count, chronological groups and type-specific rows.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "thoughts",
+      "id": "category-ledger",
+      "selector": "[data-thought-category=ledger]",
+      "setup": "Select tab; real total count, chronological groups and type-specific rows.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "thoughts",
+      "id": "category-other",
+      "selector": "[data-thought-category=other]",
+      "setup": "Select tab; real total count, chronological groups and type-specific rows.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "thoughts",
+      "id": "search",
+      "selector": "#thought-file-search",
+      "setup": "Title/content/formatted amount/type/business date; case-insensitive trimmed substring.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "thoughts",
+      "id": "date-range",
+      "selector": ".th-filters",
+      "setup": "Inclusive from/to recorded date, not schedule business date.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "thoughts",
+      "id": "date-range-error",
+      "selector": ".th-empty[role=alert]",
+      "setup": "Start date > end date.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "thoughts",
+      "id": "sort",
+      "selector": "#th-order",
+      "setup": "Toggle newest/oldest; stable date+time ordering.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "thoughts",
+      "id": "reset",
+      "selector": "[data-th=clear]",
+      "setup": "Clear query/date and reset limit, preserve order.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "thoughts",
+      "id": "empty",
+      "selector": ".th-empty",
+      "setup": "Unmatched keyword/date; clear filters button.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "thoughts",
+      "id": "pagination",
+      "selector": ".th-more",
+      "setup": "Seed >40 matching records; load 40 more and display remainder.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "thoughts",
+      "id": "todo-checkbox",
+      "selector": ".th-complete",
+      "setup": "Toggle completed/reopen in place with ARIA checkbox.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "thoughts",
+      "id": "preview-schedule",
+      "selector": "#action-quick-dialog",
+      "setup": "Open schedule row, preview metadata/capture; edit/details and todo toggle.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "thoughts",
+      "id": "preview-todo",
+      "selector": "#action-quick-dialog",
+      "setup": "Open todo row, preview metadata/capture; edit/details and todo toggle.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "thoughts",
+      "id": "detail-return",
+      "selector": "#personal-actions [data-pa=back]",
+      "setup": "Details enters full CalendarPage; back preserves category/query/date/order/limit/scroll.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "thoughts",
+      "id": "detail-inspiration",
+      "selector": "#thought-record-dialog",
+      "setup": "Open inspiration: title/source/capture and ledger amount.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "thoughts",
+      "id": "edit-inspiration",
+      "selector": "#th-edit-form",
+      "setup": "Edit inspiration; save opens updated preview; capture stays unchanged.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "thoughts",
+      "id": "detail-ledger",
+      "selector": "#thought-record-dialog",
+      "setup": "Open ledger: title/source/capture and ledger amount.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "thoughts",
+      "id": "edit-ledger",
+      "selector": "#th-edit-form",
+      "setup": "Edit ledger; save opens updated preview; capture stays unchanged.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "thoughts",
+      "id": "detail-other",
+      "selector": "#thought-record-dialog",
+      "setup": "Open other: title/source/capture and ledger amount.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "thoughts",
+      "id": "edit-other",
+      "selector": "#th-edit-form",
+      "setup": "Edit other; save opens updated preview; capture stays unchanged.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "thoughts",
+      "id": "change-category",
+      "selector": ".th-ledger-fields",
+      "setup": "Change type; ledger fields show/hide; count/list update.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "thoughts",
+      "id": "income-expense",
+      "selector": ".th-money, .th-detail-money",
+      "setup": "Change ledger direction and 2-decimal positive amount; income styling.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "thoughts",
+      "id": "thought-validation",
+      "selector": ".th-error",
+      "setup": "Invalid title/date/time/amount/detail; errors preserve inputs.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "thoughts",
+      "id": "thought-guard",
+      "selector": ".th-guard",
+      "setup": "Cancel/Escape changed draft; Continue or Discard.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "thoughts",
+      "id": "thought-quota-conflict",
+      "selector": ".th-error",
+      "setup": "Quota/concurrent revision rejects mutation and retains entered draft.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "thoughts",
+      "id": "device-guide",
+      "selector": "#ws-dialog .ws-device-guide",
+      "setup": "Record thought opens download/shop guide; no record created.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "thoughts",
+      "id": "agent-filtered",
+      "selector": "#xiaozhi-rail",
+      "setup": "Ask Agent sends current filtered record context with prefilled request.",
+      "result": "external-owner",
+      "notes": "Scoped context is wired to parent-owned shared AgentPanel. Exact shared source-chip/result markup requires parent verification."
+    },
+    {
+      "area": "thoughts",
+      "id": "agent-empty",
+      "selector": ".toast",
+      "setup": "Ask with no records shows 当前没有可引用的记录.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "cross-cutting",
+      "id": "responsive",
+      "selector": "html, #personal-actions, #thought-workspace, dialog",
+      "setup": "390x844, 1024x900, 1280x900, 1440x1000; no document overflow.",
+      "result": "source-reviewed",
+      "notes": "Source-reviewed inventory. Measured screenshot cases and functional run results are recorded separately in migration-integrity.json."
+    },
+    {
+      "area": "cross-cutting",
+      "id": "personal-only",
+      "selector": "[data-main-view]",
+      "setup": "Parent Application renders these components only in personal space.",
+      "result": "external-owner",
+      "notes": "Team/admin/member routing and shell permissions are parent-owned; no stores or shared permission rules changed."
+    }
+  ],
+  "remainingGaps": [
+    "Strict screenshot diff not yet run.",
+    "Initial native runtime blocked by shared entry hydration; retry in progress.",
+    "Shared AgentPanel source chips/result presentation and shell global body classes remain parent-owned.",
+    "Recording finish/return behavior is owned by meeting/recording agent."
+  ]
+}

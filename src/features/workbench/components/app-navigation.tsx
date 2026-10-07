@@ -17,11 +17,13 @@ export function Sidebar({
   toggle,
   data,
   onHome,
+  activeView = "home",
 }: {
   collapsed: boolean;
   toggle: () => void;
   data: WorkbenchSnapshot | null;
   onHome: () => void;
+  activeView?: string;
 }) {
   const [menu, setMenu] = useState(false),
     [account, setAccount] = useState(false),
@@ -70,7 +72,7 @@ export function Sidebar({
             {data?.spaces.map((w) => (
               <a
                 key={w.id}
-                href={w.id === "personal" ? "#home" : legacyUrl("spaces", w.id)}
+                href={legacyUrl("spaces", w.id)}
                 onClick={() => {
                   if (w.id === "personal") {
                     onHome();
@@ -91,7 +93,10 @@ export function Sidebar({
         ) : null}
       </div>
       <nav className="primary-nav">
-        <button aria-current="page" onClick={onHome}>
+        <button
+          aria-current={activeView === "home" ? "page" : undefined}
+          onClick={onHome}
+        >
           <Icon name="home" />
           <span>首页</span>
         </button>
@@ -99,11 +104,17 @@ export function Sidebar({
           <Icon name="mic" />
           <span>开始录音</span>
         </a>
-        <a href={legacyUrl("calendar")}>
+        <a
+          href={legacyUrl("calendar")}
+          aria-current={activeView === "calendar" ? "page" : undefined}
+        >
           <Icon name="task" />
           <span>日程与待办</span>
         </a>
-        <a href={legacyUrl("contacts")}>
+        <a
+          href={legacyUrl("contacts")}
+          aria-current={activeView === "contacts" ? "page" : undefined}
+        >
           <Icon name="user" />
           <span>联系人</span>
           <small>{data?.contactCount ?? 6}</small>
@@ -157,7 +168,13 @@ export function Sidebar({
     </aside>
   );
 }
-export function TopBar({ toggleSidebar }: { toggleSidebar: () => void }) {
+export function TopBar({
+  toggleSidebar,
+  title = "我的 AI 工作台",
+}: {
+  toggleSidebar: () => void;
+  title?: string;
+}) {
   const [download, setDownload] = useState(false);
   const downloadRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -184,7 +201,7 @@ export function TopBar({ toggleSidebar }: { toggleSidebar: () => void }) {
       >
         <Icon name="panel" />
       </Button>
-      <h1>我的 AI 工作台</h1>
+      <h1>{title}</h1>
       <div>
         <a className="prd-link" href={prdUrl} target="_blank" rel="noreferrer">
           需求评审 ↗

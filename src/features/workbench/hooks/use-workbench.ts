@@ -52,6 +52,10 @@ export function useWorkbench() {
       window.removeEventListener("storage", onStorage);
     };
   }, [reload]);
+  const setMeetingTag = useCallback(async (id: string, tag: string) => {
+    if (!repo.current) throw Error("页面尚未加载完成");
+    setData(await repo.current.setMeetingTag(id, tag));
+  }, []);
   const toggleTodo = useCallback(async (id: string) => {
     try {
       if (!repo.current) throw Error("页面尚未加载完成");
@@ -80,6 +84,7 @@ export function useWorkbench() {
     loading,
     reload,
     toggleTodo,
+    setMeetingTag,
     upload,
     setUploadDeleted,
     purgeUpload,

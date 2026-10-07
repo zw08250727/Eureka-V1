@@ -12,7 +12,7 @@ export function useAgentWidth(host: RefObject<HTMLDivElement | null>) {
     const observer = new ResizeObserver(() => {
       const available = el.getBoundingClientRect().width;
       setMax(
-        Math.max(1, Math.min(760, available - (innerWidth > 760 ? 320 : 0))),
+        Math.max(1, Math.min(760, available - (innerWidth > 760 ? 300 : 0))),
       );
       if (initial) {
         initial = false;

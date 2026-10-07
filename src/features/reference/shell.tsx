@@ -1,0 +1,707 @@
+"use client";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+  type CSSProperties,
+} from "react";
+/* The reference assets retain their original image sizing and decoding. */
+/* eslint-disable @next/next/no-img-element */
+import { createPortal } from "react-dom";
+import { RefIcon, Symbols } from "./symbols";
+import { appUrl, assetUrl, basePath, prdUrl, type AppView } from "@/lib/routes";
+import { PageTitleContext } from "./page-title";
+import { RecordingPermission } from "@/features/meetings/recording-permission";
+import { CreateTeamDialog, InvitationsDialog } from "@/features/spaces/setup";
+import { TeamTaskList } from "@/features/spaces/tasks";
+import { M } from "@/features/spaces/model/store";
+import PS from "@/features/spaces/model/subscription";
+import type { SpacesController } from "@/features/spaces/use-spaces";
+const personalHistory = [
+  ["本周会议决策整理", "今天"],
+  ["研发周报自动整理", "09:00"],
+  ["客户访谈高频问题", "昨天"],
+  ["周报与行动项", "周五"],
+];
+export function ReferenceShell({
+  children,
+  title,
+  view,
+  space,
+  actor,
+  controller,
+  contactCount = 6,
+}: {
+  children: ReactNode;
+  title: string;
+  view: string;
+  space: string;
+  actor: string;
+  controller: SpacesController;
+  contactCount?: number;
+}) {
+  const [pageTitle, setPageTitle] = useState(title);
+  const [recordRequest, setRecordRequest] = useState<{ id: string } | null>(
+    null,
+  );
+  const [skipRecordPermission, setSkipRecordPermission] = useState(false);
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ id: string }>).detail;
+      if (skipRecordPermission)
+        location.assign(appUrl("recording", detail.id, space, actor));
+      else setRecordRequest(detail);
+    };
+    window.addEventListener("eureka:record-request", handler);
+    return () => window.removeEventListener("eureka:record-request", handler);
+  }, [space, actor, skipRecordPermission]);
+  const [setupDialog, setSetupDialog] = useState<
+    "create" | "invitations" | null
+  >(null);
+  const data = controller.state!,
+    w = M.get(data, space),
+    team = w.type === "team",
+    admin = M.admin(w, actor);
+  const [collapsed, setCollapsed] = useState(false),
+    [menu, setMenu] = useState<"spaces" | "account" | null>(null),
+    [position, setPosition] = useState<CSSProperties>({}),
+    [auto, setAuto] = useState(false),
+    [download, setDownload] = useState(false),
+    [toast, setToast] = useState("");
+  const menuRef = useRef<HTMLDivElement>(null),
+    downloadRef = useRef<HTMLDivElement>(null),
+    toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.personalOnly = "1";
+    document.body.dataset.edition = "personal";
+    document.body.dataset.workspace = "personal";
+    document.body.dataset.wsType = w.type;
+    document.body.classList.add("app-data-mode");
+    const narrow = matchMedia("(max-width:1100px)").matches;
+    root.dataset.sidebarCollapsed = String(narrow);
+    const frame = requestAnimationFrame(() => setCollapsed(narrow));
+    return () => {
+      cancelAnimationFrame(frame);
+      document.body.classList.remove("app-data-mode");
+    };
+  }, [team, w.type]);
+  useEffect(() => {
+    document.documentElement.dataset.sidebarCollapsed = String(collapsed);
+  }, [collapsed]);
+  useEffect(() => {
+    function close(e: MouseEvent) {
+      if (!(e.target instanceof Element)) return;
+      if (
+        !menuRef.current?.contains(e.target) &&
+        !e.target.closest("#user-card,#ws-switcher")
+      )
+        setMenu(null);
+      if (!downloadRef.current?.contains(e.target)) setDownload(false);
+    }
+    function key(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setMenu(null);
+        setDownload(false);
+      }
+    }
+    document.addEventListener("click", close);
+    document.addEventListener("keydown", key);
+    return () => {
+      document.removeEventListener("click", close);
+      document.removeEventListener("keydown", key);
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+    };
+  }, []);
+  function go(v: AppView, id = "", wid = space) {
+    if (v === "recording" && !team && !skipRecordPermission) {
+      setRecordRequest({ id });
+      return;
+    }
+    location.assign(appUrl(v, id, wid, actor));
+  }
+  function open(kind: "spaces" | "account", anchor: HTMLElement) {
+    if (menu === kind) {
+      setMenu(null);
+      return;
+    }
+    const r = anchor.getBoundingClientRect();
+    setPosition({
+      left: Math.min(
+        Math.max(12, r.left),
+        innerWidth - Math.min(338, innerWidth - 24) - 12,
+      ),
+      ...(r.top > innerHeight / 2
+        ? { bottom: innerHeight - r.top + 8 }
+        : { top: Math.min(r.bottom + 8, innerHeight - 200) }),
+    });
+    setMenu(kind);
+  }
+  function notify(text: string) {
+    setToast(text);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(""), 2600);
+  }
+  const nav = (label: string, icon: string, v: AppView, active = false) => (
+    <button
+      type="button"
+      className={"ws-btn " + (active ? "active" : "")}
+      onClick={() => go(v)}
+    >
+      <RefIcon name={icon} className="ws-icon" />
+      {label}
+    </button>
+  );
+  return (
+    <PageTitleContext.Provider
+      value={{ baseTitle: title, setTitle: setPageTitle }}
+    >
+      <Symbols />
+      <div className="app">
+        <aside className="sidebar" id="workspace-sidebar">
+          <div className="brand-row">
+            <div className="workspace-brand">
+              <img
+                src={assetUrl("eurekamind-logo.png?v=sidebar-brand-v2")}
+                width={34}
+                height={34}
+                alt="EurekaMind"
+              />
+              <div className="workspace-brand-copy">
+                <strong>EurekaMind</strong>
+                <span>PC Workbench</span>
+              </div>
+            </div>
+            <button
+              className="collapse-btn"
+              type="button"
+              aria-label={collapsed ? "展开侧栏" : "收起侧栏"}
+              aria-expanded={!collapsed}
+              aria-controls="workspace-sidebar"
+              title={collapsed ? "展开侧栏" : "收起侧栏"}
+              onClick={() => setCollapsed(!collapsed)}
+            >
+              <svg className="icon" style={{ width: 17, height: 16 }}>
+                <use href="#ico-collapse" />
+              </svg>
+            </button>
+          </div>
+          <button
+            type="button"
+            id="ws-switcher"
+            className="ws-switcher"
+            aria-controls="ws-menu"
+            aria-expanded={menu === "spaces"}
+            title={"切换工作空间：" + w.name}
+            onClick={(e) => open("spaces", e.currentTarget)}
+          >
+            <span className="ws-space-avatar">
+              <RefIcon name={team ? "users" : "user"} className="ws-icon" />
+            </span>
+            <span className="ws-space-copy">
+              <strong>{w.name}</strong>
+              <small>
+                {team
+                  ? `Team · ${admin ? "管理员" : "成员"} · ${w.members.filter((m) => m.status === "active").length} 位成员`
+                  : "Personal · " + PS.current(w).plan}
+              </small>
+            </span>
+            <RefIcon name="chevron" className="ws-icon" />
+          </button>
+          <div className="sidebar-body">
+            <nav className="nav sidebar-quick-nav" aria-label="快捷入口">
+              <button
+                className={
+                  "nav-item " +
+                  ([
+                    "home",
+                    "thoughts",
+                    "history",
+                    "meeting",
+                    "create-team",
+                    "invitations",
+                    "tasks",
+                  ].includes(view)
+                    ? "active"
+                    : "")
+                }
+                id="home-entry"
+                aria-current={
+                  [
+                    "home",
+                    "thoughts",
+                    "history",
+                    "meeting",
+                    "create-team",
+                    "invitations",
+                    "tasks",
+                  ].includes(view)
+                    ? "page"
+                    : undefined
+                }
+                type="button"
+                aria-label="首页"
+                title="首页"
+                onClick={() => go("home")}
+              >
+                <span className="nav-left">
+                  <span className="nav-icon">
+                    <RefIcon name="home" />
+                  </span>
+                  <span className="nav-label">首页</span>
+                </span>
+              </button>
+              <button
+                className={`nav-item recording-nav-item${view === "recording" ? " active" : ""}`}
+                aria-current={view === "recording" ? "page" : undefined}
+                id="start-recording"
+                type="button"
+                aria-label="开始录音"
+                title="开始录音"
+                onClick={() => go("recording")}
+              >
+                <span className="nav-left">
+                  <span className="nav-icon">
+                    <RefIcon name="mic" />
+                  </span>
+                  <span className="nav-label">开始录音</span>
+                </span>
+              </button>
+              {!team ? (
+                <>
+                  <button
+                    type="button"
+                    id="todos-entry"
+                    className={
+                      "nav-item " + (view === "calendar" ? "active" : "")
+                    }
+                    onClick={() => go("calendar")}
+                  >
+                    <span className="nav-left">
+                      <span className="nav-icon">
+                        <svg className="icon" viewBox="0 0 24 24">
+                          <path d="m3 5 2 2 3-4M11 5h10M3 12l2 2 3-4M11 12h10M3 19l2 2 3-4M11 19h10" />
+                        </svg>
+                      </span>
+                      <span className="nav-label">日程与待办</span>
+                    </span>
+                  </button>
+                  <div className="knowledge-tree-leaf-row team-only-root-entry">
+                    <button
+                      className={
+                        "side-sub-item knowledge-leaf contacts-nav-entry " +
+                        (view === "contacts" ? "active" : "")
+                      }
+                      data-contacts-entry="true"
+                      type="button"
+                      aria-label="联系人"
+                      title="联系人"
+                      onClick={() => go("contacts")}
+                    >
+                      <RefIcon name="user" />
+                      <span className="tree-folder-name">联系人</span>
+                      <span className="tree-count">{contactCount}</span>
+                    </button>
+                  </div>
+                </>
+              ) : null}
+            </nav>
+            <nav
+              id="ws-team-nav"
+              className="ws-team-nav"
+              aria-label="团队工作空间"
+            >
+              {team ? (
+                <>
+                  <div className="ws-nav-label">工作空间</div>
+                  {nav("团队成员", "users", "members", view === "members")}
+                  <button
+                    type="button"
+                    className="ws-btn"
+                    onClick={() => notify("即将上线")}
+                  >
+                    <RefIcon name="skill-breakdown" className="ws-icon" />
+                    任务管理
+                  </button>
+                  {nav("设备管理", "phone", "devices", view === "devices")}
+                  {admin
+                    ? nav(
+                        "空间管理",
+                        "task",
+                        "subscription",
+                        [
+                          "subscription",
+                          "space-settings",
+                          "credits",
+                          "audit",
+                        ].includes(view),
+                      )
+                    : null}
+                </>
+              ) : null}
+            </nav>
+            {team ? (
+              <TeamTaskList
+                controller={controller}
+                space={space}
+                actor={actor}
+              />
+            ) : (
+              <div id="ws-history" />
+            )}
+            <div className="side-groups" />
+            {!team ? (
+              <section
+                className="history-section"
+                aria-labelledby="history-task-title"
+              >
+                <div className="history-title" id="history-task-title">
+                  项目
+                </div>
+                <div
+                  className="history-tabs"
+                  role="tablist"
+                  aria-label="项目分类"
+                >
+                  {["全部任务", "自动任务"].map((label, i) => (
+                    <button
+                      className={
+                        "history-tab " + (auto === !!i ? "active" : "")
+                      }
+                      id={i ? "history-tab-scheduled" : "history-tab-all"}
+                      type="button"
+                      role="tab"
+                      aria-selected={auto === !!i}
+                      aria-controls="history-task-list"
+                      key={label}
+                      onClick={() => setAuto(!!i)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <div
+                  className="history"
+                  id="history-task-list"
+                  role="tabpanel"
+                  aria-live="polite"
+                  aria-labelledby={
+                    auto ? "history-tab-scheduled" : "history-tab-all"
+                  }
+                >
+                  {personalHistory
+                    .filter((_, i) => !auto || i % 2 === 1)
+                    .map(([label, time]) => (
+                      <div
+                        className="history-row"
+                        aria-current={
+                          view === "history" &&
+                          typeof window !== "undefined" &&
+                          new URLSearchParams(location.search).get("id") ===
+                            label
+                            ? "true"
+                            : undefined
+                        }
+                        data-history-type={
+                          time.includes(":") || time === "周五"
+                            ? "scheduled"
+                            : "normal"
+                        }
+                        role="button"
+                        tabIndex={0}
+                        key={label}
+                        onClick={() => go("history", label)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ")
+                            go("history", label);
+                        }}
+                      >
+                        <RefIcon
+                          name={
+                            time.includes(":") || time === "周五"
+                              ? "clock"
+                              : "chat"
+                          }
+                        />
+                        <span className="history-text">{label}</span>
+                        <span className="history-time">{time}</span>
+                      </div>
+                    ))}
+                </div>
+              </section>
+            ) : null}
+          </div>
+          <div className="user-footer">
+            <button
+              className="user-card"
+              id="user-card"
+              aria-expanded={menu === "account"}
+              aria-controls="ws-menu"
+              type="button"
+              aria-label={data.account.name + "‘s Space"}
+              title={data.account.name + "‘s Space"}
+              onClick={(e) => open("account", e.currentTarget)}
+            >
+              <span className="user-avatar">
+                <svg className="icon" style={{ width: 15, height: 15 }}>
+                  <use href="#ico-user" />
+                </svg>
+              </span>
+              <div className="user-copy">
+                <div className="user-name">{data.account.name}‘s Space</div>
+              </div>
+              <svg className="icon" style={{ color: "#8c8c8c" }}>
+                <use href="#ico-chevron" />
+              </svg>
+            </button>
+          </div>
+        </aside>
+        <main className="main">
+          <div className="topbar">
+            <div className="topbar-inner">
+              <div className="page-crumb" id="page-crumb">
+                {pageTitle}
+              </div>
+              <div className="topbar-right">
+                <a
+                  className="prd-review-entry"
+                  href={prdUrl}
+                  target="_blank"
+                  rel="noopener"
+                  title="打开产品需求文档与评审"
+                >
+                  需求评审 <span aria-hidden="true">↗</span>
+                </a>
+                <button
+                  className="record-promo"
+                  id="hardware-top-promo"
+                  aria-label="打开 EurekaMind 商城"
+                  type="button"
+                  onClick={() => location.assign("https://eurekamind.ai/shop")}
+                >
+                  <span className="promo-device">
+                    <img
+                      src={assetUrl("hardware-entry.png")}
+                      alt="EurekaMind"
+                    />
+                  </span>
+                  <span className="promo-copy">
+                    <strong>EurekaMind</strong>
+                    <span>智能记录，轻松协作</span>
+                  </span>
+                </button>
+                <div className="top-actions">
+                  <div
+                    className={"app-download-entry " + (download ? "open" : "")}
+                    id="app-download-entry"
+                    ref={downloadRef}
+                  >
+                    <button
+                      className="app-download-btn"
+                      id="app-download-btn"
+                      aria-label="下载 EurekaMind App"
+                      aria-haspopup="dialog"
+                      aria-expanded={download}
+                      type="button"
+                      onClick={() => setDownload(!download)}
+                    >
+                      <RefIcon name="phone" />
+                    </button>
+                    <div
+                      className="app-qr-popover"
+                      role="dialog"
+                      aria-label="EurekaMind App 下载二维码"
+                    >
+                      <strong>EurekaMind App</strong>
+                      <span>扫码安装 App，绑定你的录音设备</span>
+                      <div className="app-qr-grid">
+                        <div className="app-qr-item">
+                          <img
+                            src={assetUrl("download/eurekamind-app-qr.png")}
+                            alt="EurekaMind App 下载二维码"
+                          />
+                          <strong>扫码下载</strong>
+                          <span>App Store</span>
+                        </div>
+                      </div>
+                      <a
+                        className="appstore-download-link"
+                        href="https://apps.apple.com/us/app/eurekamind-ai-note-taker/id6742087483"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                         ▷ Download App
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {children}
+          {recordRequest ? (
+            <RecordingPermission
+              onClose={() => setRecordRequest(null)}
+              onStart={(skip) => {
+                setSkipRecordPermission(skip);
+                location.assign(
+                  appUrl("recording", recordRequest.id, space, actor),
+                );
+              }}
+            />
+          ) : null}
+          {setupDialog === "create" ? (
+            <CreateTeamDialog
+              controller={controller}
+              onClose={() => setSetupDialog(null)}
+            />
+          ) : setupDialog === "invitations" ? (
+            <InvitationsDialog
+              controller={controller}
+              onClose={() => setSetupDialog(null)}
+            />
+          ) : null}
+        </main>
+      </div>
+      <aside
+        className="knowledge-xiaozhi-panel"
+        id="knowledge-xiaozhi-panel"
+        aria-hidden="true"
+        inert
+      />
+      <aside className="drawer" id="drawer" aria-hidden="true" inert />
+      {menu
+        ? createPortal(
+            <div
+              id="ws-menu"
+              className="ws-menu"
+              role="dialog"
+              aria-label={
+                menu === "account" ? "我的账户与工作空间" : "切换工作空间"
+              }
+              data-mode={menu}
+              style={position}
+              ref={menuRef}
+            >
+              <div className="ws-menu-head">
+                <span className="ws-space-avatar">
+                  <RefIcon name={team ? "users" : "user"} className="ws-icon" />
+                </span>
+                <div>
+                  <strong>{w.name}</strong>
+                  <small>{data.account.email}</small>
+                </div>
+              </div>
+              <div className="ws-menu-caption">工作空间</div>
+              {data.spaces
+                .filter((s) => M.member(s))
+                .map((s) => (
+                  <button
+                    type="button"
+                    className="ws-btn ws-menu-space"
+                    key={s.id}
+                    onClick={() => {
+                      controller.change((x) => {
+                        x.activeId = s.id;
+                      });
+                      location.assign(appUrl("home", "", s.id, "zhang"));
+                    }}
+                  >
+                    <span className="ws-mini-avatar">
+                      {s.type === "personal" ? "P" : s.name[0]}
+                    </span>
+                    <span>
+                      {s.name}
+                      <small>
+                        {s.type === "personal"
+                          ? "个人订阅独立计费"
+                          : (M.admin(s) ? "管理员" : "成员") +
+                            " · " +
+                            s.members.filter((m) => m.status === "active")
+                              .length +
+                            " 位成员"}
+                      </small>
+                    </span>
+                    <b>{s.id === space ? "✓" : ""}</b>
+                  </button>
+                ))}
+              <div className="ws-menu-divider" />
+              <button
+                type="button"
+                className="ws-btn ws-menu-item"
+                onClick={() => {
+                  setMenu(null);
+                  setSetupDialog("create");
+                }}
+              >
+                <RefIcon name="plus" className="ws-icon" />
+                创建团队工作空间
+              </button>
+              <button
+                type="button"
+                className="ws-btn ws-menu-item"
+                onClick={() => {
+                  setMenu(null);
+                  setSetupDialog("invitations");
+                }}
+              >
+                <RefIcon name="users" className="ws-icon" />
+                工作空间邀请{" "}
+                <span className="ws-badge">
+                  {
+                    data.invitations.filter((i) => i.status === "pending")
+                      .length
+                  }
+                </span>
+              </button>
+              {team && admin ? (
+                <button
+                  type="button"
+                  className="ws-btn ws-menu-item"
+                  onClick={() => go("members", "invite")}
+                >
+                  <RefIcon name="users" className="ws-icon" />
+                  邀请空间成员
+                </button>
+              ) : null}
+              {menu === "account" ? (
+                <>
+                  <div className="ws-menu-divider" />
+                  {[
+                    ["home", "mic", "会议录音"],
+                    ["devices", "phone", "设备与同步"],
+                    ["subscription", "task", team ? "订阅与席位" : "个人订阅"],
+                    ["settings", "edit", "个人设置"],
+                  ].map(([v, icon, label]) => (
+                    <button
+                      type="button"
+                      className="ws-btn ws-menu-item"
+                      key={v}
+                      onClick={() => go(v as AppView)}
+                    >
+                      <RefIcon name={icon} className="ws-icon" />
+                      {label}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    className="ws-btn ws-menu-item"
+                    onClick={() => location.assign(basePath + "/")}
+                  >
+                    <RefIcon name="collapse" className="ws-icon" />
+                    退出登录
+                  </button>
+                </>
+              ) : null}
+              <p className="ws-menu-note">同一账号 · 各空间的数据与订阅独立</p>
+            </div>,
+            document.body,
+          )
+        : null}
+      <div className={"toast " + (toast ? "show" : "")} role="status">
+        {toast}
+      </div>
+    </PageTitleContext.Provider>
+  );
+}

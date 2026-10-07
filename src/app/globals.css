@@ -1,4 +1,6 @@
-@import "tailwindcss" source(none);
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
 @source "../components";
 @source "../features";
 html, body { margin: 0; width: 100%; height: 100%; }

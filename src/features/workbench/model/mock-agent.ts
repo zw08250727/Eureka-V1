@@ -3,11 +3,19 @@ import type { AgentGateway } from "./types";
 export const mockAgent: AgentGateway = {
   async send(prompt, context, options, signal) {
     signal.throwIfAborted();
-    return context.kind === "daily"
+    return !!context.widget
       ? {
-          title: "把今天的记录连成下一步",
+          title:
+            context.widget === "thoughts"
+              ? "回顾当前闪念"
+              : "把今天的记录连成下一步",
           text: "AI · 演示建议",
-          items: context.lines,
+          items:
+            context.records?.map((r) =>
+              context.widget === "thoughts"
+                ? `${r.date} ${r.time} · ${r.title}：${r.detail}`
+                : `${r.time} · ${r.title}：${r.done ? "已完成，可在今日复盘中回顾。" : r.detail}`,
+            ) || context.lines,
         }
       : {
           title: "Ask Agent · 本地模拟",

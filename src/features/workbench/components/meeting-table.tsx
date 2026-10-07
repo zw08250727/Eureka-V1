@@ -1,12 +1,9 @@
 "use client";
-import { useState } from "react";
-import { Icon } from "@/components/ui/icon";
-import { Button } from "@/components/ui/button";
-import { Field } from "@/components/ui/field";
-import { Modal } from "@/components/ui/modal";
-import { DateFilter } from "@/components/ui/date-filter";
-import { DataTable, type Column } from "@/components/ui/data-table";
-import { legacyUrl } from "@/lib/routes";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { RefIcon } from "@/features/reference/symbols";
+import { MeetingFilter } from "@/features/reference/meeting-filter";
+import { appUrl } from "@/lib/routes";
 import { filterMeetings } from "../model/selectors";
 import type { Meeting } from "../model/types";
 export function MeetingTable({
@@ -14,397 +11,473 @@ export function MeetingTable({
   recycled,
   setUploadDeleted,
   purgeUpload,
+  recycle = false,
 }: {
   meetings: Meeting[];
   recycled: Meeting[];
   setUploadDeleted: (id: string, deleted: boolean) => Promise<void>;
   purgeUpload: (id: string) => Promise<void>;
+  setMeetingTag: (id: string, tag: string) => Promise<void>;
+  recycle?: boolean;
 }) {
   const [query, setQuery] = useState(""),
     [source, setSource] = useState("all"),
     [date, setDate] = useState(""),
-    [limit, setLimit] = useState(10);
-  const [recycle, setRecycle] = useState(false),
-    [removed, setRemoved] = useState<Meeting[]>([]),
-    [edit, setEdit] = useState<Meeting | null>(null),
+    [limit, setLimit] = useState(10),
     [deleting, setDeleting] = useState<Meeting | null>(null),
-    [tag, setTag] = useState(""),
-    [tags, setTags] = useState<Record<string, string>>({});
-  const [permanent, setPermanent] = useState<Meeting | null>(null),
-    [recycleQuery, setRecycleQuery] = useState(""),
-    [recycleDate, setRecycleDate] = useState("");
-  const [saveError, setSaveError] = useState(""),
-    [busy, setBusy] = useState(false),
-    [firstId, setFirstId] = useState(meetings[0]?.id);
-  if (firstId !== meetings[0]?.id) {
-    setFirstId(meetings[0]?.id);
-    setQuery("");
-    setDate("");
-    setSource("all");
-    setLimit(10);
-  }
-  async function remove(m: Meeting) {
+    [permanent, setPermanent] = useState<Meeting | null>(null),
+    [error, setError] = useState(""),
+    [busy, setBusy] = useState(false);
+  const modal = useRef<HTMLElement>(null),
+    trigger = useRef<Element | null>(null);
+  const rows = filterMeetings(
+    recycle ? recycled : meetings,
+    query,
+    source,
+    date,
+  );
+  const pending = permanent || deleting;
+  useEffect(() => {
+    if (!pending) return;
+    trigger.current = document.activeElement;
+    modal.current?.querySelector<HTMLElement>("button")?.focus();
+    const key = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setDeleting(null);
+        setPermanent(null);
+      }
+      if (e.key === "Tab") {
+        const nodes = [
+          ...(modal.current?.querySelectorAll<HTMLButtonElement>(
+            "button:not(:disabled)",
+          ) || []),
+        ];
+        if (!nodes.length) return;
+        if (e.shiftKey && document.activeElement === nodes[0]) {
+          e.preventDefault();
+          nodes.at(-1)?.focus();
+        } else if (!e.shiftKey && document.activeElement === nodes.at(-1)) {
+          e.preventDefault();
+          nodes[0].focus();
+        }
+      }
+    };
+    document.addEventListener("keydown", key);
+    return () => {
+      document.removeEventListener("keydown", key);
+      if (trigger.current instanceof HTMLElement)
+        trigger.current.focus({ preventScroll: true });
+    };
+  }, [pending]);
+  async function confirm() {
+    if (!pending || busy) return;
     setBusy(true);
     try {
-      await setUploadDeleted(m.id, true);
-      if (!m.id.startsWith("upload-"))
-        setRemoved((items) => [
-          ...items,
-          { ...m, deletedAt: new Date().toISOString() },
-        ]);
+      if (permanent) await purgeUpload(pending.id);
+      else await setUploadDeleted(pending.id, true);
       setDeleting(null);
-      setSaveError("");
-    } catch (e) {
-      setSaveError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
-  async function restore(m: Meeting) {
-    try {
-      await setUploadDeleted(m.id, false);
-      setRemoved((items) => items.filter((r) => r.id !== m.id));
-      setSaveError("");
-    } catch (e) {
-      setSaveError((e as Error).message);
-    }
-  }
-  async function purge(m: Meeting) {
-    setBusy(true);
-    try {
-      await purgeUpload(m.id);
-      setRemoved((items) => items.filter((r) => r.id !== m.id));
       setPermanent(null);
-      setSaveError("");
+      setError("");
     } catch (e) {
-      setSaveError((e as Error).message);
+      setError((e as Error).message);
     } finally {
       setBusy(false);
     }
   }
-  const active = meetings
-    .filter((m) => !removed.some((r) => r.id === m.id))
-    .map((m) => ({ ...m, tag: tags[m.id] ?? m.tag }));
-  const rows = recycle
-      ? filterMeetings(
-          [...recycled, ...removed],
-          recycleQuery,
-          "all",
-          recycleDate,
-        )
-      : filterMeetings(active, query, source, date),
-    visible = rows.slice(0, limit);
-  const updateFilter = (fn: () => void) => {
+  const change = (fn: () => void) => {
     fn();
     setLimit(10);
   };
-  const columns: Column<Meeting>[] = [
-    {
-      key: "title",
-      title: "文件名",
-      render: (m) => (
-        <a className="meeting-title" href={legacyUrl("meeting", m.id)}>
-          <i>
-            <Icon name="mic" />
-          </i>
-          <strong>{m.title}</strong>
-        </a>
-      ),
-    },
-    { key: "size", title: "文件大小", render: (m) => m.size },
-    { key: "creator", title: "创建人", render: (m) => m.creator },
-    { key: "source", title: "文件来源", render: (m) => m.source },
-    {
-      key: "tag",
-      title: "标签",
-      render: (m) => <span className="meeting-tag">{m.tag}</span>,
-    },
-    { key: "duration", title: "录音时长", render: (m) => m.duration },
-    {
-      key: "status",
-      title: "文件状态",
-      render: (m) => (
-        <span
-          className={
-            m.status === "已总结" ? "status-success" : "status-pending"
-          }
-        >
-          {m.status}
-        </span>
-      ),
-    },
-    { key: "created", title: "录音时间", render: (m) => m.created },
-    { key: "updated", title: "更新时间", render: (m) => m.updated },
-    {
-      key: "actions",
-      title: "操作",
-      render: (m) =>
-        recycle ? (
-          <Button onClick={() => void restore(m)}>恢复</Button>
-        ) : (
-          <div className="meeting-actions">
-            <Button
-              variant="ghost"
-              aria-label={`编辑${m.title}标签`}
-              onClick={() => {
-                setEdit(m);
-                setTag(m.tag);
-              }}
-            >
-              <Icon name="edit" />
-            </Button>
-            <Button
-              variant="ghost"
-              aria-label={`删除${m.title}`}
-              onClick={() => setDeleting(m)}
-            >
-              <Icon name="trash" />
-            </Button>
-          </div>
-        ),
-    },
-  ];
-  const recycleColumns: Column<Meeting>[] = [
-    { ...columns[0], render: (m) => <strong>{m.title}</strong> },
-    columns[1],
-    columns[3],
-    { key: "recorded", title: "录音时间", render: (m) => m.created },
-    {
-      key: "deleted",
-      title: "删除时间",
-      render: (m) =>
-        m.deletedAt
-          ? new Date(m.deletedAt).toLocaleString("sv-SE").slice(0, 16)
-          : "—",
-    },
-    {
-      key: "recycle-actions",
-      title: "操作",
-      render: (m) => (
-        <div className="meeting-actions">
-          <Button variant="ghost" onClick={() => void restore(m)}>
-            恢复
-          </Button>
-          <Button
-            variant="ghost"
+  const overlay = pending
+    ? createPortal(
+        <>
+          <div
+            className="modal-mask show"
             onClick={() => {
-              setSaveError("");
-              setPermanent(m);
+              if (!busy) {
+                setDeleting(null);
+                setPermanent(null);
+              }
             }}
+          />
+          <section
+            ref={modal}
+            className="modal delete-confirm-modal show"
+            id={permanent ? "permanent-delete-modal" : "delete-confirm-modal"}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-confirm-title"
           >
-            彻底删除
-          </Button>
-        </div>
-      ),
-    },
-  ];
-  return (
-    <section
-      className="meeting-card"
-      aria-label={recycle ? "录音回收站" : "我的会议"}
-    >
-      <header className="meeting-head">
-        <div>
-          <h2>{recycle ? "录音回收站" : "我的会议"}</h2>
-          <p>
-            {recycle
-              ? `共 ${rows.length} 项，30 天后自动删除`
-              : `共 ${rows.length} 个会议笔记`}
-          </p>
-        </div>
-        <div className="meeting-filters">
-          {recycle ? (
-            <>
-              <label className="meeting-search">
-                <Icon name="search" />
+            <div className="modal-head">
+              <h3 id="delete-confirm-title">
+                {permanent ? "确认彻底删除？" : "确认删除录音文件？"}
+              </h3>
+              <button
+                className="close-btn"
+                disabled={busy}
+                aria-label="关闭删除确认"
+                onClick={() => {
+                  setDeleting(null);
+                  setPermanent(null);
+                }}
+              >
+                <RefIcon name="x" />
+              </button>
+            </div>
+            <div className="modal-body">
+              <p>
+                {permanent
+                  ? "彻底删除后将无法恢复，请确认是否继续。"
+                  : "删除后文件移入回收站，30 天内可恢复，超期永久删除；相关转写和 AI 总结一并移除。"}
+              </p>
+              {error ? <p role="alert">{error}</p> : null}
+            </div>
+            <div className="modal-foot">
+              <button
+                className="secondary-btn"
+                disabled={busy}
+                onClick={() => {
+                  setDeleting(null);
+                  setPermanent(null);
+                }}
+              >
+                取消
+              </button>
+              <button
+                className="danger-btn"
+                id={
+                  permanent
+                    ? "permanent-delete-submit"
+                    : "delete-confirm-submit"
+                }
+                type="button"
+                disabled={busy}
+                onClick={() => void confirm()}
+              >
+                {permanent ? "彻底删除" : "确定"}
+              </button>
+            </div>
+          </section>
+        </>,
+        document.body,
+      )
+    : null;
+  if (recycle)
+    return (
+      <>
+        <section
+          className="recycle-workspace recording-recycle"
+          data-main-view="recycle-bin"
+          aria-label="回收站"
+        >
+          <header className="recycle-header">
+            <div className="recycle-heading">
+              <span className="recycle-heading-mark">
+                <RefIcon name="trash" />
+              </span>
+              <div>
+                <h1 id="recycle-title">录音回收站</h1>
+                <p id="recycle-description">
+                  删除的录音及其转写、AI 总结可在 30 天内恢复，30
+                  天后将被永久删除。
+                </p>
+              </div>
+            </div>
+            <button
+              className="recycle-back"
+              id="recycle-back"
+              type="button"
+              onClick={() => location.assign(appUrl("home"))}
+            >
+              <RefIcon name="chevron" />
+              <span id="recycle-back-label">返回录音列表</span>
+            </button>
+          </header>
+          <div
+            className="recording-recycle-toolbar"
+            id="recording-recycle-toolbar"
+          >
+            <strong id="recording-recycle-summary">
+              共 {rows.length} 项，30 天后自动删除
+            </strong>
+            <div className="recording-recycle-filters">
+              <label>
+                <span>录音时间</span>
                 <input
-                  aria-label="搜索回收站录音"
-                  placeholder="搜索录音"
-                  value={recycleQuery}
-                  onChange={(e) =>
-                    updateFilter(() => setRecycleQuery(e.target.value))
-                  }
-                />
-              </label>
-              <label className="recycle-date">
-                录音时间{" "}
-                <input
+                  id="recording-recycle-date"
                   type="date"
                   aria-label="筛选回收站录音日期"
-                  value={recycleDate}
-                  onChange={(e) =>
-                    updateFilter(() => setRecycleDate(e.target.value))
-                  }
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
                 />
               </label>
-              <Button
-                onClick={() => {
-                  setRecycle(false);
-                  setLimit(10);
-                }}
-              >
-                返回我的会议
-              </Button>
-            </>
-          ) : (
-            <>
-              <label className="meeting-search">
-                <Icon name="search" />
+              <label className="recording-recycle-search">
+                <RefIcon name="search" />
                 <input
-                  aria-label="搜索会议"
-                  placeholder="搜索会议"
+                  id="recording-recycle-search"
+                  type="search"
+                  placeholder="搜索录音"
+                  aria-label="搜索录音"
                   value={query}
-                  onChange={(e) => updateFilter(() => setQuery(e.target.value))}
+                  onChange={(e) => setQuery(e.target.value)}
                 />
               </label>
-              <div className="source-filter">
-                <select
-                  aria-label="选择会议来源"
-                  value={source}
-                  onChange={(e) =>
-                    updateFilter(() => setSource(e.target.value))
-                  }
-                >
-                  <option value="all">全部来源</option>
-                  {[...new Set(meetings.map((m) => m.source))].map((s) => (
-                    <option key={s}>{s}</option>
-                  ))}
-                </select>
-                {source !== "all" ? (
+            </div>
+          </div>
+          <div className="recycle-table-head" id="recycle-table-head">
+            {[
+              "文件名",
+              "文件大小",
+              "文件来源",
+              "录音时间",
+              "删除时间",
+              "操作",
+            ].map((t) => (
+              <span key={t}>{t}</span>
+            ))}
+          </div>
+          <div id="recycle-list">
+            {rows.map((m) => (
+              <div className="recycle-row" key={m.id} data-recycle-id={m.id}>
+                <span className="recycle-file">
+                  <span className="recycle-file-mark">
+                    <RefIcon name="mic" />
+                  </span>
+                  <strong>{m.title}</strong>
+                </span>
+                <span>{m.size}</span>
+                <span className="recycle-recording-source">{m.source}</span>
+                <span>{m.created}</span>
+                <span>
+                  {m.deletedAt
+                    ? new Intl.DateTimeFormat("zh-CN", {
+                        month: "2-digit",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: false,
+                      })
+                        .format(new Date(m.deletedAt))
+                        .replace("/", "-")
+                    : "—"}
+                </span>
+                <span className="recycle-actions">
                   <button
-                    className="filter-clear"
-                    aria-label="清除来源筛选"
-                    onClick={() => updateFilter(() => setSource("all"))}
+                    type="button"
+                    data-recycle-action="restore"
+                    onClick={() =>
+                      void setUploadDeleted(m.id, false).catch((e) =>
+                        setError(e.message),
+                      )
+                    }
                   >
-                    ×
+                    恢复
                   </button>
-                ) : null}
+                  <button
+                    type="button"
+                    data-recycle-action="permanent"
+                    onClick={() => setPermanent(m)}
+                  >
+                    彻底删除
+                  </button>
+                </span>
               </div>
-              <DateFilter
-                value={date}
-                onChange={(v) => updateFilter(() => setDate(v))}
-                initialDate={meetings[0]?.date || "2026-09-02"}
+            ))}
+          </div>
+          {!rows.length ? (
+            <div className="recycle-empty" id="recycle-empty">
+              回收站暂无内容
+            </div>
+          ) : null}
+          {error && !pending ? <p role="alert">{error}</p> : null}
+        </section>
+        {overlay}
+      </>
+    );
+  return (
+    <>
+      <section
+        className="home-meeting-library"
+        id="recording-card"
+        aria-labelledby="recent-meeting-title"
+      >
+        <div className="home-meeting-head">
+          <div className="meeting-library-copy">
+            <h2 id="recent-meeting-title">我的会议</h2>
+            <p id="meeting-view-description">共 {rows.length} 个会议笔记</p>
+          </div>
+          <div className="home-meeting-toolbar" id="meeting-toolbar">
+            <label className="meeting-search">
+              <RefIcon name="search" />
+              <input
+                id="meeting-search"
+                type="search"
+                placeholder="搜索会议"
+                aria-label="搜索会议"
+                value={query}
+                onChange={(e) => change(() => setQuery(e.target.value))}
               />
-              <Button
-                onClick={() => {
-                  setRecycle(true);
-                  setLimit(10);
-                  setRecycleQuery("");
-                  setRecycleDate("");
-                }}
-              >
-                <Icon name="trash" />
-                录音回收站
-              </Button>
-            </>
-          )}
+            </label>
+            <MeetingFilter
+              id="meeting-source-filter"
+              kind="source"
+              value={source}
+              onChange={(v) => change(() => setSource(v))}
+            />
+            <MeetingFilter
+              id="meeting-date-filter"
+              kind="date"
+              value={date}
+              onChange={(v) => change(() => setDate(v))}
+            />
+            <button
+              className="recording-recycle-entry"
+              id="recording-recycle-entry"
+              type="button"
+              onClick={() => location.assign(appUrl("trash"))}
+            >
+              <RefIcon name="trash" />
+              <span>录音回收站</span>
+            </button>
+          </div>
         </div>
-      </header>
-      {saveError ? (
-        <p role="alert" className="form-error px-6">
-          {saveError}
-        </p>
-      ) : null}
-      <div className={recycle ? "recycle-table" : undefined}>
-        <DataTable
-          key={`${query}/${source}/${date}/${recycle}/${recycleQuery}/${recycleDate}`}
-          columns={recycle ? recycleColumns : columns}
-          rows={visible}
-          label={recycle ? "录音回收站列表" : "会议列表"}
+        <div
+          className="meeting-table-scroll"
+          id="meeting-table-scroll"
+          role="region"
+          aria-label="会议列表，可滚动查看更多"
+          tabIndex={0}
           onScroll={(e) => {
-            const t = e.currentTarget;
-            if (t.scrollTop + t.clientHeight >= t.scrollHeight - 20)
+            const el = e.currentTarget;
+            if (el.scrollTop + el.clientHeight >= el.scrollHeight - 20)
               setLimit((n) => Math.min(n + 10, rows.length));
           }}
-          footer={
-            <div className="meeting-load-status" aria-live="polite">
-              {limit < rows.length ? (
-                <Button onClick={() => setLimit(limit + 10)}>加载更多</Button>
-              ) : (
-                `已显示全部 ${rows.length} 条会议笔记`
-              )}
-            </div>
-          }
-        />
-      </div>
-      {edit ? (
-        <Modal
-          title="编辑标签"
-          onClose={() => setEdit(null)}
-          footer={
-            <>
-              <Button onClick={() => setEdit(null)}>取消</Button>
-              <Button
-                variant="primary"
-                onClick={() => {
-                  setTags({ ...tags, [edit.id]: tag.trim() });
-                  setEdit(null);
+        >
+          <div className="home-meeting-table-head">
+            {[
+              "文件名",
+              "文件大小",
+              "创建人",
+              "文件来源",
+              "标签",
+              "录音时长",
+              "文件状态",
+              "录音时间",
+              "更新时间",
+              "操作",
+            ].map((t) => (
+              <span key={t}>{t}</span>
+            ))}
+          </div>
+          <div className="home-meeting-table" id="meeting-list">
+            {rows.slice(0, limit).map((m, i) => (
+              <div
+                className="meeting-row home-meeting-row"
+                id={i === 0 ? "view-panorama" : undefined}
+                key={m.id}
+                role="button"
+                tabIndex={0}
+                data-meeting-id={m.id}
+                data-meeting={m.title}
+                data-source={m.source}
+                data-view="my"
+                data-recording-date={m.date}
+                onClick={() => location.assign(appUrl("meeting", m.id))}
+                onKeyDown={(e) => {
+                  if (
+                    (e.key === "Enter" || e.key === " ") &&
+                    e.target === e.currentTarget
+                  ) {
+                    e.preventDefault();
+                    location.assign(appUrl("meeting", m.id));
+                  }
                 }}
               >
-                保存
-              </Button>
-            </>
-          }
-        >
-          <Field
-            label="标签"
-            value={tag}
-            maxLength={40}
-            onChange={(e) => setTag(e.target.value)}
-          />
-        </Modal>
-      ) : null}
-      {deleting ? (
-        <Modal
-          title="删除会议"
-          onClose={() => setDeleting(null)}
-          footer={
-            <>
-              <Button onClick={() => setDeleting(null)}>取消</Button>
-              <Button
-                variant="primary"
-                disabled={busy}
-                onClick={() => void remove(deleting)}
-              >
-                确认删除
-              </Button>
-            </>
-          }
-        >
-          {saveError ? (
-            <p role="alert" className="form-error">
-              {saveError}
-            </p>
-          ) : null}
-          <p>将「{deleting.title}」移至录音回收站？</p>
-          <p className="muted">可以在录音回收站恢复。原型演示保留 30 天。</p>
-        </Modal>
-      ) : null}
-      {permanent ? (
-        <Modal
-          title="彻底删除录音"
-          onClose={() => setPermanent(null)}
-          footer={
-            <>
-              <Button onClick={() => setPermanent(null)}>取消</Button>
-              <Button
-                variant="primary"
-                disabled={busy}
-                onClick={() => void purge(permanent)}
-              >
-                确认彻底删除
-              </Button>
-            </>
-          }
-        >
-          {saveError ? (
-            <p role="alert" className="form-error">
-              {saveError}
-            </p>
-          ) : null}
-          <p>确定彻底删除「{permanent.title}」？此操作无法恢复。</p>
-        </Modal>
-      ) : null}
-    </section>
+                <span className="home-meeting-title">
+                  <i>
+                    <RefIcon name="mic" />
+                  </i>
+                  <span>
+                    <strong>{m.title}</strong>
+                    <small>会议记录</small>
+                  </span>
+                </span>
+                <span className="home-meeting-size">{m.size}</span>
+                <span className="meeting-creator">{m.creator}</span>
+                <span>{m.source}</span>
+                <span className="home-meeting-tag" title={m.tag}>
+                  {m.tag}
+                </span>
+                <span>{m.duration}</span>
+                <span
+                  className={
+                    "home-meeting-status " +
+                    (m.status === "已总结"
+                      ? "ready"
+                      : m.status === "处理中"
+                        ? "processing"
+                        : "")
+                  }
+                >
+                  <i />
+                  {m.status}
+                </span>
+                <span className="home-meeting-time">{m.created}</span>
+                <span className="home-meeting-updated">{m.updated}</span>
+                <span className="meeting-row-actions">
+                  <button
+                    type="button"
+                    data-meeting-action="tag"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      location.assign(appUrl("meeting", m.id) + "&dialog=info");
+                    }}
+                  >
+                    编辑标签
+                  </button>
+                  <button
+                    className="meeting-delete"
+                    type="button"
+                    data-meeting-action="delete"
+                    aria-label="删除会议"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeleting(m);
+                    }}
+                  >
+                    <RefIcon name="trash" />
+                  </button>
+                </span>
+              </div>
+            ))}
+          </div>
+          <div
+            className="meeting-filter-empty"
+            id="meeting-filter-empty"
+            hidden={rows.length > 0}
+          >
+            没有找到匹配的会议
+          </div>
+          <div className="meeting-load-footer">
+            <span id="meeting-load-status" role="status" aria-live="polite">
+              {rows.length === 0
+                ? ""
+                : limit < rows.length
+                  ? `已显示 ${Math.min(limit, rows.length)} / ${rows.length} 条 · 向上滑动加载更多`
+                  : `已显示全部 ${rows.length} 条会议笔记`}
+            </span>
+            <button
+              id="meeting-load-more"
+              type="button"
+              hidden={limit >= rows.length}
+              onClick={() => setLimit(limit + 10)}
+            >
+              加载更多
+            </button>
+          </div>
+        </div>
+      </section>
+      {overlay}
+    </>
   );
 }

@@ -1,0 +1,922 @@
+{
+  "schemaVersion": 1,
+  "scope": "Contacts and account settings",
+  "sources": [
+    "src/prototype/one-to-one-reference/assets/contacts-ui.js",
+    "src/prototype/one-to-one-reference/assets/contacts-model.js",
+    "src/prototype/one-to-one-reference/assets/personal-assets-ui.js",
+    "src/prototype/one-to-one-reference/team-only-app.html"
+  ],
+  "methods": {
+    "functional": "native-contacts-settings.spec.ts; final results in migration-integrity.json",
+    "visual": "Measured screenshot cases and viewport results in migration-integrity.json; earlier development-server geometry dumps superseded."
+  },
+  "states": [
+    {
+      "id": "contacts-list-1440",
+      "state": "Six seeded contacts",
+      "originalSelector": ".contacts-workspace",
+      "nativeSelector": ".contacts-workspace"
+    },
+    {
+      "id": "contacts-list-1024",
+      "state": "Six seeded contacts",
+      "originalSelector": ".contacts-workspace",
+      "nativeSelector": ".contacts-workspace"
+    },
+    {
+      "id": "contacts-list-390",
+      "state": "Six seeded contacts",
+      "originalSelector": ".contacts-workspace",
+      "nativeSelector": ".contacts-workspace"
+    },
+    {
+      "id": "john-概览-1440",
+      "state": "John detail / 概览",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "john-时间线-1440",
+      "state": "John detail / 时间线",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "john-承诺-1440",
+      "state": "John detail / 承诺",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "john-主题-1440",
+      "state": "John detail / 主题",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "john-记忆-1440",
+      "state": "John detail / 记忆",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "add-1440",
+      "state": "Add contact dialog",
+      "originalSelector": ".contacts-dialog",
+      "nativeSelector": ".contacts-dialog"
+    },
+    {
+      "id": "agent-1440",
+      "state": "Expanded Agent",
+      "originalSelector": "#contacts-xiaozhi-rail",
+      "nativeSelector": "#contacts-xiaozhi-rail"
+    },
+    {
+      "id": "settings-1440",
+      "state": "Standard personal settings",
+      "originalSelector": ".settings-float",
+      "nativeSelector": ".settings-float"
+    },
+    {
+      "id": "john-概览-1024",
+      "state": "John detail / 概览",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "john-时间线-1024",
+      "state": "John detail / 时间线",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "john-承诺-1024",
+      "state": "John detail / 承诺",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "john-主题-1024",
+      "state": "John detail / 主题",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "john-记忆-1024",
+      "state": "John detail / 记忆",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "add-1024",
+      "state": "Add contact dialog",
+      "originalSelector": ".contacts-dialog",
+      "nativeSelector": ".contacts-dialog"
+    },
+    {
+      "id": "agent-1024",
+      "state": "Expanded Agent",
+      "originalSelector": "#contacts-xiaozhi-rail",
+      "nativeSelector": "#contacts-xiaozhi-rail"
+    },
+    {
+      "id": "settings-1024",
+      "state": "Standard personal settings",
+      "originalSelector": ".settings-float",
+      "nativeSelector": ".settings-float"
+    },
+    {
+      "id": "john-概览-390",
+      "state": "John detail / 概览",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "john-时间线-390",
+      "state": "John detail / 时间线",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "john-承诺-390",
+      "state": "John detail / 承诺",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "john-主题-390",
+      "state": "John detail / 主题",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "john-记忆-390",
+      "state": "John detail / 记忆",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "add-390",
+      "state": "Add contact dialog",
+      "originalSelector": ".contacts-dialog",
+      "nativeSelector": ".contacts-dialog"
+    },
+    {
+      "id": "agent-390",
+      "state": "Expanded Agent",
+      "originalSelector": "#contacts-xiaozhi-rail",
+      "nativeSelector": "#contacts-xiaozhi-rail"
+    },
+    {
+      "id": "settings-390",
+      "state": "Standard personal settings",
+      "originalSelector": ".settings-float",
+      "nativeSelector": ".settings-float"
+    },
+    {
+      "id": "dialog-note",
+      "state": "Contact note dialog",
+      "originalSelector": ".contacts-dialog",
+      "nativeSelector": ".contacts-dialog"
+    },
+    {
+      "id": "dialog-followup",
+      "state": "Contact followup dialog",
+      "originalSelector": ".contacts-dialog",
+      "nativeSelector": ".contacts-dialog"
+    },
+    {
+      "id": "search",
+      "state": "Filtered and no-result search",
+      "originalSelector": "#contacts-search / .contacts-empty",
+      "nativeSelector": "#contacts-search / .contacts-empty"
+    },
+    {
+      "id": "empty",
+      "state": "Zero contacts and Agent without context",
+      "originalSelector": ".contacts-empty / .contacts-xiaozhi-answer",
+      "nativeSelector": ".contacts-empty / .contacts-xiaozhi-answer"
+    },
+    {
+      "id": "six-seeds",
+      "state": "All original contacts and five detail tabs",
+      "originalSelector": ".contacts-profile / .contacts-tabs / .contacts-card",
+      "nativeSelector": ".contacts-profile / .contacts-tabs / .contacts-card"
+    },
+    {
+      "id": "new-empty",
+      "state": "New contact: all empty detail branches",
+      "originalSelector": ".contacts-card / .contacts-empty",
+      "nativeSelector": ".contacts-card / .contacts-empty"
+    },
+    {
+      "id": "add-validation",
+      "state": "Name required/whitespace/duplicate and escaped text",
+      "originalSelector": "[data-contact-form=add] / .contacts-form-error",
+      "nativeSelector": "[data-contact-form=add] / .contacts-form-error"
+    },
+    {
+      "id": "note-validation",
+      "state": "Empty note, save, count and memory tab",
+      "originalSelector": "[data-contact-form=note] / .contacts-form-error / .contacts-metrics",
+      "nativeSelector": "[data-contact-form=note] / .contacts-form-error / .contacts-metrics"
+    },
+    {
+      "id": "followup-validation",
+      "state": "Empty title, owner, saved task",
+      "originalSelector": "[data-contact-form=followup] / .contacts-form-error / .contacts-card",
+      "nativeSelector": "[data-contact-form=followup] / .contacts-form-error / .contacts-card"
+    },
+    {
+      "id": "quota",
+      "state": "Add/note/followup quota rollback and retry",
+      "originalSelector": ".contacts-form-error",
+      "nativeSelector": ".contacts-form-error"
+    },
+    {
+      "id": "cas",
+      "state": "Stale add/note/followup, draft and winner retained",
+      "originalSelector": ".contacts-form-error",
+      "nativeSelector": ".contacts-form-error"
+    },
+    {
+      "id": "reload",
+      "state": "Saved contacts/notes/tasks reload",
+      "originalSelector": ".contacts-person-card / .contacts-card",
+      "nativeSelector": ".contacts-person-card / .contacts-card"
+    },
+    {
+      "id": "dialog-dismiss",
+      "state": "Cancel/close/Escape/backdrop and focus",
+      "originalSelector": ".contacts-overlay / .contacts-dialog",
+      "nativeSelector": ".contacts-overlay / .contacts-dialog"
+    },
+    {
+      "id": "agent-draft",
+      "state": "Draft survives search/collapse; Enter/Shift+Enter",
+      "originalSelector": "[data-contact-xiaozhi-input]",
+      "nativeSelector": "[data-contact-xiaozhi-input]"
+    },
+    {
+      "id": "agent-context",
+      "state": "Selected-person context isolation",
+      "originalSelector": ".xiaozhi-context / .contacts-xiaozhi-answer",
+      "nativeSelector": ".xiaozhi-context / .contacts-xiaozhi-answer"
+    },
+    {
+      "id": "agent-prompts",
+      "state": "Suggestions/new task/special answer branches",
+      "originalSelector": "[data-contact-action=ask] / .contacts-xiaozhi-answer",
+      "nativeSelector": "[data-contact-action=ask] / .contacts-xiaozhi-answer"
+    },
+    {
+      "id": "agent-resize",
+      "state": "Pointer/keyboard/bounds/persistence",
+      "originalSelector": ".agent-resize-handle",
+      "nativeSelector": ".agent-resize-handle"
+    },
+    {
+      "id": "scroll",
+      "state": "Independent content and Agent scrolling",
+      "originalSelector": ".contacts-content / .contacts-xiaozhi-messages",
+      "nativeSelector": ".contacts-content / .contacts-xiaozhi-messages"
+    },
+    {
+      "id": "preferences",
+      "state": "All original language values; summary on/off",
+      "originalSelector": "[data-settings-language] / [data-settings-action=toggle-summary]",
+      "nativeSelector": "[data-settings-language] / [data-settings-action=toggle-summary]"
+    },
+    {
+      "id": "legacy",
+      "state": "Legacy language preference fallback",
+      "originalSelector": "[data-settings-language]",
+      "nativeSelector": "[data-settings-language]"
+    },
+    {
+      "id": "settings-quota",
+      "state": "Language/summary quota rollback",
+      "originalSelector": "#toast / [data-settings-language]",
+      "nativeSelector": "#toast / [data-settings-language]"
+    },
+    {
+      "id": "settings-cas",
+      "state": "Stale settings rejected",
+      "originalSelector": "#toast / [data-settings-language]",
+      "nativeSelector": "#toast / [data-settings-language]"
+    },
+    {
+      "id": "settings-reload",
+      "state": "Reload and shared preferences across workspaces",
+      "originalSelector": "[data-settings-language]",
+      "nativeSelector": "[data-settings-language]"
+    },
+    {
+      "id": "personal-pro",
+      "state": "Active Pro entitlement",
+      "originalSelector": ".settings-profile small / .settings-usage",
+      "nativeSelector": ".settings-profile small / .settings-usage"
+    },
+    {
+      "id": "personal-expired",
+      "state": "Expired Pro falls back to standard",
+      "originalSelector": ".settings-profile small / .settings-usage",
+      "nativeSelector": ".settings-profile small / .settings-usage"
+    },
+    {
+      "id": "team-admin",
+      "state": "Team admin entitlement and preferences",
+      "originalSelector": ".settings-profile small / .settings-usage",
+      "nativeSelector": ".settings-profile small / .settings-usage"
+    },
+    {
+      "id": "team-member",
+      "state": "Team member entitlement and preferences",
+      "originalSelector": ".settings-profile small / .settings-usage",
+      "nativeSelector": ".settings-profile small / .settings-usage"
+    },
+    {
+      "id": "team-expired",
+      "state": "Expired team entitlement with editable preferences",
+      "originalSelector": ".settings-usage",
+      "nativeSelector": ".settings-usage"
+    },
+    {
+      "id": "team-no-seat",
+      "state": "No effective team seat entitlement copy",
+      "originalSelector": ".settings-usage",
+      "nativeSelector": ".settings-usage"
+    },
+    {
+      "id": "logout",
+      "state": "Logout cancel/Escape/confirm and retained records",
+      "originalSelector": ".pa-dialog",
+      "nativeSelector": ".pa-dialog"
+    },
+    {
+      "id": "settings-close",
+      "state": "Close returns to current workspace",
+      "originalSelector": "[data-settings-close]",
+      "nativeSelector": "[data-settings-close]"
+    },
+    {
+      "id": "legal",
+      "state": "Original legal URLs and new-tab target",
+      "originalSelector": ".settings-link",
+      "nativeSelector": ".settings-link"
+    },
+    {
+      "id": "settings-responsive",
+      "state": "Compact settings and logout fit viewport",
+      "originalSelector": "#personal-settings / .pa-dialog",
+      "nativeSelector": "#personal-settings / .pa-dialog"
+    },
+    {
+      "id": "production-list-1440",
+      "state": "Seed list",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-john-概览-1440",
+      "state": "john / 概览",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-john-时间线-1440",
+      "state": "john / 时间线",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-john-承诺-1440",
+      "state": "john / 承诺",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-john-主题-1440",
+      "state": "john / 主题",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-john-记忆-1440",
+      "state": "john / 记忆",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-alice-概览-1440",
+      "state": "alice / 概览",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-alice-时间线-1440",
+      "state": "alice / 时间线",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-alice-承诺-1440",
+      "state": "alice / 承诺",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-alice-主题-1440",
+      "state": "alice / 主题",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-alice-记忆-1440",
+      "state": "alice / 记忆",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-david-概览-1440",
+      "state": "david / 概览",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-david-时间线-1440",
+      "state": "david / 时间线",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-david-承诺-1440",
+      "state": "david / 承诺",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-david-主题-1440",
+      "state": "david / 主题",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-david-记忆-1440",
+      "state": "david / 记忆",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-lisa-概览-1440",
+      "state": "lisa / 概览",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-lisa-时间线-1440",
+      "state": "lisa / 时间线",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-lisa-承诺-1440",
+      "state": "lisa / 承诺",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-lisa-主题-1440",
+      "state": "lisa / 主题",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-lisa-记忆-1440",
+      "state": "lisa / 记忆",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-michael-概览-1440",
+      "state": "michael / 概览",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-michael-时间线-1440",
+      "state": "michael / 时间线",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-michael-承诺-1440",
+      "state": "michael / 承诺",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-michael-主题-1440",
+      "state": "michael / 主题",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-michael-记忆-1440",
+      "state": "michael / 记忆",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-emma-概览-1440",
+      "state": "emma / 概览",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-emma-时间线-1440",
+      "state": "emma / 时间线",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-emma-承诺-1440",
+      "state": "emma / 承诺",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-emma-主题-1440",
+      "state": "emma / 主题",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-emma-记忆-1440",
+      "state": "emma / 记忆",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-agent-1440",
+      "state": "Expanded Agent",
+      "originalSelector": "#contacts-xiaozhi-rail",
+      "nativeSelector": "#contacts-xiaozhi-rail"
+    },
+    {
+      "id": "production-add-1440",
+      "state": "Add dialog",
+      "originalSelector": ".contacts-dialog",
+      "nativeSelector": ".contacts-dialog"
+    },
+    {
+      "id": "production-note-1440",
+      "state": "note dialog",
+      "originalSelector": ".contacts-dialog",
+      "nativeSelector": ".contacts-dialog"
+    },
+    {
+      "id": "production-followup-1440",
+      "state": "followup dialog",
+      "originalSelector": ".contacts-dialog",
+      "nativeSelector": ".contacts-dialog"
+    },
+    {
+      "id": "production-list-1024",
+      "state": "Seed list",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-john-概览-1024",
+      "state": "john / 概览",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-john-时间线-1024",
+      "state": "john / 时间线",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-john-承诺-1024",
+      "state": "john / 承诺",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-john-主题-1024",
+      "state": "john / 主题",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-john-记忆-1024",
+      "state": "john / 记忆",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-alice-概览-1024",
+      "state": "alice / 概览",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-alice-时间线-1024",
+      "state": "alice / 时间线",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-alice-承诺-1024",
+      "state": "alice / 承诺",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-alice-主题-1024",
+      "state": "alice / 主题",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-alice-记忆-1024",
+      "state": "alice / 记忆",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-david-概览-1024",
+      "state": "david / 概览",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-david-时间线-1024",
+      "state": "david / 时间线",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-david-承诺-1024",
+      "state": "david / 承诺",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-david-主题-1024",
+      "state": "david / 主题",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-david-记忆-1024",
+      "state": "david / 记忆",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-lisa-概览-1024",
+      "state": "lisa / 概览",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-lisa-时间线-1024",
+      "state": "lisa / 时间线",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-lisa-承诺-1024",
+      "state": "lisa / 承诺",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-lisa-主题-1024",
+      "state": "lisa / 主题",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-lisa-记忆-1024",
+      "state": "lisa / 记忆",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-michael-概览-1024",
+      "state": "michael / 概览",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-michael-时间线-1024",
+      "state": "michael / 时间线",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-michael-承诺-1024",
+      "state": "michael / 承诺",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-michael-主题-1024",
+      "state": "michael / 主题",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-michael-记忆-1024",
+      "state": "michael / 记忆",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-emma-概览-1024",
+      "state": "emma / 概览",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-emma-时间线-1024",
+      "state": "emma / 时间线",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-emma-承诺-1024",
+      "state": "emma / 承诺",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-emma-主题-1024",
+      "state": "emma / 主题",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-emma-记忆-1024",
+      "state": "emma / 记忆",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-agent-1024",
+      "state": "Expanded Agent",
+      "originalSelector": "#contacts-xiaozhi-rail",
+      "nativeSelector": "#contacts-xiaozhi-rail"
+    },
+    {
+      "id": "production-add-1024",
+      "state": "Add dialog",
+      "originalSelector": ".contacts-dialog",
+      "nativeSelector": ".contacts-dialog"
+    },
+    {
+      "id": "production-note-1024",
+      "state": "note dialog",
+      "originalSelector": ".contacts-dialog",
+      "nativeSelector": ".contacts-dialog"
+    },
+    {
+      "id": "production-followup-1024",
+      "state": "followup dialog",
+      "originalSelector": ".contacts-dialog",
+      "nativeSelector": ".contacts-dialog"
+    },
+    {
+      "id": "production-list-390",
+      "state": "Seed list",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-john-概览-390",
+      "state": "john / 概览",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-john-时间线-390",
+      "state": "john / 时间线",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-john-承诺-390",
+      "state": "john / 承诺",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-john-主题-390",
+      "state": "john / 主题",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-john-记忆-390",
+      "state": "john / 记忆",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-alice-概览-390",
+      "state": "alice / 概览",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-alice-时间线-390",
+      "state": "alice / 时间线",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-alice-承诺-390",
+      "state": "alice / 承诺",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-alice-主题-390",
+      "state": "alice / 主题",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-alice-记忆-390",
+      "state": "alice / 记忆",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-david-概览-390",
+      "state": "david / 概览",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-david-时间线-390",
+      "state": "david / 时间线",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-david-承诺-390",
+      "state": "david / 承诺",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-david-主题-390",
+      "state": "david / 主题",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-david-记忆-390",
+      "state": "david / 记忆",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-lisa-概览-390",
+      "state": "lisa / 概览",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-lisa-时间线-390",
+      "state": "lisa / 时间线",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-lisa-承诺-390",
+      "state": "lisa / 承诺",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-lisa-主题-390",
+      "state": "lisa / 主题",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    },
+    {
+      "id": "production-lisa-记忆-390",
+      "state": "lisa / 记忆",
+      "originalSelector": ".contacts-main",
+      "nativeSelector": ".contacts-main"
+    }
+  ]
+}

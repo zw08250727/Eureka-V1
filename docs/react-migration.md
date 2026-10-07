@@ -1,83 +1,72 @@
-# React / Next.js 渐进迁移
+# React / Next.js 迁移记录
 
-## 已发布基线与仓库
+## 仓库与版本
 
-- 项目目录：`/Users/admin/Documents/Playground/projects/Eureka-V1`。旧目录 `../EureKa` 是另一个仓库，不在其中执行本项目命令。
-- 远程仓库：`zw08250727/Eureka-V1`；生产分支：`develop`。
-- 原型与 PRD 基线：`prototype-baseline-20261007` → `b41c97420186ad81b319f4cc57fc3013c71be947`。
-- 基线 PRD：`prd-20261007-40`，已由 GitHub Pages run `37591329130` 发布；基线 CI run `37591328904` 成功。
-- 迁移分支：`codex/next-workbench-migration`。此分支不直接触发生产发布。
+- 本项目目录：`/Users/admin/Documents/Playground/projects/Eureka-V1`，不是相邻的 `EureKa` 仓库。
+- 远端：`zw08250727/Eureka-V1`；生产分支：`develop`；迁移分支：`codex/next-workbench-migration`。
+- 原型基线标签：`prototype-baseline-20261007`，提交 `b41c97420186ad81b319f4cc57fc3013c71be947`。
+- PRD 基线：`prd-20261007-40`；本次迁移不修改 PRD 内容及 URL。
+- 合并到 `develop` 前必须通过 CI；Pages 工作流再次执行检查和浏览器测试，再发布带 `/Eureka-V1` 前缀的静态产物。
 
-## 当前阶段与入口
+## 入口与页面
 
-| 入口 | 当前行为 |
+| 入口 | 实现 |
 | --- | --- |
-| `/` | 保留登录演示及 iframe 原型入口 |
-| `/workbench/` | React 原生个人首页，首个迁移验收页面 |
-| `/prototype/one-to-one-reference/team-only-app.html` | 完整原型继续可用 |
-| `/prototype/prd/index.html` | PRD 地址、锚点、草稿与版本逻辑保持不变 |
+| `/` | React 登录 / 注册演示，完成后进入原生工作台 |
+| `/workbench/` | React 页面调度；通过 `view`、`space`、`id`、`actor` 保留可分享的演示状态 |
+| `/prototype/one-to-one-reference/team-only-app.html` | 完整原型基线，用于对照及回退 |
+| `/prototype/prd/index.html` | 保留 PRD 的版本、草稿、锚点和评审功能 |
 
-生产地址前缀为 `/Eureka-V1`。`NEXT_PUBLIC_BASE_PATH` 同时用于 Next 资源、旧页面跳转及 PRD 链接，`trailingSlash` 生成适合 Pages 的目录入口。
+当前公开原型的个人与团队入口均由原生组件承接：个人首页、日程与待办、全部闪念、联系人及详情、录音权限说明及录制页、会议详情六个标签页、录音回收站、个人设置、个人订阅、设备与同步、历史会话、团队首页、成员与邀请、团队创建向导、团队设备、订阅席位、Credits、空间设置、审计记录、自动任务。
 
-个人首页包含：侧栏折叠与工作空间菜单、顶部导航与 App 二维码、今日简报与待办完成操作、日程/灵感/记账摘要、会议搜索/来源/日期筛选与逐批加载、标签弹窗、上传、回收站恢复及彻底删除、可拖动和键盘调宽的 Agent 面板。
+空间菜单、顶部导航、App 二维码、来源与日期筛选、上传、编辑与删除确认、权限模拟、付款模拟、Agent 引用与调宽等仍沿用原型结构。创建团队、工作空间邀请和录音权限说明覆盖当前页面，关闭后保留背景页面。原型原本隐藏的知识库、应用数据功能保留在基线文件中，不新增入口；“即将上线”的功能继续保持原状态。
 
-录音、日历编辑、联系人、闪念详情、会议详情、设备、订阅、设置、团队与历史会话通过显式 `migration=1&entry=…` 参数进入原有界面。旧页点击首页返回 React。未携带迁移参数的原型行为不变。团队开通入口仍打开现有套餐弹窗。
+## 实现与视觉约束
 
-## 工程结构
+- `src/features/reference/`：原型壳层、共享筛选、标题上下文、Agent 几何计算和 SVG。
+- `src/features/workbench/`：首页、会议列表、今日概览、上传、Agent；仓储和 API 网关类型。
+- `src/features/personal/`：日历、闪念、联系人、设置、各自的弹窗及本地存储。
+- `src/features/meetings/`：会议详情、播放、正文编辑、模板、导出、分享预览、录制及权限说明。
+- `src/features/spaces/`：团队管理、设备、成员、订阅与支付模拟、会话与自动任务。
+- `src/features/auth/`：原型登录和注册页面的 React 实现。
 
-- `src/app/workbench/`：Next App Router 页面和样式。保持既有字号、配色、间距及素材，不重新设计。
-- `src/components/ui/`：按钮、图标、模态弹窗、表单字段、日期筛选、泛型表格。
-- `src/features/workbench/components/`：导航、今日概览、会议列表、上传、Agent 面板。
-- `src/features/workbench/hooks/`：数据载入与写入、Agent 自适应宽度。
-- `src/features/workbench/model/`：类型、日期/筛选规则、本地存储适配器、模拟 Agent、固定原型种子数据。
-- `src/lib/routes.ts`：统一入口及 basePath。
-- `src/prototype/one-to-one-reference/assets/migration-entry.js`：受限入口桥接，不执行任意查询参数指定的 DOM/URL。
-
-继续使用 React 19、Next.js 16、TypeScript，新增 Tailwind CSS 4 的 PostCSS 构建。共享组件使用 Tailwind，首页复杂布局保留可读的 CSS。没有引入 Vite、运行时 Babel 或运行时 Tailwind CDN。
+`npm run sync:ui` 按原型加载顺序提取全部 CSS（包括运行时注入样式）和 SVG 路径。`npm run lint` 检查这些文件与原型一致，禁止直接调整生成文件。布局沿用原 class、标签层级、字号、字体栈、间距、素材和响应式断点。Tailwind 使用本地构建，关闭默认 Preflight，避免覆盖原型控件；未引入 Vite 或运行时 CDN。
 
 ## 数据与服务边界
 
-`WorkbenchRepository` 提供载入、完成待办、上传、移入/恢复回收站、彻底删除接口。React 组件不直接读写 localStorage。`AgentGateway` 接收提示词、当前上下文、引用选项及 AbortSignal，后续替换为 Agentplatform 适配器。
+仍为本地模拟工程。上传只保存元数据，录音授权不访问真实麦克风，转写/Agent 回复/付款/设备同步均不访问生产服务。会议详情及 Agent 的正式业务规则仍以 PRD「参考与边界」为准，没有扩大本次需求范围。
 
-首阶段完全使用模拟数据。上传只保存元数据；未上传真实音频、未生成转写、未调用外部模型、未执行联网检索。运行状态、计费、历史任务业务规则继续遵循 PRD 的参考与边界，不在本阶段发明业务逻辑。
+`WorkbenchRepository` 与 `AgentGateway` 是后续真实接口接入边界。日程、闪念、联系人、会议详情使用类型化 store/hooks；团队与个人订阅模型从原型的纯 JS 规则模块提取为 ESM，再通过 TypeScript 类型门面接入，保留已验证算法而非重新发明规则。真实权限校验、支付、身份认证和持久化需后续后端实现。
 
-兼容以下已有存储：
+继续兼容原型 localStorage 键，包括个人日程、闪念、联系人、上传、会议详情、工作空间与订阅。写入前比较存储快照，发生跨标签页冲突或存储失败时回滚并提示；不静默覆盖其他页面数据。数据范围和会话所有权仍按现有模型执行。未真实接入后台的定时任务不会自行在后台运行。
 
-- `eureka:personal-actions:v1`：保留 records / meetings / sessions / settings 和未知字段；修改待办时递增 revision。
-- `eureka:thoughts:v1`：按业务日期计算今日灵感与支出，排除收入。
-- `eureka:audio-uploads:v1`：兼容 deleted / deletedAt，删除上传记录可跨刷新恢复或彻底删除。
-- `eureka:meeting-details:v1`：读取已编辑的会议标题。
-- `eureka:workspaces:v2`：读取空间成员、账户名与个人订阅信息。
-- `baizhi-v14-contacts`：读取个人联系人数量。
-
-写入前比较存储快照；并发变更、损坏 JSON、容量不足时显示错误并保留当前输入，不覆盖旧记录。未修改模拟数据时不强行覆盖原型种子。种子的相对日期按当天平移，历史会议日期保持原值。
-
-与原型相同，内置演示会议的标签编辑和回收站仍为当前页面内存状态；上传记录可以持久保存。回收站的“30 天”是原型文案，不代表已实现后端定时清理。真正的数据持久化、权限与清理任务留待后端阶段。
-
-## 验证与发布
+## 验证方式
 
 ```bash
 npm ci
 npm run check
 npm run build
-PLAYWRIGHT_CHANNEL=chrome npm run test:e2e  # 本机使用已安装 Chrome
-# CI 自动安装 Chromium，可直接 npm run test:e2e
-NEXT_PUBLIC_BASE_PATH=/Eureka-V1 npm run build
+PLAYWRIGHT_CHANNEL=chrome npm run test:e2e -- --workers=1
+# CI 安装 Chromium，不设置 PLAYWRIGHT_CHANNEL。
+
+# 本地低内存构建（可选）
+EUREKA_LOW_MEMORY=1 NODE_OPTIONS=--max-old-space-size=768 npm run build
+
+# 对同一构建内的原型与 React 页面逐场景截图比较
+python3 -m http.server 3131 --directory out
+PARITY_BASE_URL=http://127.0.0.1:3131 node scripts/check-ui-parity.cjs
+PARITY_WIDTH=390 PARITY_HEIGHT=844 PARITY_OUTPUT=test-results/parity-mobile node scripts/check-ui-parity.cjs
+
+# 对本地 Pages 前缀预览或实际线上地址检查 21 个业务页面及保留入口
+DEPLOYMENT_URL=https://zw08250727.github.io/Eureka-V1 PLAYWRIGHT_CHANNEL=chrome npm run test:deployment
 ```
 
-新增测试：`tests/e2e/workbench-migration.spec.ts`、`tests/e2e/workbench-model.spec.ts`。覆盖原生无 iframe 渲染、旧页往返、待办持久化、筛选与懒加载、上传验证和失败恢复、回收站、App 二维码、Agent 输入及调宽、桌面/窄屏溢出、并发写入保护、损坏数据保护。
+视觉脚本固定日期、随机数、时区、窗口尺寸，并在两边禁用动画和光标闪烁；每个场景使用独立浏览器上下文。报告保存逐像素差异数量、最大通道差值和差异图，不把发生异常的场景计为通过。`PARITY_CASES` 可按场景名正则选择，`PARITY_OUTPUT` 可指定输出目录。
 
-2026-10-07 本地验收：`npm run check` 和生产构建通过；全量浏览器测试 128 项通过、2 项按既有规则跳过。首次并发运行有两个旧 Agent 用例在导航阶段超时，降低浏览器并发至本机 3 / CI 2 后完整重跑通过，未放宽断言。带 `/Eureka-V1` 前缀的独立静态构建及浏览器冒烟也通过：新首页资源、旧页往返、根 iframe 和 PRD 均正常，无 HTTP / 浏览器错误。
+浏览器测试包括原型与 PRD 原有回归，以及原生页面的功能、权限范围、CRUD、刷新、存储失败、冲突恢复、付款幂等、上传校验、跨页导航、窄屏和 Agent 调宽。最终记录见 `docs/migration-integrity.json`；过程中的场景清单保留 source-reviewed 与实测的区别，避免把静态审查当作截图验收。
 
-测试尺寸为 1440×900、1280×650、1080×680、390×844；验收截图使用固定时区和同一批模拟记录。两个原有截图刷新用例只在设置专用环境变量时运行，常规回归跳过。
+本轮测量包含桌面 88、平板 87、手机 85 组原型 / React 截图，共 260 组，229 组逐像素零差异。其余原始差值保留在报告中，主要为圆角、字形边缘及透明色混合，不宣称全部截图逐像素相同。响应式原型隐藏的侧栏入口不计作截图通过；相应弹窗功能由浏览器测试覆盖。
 
-Pages workflow 已加入代码/模型检查及全量浏览器测试；通过后才构建带 `/Eureka-V1` 前缀的部署产物。CI 验证迁移分支；合并到 develop 才触发生产发布。
+## 发布与回退
 
-## 后续顺序
-
-1. 个人日历与待办、闪念和联系人：逐页提取数据规则与编辑交互，保留旧页面作为比对基线。
-2. 录音、设备、工作空间/团队和订阅：沿用现有模型测试及权限、支付模拟用例。
-3. 按参考边界接入会议详情及 Agentplatform；真实服务适配器替换模拟适配器。
-4. 全部入口及跨页流程验收通过，再替换根入口中的 iframe。保留原型回退入口及 PRD 固定地址。
-
-尚未替换生产根入口，尚未完成全站 React 迁移。
+静态导出启用 `trailingSlash`，统一通过 `NEXT_PUBLIC_BASE_PATH` 生成业务路由与资源 URL。发布后验证根入口、原生工作台、PRD 和原型基线四类入口。回退可恢复基线标签对应的 `develop` 内容再运行现有 Pages 工作流；用户浏览器中的个人数据不在发布中清空。

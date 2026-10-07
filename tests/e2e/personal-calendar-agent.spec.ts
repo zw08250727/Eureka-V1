@@ -12,7 +12,7 @@ test('calendar Agent stays aligned, fills the viewport and uses the common compo
   for(const height of [1000,1400,650]){
     await page.setViewportSize({width:1440,height});
     await expect.poll(async()=>{const r=(await rail.boundingBox())!,c=(await page.locator('.pa-content').boundingBox())!;return Math.abs(r.y-c.y);}).toBeLessThan(2);
-    const r=(await rail.boundingBox())!,m=(await main.boundingBox())!;expect(Math.abs(m.y+m.height-r.y-r.height-16)).toBeLessThan(2);
+    await expect.poll(async()=>{const r=(await rail.boundingBox())!,m=(await main.boundingBox())!;return Math.abs(m.y+m.height-r.y-r.height-16);}).toBeLessThan(2);
     await expect(input).toBeInViewport({ratio:1});await expect(send).toBeInViewport({ratio:1});
     expect(await main.evaluate(el=>el.scrollTop)).toBe(0);
   }

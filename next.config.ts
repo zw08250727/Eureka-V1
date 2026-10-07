@@ -7,6 +7,15 @@ const nextConfig: NextConfig = {
   trailingSlash: true,
   outputFileTracingRoot: path.resolve(__dirname),
   basePath,
+  ...(process.env.EUREKA_LOW_MEMORY === "1"
+    ? {
+        experimental: { cpus: 1 },
+        webpack: (config) => {
+          config.cache = false;
+          return config;
+        },
+      }
+    : {}),
 };
 
 export default nextConfig;
