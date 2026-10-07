@@ -23,7 +23,7 @@
     return {version:2,account:{id:SELF,name:'张伟',email:'zhang.wei@eureka.example'},activeId:'personal',spaces:[{id:'personal',type:'personal',name:'个人工作空间',plan:'Pro',files:[],threads:[],members:[person(SELF,'张伟','zhang.wei@eureka.example','admin')],credits:{total:3000,used:0,logs:[]}},a,b],devices:[{id:'dev-personal',name:'我的 Eureka Note',serial:'EK-N-20260018',model:'Note',spaceId:'personal',user:SELF,lastSync:'2026-10-06 09:32'},{id:'dev-team',name:'产品团队录音卡',serial:'EK-N-20260026',model:'Note Pro',spaceId:a.id,user:'lin',lastSync:'2026-10-06 10:15'}],invitations:[{id:'invite-growth',teamName:'增长研究小组',admin:'王晨',email:'zhang.wei@eureka.example',status:'pending'}],orders:[]};
   }
   const get = (s,uid=s.activeId) => s.spaces.find(w=>w.id===uid) || fail('工作空间不存在');
-  const member = (w,uid=SELF) => w.members.find(m=>m.id===uid && m.status==='active');
+  const member = (w,uid=SELF) => w.status!=='dissolved' && w.members.find(m=>m.id===uid && m.status==='active');
   const admin = (w,uid=SELF) => member(w,uid)?.role==='admin';
   const usedSeats = w => w.members.filter(m=>m.status!=='removed').length;
   const writable = w => { if(w.type==='team' && w.status!=='active') fail('工作空间处于只读状态，请恢复订阅后再操作'); };
@@ -51,18 +51,52 @@
     if(!list.length||list.some(v=>!/^\S+@\S+\.\S+$/.test(v)))fail('请填写有效的邮箱，可用逗号分隔');
     if(list.some(email=>w.members.some(m=>m.email.toLowerCase()===email&&m.status!=='removed')))fail('部分邮箱已加入或已被邀请，请移除重复邮箱');
     if(usedSeats(w)+list.length>Math.min(w.seats,w.pendingSeats??w.seats))fail('可用席位不足，请先增加席位或取消已安排的减席');
-    const added=list.map(email=>person(id('member'),email.split('@')[0],email,role,'pending'));w.members.push(...added);log(w,`邀请 ${list.length} 位成员`,actor);return added;
+    const added=list.map(email=>{const previous=w.members.find(m=>m.email.toLowerCase()===email&&m.status==='removed');if(previous){previous.status='pending';previous.role=role;previous.reinvitedAt=stamp();return previous;}const m=person(id('member'),email.split('@')[0],email,role,'pending');w.members.push(m);return m;});log(w,`邀请 ${list.length} 位成员`,actor);return added;
   }
   function memberAction(s,w,mid,action,value,actor=SELF) {
-    govern(w,actor);writable(w);const m=w.members.find(m=>m.id===mid&&m.status!=='removed')||fail('成员不存在');
+    govern(w,actor);if(action!=='role')writable(w);const m=w.members.find(m=>m.id===mid&&m.status!=='removed')||fail('成员不存在');
+    if(action==='role'&&m.status!=='active')fail('请先等待成员接受邀请');
     if(action==='role'&&!['admin','member'].includes(value))fail('角色无效');
     if(m.role==='admin'&&m.status==='active'&&(action==='remove'||action==='role'&&value!=='admin')&&w.members.filter(m=>m.role==='admin'&&m.status==='active').length<=1)fail('必须至少保留一位管理员');
-    if(action==='remove') { if(mid===actor)fail('请使用退出工作空间入口');m.status='removed';s.devices.filter(d=>d.spaceId===w.id&&d.user===mid).forEach(d=>{d.spaceId=null;}); }
+    if(action==='remove') { if(mid===actor)fail('请使用退出工作空间入口');departure(s,w,mid,'removed'); }
     else if(action==='role')m.role=value;
     else if(action==='accept') {if(m.status!=='pending')fail('此邀请已处理');m.status='active';}
     else if(action==='resend') {if(m.status!=='pending')fail('仅待接受的邀请可以重发');m.sentAt=stamp();}
     else fail('操作无效');
     log(w,`${{remove:'移除',role:'调整角色',accept:'模拟接受邀请',resend:'重发邀请'}[action]}：${m.name}`,actor);
+  }
+  function departure(s,w,uid,reason) {
+    const m=w.members.find(m=>m.id===uid&&m.status!=='removed');if(!m)return;
+    m.status='removed';m.leftAt=stamp();m.exitReason=reason;
+    s.devices.filter(d=>d.spaceId===w.id&&d.user===uid).forEach(d=>{d.spaceId=null;});
+    (w.automaticTasks||[]).filter(t=>t.user===uid).forEach(t=>{t.enabled=false;t.pauseReason=reason;});
+  }
+  function leave(s,w,uid=SELF) {
+    if(w.type!=='team')fail('个人空间不能退出');access(w,uid);
+    if(admin(w,uid)&&w.members.filter(m=>m.status==='active'&&m.role==='admin').length===1)fail('你是唯一管理员，请先指定另一位管理员，或解散团队');
+    log(w,'退出团队：释放已分配席位，已购席位与团队 Credits 保留',uid);
+    departure(s,w,uid,'left');
+    if(uid===s.account.id&&s.activeId===w.id)s.activeId='personal';
+  }
+  function dissolve(s,w,name,uid=SELF) {
+    if(w.type!=='team')fail('个人空间不能解散');govern(w,uid);
+    if(String(name||'').trim()!==w.name)fail('团队名称不一致，请输入完整团队名称');
+    const endedAt=stamp();
+    // Preserve balances and invoices for settlement; dissolution is not a refund or forfeiture.
+    const closure={id:id('CLOSE'),workspaceId:w.id,name:w.name,actor:uid,endedAt,
+      purchasedSeats:w.seats,assignedSeats:usedSeats(w),cycle:w.cycle,paidThrough:w.nextDate,
+      subscriptionStatus:w.status,frozenCredits:creditBalance(w),refundStatus:'not_requested',
+      invoices:clone(w.invoices),policy:'demo-freeze-v1'};
+    log(w,'解散团队：停止续费与权益，剩余 Credits 冻结，未自动退款',uid);
+    w.members.filter(m=>m.status==='active').forEach(m=>departure(s,w,m.id,'dissolved'));
+    w.members.filter(m=>m.status==='pending').forEach(m=>{m.status='removed';m.exitReason='dissolved';m.leftAt=endedAt;});
+    s.devices.filter(d=>d.spaceId===w.id).forEach(d=>{d.spaceId=null;});
+    (w.automaticTasks||[]).forEach(t=>{t.enabled=false;t.pauseReason='dissolved';});
+    [...(w.seatOrders||[]),...(w.creditOrders||[])].filter(o=>['pending','failed'].includes(o.status)).forEach(o=>{o.status='cancelled';o.updated=endedAt;o.cancelReason='dissolved';});
+    (s.invitations||[]).filter(i=>(i.workspaceId===w.id||i.spaceId===w.id)&&i.status==='pending').forEach(i=>{i.status='revoked';});
+    w.status='dissolved';w.renew=false;w.pendingSeats=null;w.pendingCycle=null;w.closedAt=endedAt;w.closure=closure;
+    if(s.activeId===w.id)s.activeId='personal';
+    return closure;
   }
   function validateSeatCount(w,count,actor=SELF) {
     govern(w,actor);writable(w);count=Number(count);
@@ -115,7 +149,7 @@
   // Demo catalogue and token rates are versioned separately from seat subscriptions.
   const CREDIT_PACKS=Object.freeze([{id:'credits-10k',credits:10000,amount:100},{id:'credits-50k',credits:50000,amount:450}].map(Object.freeze));
   const creditUnits=value=>Math.round(Number(value)*1000);
-  const creditBalance=w=>(creditUnits(w.credits.total)-creditUnits(w.credits.used))/1000;
+  const creditBalance=w=>w.status==='dissolved'?0:(creditUnits(w.credits.total)-creditUnits(w.credits.used))/1000;
   function creditQuote(w,packId,actor=SELF){
     govern(w,actor);writable(w);if(w.type!=='team')fail('请选择团队空间');
     const pack=CREDIT_PACKS.find(p=>p.id===packId)||fail('Credits 套餐无效');
@@ -282,7 +316,7 @@
   function acceptInvite(s,iid) {const i=s.invitations.find(i=>i.id===iid&&i.status==='pending')||fail('邀请已失效或已处理');const w=baseTeam(id('team'),i.teamName,[person('wang','王晨','wang.chen@eureka.example','admin'),person(SELF,s.account.name,s.account.email)],3);w.files=[file(id('file'),'欢迎加入 · 研究项目说明','wang',[SELF])];s.spaces.push(w);i.status='accepted';s.activeId=w.id;return w;}
   // Versioned, additive migration: never replace user recordings or edited contacts.
   function enrich(s) {
-    for (const w of s.spaces.filter(w=>w.type==='team')) {
+    for (const w of s.spaces.filter(w=>w.type==='team'&&w.status!=='dissolved')) {
       if (!w.recordingWorkbenchVersion) {
         if (w.id==='team-eureka') {
           const demos=[['delivery','交付验收标准评审','lin',38,'合并录音','交付评审'],['pilot','星海试点复盘',SELF,42,'W2','客户复盘'],['research','语音记录用户访谈','kevin',27,'M1','用户研究'],['planning','研发迭代排期确认',SELF,35,'网页录音','研发排期'],['sales','渠道合作沟通','lin',51,'W1','商务沟通'],['design','录音详情交互评审',SELF,29,'W-PEN','设计评审'],['launch','产品发布准备会','kevin',44,'合并录音','产品发布'],['retro','团队协作复盘',SELF,32,'网页录音','团队复盘']];
@@ -369,5 +403,5 @@
     const runId=id('run'),usage=simulatedTokenUsage(prompt+'\n'+c.summary,answer),charge=settleCredits(w,runId,prompt,usage,uid);w.threads.unshift({id:id('chat'),runId,usage:{...usage,cost:charge.amount},user:uid,prompt,answer,time:stamp(),contactId:cid,files:[]});return answer;
   }
   function load(storage) {try {const s=JSON.parse(storage.getItem(KEY));if(s?.version===2&&Array.isArray(s.spaces)&&s.spaces.some(w=>w.id==='personal'))return enrich(s);}catch{/* recover demo state */}return enrich(seed());}
-  global.WorkspaceModel={KEY,SELF,id,clone,seed:()=>enrich(seed()),enrich,insights,history,getThread,conversation,deleteConversation,scheduledTasks,getTask,saveTask,runTask,saveDetail,saveContacts,askContact,purge,get,member,admin,usedSeats,writable,govern,teamRecording,visible,getFile,price,create,invite,memberAction,seats,seatQuote,createSeatOrder,getSeatOrder,cancelSeatOrder,paySeatOrder,CREDIT_PACKS,creditBalance,creditQuote,createCreditOrder,getCreditOrder,cancelCreditOrder,payCreditOrder,simulatedTokenUsage,settleCredits,advanceCycle,addFile,edit,share,trash,exportFile,importFile,registerDevice,bind,sync,ask,acceptInvite,load,log};
+  global.WorkspaceModel={KEY,SELF,id,clone,seed:()=>enrich(seed()),enrich,insights,history,getThread,conversation,deleteConversation,scheduledTasks,getTask,saveTask,runTask,saveDetail,saveContacts,askContact,purge,get,member,admin,usedSeats,writable,govern,teamRecording,visible,getFile,price,create,invite,memberAction,leave,dissolve,seats,seatQuote,createSeatOrder,getSeatOrder,cancelSeatOrder,paySeatOrder,CREDIT_PACKS,creditBalance,creditQuote,createCreditOrder,getCreditOrder,cancelCreditOrder,payCreditOrder,simulatedTokenUsage,settleCredits,advanceCycle,addFile,edit,share,trash,exportFile,importFile,registerDevice,bind,sync,ask,acceptInvite,load,log};
 })(typeof window==='undefined'?globalThis:window);

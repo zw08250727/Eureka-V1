@@ -210,3 +210,60 @@ console.log('PASS: seat purchase payment, retry, cancellation, stale quotes, per
   assert(M.simulatedTokenUsage('长内容'.repeat(100),'回复').inputTokens>M.simulatedTokenUsage('短','回复').inputTokens);
 }
 console.log('PASS: Credits payment lifecycle, isolated shared pool, token metering, precision and idempotency.');
+
+// Team exit is a membership revocation, not a reduction of the team's paid entitlements.
+{
+ const state=M.seed(),space=M.get(state,'team-design'),personal=JSON.stringify(M.get(state,'personal'));
+ state.activeId=space.id;
+ const task=M.saveTask(space,{title:'退出后暂停',prompt:'整理会议',frequency:'daily',time:'09:00'});
+ const d=M.registerDevice(state,space.id,{serial:'EXIT-01',model:'W2',user:M.SELF});
+ const before={seats:space.seats,credits:JSON.stringify(space.credits),files:JSON.stringify(space.files),renew:space.renew};
+ M.leave(state,space);
+ assert.equal(M.member(space),undefined);assert.equal(M.usedSeats(space),1);assert.equal(space.seats,before.seats);
+ assert.equal(JSON.stringify(space.credits),before.credits);assert.equal(JSON.stringify(space.files),before.files);
+ assert.equal(space.renew,before.renew);assert.equal(state.activeId,'personal');assert.equal(d.spaceId,null);assert.equal(task.enabled,false);
+ assert.equal(JSON.stringify(M.get(state,'personal')),personal);
+ assert.throws(()=>M.visible(space),/访问权限/);assert.throws(()=>M.runTask(space,task.id),/访问权限/);
+ const again=M.invite(space,'zhang.wei@eureka.example','member','lin')[0];assert.equal(again.id,M.SELF);assert(!M.member(space));
+ M.memberAction(state,space,again.id,'accept',null,'lin');assert(M.member(space));assert.equal(d.spaceId,null);assert.equal(task.enabled,false);
+}
+{
+ const state=M.seed(),space=M.get(state,'team-eureka');
+ M.memberAction(state,space,'lin','role','member');
+ const before=JSON.stringify(state);assert.throws(()=>M.leave(state,space),/唯一管理员/);assert.equal(JSON.stringify(state),before);
+ M.memberAction(state,space,'kevin','role','admin');M.leave(state,space);assert(M.admin(space,'kevin'));
+}
+// Dissolution freezes accounting history and revokes every route into the team, even when expired.
+{
+ const state=M.seed(),space=M.get(state,'team-eureka');state.activeId=space.id;
+ const seat=M.createSeatOrder(space,8),credit=M.createCreditOrder(space,'credits-10k');
+ state.invitations.push({id:'closure-invite',workspaceId:space.id,status:'pending'});
+ const before=JSON.stringify(state);assert.throws(()=>M.dissolve(state,space,space.name,'kevin'),/管理员/);
+ assert.throws(()=>M.dissolve(state,space,'错误名称'),/名称/);assert.equal(JSON.stringify(state),before);
+ const credits=JSON.stringify(space.credits),files=JSON.stringify(space.files),personal=JSON.stringify(M.get(state,'personal'));
+ space.status='expired';const receipt=M.dissolve(state,space,space.name);
+ assert.equal(space.status,'dissolved');assert.equal(space.renew,false);assert.equal(state.activeId,'personal');assert.equal(M.usedSeats(space),0);
+ assert.equal(M.creditBalance(space),0);assert.equal(receipt.frozenCredits,37600);assert.equal(receipt.refundStatus,'not_requested');
+ assert.equal(JSON.stringify(space.credits),credits);assert.equal(JSON.stringify(space.files),files);assert.equal(JSON.stringify(M.get(state,'personal')),personal);
+ assert.equal(seat.status,'cancelled');assert.equal(credit.status,'cancelled');assert(space.automaticTasks.every(t=>!t.enabled));
+ assert(state.devices.filter(d=>d.id==='dev-team').every(d=>!d.spaceId));assert.equal(state.invitations.at(-1).status,'revoked');
+ for(const uid of ['zhang','lin','kevin'])assert.throws(()=>M.visible(space,uid),/访问权限/);
+ assert.throws(()=>M.advanceCycle(space),/管理员/);assert.throws(()=>M.paySeatOrder(space,seat.id,'success'),/管理员/);
+ assert.throws(()=>M.payCreditOrder(space,credit.id,'success'),/管理员/);assert.throws(()=>M.invite(space,'x@example.com'),/管理员/);
+ assert.throws(()=>M.dissolve(state,space,space.name),/管理员/);
+ const reloaded=M.load({getItem:()=>JSON.stringify(state)});assert.equal(M.get(reloaded,space.id).status,'dissolved');assert(!M.member(M.get(reloaded,space.id)));
+}
+console.log('Team exit and dissolution entitlement tests passed');
+{
+ const state=M.seed(),space=M.get(state,'team-eureka');
+ const before=M.usedSeats(space);M.memberAction(state,space,'alice','remove');
+ assert.equal(M.usedSeats(space),before-1);assert.equal(space.members.find(m=>m.id==='alice').status,'removed');
+ assert.throws(()=>M.memberAction(state,space,'alice','accept'),/成员不存在/);
+}
+{
+ const state=M.seed(),space=M.get(state,'team-eureka');
+ M.memberAction(state,space,'lin','role','member');space.status='expired';
+ assert.throws(()=>M.memberAction(state,space,'alice','role','admin'),/接受邀请/);
+ M.memberAction(state,space,'kevin','role','admin');M.leave(state,space);
+ assert.equal(space.status,'expired');assert(M.admin(space,'kevin'));
+}

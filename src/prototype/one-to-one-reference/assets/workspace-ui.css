@@ -123,3 +123,12 @@ body[data-ws-type=team] [data-contacts-entry],body[data-ws-type=team] .sidebar-q
 .ws-settings-leave h3{font-size:16px;margin:0 0 8px}.ws-settings-leave p{font-size:12px;line-height:1.7;color:#92a0b0;margin:0}
 .ws-settings-leave>.ws-btn{flex-shrink:0}
 @media(max-width:800px){.ws-settings-fields{grid-template-columns:1fr;gap:16px}.ws-settings-leave{flex-direction:column;align-items:flex-start;gap:16px}}
+
+/* Membership lifecycle confirmations keep consequences readable on smaller screens. */
+.ws-exit-name{font-size:15px;font-weight:650;margin:0 0 12px;color:#263e57}
+.ws-exit-rules{margin:0 0 18px;display:grid;gap:12px}
+.ws-exit-rules>div{padding-bottom:12px;border-bottom:1px solid #e8edf4}
+.ws-exit-rules dt{font-size:13px;font-weight:650;color:#263e57;margin-bottom:4px}
+.ws-exit-rules dd{margin:0;font-size:13px;line-height:1.65;color:#627791}
+#ws-dialog form[data-ws-form=dissolve],#ws-dialog form[data-ws-form=leave]{max-height:calc(100dvh - 145px);overflow:auto}
+.ws-exit-rules+.ws-field{margin-top:12px}
