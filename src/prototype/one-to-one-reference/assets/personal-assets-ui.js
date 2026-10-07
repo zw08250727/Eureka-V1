@@ -135,10 +135,10 @@
     }
     $('.settings-float-toolbar-copy strong',page).textContent='个人设置';$('.settings-float-toolbar-copy span',page).textContent='账户、语言与录音偏好';
     $('[data-settings-close]',page).setAttribute('aria-label','返回当前空间首页');
-    const attrs=['language','summary-language','summary-detail','summary-template'];
+    const attrs=['language'];
     for(const attr of attrs)$$(`[data-settings-${attr}]`,page).forEach(el=>{const key=attr==='language'?el.dataset.settingsLanguage:attr;let val=prefs[key];if(val===undefined&&attr==='language')val=localStorage.getItem('eurekamind:settings:'+key);if(val!==undefined&&val!==null)el.value=val;el.addEventListener('change',event=>{event.stopImmediatePropagation();try{repo.settings({[key]:el.value});showToast('偏好已保存');}catch(e){showToast(e.message);}},{capture:true});});
-    for(const [sel,key,def] of [['[data-settings-action="toggle-summary"]','autoSummary',true],['[data-settings-voiceprint]','voiceprint',false]]){const el=$(sel,page);el.setAttribute('aria-checked',String(prefs[key]??def));el.setAttribute('aria-label',key==='autoSummary'?'自动生成摘要':'声纹识别');el.addEventListener('click',()=>{try{repo.settings({[key]:el.getAttribute('aria-checked')==='true'});}catch(e){el.setAttribute('aria-checked',String(prefs[key]??def));showToast(e.message);}});}
-    const summary=$('[data-settings-summary-copy]',page);if(summary)summary.textContent=prefs.autoSummary===false?'已关闭自动摘要':prefs['summary-template']?'已保存默认摘要偏好':'新录音使用默认摘要偏好';
+    for(const [sel,key,def] of [['[data-settings-action="toggle-summary"]','autoSummary',true]]){const el=$(sel,page);el.setAttribute('aria-checked',String(prefs[key]??def));el.setAttribute('aria-label','自动生成摘要');el.addEventListener('click',()=>{try{repo.settings({[key]:el.getAttribute('aria-checked')==='true'});}catch(e){el.setAttribute('aria-checked',String(prefs[key]??def));showToast(e.message);}});}
+    const summary=$('[data-settings-summary-copy]',page);if(summary)summary.textContent=prefs.autoSummary===false?'已关闭自动摘要':'已开启自动摘要';
     $('[data-settings-action="logout"]',page).onclick=()=>modal('退出登录？','<p>当前个人记录会保留在此浏览器。</p>','退出登录',()=>location.replace(new URL('../auth-shell.html',location.href).href));
   }
   const oldSettings=window.openUserSettings;window.openUserSettings=()=>{if(guard(()=>window.openUserSettings()))return;hideAgent();oldSettings();setupSettings();};
