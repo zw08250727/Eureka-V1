@@ -45,7 +45,7 @@
     const contactCount=$('[data-contacts-entry] .tree-count');if(contactCount)contactCount.textContent=w().type==='team'?String((w().contacts||[]).length):String(window.ContactsModel?.load('personal','personal').data.contacts.length||6);
     switcher.innerHTML=`<span class="ws-space-avatar">${w().type==='personal'?icon('user'):icon('users')}</span><span class="ws-space-copy"><strong>${esc(w().name)}</strong><small>${w().type==='personal'?'Personal · '+esc(PS.current(w()).plan):'Team · '+(isAdmin()?'管理员':'成员')+' · '+memberCount(w())+' 位成员'}</small></span>${icon('chevron')}`;
     switcher.title=`切换工作空间：${w().name}`;
-    nav.innerHTML=w().type==='team'?`<div class="ws-nav-label">工作空间</div>${btn('page',icon('users')+'团队成员',page==='members'?'active':'','members')}${btn('page',icon('phone')+'设备',page==='devices'?'active':'','devices')}${isAdmin()?btn('page',icon('task')+'空间管理',['billing','settings','credits','audit'].includes(page)?'active':'','billing'):''}`:'';
+    nav.innerHTML=w().type==='team'?`<div class="ws-nav-label">工作空间</div>${btn('page',icon('users')+'团队成员',page==='members'?'active':'','members')}${btn('tasks-coming-soon',icon('skill-breakdown')+'任务管理')}${btn('page',icon('phone')+'设备管理',page==='devices'?'active':'','devices')}${isAdmin()?btn('page',icon('task')+'空间管理',['billing','settings','credits','audit'].includes(page)?'active':'','billing'):''}`:'';
     let history=$('#ws-history');if(!history){history=document.createElement('div');history.id='ws-history';nav.after(history);}
     const threads=M.history(w(),actor), parents=new Set(threads.map(t=>t.parentThreadId).filter(Boolean));
     const rows=threads.filter(t=>!parents.has(t.id)).map(t=>({id:t.id,title:t.title||t.prompt,time:date(t.time).slice(5),type:'history'}));
@@ -226,6 +226,7 @@
     if(name==='personal-receipt'){const o=PS.get(w(),value);if(o.status!=='paid')throw new Error('订单尚未支付');const blob=new Blob([`EurekaMind 个人订阅账单（本地模拟）\n订单：${o.id}\n账单：${o.invoiceId}\nPro ${o.cycle==='year'?'年付':'月付'}\n金额：${dollars(o.amount)} USD\n支付时间：${o.paidAt}\n未发生真实扣款。`],{type:'text/plain;charset=utf-8'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=o.invoiceId+'.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);return;}
     if(name==='menu')return openMenu(button);
     if(name==='switch')return switchSpace(value);
+    if(name==='tasks-coming-soon'){toast('即将上线');return;}
     if(name==='page'){if(dialog.open)dialog.close();return show(value);}
     if(name==='close-dialog'){dialog.classList.remove('ws-dialog-wide');return dialog.close();}
     if(name==='confirm'){dialog.close();confirm.fn?.();return;}
