@@ -25,6 +25,12 @@
   const get = (s,uid=s.activeId) => s.spaces.find(w=>w.id===uid) || fail('工作空间不存在');
   const member = (w,uid=SELF) => w.status!=='dissolved' && w.members.find(m=>m.id===uid && m.status==='active');
   const admin = (w,uid=SELF) => member(w,uid)?.role==='admin';
+  // A member consumes an existing seat; joining never starts a separate billing period.
+  function seatEntitlement(w,uid=SELF){
+    const m=w.members.find(m=>m.id===uid);
+    const status=w.status==='dissolved'||!m||m.status==='removed'?'revoked':m.status==='pending'?'pending':w.status==='active'?'active':'expired';
+    return {status,endsOn:w.nextDate||null,renew:!!w.renew};
+  }
   const usedSeats = w => w.members.filter(m=>m.status!=='removed').length;
   const writable = w => { if(w.type==='team' && w.status!=='active') fail('工作空间处于只读状态，请恢复订阅后再操作'); };
   const govern = (w,uid=SELF) => { if(!admin(w,uid)) fail('仅管理员可执行此操作'); };
@@ -403,5 +409,5 @@
     const runId=id('run'),usage=simulatedTokenUsage(prompt+'\n'+c.summary,answer),charge=settleCredits(w,runId,prompt,usage,uid);w.threads.unshift({id:id('chat'),runId,usage:{...usage,cost:charge.amount},user:uid,prompt,answer,time:stamp(),contactId:cid,files:[]});return answer;
   }
   function load(storage) {try {const s=JSON.parse(storage.getItem(KEY));if(s?.version===2&&Array.isArray(s.spaces)&&s.spaces.some(w=>w.id==='personal'))return enrich(s);}catch{/* recover demo state */}return enrich(seed());}
-  global.WorkspaceModel={KEY,SELF,id,clone,seed:()=>enrich(seed()),enrich,insights,history,getThread,conversation,deleteConversation,scheduledTasks,getTask,saveTask,runTask,saveDetail,saveContacts,askContact,purge,get,member,admin,usedSeats,writable,govern,teamRecording,visible,getFile,price,create,invite,memberAction,leave,dissolve,seats,seatQuote,createSeatOrder,getSeatOrder,cancelSeatOrder,paySeatOrder,CREDIT_PACKS,creditBalance,creditQuote,createCreditOrder,getCreditOrder,cancelCreditOrder,payCreditOrder,simulatedTokenUsage,settleCredits,advanceCycle,addFile,edit,share,trash,exportFile,importFile,registerDevice,bind,sync,ask,acceptInvite,load,log};
+  global.WorkspaceModel={KEY,SELF,id,clone,seed:()=>enrich(seed()),enrich,insights,history,getThread,conversation,deleteConversation,scheduledTasks,getTask,saveTask,runTask,saveDetail,saveContacts,askContact,purge,get,member,admin,seatEntitlement,usedSeats,writable,govern,teamRecording,visible,getFile,price,create,invite,memberAction,leave,dissolve,seats,seatQuote,createSeatOrder,getSeatOrder,cancelSeatOrder,paySeatOrder,CREDIT_PACKS,creditBalance,creditQuote,createCreditOrder,getCreditOrder,cancelCreditOrder,payCreditOrder,simulatedTokenUsage,settleCredits,advanceCycle,addFile,edit,share,trash,exportFile,importFile,registerDevice,bind,sync,ask,acceptInvite,load,log};
 })(typeof window==='undefined'?globalThis:window);

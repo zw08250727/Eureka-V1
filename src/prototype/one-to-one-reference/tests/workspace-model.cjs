@@ -267,3 +267,14 @@ console.log('Team exit and dissolution entitlement tests passed');
  M.memberAction(state,space,'kevin','role','admin');M.leave(state,space);
  assert.equal(space.status,'expired');assert(M.admin(space,'kevin'));
 }
+// Mid-cycle invitations and purchases inherit the team's existing paid-through date.
+{
+ const s=M.seed(),w=M.get(s,'team-eureka'),end=w.nextDate;
+ const [m]=M.invite(w,'midcycle@example.com');assert.equal(M.seatEntitlement(w,m.id).status,'pending');
+ M.memberAction(s,w,m.id,'accept');assert.equal(M.seatEntitlement(w,m.id).endsOn,end);
+ const order=M.createSeatOrder(w,8);M.paySeatOrder(w,order.id,'success');assert.equal(w.nextDate,end);
+ w.renew=false;M.advanceCycle(w);for(const uid of ['zhang','lin',m.id])assert.equal(M.seatEntitlement(w,uid).status,'expired');
+ assert.throws(()=>M.addFile(w,{title:'到期后录音'},m.id),/只读/);
+ w.renew=true;M.advanceCycle(w);for(const uid of ['zhang','lin',m.id]){assert.equal(M.seatEntitlement(w,uid).status,'active');assert.equal(M.seatEntitlement(w,uid).endsOn,w.nextDate);}
+ assert.notEqual(w.nextDate,end);
+}

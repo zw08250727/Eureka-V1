@@ -132,3 +132,5 @@ body[data-ws-type=team] [data-contacts-entry],body[data-ws-type=team] .sidebar-q
 .ws-exit-rules dd{margin:0;font-size:13px;line-height:1.65;color:#627791}
 #ws-dialog form[data-ws-form=dissolve],#ws-dialog form[data-ws-form=leave]{max-height:calc(100dvh - 145px);overflow:auto}
 .ws-exit-rules+.ws-field{margin-top:12px}
+.ws-team-term{display:grid;gap:6px;margin-top:16px;padding:14px 16px;background:#f3f7ff;border-radius:12px;font-size:13px;line-height:1.5}
+.ws-team-term strong{color:#304e70;font-size:14px}.ws-team-term small{color:#7386a0}

@@ -125,9 +125,9 @@
   function confirmAgent(render=true){try{agentDraft=values($('#pa-agent-form'),agentDraft);const r=repo.confirm(sessionId,agentDraft);agentDraft=null;sync();if(!root.hidden&&!selected&&!editing)renderRows();if(render){renderAgent(repo.snapshot().sessions.find(s=>s.id===sessionId));showToast('已加入日程与待办');}return true;}catch(e){error(e.message,dialog.open?dialog:rail);return false;}}
   function setupSettings(){const page=$('#personal-settings');if(!page)return;const prefs=repo.snapshot().settings;const account=window.WorkspaceModel.load(localStorage),space=window.WorkspaceModel.get(account);$('.settings-profile strong',page).textContent=account.account.email;
     if(space.type==='team'){
-      const member=window.WorkspaceModel.member(space,account.account.id),active=space.status==='active'&&!!member;
+      const member=window.WorkspaceModel.member(space,account.account.id),entitlement=window.WorkspaceModel.seatEntitlement(space,account.account.id),active=entitlement.status==='active';
       $('.settings-profile small',page).textContent=`Team Unlimited · ${space.name} · ${member?.role==='admin'?'管理员':'成员'}`;
-      $('.settings-usage',page).innerHTML=`<div class="settings-usage-top"><strong>席位转写权益</strong><b>${active?'Unlimited · 不限时长':'转写权益已暂停'}</b></div><div class="settings-usage-meta"><span>${active?'团队席位提供 · '+(space.cycle==='year'?'年付':'月付'):space.status!=='active'?'团队订阅已到期':'当前账号未分配有效席位'}</span><span>${space.nextDate?(active?(space.renew?'下次续费':'权益有效至'):'到期日期')+'：'+esc(space.nextDate):''}</span></div>`;
+      $('.settings-usage',page).innerHTML=`<div class="settings-usage-top"><strong>席位转写权益</strong><b>${active?'Unlimited · 不限时长':'转写权益已暂停'}</b></div><div class="settings-usage-meta"><span>${active?'随团队订阅统一到期 · '+(space.cycle==='year'?'年付':'月付'):space.status!=='active'?'团队订阅已到期':'当前账号未分配有效席位'}</span><span>${space.nextDate?'当前周期截止'+'：'+esc(space.nextDate):''}</span></div>`;
     }else{
       const sub=window.PersonalSubscriptionModel.current(space);
       $('.settings-profile small',page).textContent=sub.plan+' · '+space.name;
