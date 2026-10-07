@@ -12,4 +12,5 @@ test('members inherit the team period and expiry pauses every effective seat',as
  await page.locator('[data-settings-close]').click();await act(page,'page','billing').click();await act(page,'renew').click();await act(page,'confirm').click();await expect(page.locator('.ws-team-term')).toContainText('已关闭自动续费');
  await act(page,'advance-cycle').click();await act(page,'confirm').click();await act(page,'page','members').click();await expect(row).toContainText('权益已暂停');await expect(row).toContainText('2027-10-06');await expect(page.locator('tr').filter({hasText:'张伟'})).toContainText('权益已暂停');
  await page.reload();await act(page,'page','members').click();await expect(row).toContainText('权益已暂停');
+ await act(page,'page','billing').click();await act(page,'renew').click();await act(page,'confirm').click();await expect(page.locator('.ws-team-term')).toContainText('2028-10-06');await act(page,'page','members').click();await expect(row).toContainText('Unlimited');await expect(row).toContainText('2028-10-06');
 });
