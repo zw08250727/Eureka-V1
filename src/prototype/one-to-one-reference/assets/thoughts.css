@@ -12,7 +12,7 @@
 #thought-workspace .thought-category-button svg{width:16px;height:16px}#thought-workspace .thought-category-button em{font-size:11px;margin-left:5px}
 .th-filters{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:14px 24px 0;color:#8a9ab0;font-size:12px}
 .th-filters label{display:flex;align-items:center;gap:8px}.th-filters input,.th-filters select{height:34px;min-width:0;border:1px solid #dce5f0;border-radius:8px;padding:5px 9px;color:#526b88;background:#fff;font-family:inherit;font-size:12px}
-#thought-workspace .thought-file-pane-head{padding:16px 24px 12px;display:flex;gap:10px;align-items:center;justify-content:space-between;border-bottom:0}
+#thought-workspace .thought-file-pane-head{display:none}
 #thought-workspace .thought-file-pane-head strong{font-size:14px}#thought-category-description{font-size:12px}
 .th-handoff{font-size:11px;color:#8b9bb0;text-align:right}
 #thought-workspace .thought-file-table-scroll{overflow:visible}.thought-file-table-head[hidden]{display:none}
