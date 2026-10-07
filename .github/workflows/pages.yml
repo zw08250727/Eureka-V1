@@ -4,6 +4,12 @@ on:
   push:
     branches: [develop]
   workflow_dispatch:
+    inputs:
+      skip_browser_tests:
+        description: Skip browser regression for this explicitly requested release
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -30,10 +36,13 @@ jobs:
       - name: Check code and models
         run: npm run check
       - name: Build browser acceptance site
+        if: ${{ github.event_name != 'workflow_dispatch' || !inputs.skip_browser_tests }}
         run: npm run build
       - name: Install browser
+        if: ${{ github.event_name != 'workflow_dispatch' || !inputs.skip_browser_tests }}
         run: npx playwright install --with-deps chromium
       - name: Run browser acceptance
+        if: ${{ github.event_name != 'workflow_dispatch' || !inputs.skip_browser_tests }}
         run: npm run test:e2e
       - name: Build static site
         run: npm run build
