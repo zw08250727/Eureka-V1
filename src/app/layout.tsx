@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 const title = "EurekaMind · 个人与团队 AI 工作台";
-const description = "各人与团队 AI 工作台 产品交互原型";
+const description = "个人与团队 AI 工作台 产品交互原型";
 
 export const metadata: Metadata = {
   title,
