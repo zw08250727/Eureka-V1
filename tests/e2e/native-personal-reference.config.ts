@@ -1,0 +1,2 @@
+import { defineConfig } from "@playwright/test";
+export default defineConfig({ testDir: ".", testMatch: "native-personal-reference.spec.ts", outputDir: "../../test-results-personal-reference", workers: 1, retries: 0, reporter: "list", use: { baseURL: process.env.NATIVE_REFERENCE_URL || "http://127.0.0.1:3131", channel: "chrome", viewport: { width: 1440, height: 1000 }, timezoneId: "Asia/Shanghai", trace: "off", screenshot: "off" } });

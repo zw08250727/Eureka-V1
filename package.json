@@ -10,11 +10,14 @@
     "dev": "node scripts/prepare-prototype.mjs && next dev",
     "build": "node scripts/prepare-prototype.mjs && next build --webpack",
     "start": "next start",
-    "lint": "eslint . && node scripts/check-prototype.mjs",
+    "lint": "eslint . && node scripts/check-prototype.mjs && node scripts/sync-reference-ui.mjs --check",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "node scripts/test-models.mjs",
     "test:e2e": "playwright test --pass-with-no-tests",
-    "check": "npm run lint && npm run typecheck && npm test"
+    "check": "npm run lint && npm run typecheck && npm test",
+    "sync:ui": "node scripts/sync-reference-ui.mjs",
+    "test:visual": "node scripts/check-ui-parity.cjs",
+    "test:deployment": "node scripts/check-deployment.cjs"
   },
   "dependencies": {
     "next": "16.2.5",
@@ -23,11 +26,14 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.58.0",
+    "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.5",
+    "postcss": "^8.5.29",
+    "tailwindcss": "^4.3.3",
     "typescript": "^5"
   }
 }

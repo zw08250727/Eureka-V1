@@ -1,0 +1,3507 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-07",
+  "repository": "zw08250727/Eureka-V1",
+  "branch": "codex/next-workbench-migration",
+  "baseline": {
+    "tag": "prototype-baseline-20261007",
+    "commit": "b41c97420186ad81b319f4cc57fc3013c71be947",
+    "prdRevision": "prd-20261007-40",
+    "notes": "This stage does not alter src/prototype or PRD. The prior pilot added only the opt-in migration=1 bridge to the reference; normal reference URLs remain unchanged."
+  },
+  "implementation": {
+    "root": "Native React authentication demo",
+    "business": "21 query-route variants exercised in deployment smoke; shared React shell, dialogs and Agent panels",
+    "stack": [
+      "React",
+      "Next.js App Router static export",
+      "TypeScript",
+      "Tailwind CSS without Preflight"
+    ],
+    "visualSource": "Original HTML hierarchy, classes, CSS cascade, SVG and assets; no redesign",
+    "sourceSyncCheck": "npm run lint verifies generated CSS and symbols against original sources",
+    "data": "Typed stores/hooks and API interfaces; original pure JS workspace/subscription algorithms retained behind TypeScript facades; local mock services"
+  },
+  "checks": {
+    "codeModelsTypes": "npm run check passed",
+    "build": "Standard static production build and /Eureka-V1-prefixed production build passed",
+    "functional": {
+      "total": 187,
+      "lastFullLocalRun": {
+        "passed": 184,
+        "skipped": 2,
+        "failed": 1
+      },
+      "resolvedFailure": "Original calendar viewport test read height before ResizeObserver had updated. Changed the same geometry assertion to expect.poll; passed three consecutive repeats. No assertion threshold relaxed.",
+      "additionalRetest": "Native personal history passed after matching original initial expansion order.",
+      "effectiveVerified": 185,
+      "skips": [
+        "PRD_CAPTURE screenshot refresh (explicit opt-in)",
+        "PRD_ILLUSTRATIONS screenshot refresh (explicit opt-in)"
+      ],
+      "releaseGate": "Full GitHub CI and Pages browser suite must pass for the final commit before publishing."
+    },
+    "prefixedDeployment": {
+      "url": "http://127.0.0.1:3122/Eureka-V1",
+      "nativeViews": 21,
+      "auth": "passed",
+      "prdRevision": "prd-20261007-40",
+      "reference": "passed",
+      "browserErrors": [],
+      "localHttpErrors": []
+    }
+  },
+  "visual": {
+    "method": "Original and native production pages, isolated contexts, Chrome on macOS, Asia/Shanghai, fixed clock 2026-10-07T04:00:00Z, Math.random=0.2; animations/transitions/caret disabled before page layout. Raw RGBA comparison, no masked regions or tolerance silently applied.",
+    "comparisons": 260,
+    "exactZeroDifference": 229,
+    "nonzeroComparisons": 31,
+    "strictPixelIdentity": false,
+    "notes": [
+      "Most residual differences are 1–8 edge pixels or channel delta 1. Raw nonzero results are retained below and are not labeled pixel-identical.",
+      "The 1024px personal-history header difference was fixed by matching the original home-before-history expansion order; all four tablet history captures are zero.",
+      "A transient desktop calendar navigation transport error was rerun successfully with zero difference.",
+      "Tablet team-task-new was attempted and found hidden in both original/native collapsed sidebars; it is excluded from measured pairs rather than counted passed. Underlying task dialogs and operations are covered by functional tests."
+    ],
+    "responsiveExcluded": {
+      "390x844": [
+        "space-menu",
+        "account-menu",
+        "team-task-new"
+      ],
+      "1024x768": [
+        "team-task-new"
+      ]
+    },
+    "viewports": [
+      {
+        "width": 1440,
+        "height": 1000,
+        "comparisons": 88,
+        "zeroDifference": 81
+      },
+      {
+        "width": 1024,
+        "height": 768,
+        "comparisons": 87,
+        "zeroDifference": 79
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "comparisons": 85,
+        "zeroDifference": 69
+      }
+    ],
+    "results": [
+      {
+        "name": "home",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "agent",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "upload",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "calendar",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "calendar-week",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "calendar-month",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "schedule-new",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 4,
+        "maxChannelDelta": 1,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 2.777777777777778e-06,
+        "perceptualMatch": true
+      },
+      {
+        "name": "todo-new",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "thoughts",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contacts",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contact-add",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "settings",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "personal-billing",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "personal-devices",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-overview",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-members",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 1,
+        "maxChannelDelta": 5,
+        "pixelsDeltaAboveOne": 1,
+        "totalPixels": 1440000,
+        "ratio": 6.944444444444445e-07,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-devices",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-billing",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-credits",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-settings",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-audit",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "space-menu",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "account-menu",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "source-filter",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "date-filter",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "daily-agent",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "thoughts-schedule",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "thoughts-todo",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "thoughts-inspiration",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "thoughts-ledger",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "thoughts-other",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contact-tab-0",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contact-tab-1",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contact-tab-2",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contact-tab-3",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contact-tab-4",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contact-note",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 7,
+        "maxChannelDelta": 8,
+        "pixelsDeltaAboveOne": 7,
+        "totalPixels": 1440000,
+        "ratio": 4.861111111111111e-06,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contact-followup",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 7,
+        "maxChannelDelta": 8,
+        "pixelsDeltaAboveOne": 7,
+        "totalPixels": 1440000,
+        "ratio": 4.861111111111111e-06,
+        "perceptualMatch": true
+      },
+      {
+        "name": "calendar-edit",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "calendar-agent",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 2,
+        "maxChannelDelta": 1,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 1.388888888888889e-06,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-transcript",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-translation",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-mindmap",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-visual",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-verbatim",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-invite",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "personal-bind",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-device-register",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 7,
+        "maxChannelDelta": 1,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 4.861111111111111e-06,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-rename",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-seat-add",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-credit-buy",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-info",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-participants",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-export",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-share",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-delete",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-ask",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-info-toggle",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "create-team",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "invitations",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-task-new",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "trash",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "record-permission",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "recording",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "recording-agent",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-template",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-edit",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "personal-history-0",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "personal-history-1",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "personal-history-2",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "personal-history-3",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "thought-preview",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contact-agent",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contact-detail-agent",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 4,
+        "maxChannelDelta": 1,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 2.777777777777778e-06,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-home-agent",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-home-record",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-home-meeting-prompt",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-member-role",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-member-remove",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "device-detail",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "device-unbind",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "calendar-quick",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-meeting",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-meeting-agent",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "auth-login",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "auth-register",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "calendar-detail",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 1440000,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "auth-login",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "auth-register",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 33,
+        "maxChannelDelta": 13,
+        "pixelsDeltaAboveOne": 32,
+        "totalPixels": 786432,
+        "ratio": 4.1961669921875e-05,
+        "perceptualMatch": true
+      },
+      {
+        "name": "home",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "agent",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "upload",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "calendar",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "calendar-week",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "calendar-month",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "schedule-new",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "todo-new",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "thoughts",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contacts",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contact-add",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "settings",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "personal-billing",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "personal-devices",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-overview",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-members",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-devices",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-billing",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-credits",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-settings",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-audit",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "space-menu",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "account-menu",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "source-filter",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "date-filter",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "daily-agent",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "thoughts-schedule",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "thoughts-todo",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "thoughts-inspiration",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "thoughts-ledger",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "thoughts-other",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contact-tab-0",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contact-tab-1",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contact-tab-2",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contact-tab-3",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contact-tab-4",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contact-note",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 5,
+        "maxChannelDelta": 8,
+        "pixelsDeltaAboveOne": 5,
+        "totalPixels": 786432,
+        "ratio": 6.357828776041667e-06,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contact-followup",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 5,
+        "maxChannelDelta": 8,
+        "pixelsDeltaAboveOne": 5,
+        "totalPixels": 786432,
+        "ratio": 6.357828776041667e-06,
+        "perceptualMatch": true
+      },
+      {
+        "name": "calendar-detail",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "calendar-edit",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "calendar-agent",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-transcript",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-translation",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-mindmap",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 4,
+        "maxChannelDelta": 1,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 5.086263020833333e-06,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-visual",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-verbatim",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-invite",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "personal-bind",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-device-register",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-rename",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-seat-add",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-credit-buy",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-info",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-participants",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-export",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-share",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-delete",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-ask",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 4,
+        "maxChannelDelta": 32,
+        "pixelsDeltaAboveOne": 4,
+        "totalPixels": 786432,
+        "ratio": 5.086263020833333e-06,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-info-toggle",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "create-team",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 36,
+        "maxChannelDelta": 1,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 4.57763671875e-05,
+        "perceptualMatch": true
+      },
+      {
+        "name": "invitations",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "trash",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "record-permission",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "recording",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "recording-agent",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-template",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-edit",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "personal-history-0",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "personal-history-1",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "personal-history-2",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "personal-history-3",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "thought-preview",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contact-agent",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contact-detail-agent",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 4,
+        "maxChannelDelta": 1,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 5.086263020833333e-06,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-home-agent",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-home-record",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-home-meeting-prompt",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-member-role",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-member-remove",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "device-detail",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "device-unbind",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "calendar-quick",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-meeting",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 786432,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-meeting-agent",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "differingPixels": 4,
+        "maxChannelDelta": 32,
+        "pixelsDeltaAboveOne": 4,
+        "totalPixels": 786432,
+        "ratio": 5.086263020833333e-06,
+        "perceptualMatch": true
+      },
+      {
+        "name": "home",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "agent",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "upload",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "calendar",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "calendar-week",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "calendar-month",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "schedule-new",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "todo-new",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "thoughts",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contacts",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contact-add",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "settings",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "personal-billing",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "personal-devices",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-overview",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-members",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-devices",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 1,
+        "maxChannelDelta": 5,
+        "pixelsDeltaAboveOne": 1,
+        "totalPixels": 329160,
+        "ratio": 3.0380362133916637e-06,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-billing",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-credits",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-settings",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-audit",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "source-filter",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "date-filter",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "daily-agent",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "thoughts-schedule",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "thoughts-todo",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "thoughts-inspiration",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "thoughts-ledger",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "thoughts-other",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contact-tab-0",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contact-tab-1",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 2,
+        "maxChannelDelta": 6,
+        "pixelsDeltaAboveOne": 2,
+        "totalPixels": 329160,
+        "ratio": 6.0760724267833275e-06,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contact-tab-2",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 2,
+        "maxChannelDelta": 6,
+        "pixelsDeltaAboveOne": 2,
+        "totalPixels": 329160,
+        "ratio": 6.0760724267833275e-06,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contact-tab-3",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 2,
+        "maxChannelDelta": 6,
+        "pixelsDeltaAboveOne": 2,
+        "totalPixels": 329160,
+        "ratio": 6.0760724267833275e-06,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contact-tab-4",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 2,
+        "maxChannelDelta": 6,
+        "pixelsDeltaAboveOne": 2,
+        "totalPixels": 329160,
+        "ratio": 6.0760724267833275e-06,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contact-note",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contact-followup",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "calendar-detail",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "calendar-edit",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "calendar-agent",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-transcript",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-translation",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-mindmap",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 4,
+        "maxChannelDelta": 1,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 1.2152144853566655e-05,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-visual",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 3,
+        "maxChannelDelta": 1,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 9.11410864017499e-06,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-verbatim",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 4,
+        "maxChannelDelta": 1,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 1.2152144853566655e-05,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-invite",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "personal-bind",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-device-register",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-rename",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-seat-add",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-credit-buy",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-info",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-participants",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-export",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-share",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-delete",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 932,
+        "maxChannelDelta": 1,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0.0028314497508810303,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-ask",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-info-toggle",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "create-team",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "invitations",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "trash",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "record-permission",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 65,
+        "maxChannelDelta": 1,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0.00019747235387045813,
+        "perceptualMatch": true
+      },
+      {
+        "name": "recording",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "recording-agent",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 30,
+        "maxChannelDelta": 69,
+        "pixelsDeltaAboveOne": 28,
+        "totalPixels": 329160,
+        "ratio": 9.11410864017499e-05,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-template",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "meeting-edit",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "personal-history-0",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "personal-history-1",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "personal-history-2",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "personal-history-3",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "thought-preview",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contact-agent",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "contact-detail-agent",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-home-agent",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-home-record",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-home-meeting-prompt",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 7,
+        "maxChannelDelta": 1,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 2.1266253493741646e-05,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-member-role",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 1,
+        "maxChannelDelta": 1,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 3.0380362133916637e-06,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-member-remove",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 1,
+        "maxChannelDelta": 1,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 3.0380362133916637e-06,
+        "perceptualMatch": true
+      },
+      {
+        "name": "device-detail",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 1,
+        "maxChannelDelta": 1,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 3.0380362133916637e-06,
+        "perceptualMatch": true
+      },
+      {
+        "name": "device-unbind",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "calendar-quick",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 2,
+        "maxChannelDelta": 1,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 6.0760724267833275e-06,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-meeting",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "team-meeting-agent",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "auth-login",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      },
+      {
+        "name": "auth-register",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 0,
+        "maxChannelDelta": 0,
+        "pixelsDeltaAboveOne": 0,
+        "totalPixels": 329160,
+        "ratio": 0,
+        "perceptualMatch": true
+      }
+    ],
+    "perceptualComparison": {
+      "comparator": "Lockfile-pinned Playwright pixelmatch screenshot comparator",
+      "threshold": 0.2,
+      "maxDiffPixels": 0,
+      "antialiasing": "Playwright default exclusion of detected antialiased edge pixels",
+      "passed": 260,
+      "failed": 0,
+      "rawRgbaResultsRetained": true,
+      "notes": "All 31 raw-nonzero screenshot pairs were also checked with the same standard comparator. At stricter threshold 0.01, 258/260 pairs pass; the other two each differ by one low-color-delta pixel."
+    }
+  },
+  "serviceBoundaries": [
+    "Local mock data and payments only",
+    "No actual microphone recording, transcription, Agentplatform calls, backend scheduler, authentication or production authorization added",
+    "PRD reference-and-boundaries exclusions remain in force"
+  ],
+  "sourceHashes": {
+    "src/features/reference/prototype.css": "eaa88eb314fdeb165966c702da250c6f3c3434453ca22d53252f26c21375711e",
+    "src/features/reference/symbols.tsx": "6fa4244d3b0dd5e0d6ff29f8098811e7e095e9bcb038983ebb487b392797ac50",
+    "src/prototype/prd/content.json": "53118f2dc683291d1a638372c17205e56c635f3964a1c6282684ca7066ca63fa"
+  },
+  "commands": [
+    "npm run check",
+    "EUREKA_LOW_MEMORY=1 NODE_OPTIONS=--max-old-space-size=768 npm run build",
+    "PLAYWRIGHT_CHANNEL=chrome npm run test:e2e -- --workers=1",
+    "node scripts/check-ui-parity.cjs",
+    "NEXT_PUBLIC_BASE_PATH=/Eureka-V1 EUREKA_LOW_MEMORY=1 NODE_OPTIONS=--max-old-space-size=768 npm run build",
+    "PLAYWRIGHT_CHANNEL=chrome npm run test:deployment"
+  ]
+}

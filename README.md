@@ -1,6 +1,6 @@
 # Eureka
 
-EurekaMind 团队工作台交互原型，采用 Next.js App Router 作为工程入口，原型页面和资源按模块收纳在 `src/prototype/`。
+EurekaMind 个人与团队工作台，使用 React + Next.js App Router + TypeScript + Tailwind CSS。原型基线和 PRD 保留在 `src/prototype/`，用于回归对照。
 
 ## 本地运行
 
@@ -10,6 +10,12 @@ npm run dev
 ```
 
 访问 <http://localhost:3000>，进入登录 / 注册演示；完成后直接进入个人工作台首页，无用途问卷或信息收集步骤。
+
+## React 工程
+
+根入口提供原生 React 登录演示；`/workbench/` 承载个人与团队页面、弹窗和 Agent 面板，不再通过 iframe 进入业务界面。沿用原型 CSS、SVG、文案与布局，未重新设计 UI。PRD 地址保持 `/prototype/prd/index.html`。
+
+基线版本为 `prototype-baseline-20261007`。组件、数据兼容、验收及服务边界说明见 [React 迁移记录](docs/react-migration.md)。
 
 ## 质量检查
 
@@ -24,7 +30,8 @@ npm run test:e2e    # Playwright 浏览器测试（需先安装依赖）
 ## 目录约定
 
 - `src/app/`：Next.js 工程入口和页面壳层
-- `src/prototype/`：最终交付的 HTML 原型、样式、脚本、素材和模型测试
+- `src/features/`：原生 React 页面、共享界面、hooks、类型及本地数据适配器
+- `src/prototype/`：冻结原型、PRD、素材和原模型测试
 - `scripts/`：原型资源准备、静态引用检查和测试入口
 - `docs/prototype-import.json`：纳入仓库的原型文件校验清单
 - `.github/workflows/ci.yml`：提交和 Pull Request 的自动检查
