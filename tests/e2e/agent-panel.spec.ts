@@ -5,6 +5,7 @@ async function inspect(page:Page,selector:string,name:string,width:number,height
  await page.setViewportSize({width,height});const rail=page.locator(selector);await expect(rail).toBeVisible();const input=rail.locator('textarea').first();await input.focus();
  expect(await input.evaluate(el=>getComputedStyle(el).boxShadow)).toBe('none');expect(await input.evaluate(el=>getComputedStyle(el).outlineStyle)).toBe('none');
  expect(await input.evaluate(el=>getComputedStyle(el).fontSize)).toBe('14px');
+ await expect(rail.locator(".agent-composer-caption,.pa-composer-caption,.ws-composer-caption").first()).toBeHidden();expect(await rail.locator("h2").first().evaluate(el=>getComputedStyle(el).fontSize)).toBe("16px");
  const box=(await input.boundingBox())!;expect(box.y).toBeGreaterThan(0);expect(box.y+box.height).toBeLessThan(height);
  await expect(rail.getByRole('button',{name:'新建任务',exact:true})).toBeInViewport();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width+1);
