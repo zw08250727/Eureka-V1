@@ -12,12 +12,12 @@
 :is(#xiaozhi-rail,#contacts-xiaozhi-rail,#knowledge-xiaozhi-panel) .xiaozhi-body{padding:16px;gap:16px;min-height:0;overflow:hidden;}
 :is(#pa-agent,.ws-agent) :is(.pa-agent-body,.ws-agent-scroll){padding:16px;min-height:0;overflow-y:auto;}
 :is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-intro,.pa-agent-welcome){padding:0;}
-:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-intro,.pa-agent-welcome,.ws-agent-scroll) h3{margin:16px 0 8px;font-size:18px;line-height:27px;color:var(--agent-ink);}
-:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-intro,.pa-agent-welcome) >p{margin:0;font-size:13px;line-height:22px;color:var(--agent-copy);}
-:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-state,.pa-agent-context,.ws-eyebrow){font-size:11px;line-height:18px;color:var(--agent-meta);}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-intro,.pa-agent-welcome,.ws-agent-scroll,.agent-session-head) h3{margin:10px 0 6px;font-size:15px;line-height:22px;font-weight:600;color:var(--agent-ink);}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-intro,.pa-agent-welcome,.ws-agent-scroll,.ws-agent-insight-context) >p{margin:0;font-size:13px;line-height:21px;color:var(--agent-copy);}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-state,.pa-agent-context,.ws-eyebrow){font-size:11px;line-height:17px;color:var(--agent-meta);}
 :is(#xiaozhi-rail,#contacts-xiaozhi-rail,#knowledge-xiaozhi-panel) .xiaozhi-state i{display:none;}
-:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-suggestions,.pa-agent-prompts,.ws-agent-prompts){display:grid;grid-template-columns:1fr;gap:8px;margin:16px 0;}
-:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-suggestions,.pa-agent-prompts,.ws-agent-prompts)>button{display:flex;align-items:center;min-height:36px;padding:8px 12px;border:1px solid var(--agent-line);border-radius:10px;background:#f8faff;color:var(--agent-copy);font-size:13px;line-height:20px;text-align:left;font-weight:400;white-space:normal;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-suggestions,.pa-agent-prompts,.ws-agent-prompts){display:grid;grid-template-columns:1fr;gap:6px;margin:12px 0;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-suggestions,.pa-agent-prompts,.ws-agent-prompts)>button{display:flex;align-items:center;min-height:34px;padding:7px 10px;border:1px solid var(--agent-line);border-radius:8px;background:#f8faff;color:var(--agent-copy);font-size:12px;line-height:18px;text-align:left;font-weight:400;white-space:normal;}
 #pa-agent .pa-agent-prompts svg{display:none;}
 :is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-composer,.ws-composer,#pa-agent-prompt){box-sizing:border-box;min-height:0;padding:12px;border:1px solid var(--agent-line);border-radius:16px;background:#fff;box-shadow:0 2px 8px #243b6205;flex-shrink:0;}
 :is(#xiaozhi-rail,#contacts-xiaozhi-rail,#knowledge-xiaozhi-panel) .xiaozhi-composer{margin:0;}
@@ -38,9 +38,9 @@
 #contacts-xiaozhi-rail .xiaozhi-context{margin:0;display:flex;gap:6px;flex-wrap:wrap;min-width:0;flex:1;}
 #contacts-xiaozhi-rail .xiaozhi-context>span:first-child{display:none;}
 #contacts-xiaozhi-rail .xiaozhi-context .selected{display:flex;align-items:center;gap:6px;padding:7px 10px;background:#edf4ff;border-radius:10px;font-size:12px;line-height:22px;overflow-wrap:anywhere;}
-#contacts-xiaozhi-rail .contacts-xiaozhi-answer{min-height:0;padding:0;margin:16px 0 8px;background:transparent;color:var(--agent-ink);font-size:14px;line-height:1.8;}
-:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent) :is(.agent-history-message p,.pa-message,.pa-agent-answer,.pa-agent-answer p,.ws-chat-user,.ws-chat-answer){font-size:14px;line-height:1.8;overflow-wrap:anywhere;}
-:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent) :is(.agent-history-message.user,.pa-message,.ws-chat-user){padding:12px;border-radius:12px;background:#eff5ff;color:var(--agent-copy);}
+#contacts-xiaozhi-rail .contacts-xiaozhi-answer{min-height:0;padding:0;margin:12px 0 6px;background:transparent;color:var(--agent-ink);font-size:13px;line-height:22px;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent) :is(.agent-history-message p,.pa-message,.pa-agent-answer,.pa-agent-answer p,.ws-chat-user,.ws-chat-answer){font-size:13px;line-height:22px;overflow-wrap:anywhere;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent) :is(.agent-history-message.user,.pa-message,.ws-chat-user){padding:10px 12px;border-radius:10px;background:#eff5ff;color:var(--agent-copy);}
 #agent-history-messages{scroll-padding:12px 0;}
 #xiaozhi-rail.history-mode{height:calc(100dvh - var(--agent-top,77px) - 16px)!important;}
 @media(max-height:700px){
@@ -69,3 +69,21 @@
 /* Keep the composer focused on input and actions; scope stays available to its accessibility description. */
 :is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.agent-context-hint,#pa-agent-scope,#ws-composer-hint,.agent-composer-caption,.pa-composer-caption,.ws-composer-caption,.xiaozhi-composer-foot>span){display:none;}
 :is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.agent-composer-toolbar,.pa-composer-tools,.ws-composer-tools,.xiaozhi-composer-foot){margin-bottom:0;}
+
+/* Content hierarchy: section titles 15/22, prose 13/22, actions 12/18, metadata 11/17. */
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-intro,.pa-agent-body,.ws-agent-scroll,.contacts-xiaozhi-messages){font-size:13px;line-height:22px;color:var(--agent-copy);}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.agent-session-head>span,.agent-session-head small,.agent-session-head>p,.agent-history-message>span,.contacts-xiaozhi-note,.ws-agent-history-context>p,.ws-agent-insight-context>span,.ws-agent-usage,.md-agent-context>small,.widget-agent-result>span,.widget-agent-result small){font-size:11px;line-height:17px;font-weight:400;color:var(--agent-meta);}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.agent-history-message,.pa-message,.pa-agent-answer,.ws-chat-user,.ws-chat-answer){margin:0 0 12px;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.pa-agent-answer p,.agent-history-message p){margin:4px 0 0;font-size:13px;line-height:22px;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.pa-agent-answer,.widget-agent-result) :is(ul,ol){margin:8px 0;padding-left:20px;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.pa-agent-answer,.widget-agent-result) li{margin:4px 0;font-size:13px;line-height:22px;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.pa-agent-answer h4,.widget-agent-result h4,.md-agent-context>strong){display:block;margin:8px 0 6px;font-size:14px;line-height:21px;font-weight:600;color:var(--agent-ink);}
+#xiaozhi-rail .md-agent-context{padding:0 0 12px;margin:0;}
+#xiaozhi-rail .md-agent-context p{margin:0;font-size:13px;line-height:21px;color:var(--agent-copy);}
+#xiaozhi-rail .widget-agent-result{margin-top:12px;padding:12px;border-radius:10px;}
+#xiaozhi-rail #agent-history-continue{font-size:12px;line-height:18px;padding:8px 10px;}
+.ws-agent :is(.ws-agent-history-context,.ws-agent-insight-context){margin:12px 0;}
+.ws-agent .ws-agent-usage{margin:-6px 0 12px;}
+.recording-assistant-empty h3{font-size:15px;line-height:22px;font-weight:600;}
+.recording-assistant-empty p{font-size:13px;line-height:21px;}
+.recording-chat-row span{font-size:13px;line-height:22px;}
