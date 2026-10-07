@@ -34,7 +34,7 @@ test('manual schedule, editing, reminder, notes and associated meeting persist i
   await page.locator('dialog [data-pa=modal-confirm]').click();
   await page.locator('[data-widget-all]').click();
   await page.locator('#thought-file-search').fill('客户联调讨论');
-  await page.locator('[data-thought-record]').click();
+  await page.locator('[data-thought-record]').click();await page.locator('#action-quick-dialog [data-ap=details]').click();
   await expect(page.locator('#personal-actions h1')).toHaveText('客户联调讨论 · 更新');
   await expect(page.locator('.pa-note')).toContainText('数据样本');
   await page.reload();

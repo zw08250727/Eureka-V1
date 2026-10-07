@@ -375,7 +375,7 @@
   },true);
   dialog.addEventListener('close',()=>dialog.classList.remove('ws-dialog-wide'));
   window.addEventListener('resize',()=>{fit();closeMenu();});new ResizeObserver(fit).observe($('.topbar'));
-  window.EurekaSpaces={id:()=>data.activeId,open:show,switch:switchSpace,
+  window.EurekaSpaces={deviceGuide:binding,id:()=>data.activeId,open:show,switch:switchSpace,
     uploadContext(){M.writable(w());if(!M.member(w(),actor))throw Error('当前成员无法上传');return {id:w().id,type:w().type,name:w().name,actor};},
     uploadAudio(meta,context){
       if(context.id!==w().id||context.actor!==actor)throw Error('工作空间已改变，请重新打开上传');

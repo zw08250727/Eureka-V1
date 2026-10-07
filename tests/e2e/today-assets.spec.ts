@@ -8,7 +8,7 @@ test("all thoughts opens beside the Agent action without a sidebar entry", async
   await expect(page.locator('.daily-brief-actions button')).toHaveText(['帮我安排', '全部闪念']);
   await page.getByRole('button', { name:'全部闪念', exact:true }).click();
   await expect(page.locator("#thought-workspace")).toBeVisible();
-  await expect(page.locator('[data-thought-category="all"]')).toHaveAttribute('aria-current', 'true');
+  await expect(page.locator('[data-thought-category="schedule"]')).toHaveAttribute('aria-current', 'true');
   await expect(page.locator("#page-crumb")).toHaveText("全部闪念");
   await page.locator("#home-entry").click();
   await page.locator(".collapse-btn").click();
@@ -91,9 +91,9 @@ test("widgets open the full archive and bring today's context into Agent drafts"
   await page.goto("/prototype/one-to-one-reference/team-only-app.html?edition=personal&personal=1");
   await page.getByRole("button", { name: "全部闪念", exact: true }).click();
   await expect(page.locator("#thought-workspace")).toBeVisible();
-  await expect(page.locator('[data-thought-category="all"]')).toHaveAttribute("aria-current", "true");
-  await expect(page.locator("#thought-file-list")).toContainText("客户资料领取信息");
-  await expect(page.locator("#thought-file-list")).toContainText("发送修订后的合作方案");
+  await expect(page.locator('[data-thought-category="schedule"]')).toHaveAttribute("aria-current", "true");
+  await page.locator('[data-thought-category="other"]').click();await expect(page.locator("#thought-file-list")).toContainText("客户资料领取信息");
+  await page.locator('[data-thought-category="todo"]').click();await expect(page.locator("#thought-file-list")).toContainText("发送修订后的合作方案");await page.locator('[data-thought-category="inspiration"]').click();
   await page.locator("#thought-file-search").fill("给产品演示");
   await expect(page.locator("[data-thought-record]")).toHaveCount(1);
   await page.locator("[data-thought-record]").click();
