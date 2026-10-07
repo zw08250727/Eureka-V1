@@ -7,7 +7,7 @@ const key='eureka:prd:draft:v1';
 
 test('PRD navigation, safe content, editing, persistence and published baseline are independent',async({page,context})=>{
   const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(url);
-  await expect(page.locator('.chapter')).toHaveCount(34);
+  await expect(page.locator('.chapter')).toHaveCount(35);
   await page.locator('#search').fill('BILL-01');await expect(page.locator('#navigation')).toContainText('订阅、席位与账单');
   await page.locator('#navigation a[href="#billing"]').click();await expect(page).toHaveURL(/#billing$/);await expect(page.locator('#navigation a[href="#billing"]')).toHaveAttribute('aria-current','location');
   await page.locator('[data-edit=billing]').click();await page.locator('#edit-title').fill('订阅账单 · 已评审');
@@ -64,7 +64,7 @@ test('PRD layout, deep links, screenshots and prototype review entry work',async
   }
   await page.setViewportSize({width:1440,height:900});await page.goto(url+'#screens');
   for(const img of await page.locator('#screens img').all()){await img.scrollIntoViewIfNeeded();await expect.poll(()=>img.evaluate(el=>(el as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);}
-  await page.goto(app);const entry=page.locator('.prd-review-entry');await expect(entry).toBeVisible();const popup=page.waitForEvent('popup');await entry.click();const prd=await popup;await expect(prd.locator('.chapter')).toHaveCount(34);
+  await page.goto(app);const entry=page.locator('.prd-review-entry');await expect(entry).toBeVisible();const popup=page.waitForEvent('popup');await entry.click();const prd=await popup;await expect(prd.locator('.chapter')).toHaveCount(35);
 });
 
 test('capture current prototype illustrations for the PRD',async({page})=>{

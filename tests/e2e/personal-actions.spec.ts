@@ -17,6 +17,7 @@ test('manual schedule, editing, reminder, notes and associated meeting persist i
   await page.locator('#pa-edit-form [name=participants]').fill('张伟、Kevin');
   await page.locator('#pa-edit-form [name=reminder]').selectOption('30');
   await page.getByRole('button',{name:'保存',exact:true}).click();
+  await page.locator('.pa-list-row').filter({hasText:'客户联调讨论'}).click();
   await expect(page.locator('#personal-actions h1')).toHaveText('客户联调讨论');
   await expect(page.locator('.pa-detail-main')).toContainText('提前 30 分钟');
   await page.locator('[data-pa=notes]').click();
@@ -63,17 +64,17 @@ test('Agent creates one schedule with traceable source in the same archive',asyn
 });
 test('To-dos details toggle, notes, original capture and Settings independent page',async({page})=>{
   await page.goto(url);await page.locator('#todos-entry').click();
-  await page.locator('[data-personal-open="todo-1"]').click();
+  await page.locator('[data-personal-open="calendar-todo-demo"]').click();
   await expect(page.locator('.pa-origin audio')).toHaveCount(1);
   await page.locator('[data-pa=edit]').click();await page.locator('[name=notes]').fill('周五前发给 Kevin');
   await page.getByRole('button',{name:'保存',exact:true}).click();
   await page.locator('[data-pa=toggle]').click();await expect(page.locator('.pa-status')).toHaveText('已完成');
   await page.locator('[data-pa=toggle]').click();await expect(page.locator('.pa-status')).toHaveText('待完成');
-  await page.locator('[data-pa=notifications]').click();
+  await page.locator('#user-card').click();await page.locator('#ws-menu [data-ws-action=settings]').click();
   await expect(page.locator('#personal-settings')).toBeVisible();await expect(page.locator('#user-menu')).not.toBeVisible();
-  await page.locator('#pa-notifications').check();await page.locator('[data-settings-language=asr]').selectOption('zh-Hans');
-  await page.locator('[data-settings-close]').click();await page.locator('#todos-entry').click();await page.locator('[data-personal-open="todo-1"]').click();
-  await expect(page.locator('.pa-note')).toContainText('周五');await expect(page.locator('.pa-notice')).toContainText('已开启');
+  await expect(page.locator('#personal-settings')).not.toContainText('日程与待办提醒');await page.locator('[data-settings-language=asr]').selectOption('zh-Hans');
+  await page.locator('[data-settings-close]').click();await page.locator('#todos-entry').click();await page.locator('[data-personal-open="calendar-todo-demo"]').click();
+  await expect(page.locator('.pa-note')).toContainText('周五');await expect(page.locator('.pa-notice')).toContainText('不会发送');
   await page.locator('#user-card').click();await page.locator('#ws-menu [data-ws-action=settings]').click();await expect(page.locator('#ws-menu')).not.toBeVisible();await expect(page.locator('#personal-settings')).toBeVisible();await expect(page.locator('[data-settings-language=asr]')).toHaveValue('zh-Hans');
 });
 test('schedule recording is linked once; personal navigation is hidden in Team',async({page})=>{
@@ -94,9 +95,9 @@ test('detail, To-dos, Agent and Settings screenshots and responsive layout',asyn
   await page.setViewportSize({width:1440,height:1000});await page.goto(url);
   await page.locator('[data-today-asset="schedule-1"]').first().click();
   if(process.env.PRD_CAPTURE)await page.screenshot({path:'src/prototype/prd/images/personal-schedule.png'});
-  await page.locator('#todos-entry').click();await page.locator('[data-personal-open="todo-1"]').click();
+  await page.locator('#todos-entry').click();await page.locator('[data-personal-open="calendar-todo-demo"]').click();
   if(process.env.PRD_CAPTURE)await page.screenshot({path:'src/prototype/prd/images/personal-todo.png'});
-  await page.locator('[data-pa=notifications]').click();
+  await page.locator('#user-card').click();await page.locator('#ws-menu [data-ws-action=settings]').click();
   if(process.env.PRD_CAPTURE)await page.screenshot({path:'src/prototype/prd/images/personal-settings.png'});
   await page.locator('[data-settings-close]').click();await page.locator('[data-widget-all]').click();await page.locator('#thought-toolbar [data-pa=agent]').click();
   await page.locator('#pa-prompt').fill('2026-10-24 14:00–15:00，安排「产品方案讨论」');await page.locator('#pa-agent-prompt button[type=submit]').click();

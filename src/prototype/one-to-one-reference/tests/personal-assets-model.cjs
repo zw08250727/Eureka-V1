@@ -16,3 +16,11 @@ const parsed=M.parse('明天 14:00–15:00，安排「产品讨论」',new Date(
 assert.equal(M.parse('帮我安排一个会议').start,'');
 assert.equal(M.parse('明天 23:45 安排评审',new Date('2026-10-07T10:00:00Z')).end,'2026-10-09T00:15');
 console.log('Personal action model: validation, persistence, source immutability, idempotency, concurrency, rollback and date parsing passed');
+
+assert.deepEqual(M.range('2026-10-07','week'),['2026-10-05','2026-10-06','2026-10-07','2026-10-08','2026-10-09','2026-10-10','2026-10-11']);
+assert.equal(M.range('2026-02-01','month').length,42);assert.equal(M.range('2026-02-01','month')[0],'2026-01-26');
+assert.equal(M.shiftDay('2026-12-31',1),'2027-01-01');
+assert(M.onDay({...base,start:'2026-10-07T23:00',end:'2026-10-09T00:00'},'2026-10-08'));assert(!M.onDay({...base,start:'2026-10-07T23:00',end:'2026-10-09T00:00'},'2026-10-09'));
+a.session({id:'todo-session',prompt:'创建待办',created:'2026-10-07'});assert.equal(a.confirm('todo-session',{...base,type:'todo',end:''}).type,'todo');
+const count=a.snapshot().records.length;a.seedCalendar([{...base,id:'calendar-seed'}]);a.seedCalendar([{...base,id:'calendar-seed'}]);assert.equal(a.snapshot().records.length,count+1);
+console.log('PASS: day/week/month calendar ranges, cross-midnight events, todo creation and additive seed migration.');

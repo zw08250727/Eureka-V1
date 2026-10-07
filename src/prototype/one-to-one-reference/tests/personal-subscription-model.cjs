@@ -1,0 +1,12 @@
+const NativeDate=Date;globalThis.Date=class extends NativeDate{constructor(...args){super(...(args.length?args:['2026-10-07T12:00:00Z']));}static now(){return +new NativeDate('2026-10-07T12:00:00Z');}};
+const assert=require('node:assert/strict');require('../assets/workspace-model.js');const M=globalThis.WorkspaceModel,P=require('../assets/personal-subscription-model.js');
+const state=M.seed(),w=M.get(state,'personal'),team=M.get(state,'team-eureka'),teamBefore=JSON.stringify(team),creditBefore=w.credits.total;
+assert.equal(P.current(w).minutes,400);assert.throws(()=>P.create(team,'month'),/个人/);
+let o=P.create(w,'month');assert.equal(o.amount,17.99);assert.equal(P.create(w,'month').id,o.id);assert.equal(P.current(w).plan,'标准版');P.pay(w,o.id,'failure');assert.equal(o.status,'failed');assert.equal(w.credits.total,creditBefore);
+P.pay(w,o.id,'success','Visa ···· 4242','2026-10-07T12:00:00Z');assert.equal(w.credits.total,creditBefore+5000);assert.equal(P.current(w,'2026-10-08T12:00:00Z').minutes,99999);P.pay(w,o.id,'success');assert.equal(w.credits.total,creditBefore+5000);assert.equal(o.subscription.endsAt,'2026-11-07T12:00:00.000Z');assert.equal(P.current(w,'2026-12-07T12:00:00Z').plan,'标准版');
+P.renew(w,false);assert.equal(w.personalSubscription.renew,false);P.restore(w);assert.equal(w.personalSubscription.renew,false);assert.equal(w.credits.total,creditBefore+5000);
+o=P.create(w,'year');assert.equal(o.amount,99.99);P.cancel(w,o.id);assert.throws(()=>P.pay(w,o.id,'success'),/取消/);
+o=P.create(w,'year');o.amount=1;assert.throws(()=>P.pay(w,o.id,'success'),/报价/);P.cancel(w,o.id);
+o=P.create(w,'year');P.renew(w,true);assert.throws(()=>P.pay(w,o.id,'success'),/变化/);o=P.create(w,'year');P.pay(w,o.id,'success','Apple Pay（模拟）','2026-10-07T12:00:00Z');assert.equal(o.subscription.endsAt,'2027-10-07T12:00:00.000Z');assert.equal(o.subscription.nextRefresh,'2026-11-07T12:00:00.000Z');
+assert.equal(JSON.stringify(team),teamBefore);assert.equal(P.addMonths('2026-01-31T12:00:00Z',1),'2026-02-28T12:00:00.000Z');assert.equal(P.addMonths('2024-02-29T12:00:00Z',12),'2025-02-28T12:00:00.000Z');
+console.log('PASS: personal USD plans, payments, retry, cancellation, idempotency, restoration, date clamping and Team isolation.');

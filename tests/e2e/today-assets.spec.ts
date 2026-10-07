@@ -40,7 +40,7 @@ test("daily brief connects today records, updates suggestions and opens source a
   await page.goto("/prototype/one-to-one-reference/team-only-app.html?edition=personal&personal=1");
   await expect(page.locator(".daily-brief")).toHaveCount(1);
   await expect(page.locator(".daily-rhythm")).toHaveCount(1);
-  await expect(page.locator('.rhythm-event time').first()).toHaveText("14:00–14:45");
+  await expect(page.locator('.rhythm-event time').first()).toHaveText("09:30–10:30");
   await expect(page.locator('.rhythm-event time').last()).toHaveText("16:30–17:00");
   await expect(page.locator('.brief-todo-link')).toHaveCount(0);
   await expect(page.locator(".today-asset-card")).toHaveCount(0);
@@ -55,7 +55,10 @@ test("daily brief connects today records, updates suggestions and opens source a
   await expect(page.locator('[data-today-toggle="todo-1"]')).toHaveAttribute("aria-pressed", "true");
   await page.locator('[data-today-toggle="todo-1"]').click();
   await expect(page.locator(".daily-brief-narrative")).toContainText("15:00 前发送修订后的合作方案");
-  for (const key of ["inspiration", "ledger", "schedule"]) {
+  await page.locator('.daily-rhythm [data-pa=todos]').click();
+  await expect(page.locator("#personal-actions")).toBeVisible();
+  await page.locator("#home-entry").click();
+  for (const key of ["inspiration", "ledger"]) {
     await page.locator(`[data-today-category="${key}"]`).click();
     await expect(page.locator(`[data-thought-category="${key}"]`)).toHaveAttribute("aria-current", "true");
     await page.locator('[data-thought-file="2026-09"]').click();
@@ -121,5 +124,6 @@ test("daily brief exposes its sources and carries all context into Agent", async
   await page.locator("#xiaozhi-collapse").click();
   await page.locator('[data-today-toggle="todo-1"]').click();
   await page.locator('[data-today-toggle="todo-2"]').click();
+  while(await page.locator('[data-today-toggle][aria-pressed="false"]').count())await page.locator('[data-today-toggle][aria-pressed="false"]').first().click();
   await expect(page.locator(".daily-brief-narrative")).toContainText("待办已全部完成");
 });

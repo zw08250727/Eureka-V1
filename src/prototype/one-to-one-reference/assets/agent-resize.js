@@ -2,11 +2,11 @@
 (() => {
   const key='eureka:agent-panel-width:v1';
   let preferred=390;try{preferred=Number(localStorage.getItem(key))||390;}catch{/* use default */}
-  const selector='.ws-agent,#xiaozhi-rail,.contacts-xiaozhi-rail';
-  function container(rail){return rail.closest('.ws-layout,.md-detail-layout,.meeting-agent-grid,.contacts-shell');}
+  const selector='.ws-agent,#xiaozhi-rail,.contacts-xiaozhi-rail,#pa-agent';
+  function container(rail){return rail.closest('.ws-layout,.md-detail-layout,.meeting-agent-grid,.contacts-shell,.pa-workspace,.pa-archive-wrap');}
   function bounds(rail){
     const host=container(rail),available=host?.getBoundingClientRect().width||innerWidth;
-    const breakpoint=rail.closest('.md-detail-layout')?1000:rail.matches('#xiaozhi-rail')?760:900;
+    const breakpoint=rail.matches('#pa-agent')?1050:rail.closest('.md-detail-layout')?1000:rail.matches('#xiaozhi-rail')?760:900;
     const max=Math.max(1,Math.min(760,available-(innerWidth>breakpoint?300:0)));
     return {min:Math.min(300,max),max};
   }

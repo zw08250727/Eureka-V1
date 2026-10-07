@@ -4532,14 +4532,14 @@
     const renderTodayAssets = () => {
       $("#today-date-label").textContent = `${todayNow.toLocaleDateString("zh-CN", { month: "long", day: "numeric" })} · ${todayNow.toLocaleDateString("zh-CN", { weekday: "long" })}`;
       const records = key => assetsForToday(todayAssetTypes.find(type => type.key === key));
-      const todos = records("todo"), ideas = records("inspiration"), schedules = records("schedule");
+      const todos = records("todo"), ideas = records("inspiration"), schedules = records("schedule").sort((a,b)=>a.time.localeCompare(b.time));
       const amount = records("ledger").reduce((total, record) => total + record.amount, 0);
       const pendingTodos = todos.filter(record => !record.done);
       const clockTime = `${String(todayNow.getHours()).padStart(2, "0")}:${String(todayNow.getMinutes()).padStart(2, "0")}`;
       const upcoming = schedules.find(record => record.end > clockTime);
       const nextMeeting = upcoming || schedules.at(-1);
       const scheduleText = schedules.length ? `今天 <strong>${schedules.length} 场日程</strong>，${upcoming ? (upcoming.time <= clockTime ? "当前安排是" : "先准备") : "可以回顾"} <button type="button" class="brief-inline-link" data-today-asset="${nextMeeting.id}">${nextMeeting.time} 的${escapeHTML(nextMeeting.title)}</button>` : "今天没有日程，可以留出一段专注时间";
-      const todoText = pendingTodos.length ? `，${pendingTodos.map(record => record.time < clockTime ? `${escapeHTML(record.title)}仍待跟进` : `在<strong>${record.time} 前</strong>${escapeHTML(record.title)}`).join("，并")}` : "，待办已全部完成";
+      const todoText = pendingTodos.length ? `，${pendingTodos.slice(0,2).map(record => record.time < clockTime ? `${escapeHTML(record.title)}仍待跟进` : `在<strong>${record.time} 前</strong>${escapeHTML(record.title)}`).join("，并")}` : "，待办已全部完成";
       const narrative = `${scheduleText}${todoText}。`;
       $("#today-assets-grid").innerHTML = `
         <div class="daily-focus"><article class="daily-brief" aria-label="今日工作安排">
@@ -4547,7 +4547,7 @@
           <div class="brief-todo-line" data-asset-type="todo">${todos.map(record => `<button type="button" class="brief-task${record.done ? " is-done" : ""}" data-today-toggle="${record.id}" aria-pressed="${record.done}" title="${escapeHTML(record.title)}"><span class="brief-task-check" aria-hidden="true">${record.done ? "✓" : ""}</span><span>${escapeHTML(record.title)}</span></button>`).join("")}</div>
           <div class="daily-brief-actions"><button type="button" class="brief-primary" data-widget-ai="brief"><svg class="icon" aria-hidden="true"><use href="#ico-spark"/></svg>帮我安排</button><button type="button" class="brief-archive" data-widget-all>全部闪念</button></div>
         </article>
-        <aside class="daily-rhythm" aria-label="今天的日程"><header><h2>今日日程</h2><button type="button" data-today-category="schedule" aria-label="查看日程">${schedules.length} 场 ↗</button></header>
+        <aside class="daily-rhythm" aria-label="今天的日程"><header><h2>今日日程</h2><button type="button" data-pa="todos" data-id="today" aria-label="查看日程与待办">${schedules.length} 场 ↗</button></header>
           <div class="daily-rhythm-events">${schedules.map(record => `<button type="button" class="rhythm-event" data-today-asset="${record.id}"><time>${record.time}–${record.end}</time><span><strong>${escapeHTML(record.title)}</strong><em>${escapeHTML(record.detail.split(" · ").slice(0, 2).join(" · "))}</em></span><span class="rhythm-arrow" aria-hidden="true">↗</span></button>`).join("") || '<p class="today-asset-empty">今天没有日程，给自己留一段专注时间。</p>'}</div>
         </aside></div>
         <div class="daily-records"><section class="daily-inspiration" aria-label="今日灵感"><header><h2>灵感</h2><button type="button" data-today-category="inspiration">${ideas.length} 条 ↗</button></header><div>${ideas.map(record => `<button type="button" data-today-asset="${record.id}" class="daily-idea"><span>${escapeHTML(record.title)}</span><time>${record.time}</time></button>`).join("")}</div></section><section class="daily-ledger" aria-label="今日记账"><header><h2>今日记账</h2><button type="button" data-today-category="ledger" aria-label="查看今日记账">↗</button></header><div class="daily-ledger-total"><strong>¥${amount.toFixed(2)}</strong><span>今日支出</span></div><div class="daily-ledger-items">${records("ledger").map(record => `<button type="button" data-today-asset="${record.id}">${escapeHTML(record.title.replace("客户拜访", "").replace("客户工作", ""))} <span>¥${record.amount.toFixed(0)}</span></button>`).join("")}</div></section></div>`;
@@ -5313,15 +5313,16 @@
   <script src="assets/workspace-sidebar.js"></script>
   <script src="assets/meeting-detail.js?v=10"></script>
   <script src="assets/meeting-filters.js?v=2"></script>
-  <link rel="stylesheet" href="assets/workspace-ui.css?v=13" />
+  <link rel="stylesheet" href="assets/workspace-ui.css?v=14" />
   <script src="assets/workspace-model.js?v=12"></script>
-  <script src="assets/workspace-ui.js?v=14"></script>
+  <script src="assets/personal-subscription-model.js?v=1"></script>
+  <script src="assets/workspace-ui.js?v=15"></script>
 <link rel="stylesheet" href="assets/recording-upload.css?v=1">
 <script src="assets/recording-upload.js?v=1"></script>
-<link rel="stylesheet" href="assets/personal-assets.css?v=1">
-<script src="assets/personal-assets-model.js?v=1"></script>
-<script src="assets/personal-assets-ui.js?v=1"></script>
+<link rel="stylesheet" href="assets/personal-assets.css?v=2">
+<script src="assets/personal-assets-model.js?v=2"></script>
+<script src="assets/personal-assets-ui.js?v=2"></script>
 <link rel="stylesheet" href="assets/agent-resize.css?v=1">
-<script src="assets/agent-resize.js?v=1"></script>
+<script src="assets/agent-resize.js?v=2"></script>
 </body>
 </html>
