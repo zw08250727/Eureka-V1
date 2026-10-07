@@ -5084,10 +5084,10 @@
       `;
       document.head.appendChild(style);
       const profileEntry = document.querySelector('[data-profile-action="profile"]');
-      if (profileEntry && !document.querySelector('[data-profile-action="settings"]')) profileEntry.insertAdjacentHTML("afterend", '<button class="user-menu-item" data-profile-action="settings"><svg class="icon"><use href="#ico-task"/></svg>设置</button>');
+      if (profileEntry && !document.querySelector('[data-profile-action="settings"]')) profileEntry.insertAdjacentHTML("afterend", '<button class="user-menu-item" data-profile-action="settings"><svg class="icon"><use href="#ico-task"/></svg>个人设置</button>');
       const openUserSettings = () => {
         const settingsBody = `<div class="settings-float">
-          <header class="settings-float-toolbar"><div class="settings-float-toolbar-copy"><strong>设置</strong><span>快速调整工作台偏好</span></div><button class="settings-popover-close" type="button" data-settings-close aria-label="关闭设置"><svg class="icon"><use href="#ico-x"/></svg></button></header>
+          <header class="settings-float-toolbar"><div class="settings-float-toolbar-copy"><strong>个人设置</strong><span>账户、语言与录音偏好</span></div><button class="settings-popover-close" type="button" data-settings-close aria-label="返回当前空间首页"><svg class="icon"><use href="#ico-x"/></svg></button></header>
           <section class="settings-float-section"><div class="settings-float-head"><h4>账户</h4><p>账号与套餐信息</p></div><div class="settings-profile"><span class="settings-avatar">Z</span><span><strong>zw08250727@gmail.com</strong><small>免费版 · 个人工作台</small></span><button class="settings-logout" type="button" data-settings-action="logout">退出登录</button></div><div class="settings-usage"><div class="settings-usage-top"><div><strong>转写时长</strong><div class="settings-usage-copy">剩余 99999 分钟，共 99999 分钟</div></div><b>0%</b></div><div class="settings-progress"><i></i></div><div class="settings-usage-meta"><span>已使用 0 分钟</span><span>剩余 99999 分钟</span></div></div></section>
           <section class="settings-float-section"><div class="settings-float-head"><h4>AI 摘要语言</h4><p>设置语音识别与摘要输出语言</p></div><div class="settings-float-row"><div class="settings-row-copy"><strong>语音识别</strong><span>默认语音识别语言</span></div><div class="settings-language-control"><span class="settings-language-count">18</span><select class="settings-language-select" data-settings-language="asr"><option value="en">英语</option><option value="zh-Hans">简体中文</option><option value="zh-Hant">繁体中文</option></select></div></div><div class="settings-float-row"><div class="settings-row-copy"><strong>纪要与翻译</strong><span>纪要输出与翻译目标语言</span></div><div class="settings-language-control"><span class="settings-language-count">156</span><select class="settings-language-select" data-settings-language="notes"><option value="detected">检测语言</option><option value="en">英语</option><option value="zh-Hans">简体中文</option></select></div></div></section>
           <section class="settings-float-section"><div class="settings-float-head"><h4>自动摘要</h4><p>录音与上传文件的默认摘要设置</p></div><div class="settings-float-row"><div class="settings-row-copy"><strong>自动生成摘要</strong><span data-settings-summary-hint>新录音默认使用此摘要设置</span><span class="settings-summary-chip" data-settings-summary-copy>尚未设置默认偏好</span></div><div class="settings-language-control"><button class="settings-configure" type="button" data-settings-action="configure">配置</button><button class="settings-switch" type="button" role="switch" aria-checked="true" data-settings-action="toggle-summary"><i></i></button></div></div><div class="settings-config-panel" data-settings-config hidden><label>摘要语言<select data-settings-summary-language><option value="detected">检测语言</option><option value="en">英语</option><option value="zh-Hans">简体中文</option></select></label><label>详细程度<select data-settings-summary-detail><option>标准</option><option>精简</option><option>详细</option></select></label><button class="settings-save" type="button" data-settings-action="save-summary">保存默认设置</button></div></section>
@@ -5098,11 +5098,11 @@
         drawer.innerHTML = settingsBody;
         closeUserMenu();
         showMainView("personal-settings", {silent:true});
-        document.querySelector("#page-crumb").textContent="Settings";
+        document.querySelector("#page-crumb").textContent="个人设置";
         document.querySelector("#user-card")?.setAttribute("aria-expanded", "false");
         const settingsConfig = drawer?.querySelector("[data-settings-config]");
         settingsConfig?.querySelector("label")?.insertAdjacentHTML("afterend", '<label>摘要模板<select data-settings-summary-template><option value="meeting">会议纪要</option><option value="brief">简洁摘要</option><option value="action">行动项优先</option></select></label><label class="settings-voiceprint-row">声纹识别<span class="settings-config-copy">在支持声纹时区分不同说话人。</span><button class="settings-switch" type="button" role="switch" aria-checked="false" data-settings-voiceprint><i></i></button></label>');
-        drawer?.querySelector("[data-settings-close]")?.addEventListener("click", () => showMainView("home", {silent:true}));
+        drawer?.querySelector("[data-settings-close]")?.addEventListener("click", () => { if(document.body.dataset.wsType === "team") window.EurekaSpaces.open("overview"); else showMainView("home", {silent:true}); });
         drawer?.querySelectorAll("[data-settings-language]").forEach((select) => select.addEventListener("change", () => { localStorage.setItem(`eurekamind:settings:${select.dataset.settingsLanguage}`, select.value); showToast("语言设置已保存"); }));
         drawer?.querySelector('[data-settings-action="logout"]')?.addEventListener("click", () => showToast("原型演示：退出登录需要二次确认"));
         drawer?.querySelector('[data-settings-action="configure"]')?.addEventListener("click", () => { const panel = drawer.querySelector("[data-settings-config]"); if (panel) panel.hidden = !panel.hidden; });
@@ -5335,12 +5335,12 @@
   <link rel="stylesheet" href="assets/workspace-ui.css?v=14" />
   <script src="assets/workspace-model.js?v=12"></script>
   <script src="assets/personal-subscription-model.js?v=1"></script>
-  <script src="assets/workspace-ui.js?v=19"></script>
+  <script src="assets/workspace-ui.js?v=20"></script>
 <link rel="stylesheet" href="assets/recording-upload.css?v=1">
 <script src="assets/recording-upload.js?v=1"></script>
-<link rel="stylesheet" href="assets/personal-assets.css?v=3">
+<link rel="stylesheet" href="assets/personal-assets.css?v=4">
 <script src="assets/personal-assets-model.js?v=2"></script>
-<script src="assets/personal-assets-ui.js?v=6"></script>
+<script src="assets/personal-assets-ui.js?v=7"></script>
 <link rel="stylesheet" href="assets/thoughts.css?v=2">
 <script src="assets/thoughts-model.js?v=1"></script>
 <script src="assets/thoughts-ui.js?v=2"></script>
