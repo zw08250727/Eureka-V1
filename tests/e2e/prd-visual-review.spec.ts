@@ -13,7 +13,7 @@ test('compact cover, top controls, requested content and functional illustration
   await expect(page.locator('#reset-button,.document-map,.cover-bottom,#evidence,#reference,#review')).toHaveCount(0);
   for(const id of ['draft-view','published-view','print-button','import-button','export-button','publish-button'])await expect(page.locator('.toolbar #'+id)).toBeVisible();
   await expect(page.locator('#market')).not.toContainText('需求机会');await expect(page.locator('#market tbody tr')).toHaveCount(1);await expect(page.locator('#market tbody')).toContainText('Plaud Workspace');
-  await expect(page.locator('#milestones')).toContainText('Plaud 的账号、工作空间、席位和设备关系是参考；EurekaMind 的视觉、首页、Agent 积分池和演示价格为自身设计。');
+  await expect(page.locator('#milestones')).toContainText('Plaud 的账号、工作空间、席位和设备关系是参考；EurekaMind 的视觉、首页、Agent Credits 共享池和演示价格为自身设计。');
   await expect(page.locator('.flow-error[role=alert]')).toHaveCount(0);expect(await page.locator('.flow-svg').count()).toBeGreaterThanOrEqual(19);
   for(const id of ['auth','home','thoughts','recording','meeting-list','meeting-detail','agent','agent-process','contacts','workspaces','team-create','members','team-files','devices','billing','credits','settings'])expect(await page.locator('#'+id+' img').count()).toBeGreaterThan(0);
   // Load every image URL once without relying on scrolling 34 long sections.

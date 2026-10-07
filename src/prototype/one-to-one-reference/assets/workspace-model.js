@@ -15,7 +15,7 @@
     const a = baseTeam('team-eureka','EurekaMind 产品团队',[person(SELF,'张伟','zhang.wei@eureka.example','admin'),person('lin','林晓','lin.xiao@eureka.example','admin'),person('kevin','Kevin','kevin@eureka.example'),person('alice','Alice','alice@eureka.example','member','pending')],6);
     a.files=[file('team-review','团队产品周会 · 十月路线图',SELF),file('team-customer','客户共创访谈 · 交付流程','lin',[SELF]),file('team-private','林晓的个人绩效沟通','lin'),file('team-market','海外市场验证方案','kevin',[SELF],46)];
     a.contacts=[{id:'c-team-1',name:'陈明',company:'星海科技',role:'客户成功负责人',summary:'周五确认试点验收标准，需准备最新交付方案。'},{id:'c-team-2',name:'李悦',company:'远山资本',role:'投资经理',summary:'已共享产品进展，等待下一轮演示时间。'}];
-    a.credits.used=12400; a.credits.logs=[{id:'usage-1',user:SELF,task:'十月产品周会行动项',amount:200,time:'2026-10-06 09:35'},{id:'usage-2',user:'lin',task:'历史 AI 使用',amount:12200,time:'2026-10-05 17:20'}];
+    a.credits.used=12400; a.credits.logs=[{id:'usage-1',user:SELF,task:'十月产品周会行动项',amount:31.5,inputTokens:18500,outputTokens:6500,source:'simulated',model:'Eureka Agent（模拟）',rateVersion:'token-demo-v1',runId:'demo-run-1',time:'2026-10-06 09:35'},{id:'usage-2',user:'lin',task:'历史使用汇总',amount:12368.5,time:'2026-10-05 17:20'}];
     a.invoices=[{id:'INV-20261006-001',date:'2026-10-06',amount:price('year')*6,label:'Team 年付 · 6 席位',status:'已支付'}];
     a.audit=[{time:'2026-10-06 09:00',actor:'张伟',action:'邀请 Alice 加入团队'}];
     const b = baseTeam('team-design','设计共创空间',[person('lin','林晓','lin.xiao@eureka.example','admin'),person(SELF,'张伟','zhang.wei@eureka.example')],3);
@@ -111,6 +111,54 @@
     w.seats=order.targetSeats;w.pendingSeats=null;
     w.invoices.unshift(invoice);order.status='paid';order.paidAt=invoice.date;order.paidBy=actor;order.invoiceId=invoice.id;
     log(w,`加席支付成功 · ${order.fromSeats} → ${order.targetSeats} 席位`,actor);return order;
+  }
+  // Demo catalogue and token rates are versioned separately from seat subscriptions.
+  const CREDIT_PACKS=Object.freeze([{id:'credits-10k',credits:10000,amount:100},{id:'credits-50k',credits:50000,amount:450}].map(Object.freeze));
+  const creditUnits=value=>Math.round(Number(value)*1000);
+  const creditBalance=w=>(creditUnits(w.credits.total)-creditUnits(w.credits.used))/1000;
+  function creditQuote(w,packId,actor=SELF){
+    govern(w,actor);writable(w);if(w.type!=='team')fail('请选择团队空间');
+    const pack=CREDIT_PACKS.find(p=>p.id===packId)||fail('Credits 套餐无效');
+    return {workspaceId:w.id,packId:pack.id,credits:pack.credits,amount:pack.amount,currency:'CNY',priceVersion:'credits-pack-demo-v1'};
+  }
+  function createCreditOrder(w,packId,actor=SELF){
+    const quote=creditQuote(w,packId,actor);w.creditOrders ||= [];
+    const existing=w.creditOrders.find(o=>['pending','failed'].includes(o.status)&&o.packId===packId&&o.priceVersion===quote.priceVersion);
+    if(existing)return existing;
+    w.creditOrders.filter(o=>['pending','failed'].includes(o.status)).forEach(o=>{o.status='cancelled';o.updated=stamp();});
+    const order={id:id('CREDITS'),...quote,requestedBy:actor,created:stamp(),status:'pending'};w.creditOrders.unshift(order);log(w,'创建 Credits 购买订单',actor);return order;
+  }
+  function getCreditOrder(w,orderId,actor=SELF){govern(w,actor);return (w.creditOrders||[]).find(o=>o.id===orderId&&o.workspaceId===w.id)||fail('Credits 订单不存在或不属于此空间');}
+  function cancelCreditOrder(w,orderId,actor=SELF){
+    const order=getCreditOrder(w,orderId,actor);if(order.status==='paid')fail('订单已支付，不能取消');
+    if(order.status!=='cancelled'){order.status='cancelled';order.updated=stamp();log(w,'取消 Credits 订单',actor);}return order;
+  }
+  function payCreditOrder(w,orderId,outcome,actor=SELF){
+    const order=getCreditOrder(w,orderId,actor);if(!['success','failure'].includes(outcome))fail('模拟支付结果无效');
+    if(order.status==='paid')return order;
+    if(!['pending','failed'].includes(order.status))fail('订单已取消，请重新购买');
+    const quote=creditQuote(w,order.packId,actor);
+    if(['amount','credits','currency','priceVersion'].some(k=>order[k]!==quote[k]))fail('订单报价已变化，请重新确认');
+    if(outcome==='failure'){order.status='failed';order.updated=stamp();log(w,'Credits 模拟支付失败',actor);return order;}
+    const invoice={id:id('INV'),orderId:order.id,date:stamp(),amount:order.amount,label:`Credits 购买 · ${order.credits.toLocaleString()}`,status:'已支付'};
+    w.credits.total=(creditUnits(w.credits.total)+creditUnits(order.credits))/1000;
+    w.invoices.unshift(invoice);Object.assign(order,{status:'paid',paidAt:invoice.date,paidBy:actor,invoiceId:invoice.id});log(w,`Credits 到账 · +${order.credits.toLocaleString()}`,actor);return order;
+  }
+  // Token counters are local estimates only. Production must use provider-returned usage.
+  function simulatedTokenUsage(input,output){
+    const count=text=>Math.max(1,Math.ceil(new TextEncoder().encode(String(text)).length/4));
+    return {inputTokens:count(input),outputTokens:count(output),source:'simulated',model:'Eureka Agent（模拟）',rateVersion:'token-demo-v1'};
+  }
+  function settleCredits(w,runId,prompt,usage,uid=SELF){
+    access(w,uid);writable(w);
+    const prior=w.credits.logs.find(l=>l.runId===runId);if(prior){if(prior.user!==uid)fail('无权读取其他成员的用量');return prior;}
+    if(!runId||!Number.isSafeInteger(usage.inputTokens)||!Number.isSafeInteger(usage.outputTokens)||usage.inputTokens<0||usage.outputTokens<0)fail('Token 用量无效');
+    // 1 Credit / 1000 input tokens, 2 Credits / 1000 output tokens; demo rates only.
+    const units=usage.inputTokens+2*usage.outputTokens;
+    if(!Number.isSafeInteger(units)||units<=0)fail('Token 用量无效');
+    if(creditUnits(w.credits.total)-creditUnits(w.credits.used)<units)fail('Credits 不足，请联系管理员购买后重试');
+    const record={id:id('usage'),runId,user:uid,task:prompt.slice(0,80),amount:units/1000,time:stamp(),inputTokens:usage.inputTokens,outputTokens:usage.outputTokens,source:'simulated',model:'Eureka Agent（模拟）',rateVersion:'token-demo-v1'};
+    w.credits.used=(creditUnits(w.credits.used)+units)/1000;w.credits.logs.unshift(record);return record;
   }
   function advanceCycle(w,actor=SELF) {
     govern(w,actor);
@@ -214,12 +262,11 @@
     const previous=historyId?getThread(w,historyId,uid):null;
     const explicit=Array.isArray(options.fileIds)&&options.fileIds.length>0;
     const insight=!explicit&&!previous&&!fid&&insights(w,uid).items.find(i=>prompt.includes(i.title));
-    if(!explicit&&!previous&&!fid&&!insight&&/星海试点的交付承诺与验收准备尚未对齐|客户承诺与研发排期相差 5 天|验收标准已明确，异常处理仍未对齐|跨会议追溯，正在成为共同需求/.test(prompt))return {answer:'该团队线索的来源或内容已变化，当前依据不足，请返回首页查看最新线索。本次未扣积分。',cost:0};
+    if(!explicit&&!previous&&!fid&&!insight&&/星海试点的交付承诺与验收准备尚未对齐|客户承诺与研发排期相差 5 天|验收标准已明确，异常处理仍未对齐|跨会议追溯，正在成为共同需求/.test(prompt))return {answer:'该团队线索的来源或内容已变化，当前依据不足，请返回首页查看最新线索。本次未扣 Credits。',cost:0};
     let files=explicit?options.fileIds.map(id=>getFile(w,id,uid)):previous?(previous.files||[]).map(fid=>getFile(w,fid,uid)):insight?insight.sources.map(e=>getFile(w,e.fileId,uid)):fid?[getFile(w,fid,uid)]:visible(w,uid);
     if(!explicit&&!previous&&!fid&&!insight&&/客户|反馈/.test(prompt))files=files.filter(f=>/客户|访谈|试点|验收/.test(f.title));
     if(!explicit&&!previous&&!insight)files=files.slice().sort((a,b)=>String(b.created).localeCompare(String(a.created))).slice(0,3);
     if(!files.length)return {answer:'当前没有可引用的相关会议。请先录音、上传音频，或调整问题。',cost:0};
-    if(w.credits.total-w.credits.used<200)fail('AI 积分不足，请联系管理员补充');
     const excerpts=files.map((f,i)=>`${i+1}. 「${f.title}」\n${(String(f.summary||'').split('\n').filter(Boolean)[0]||'暂无可用摘要，请先完成录音处理。').slice(0,300)}`).join('\n\n');
     const label=/对比|决策/.test(prompt)?'会议决策对照':/客户|反馈/.test(prompt)?'客户反馈摘要':/简报|总结/.test(prompt)?'团队会议简报':'会议上下文与下一步';
     const next=/对比|决策/.test(prompt)?'以上按来源并列展示会议结论；未在纪要中明确的差异与负责人，需要回到原录音确认。':/客户|反馈/.test(prompt)?'建议在下次沟通前，逐项确认客户提出的问题、对应方案和验收口径。':'建议围绕上述结论，确认负责人、交付范围与仍待澄清的问题。';
@@ -227,9 +274,10 @@
     if(options.mode==='deep')answer+='\n\n深度思考（模拟）\n建议分三步核对：逐一回看原始依据；对照不同会议的时间和口径；列出仍需确认的信息。未被来源支持的推断不能视为事实。';
     if(options.appData)answer+='\n\n已引用会议应用数据：'+files.map(f=>f.title+' · '+(f.status||'已总结')).join('；');
     if(options.web)answer+='\n\n联网搜索已开启（模拟）：当前未连接外部搜索服务，本次回答未使用网络来源。';
-    w.credits.used+=200;w.credits.logs.unshift({id:id('usage'),user:uid,task:prompt.slice(0,80),amount:200,time:stamp()});
-    const thread={id:id('chat'),user:uid,prompt,answer,time:stamp(),files:files.map(f=>f.id),visibility:'private',mode:options.mode||'quick',web:!!options.web,appData:!!options.appData,...(previous?{parentThreadId:previous.id}: {})};
-    w.threads.unshift(thread);return {answer,cost:200,threadId:thread.id};
+    const runId=id('run'),usage=simulatedTokenUsage(prompt+'\n'+files.map(f=>f.summary||f.transcript||'').join('\n')+(previous?'\n'+conversation(w,previous.id,uid).map(t=>t.prompt+'\n'+t.answer).join('\n'):''),answer);
+    const charge=settleCredits(w,runId,prompt,usage,uid);
+    const thread={id:id('chat'),runId,usage:{...usage,cost:charge.amount},user:uid,prompt,answer,time:stamp(),files:files.map(f=>f.id),visibility:'private',mode:options.mode||'quick',web:!!options.web,appData:!!options.appData,...(previous?{parentThreadId:previous.id}: {})};
+    w.threads.unshift(thread);return {answer,cost:charge.amount,threadId:thread.id,usage};
   }
   function acceptInvite(s,iid) {const i=s.invitations.find(i=>i.id===iid&&i.status==='pending')||fail('邀请已失效或已处理');const w=baseTeam(id('team'),i.teamName,[person('wang','王晨','wang.chen@eureka.example','admin'),person(SELF,s.account.name,s.account.email)],3);w.files=[file(id('file'),'欢迎加入 · 研究项目说明','wang',[SELF])];s.spaces.push(w);i.status='accepted';s.activeId=w.id;return w;}
   // Versioned, additive migration: never replace user recordings or edited contacts.
@@ -317,10 +365,9 @@
   function saveContacts(w,data,uid=SELF) {access(w,uid);writable(w);w.contacts=clone(data.contacts);w.contactNotes=clone(data.notes);w.contactTasks=clone(data.tasks);log(w,'更新联系人关系与跟进',uid);}
   function askContact(w,prompt,cid,uid=SELF) {
     access(w,uid);writable(w);const c=w.contacts.find(c=>c.id===cid)||fail('请先选择联系人');
-    if(w.credits.total-w.credits.used<200)fail('AI 积分不足，请联系管理员补充');
     const answer=`基于${c.name}的团队联系人记录：\n\n${c.summary}\n\n开放承诺：${(c.commitments||[]).map(x=>x[0]).join('；')||'暂无'}。\n下一步：确认负责人和截止时间，在沟通后更新备注与跟进任务。\n\n仅引用当前联系人；本地模拟，未连接 AI 服务。`;
-    w.credits.used+=200;w.credits.logs.unshift({id:id('usage'),user:uid,task:prompt.slice(0,80),amount:200,time:stamp()});w.threads.unshift({id:id('chat'),user:uid,prompt,answer,time:stamp(),contactId:cid,files:[]});return answer;
+    const runId=id('run'),usage=simulatedTokenUsage(prompt+'\n'+c.summary,answer),charge=settleCredits(w,runId,prompt,usage,uid);w.threads.unshift({id:id('chat'),runId,usage:{...usage,cost:charge.amount},user:uid,prompt,answer,time:stamp(),contactId:cid,files:[]});return answer;
   }
   function load(storage) {try {const s=JSON.parse(storage.getItem(KEY));if(s?.version===2&&Array.isArray(s.spaces)&&s.spaces.some(w=>w.id==='personal'))return enrich(s);}catch{/* recover demo state */}return enrich(seed());}
-  global.WorkspaceModel={KEY,SELF,id,clone,seed:()=>enrich(seed()),enrich,insights,history,getThread,conversation,deleteConversation,scheduledTasks,getTask,saveTask,runTask,saveDetail,saveContacts,askContact,purge,get,member,admin,usedSeats,writable,govern,teamRecording,visible,getFile,price,create,invite,memberAction,seats,seatQuote,createSeatOrder,getSeatOrder,cancelSeatOrder,paySeatOrder,advanceCycle,addFile,edit,share,trash,exportFile,importFile,registerDevice,bind,sync,ask,acceptInvite,load,log};
+  global.WorkspaceModel={KEY,SELF,id,clone,seed:()=>enrich(seed()),enrich,insights,history,getThread,conversation,deleteConversation,scheduledTasks,getTask,saveTask,runTask,saveDetail,saveContacts,askContact,purge,get,member,admin,usedSeats,writable,govern,teamRecording,visible,getFile,price,create,invite,memberAction,seats,seatQuote,createSeatOrder,getSeatOrder,cancelSeatOrder,paySeatOrder,CREDIT_PACKS,creditBalance,creditQuote,createCreditOrder,getCreditOrder,cancelCreditOrder,payCreditOrder,simulatedTokenUsage,settleCredits,advanceCycle,addFile,edit,share,trash,exportFile,importFile,registerDevice,bind,sync,ask,acceptInvite,load,log};
 })(typeof window==='undefined'?globalThis:window);

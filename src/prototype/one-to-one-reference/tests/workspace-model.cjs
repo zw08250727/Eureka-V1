@@ -30,7 +30,7 @@ const device=s.devices.find(d=>d.id==='dev-personal');s.activeId=w.id;
 assert.equal(M.sync(s,device.id).space.id,'personal');
 M.bind(s,device.id,w.id);s.activeId='personal';assert.equal(M.sync(s,device.id).space.id,w.id);
 assert.throws(()=>M.bind(s,'dev-team','personal'),/自己的设备/);
-const credits=w.credits.used;M.ask(w,'整理任务',own.id);assert.equal(w.credits.used,credits+200);assert.equal(M.get(s,'personal').credits.used,0);
+const credits=w.credits.used;const charged=M.ask(w,'整理任务',own.id);assert.equal(Math.round(w.credits.used*1000),Math.round(credits*1000)+Math.round(charged.cost*1000));assert.equal(M.get(s,'personal').credits.used,0);
 assert.throws(()=>M.ask(w,'私有文件','team-private'),/访问权限/);
 w.credits.total=w.credits.used;assert.throws(()=>M.ask(w,'分析'),/不足/);
 w.status='expired';assert(M.visible(w).length);assert.throws(()=>M.addFile(w,{title:'no'}),/只读/);assert.throws(()=>M.invite(w,'again@example.com'),/只读/);assert.throws(()=>M.ask(w,'分析'),/只读/);
@@ -75,7 +75,7 @@ assert.equal(M.getFile(pw,'team-review').detail.template,'项目评审');assert.
 assert.throws(()=>M.saveDetail(pw,'team-customer',{summary:'越权'}),/所有者/);
 const contactData={contacts:M.clone(pw.contacts),notes:{'c-team-1':[{text:'试点备注'}]},tasks:[]};M.saveContacts(pw,contactData);
 assert.equal(pw.contactNotes['c-team-1'][0].text,'试点备注');assert.equal(M.get(parity,'team-design').contacts.length,0);
-const contactCredits=pw.credits.used;const contactAnswer=M.askContact(pw,'准备沟通','c-team-1');assert(contactAnswer.includes('陈明'));assert(!contactAnswer.includes('德国经销商'));assert.equal(pw.credits.used,contactCredits+200);
+const contactCredits=pw.credits.used;const contactAnswer=M.askContact(pw,'准备沟通','c-team-1');assert(contactAnswer.includes('陈明'));assert(!contactAnswer.includes('德国经销商'));assert.equal(Math.round(pw.credits.used*1000),Math.round(contactCredits*1000)+Math.round(pw.credits.logs[0].amount*1000));
 pw.status='expired';assert.throws(()=>M.saveContacts(pw,contactData),/只读/);assert.throws(()=>M.saveDetail(pw,'team-review',{summary:'no'}),/只读/);pw.status='active';
 M.trash(pw,'team-review');M.get(parity,'team-eureka').files.find(f=>f.id==='team-review').deletedAt='2020-01-01';assert.throws(()=>M.trash(pw,'team-review',true),/30 天/);M.purge(pw,'team-review');assert(!pw.files.some(f=>f.id==='team-review'));M.enrich(parity);assert(!pw.files.some(f=>f.id==='team-review'));
 console.log('PASS: recording workbench migration, complete detail writes, contact context and recycle permissions.');
@@ -96,7 +96,7 @@ assert(intel.threads.every(t=>!t.files.includes('team-private')));
   const risk=report.items.find(i=>i.id==='delivery-risk');
   const balance=team.credits.used;
   const response=M.ask(team,risk.title);assert(response.answer.includes('10 月 12 日'));assert(response.answer.includes('10 月 17 日'));
-  assert.equal(team.credits.used,balance+200);assert.deepEqual(new Set(team.threads[0].files),new Set(risk.sources.map(e=>e.fileId)));
+  assert.equal(Math.round(team.credits.used*1000),Math.round(balance*1000)+Math.round(response.cost*1000));assert.deepEqual(new Set(team.threads[0].files),new Set(risk.sources.map(e=>e.fileId)));
   assert(response.answer.includes('星海试点复盘'));
   const sales=team.files.find(f=>f.id==='team-demo-sales');assert.throws(()=>M.share(team,sales.id,[],'lin'),/无需分享/);sales.deleted=true;
   const used=team.credits.used;assert.equal(M.ask(team,risk.title).cost,0);assert.equal(team.credits.used,used);
@@ -133,7 +133,7 @@ assert(intel.threads.every(t=>!t.files.includes('team-private')));
   assert.throws(()=>M.getThread(team,'team-history-research'),/无权访问/);
   const source=M.getThread(team,'team-history-review'),cost=team.credits.used;
   const follow=M.ask(team,'补充下一轮验证重点',null,M.SELF,source.id);
-  assert.equal(M.conversation(team,follow.threadId).length,2);assert.equal(team.credits.used,cost+200);
+  assert.equal(M.conversation(team,follow.threadId).length,2);assert.equal(Math.round(team.credits.used*1000),Math.round(cost*1000)+Math.round(follow.cost*1000));
   assert.throws(()=>M.getThread(team,follow.threadId,'lin'),/无权访问/);
   assert.throws(()=>M.deleteConversation(team,follow.threadId,'lin'),/本人的/);
   assert.throws(()=>M.history(team,'alice'),/访问权限/);
@@ -179,3 +179,34 @@ console.log('PASS: own conversations, deletion, task ownership, scoped sources a
   const tampered=M.createSeatOrder(team,11);tampered.amount=0;assert.throws(()=>M.paySeatOrder(team,tampered.id,'success'),/金额/);assert.equal(team.seats,10);
 }
 console.log('PASS: seat purchase payment, retry, cancellation, stale quotes, permissions and idempotent fulfillment.');
+
+// Credits have a workspace ledger, token-metered usage and separately paid orders.
+{
+  const state=M.seed(),team=M.get(state,'team-eureka'),personal=M.get(state,'personal'),other=M.get(state,'team-design');
+  const total=team.credits.total,used=team.credits.used,bills=team.invoices.length,seats=team.seats;
+  assert.throws(()=>M.createCreditOrder(team,'credits-10k','kevin'),/管理员/);
+  assert.throws(()=>M.createCreditOrder(team,'bad'),/无效/);
+  const order=M.createCreditOrder(team,'credits-10k');
+  assert.equal(M.createCreditOrder(team,'credits-10k').id,order.id);
+  assert.equal(order.status,'pending');assert.equal(team.credits.total,total);
+  M.payCreditOrder(team,order.id,'failure');assert.equal(order.status,'failed');assert.equal(team.invoices.length,bills);assert.equal(team.credits.total,total);
+  assert.throws(()=>M.payCreditOrder(other,order.id,'success'));
+  M.payCreditOrder(team,order.id,'success');M.payCreditOrder(team,order.id,'success');
+  assert.equal(team.credits.total,total+10000);assert.equal(team.credits.used,used);assert.equal(team.invoices.length,bills+1);assert.equal(team.seats,seats);assert.equal(personal.credits.used,0);
+  assert.throws(()=>M.cancelCreditOrder(team,order.id),/已支付/);
+  const cancelled=M.createCreditOrder(team,'credits-50k');M.cancelCreditOrder(team,cancelled.id);assert.throws(()=>M.payCreditOrder(team,cancelled.id,'success'),/已取消/);
+  const invalid=M.createCreditOrder(team,'credits-10k');invalid.credits=999999;assert.throws(()=>M.payCreditOrder(team,invalid.id,'success'),/报价/);assert.equal(team.credits.total,total+10000);
+  M.cancelCreditOrder(team,invalid.id);
+  const pending=M.createCreditOrder(team,'credits-50k');team.status='expired';assert.throws(()=>M.payCreditOrder(team,pending.id,'success'),/只读/);team.status='active';
+  const first=M.settleCredits(team,'run-token-1','短任务',{inputTokens:1000,outputTokens:500,amount:999999,user:'other'});
+  assert.equal(first.amount,2);assert.equal(first.user,M.SELF);
+  const second=M.settleCredits(team,'run-token-2','较长任务',{inputTokens:2001,outputTokens:1500},'kevin');assert.equal(second.amount,5.001);
+  assert.equal(Math.round(team.credits.used*1000),Math.round(used*1000)+7001);
+  const before=team.credits.used;assert.equal(M.settleCredits(team,'run-token-1','重试',{inputTokens:1000,outputTokens:500}),first);assert.equal(team.credits.used,before);
+  assert.throws(()=>M.settleCredits(team,'run-token-1','跨成员',{inputTokens:1000,outputTokens:500},'kevin'),/无权/);
+  assert.throws(()=>M.settleCredits(team,'bad-token','无效',{inputTokens:-1,outputTokens:2}),/无效/);
+  team.credits.total=team.credits.used+0.001;M.settleCredits(team,'tiny','精度',{inputTokens:1,outputTokens:0});assert.equal(M.creditBalance(team),0);
+  const logs=team.credits.logs.length;assert.throws(()=>M.settleCredits(team,'excess','不足',{inputTokens:1,outputTokens:0}),/不足/);assert.equal(team.credits.logs.length,logs);
+  assert(M.simulatedTokenUsage('长内容'.repeat(100),'回复').inputTokens>M.simulatedTokenUsage('短','回复').inputTokens);
+}
+console.log('PASS: Credits payment lifecycle, isolated shared pool, token metering, precision and idempotency.');
