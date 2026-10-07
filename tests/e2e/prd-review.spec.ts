@@ -73,6 +73,6 @@ test('capture current prototype illustrations for the PRD',async({page})=>{
   await page.locator('#view-panorama').click();await expect(page.locator('#md-content')).toBeVisible();await page.screenshot({path:`${folder}/meeting.png`});
   await page.locator('[data-contacts-entry]').click();await page.locator('.contacts-xiaozhi-entry').click();await expect(page.locator('#contacts-xiaozhi-rail')).toBeVisible();await page.screenshot({path:`${folder}/contacts.png`});
   await page.locator('#ws-switcher').click();await page.locator('#ws-menu [data-ws-action=switch][data-value=team-eureka]').click();await expect(page.locator('#ws-file-search')).toBeVisible();await expect(page.locator('#ws-toast')).toBeHidden();await page.screenshot({path:`${folder}/team.png`});
-  await page.locator('#ws-history [data-value=team-history-research]').click();await page.screenshot({path:`${folder}/team-history-agent.png`});
+  await page.locator('#ws-history [data-ws-action=history][data-value=team-history-review]').click();await page.screenshot({path:`${folder}/team-history-agent.png`});
   await page.locator('[data-ws-action=page][data-value=billing]').filter({visible:true}).first().click();await expect(page.locator('.ws-plan-amount')).toBeVisible();await page.screenshot({path:`${folder}/billing.png`});
 });

@@ -1,0 +1,8 @@
+.ws-agent{position:relative}.agent-resize-handle{position:absolute;left:0;top:0;bottom:0;width:8px;z-index:25;cursor:col-resize;touch-action:none;border-radius:12px 0 0 12px}.agent-resize-handle::after{content:'';position:absolute;top:calc(50% - 22px);left:1px;width:3px;height:44px;border-radius:3px;background:#b8cce4;opacity:0;transition:opacity .15s}.agent-resize-handle:hover::after,.agent-resize-handle:focus-visible::after,.agent-resizing .agent-resize-handle::after{opacity:1}.agent-resize-handle:focus-visible{outline:2px solid #8baee0;outline-offset:-2px}.agent-resizing,.agent-resizing *{cursor:col-resize!important;user-select:none!important}.agent-resizing .meeting-agent-grid{transition:none!important}
+@media(min-width:901px){.ws-layout.with-agent{grid-template-columns:minmax(0,1fr) var(--agent-panel-width,390px)}}
+@media(max-width:900px){.ws-layout.with-agent>.ws-agent{width:min(var(--agent-panel-width,390px),100%)}}
+@media(min-width:1001px){.md-agent-open .md-detail-layout{grid-template-columns:minmax(0,1fr) var(--agent-panel-width,390px)}}
+@media(max-width:1000px){#md-agent-host{width:min(var(--agent-panel-width,390px),100%)}}
+@media(min-width:761px){.meeting-agent-grid.agent-open{grid-template-columns:minmax(0,1fr) var(--agent-panel-width,390px)}}
+@media(min-width:901px){.contacts-shell:has(.contacts-xiaozhi-rail.expanded){grid-template-columns:minmax(0,1fr) var(--agent-panel-width,390px)}}
+@media(max-width:900px){#contacts-root .contacts-xiaozhi-rail.expanded{width:min(var(--agent-panel-width,390px),100%)}}

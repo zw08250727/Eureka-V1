@@ -172,7 +172,7 @@
   }
   function history(w,uid=SELF) {
     const ids=new Set(visible(w,uid).map(f=>f.id));
-    return (w.threads||[]).filter(t=>!t.contactId&&(t.user===uid||t.visibility==='team')&&(t.files||[]).every(fid=>ids.has(fid))).slice().sort((a,b)=>new Date(String(b.time).replace(' ','T')).getTime()-new Date(String(a.time).replace(' ','T')).getTime());
+    return (w.threads||[]).filter(t=>!t.contactId&&t.user===uid&&(t.files||[]).every(fid=>ids.has(fid))).slice().sort((a,b)=>new Date(String(b.time).replace(' ','T')).getTime()-new Date(String(a.time).replace(' ','T')).getTime());
   }
   function getThread(w,tid,uid=SELF) {return history(w,uid).find(t=>t.id===tid)||fail('会话已失效或无权访问，请选择其他会话');}
   function conversation(w,tid,uid=SELF) {
@@ -180,22 +180,55 @@
     while(current&&!seen.has(current.id)&&list.length<20){list.unshift(current);seen.add(current.id);current=current.parentThreadId?history(w,uid).find(t=>t.id===current.parentThreadId):null;}
     return list;
   }
-  function ask(w,prompt,fid,uid=SELF,historyId=null) {
+  function deleteConversation(w,tid,uid=SELF) {
+    access(w,uid);
+    const owned=(w.threads||[]).filter(t=>t.user===uid);
+    let root=owned.find(t=>t.id===tid)||fail('只能删除本人的会话');
+    const seen=new Set();
+    while(root.parentThreadId&&!seen.has(root.id)){seen.add(root.id);const parent=owned.find(t=>t.id===root.parentThreadId);if(!parent)break;root=parent;}
+    const ids=new Set([root.id]);let changed=true;
+    while(changed){changed=false;for(const t of owned)if(ids.has(t.parentThreadId)&&!ids.has(t.id)){ids.add(t.id);changed=true;}}
+    w.threads=w.threads.filter(t=>!ids.has(t.id));
+    w.deletedThreadIds=[...new Set([...(w.deletedThreadIds||[]),...ids])];
+    return [...ids];
+  }
+  function scheduledTasks(w,uid=SELF){access(w,uid);return (w.automaticTasks||[]).filter(t=>t.user===uid);}
+  function getTask(w,tid,uid=SELF){return scheduledTasks(w,uid).find(t=>t.id===tid)||fail('任务不存在或无权访问');}
+  function saveTask(w,input,uid=SELF){
+    access(w,uid);writable(w);
+    const title=String(input.title||'').trim(),prompt=String(input.prompt||'').trim();
+    if(!title||title.length>80||!prompt||prompt.length>2000)fail('请填写任务名称（最多80字）与任务要求（最多2000字）');
+    if(!['daily','weekly'].includes(input.frequency)||!/^([01]\d|2[0-3]):[0-5]\d$/.test(input.time||''))fail('请选择有效的重复频率和时间');
+    const task=input.id?getTask(w,input.id,uid):{id:id('auto'),user:uid,enabled:true,runs:[]};
+    Object.assign(task,{title,prompt,frequency:input.frequency,time:input.time,updated:stamp()});
+    if(!input.id)(w.automaticTasks||=[]).unshift(task);return task;
+  }
+  function runTask(w,tid,uid=SELF){
+    const task=getTask(w,tid,uid);writable(w);if(!task.enabled)fail('请先启用任务');
+    const result=ask(w,task.prompt,null,uid);
+    if(result.threadId){const thread=getThread(w,result.threadId,uid);thread.taskId=task.id;thread.title=task.title;task.lastRun=stamp();(task.runs||=[]).unshift({time:task.lastRun,threadId:thread.id});}
+    return result;
+  }
+  function ask(w,prompt,fid,uid=SELF,historyId=null,options={}) {
     access(w,uid);writable(w);prompt=String(prompt).trim();if(!prompt)fail('请输入问题');
     const previous=historyId?getThread(w,historyId,uid):null;
-    const insight=!previous&&!fid&&insights(w,uid).items.find(i=>prompt.includes(i.title));
-    if(!previous&&!fid&&!insight&&/星海试点的交付承诺与验收准备尚未对齐|客户承诺与研发排期相差 5 天|验收标准已明确，异常处理仍未对齐|跨会议追溯，正在成为共同需求/.test(prompt))return {answer:'该团队线索的来源或内容已变化，当前依据不足，请返回首页查看最新线索。本次未扣积分。',cost:0};
-    let files=previous?(previous.files||[]).map(fid=>getFile(w,fid,uid)):insight?insight.sources.map(e=>getFile(w,e.fileId,uid)):fid?[getFile(w,fid,uid)]:visible(w,uid);
-    if(!previous&&!fid&&!insight&&/客户|反馈/.test(prompt))files=files.filter(f=>/客户|访谈|试点|验收/.test(f.title));
-    if(!previous&&!insight)files=files.slice().sort((a,b)=>String(b.created).localeCompare(String(a.created))).slice(0,3);
-    if(!files.length)return {answer:'当前没有可引用的相关会议。请先录音、导入纪要，或调整问题。',cost:0};
+    const explicit=Array.isArray(options.fileIds)&&options.fileIds.length>0;
+    const insight=!explicit&&!previous&&!fid&&insights(w,uid).items.find(i=>prompt.includes(i.title));
+    if(!explicit&&!previous&&!fid&&!insight&&/星海试点的交付承诺与验收准备尚未对齐|客户承诺与研发排期相差 5 天|验收标准已明确，异常处理仍未对齐|跨会议追溯，正在成为共同需求/.test(prompt))return {answer:'该团队线索的来源或内容已变化，当前依据不足，请返回首页查看最新线索。本次未扣积分。',cost:0};
+    let files=explicit?options.fileIds.map(id=>getFile(w,id,uid)):previous?(previous.files||[]).map(fid=>getFile(w,fid,uid)):insight?insight.sources.map(e=>getFile(w,e.fileId,uid)):fid?[getFile(w,fid,uid)]:visible(w,uid);
+    if(!explicit&&!previous&&!fid&&!insight&&/客户|反馈/.test(prompt))files=files.filter(f=>/客户|访谈|试点|验收/.test(f.title));
+    if(!explicit&&!previous&&!insight)files=files.slice().sort((a,b)=>String(b.created).localeCompare(String(a.created))).slice(0,3);
+    if(!files.length)return {answer:'当前没有可引用的相关会议。请先录音、上传音频，或调整问题。',cost:0};
     if(w.credits.total-w.credits.used<200)fail('AI 积分不足，请联系管理员补充');
-    const excerpts=files.map((f,i)=>`${i+1}. 「${f.title}」\n${f.summary.split('\n').filter(Boolean)[0].slice(0,300)}`).join('\n\n');
+    const excerpts=files.map((f,i)=>`${i+1}. 「${f.title}」\n${(String(f.summary||'').split('\n').filter(Boolean)[0]||'暂无可用摘要，请先完成录音处理。').slice(0,300)}`).join('\n\n');
     const label=/对比|决策/.test(prompt)?'会议决策对照':/客户|反馈/.test(prompt)?'客户反馈摘要':/简报|总结/.test(prompt)?'团队会议简报':'会议上下文与下一步';
     const next=/对比|决策/.test(prompt)?'以上按来源并列展示会议结论；未在纪要中明确的差异与负责人，需要回到原录音确认。':/客户|反馈/.test(prompt)?'建议在下次沟通前，逐项确认客户提出的问题、对应方案和验收口径。':'建议围绕上述结论，确认负责人、交付范围与仍待澄清的问题。';
-    const answer=previous?`接续「${previous.title||previous.prompt}」\n\n关于「${prompt}」，仍基于原会话的 ${files.length} 场会议：\n\n${excerpts}\n\n${next}\n\n本地模拟 · 未通知成员或创建任务。`:insight?`${insight.label}\n${insight.title}\n\n${insight.description}\n\n会议依据\n${insight.sources.map(e=>`「${e.title}」 · ${w.members.find(m=>m.id===e.owner)?.name||e.owner}\n${e.quote}`).join("\n\n")}\n\n建议核实\n${insight.next}\n\n以上为跨会议线索，不代表已确认风险或已通知成员。仅引用当前授权资料；本地模拟。`:`${label}\n\n${excerpts}\n\n${next}\n\n引用 ${files.length} 份已授权资料；此结果为本地模拟。`;
+    let answer=previous?`接续「${previous.title||previous.prompt}」\n\n关于「${prompt}」，基于${explicit?'本次所选':'原会话的'} ${files.length} 场会议：\n\n${excerpts}\n\n${next}\n\n本地模拟 · 未通知成员或创建任务。`:insight?`${insight.label}\n${insight.title}\n\n${insight.description}\n\n会议依据\n${insight.sources.map(e=>`「${e.title}」 · ${w.members.find(m=>m.id===e.owner)?.name||e.owner}\n${e.quote}`).join("\n\n")}\n\n建议核实\n${insight.next}\n\n以上为跨会议线索，不代表已确认风险或已通知成员。仅引用当前授权资料；本地模拟。`:`${label}\n\n${excerpts}\n\n${next}\n\n引用 ${files.length} 份已授权资料；此结果为本地模拟。`;
+    if(options.mode==='deep')answer+='\n\n深度思考（模拟）\n建议分三步核对：逐一回看原始依据；对照不同会议的时间和口径；列出仍需确认的信息。未被来源支持的推断不能视为事实。';
+    if(options.appData)answer+='\n\n已引用会议应用数据：'+files.map(f=>f.title+' · '+(f.status||'已总结')).join('；');
+    if(options.web)answer+='\n\n联网搜索已开启（模拟）：当前未连接外部搜索服务，本次回答未使用网络来源。';
     w.credits.used+=200;w.credits.logs.unshift({id:id('usage'),user:uid,task:prompt.slice(0,80),amount:200,time:stamp()});
-    const thread={id:id('chat'),user:uid,prompt,answer,time:stamp(),files:files.map(f=>f.id),visibility:'private',...(previous?{parentThreadId:previous.id}: {})};
+    const thread={id:id('chat'),user:uid,prompt,answer,time:stamp(),files:files.map(f=>f.id),visibility:'private',mode:options.mode||'quick',web:!!options.web,appData:!!options.appData,...(previous?{parentThreadId:previous.id}: {})};
     w.threads.unshift(thread);return {answer,cost:200,threadId:thread.id};
   }
   function acceptInvite(s,iid) {const i=s.invitations.find(i=>i.id===iid&&i.status==='pending')||fail('邀请已失效或已处理');const w=baseTeam(id('team'),i.teamName,[person('wang','王晨','wang.chen@eureka.example','admin'),person(SELF,s.account.name,s.account.email)],3);w.files=[file(id('file'),'欢迎加入 · 研究项目说明','wang',[SELF])];s.spaces.push(w);i.status='accepted';s.activeId=w.id;return w;}
@@ -258,9 +291,17 @@
         for(const [key,user,title,prompt,files,time,answer] of demos){
           const tid='team-history-'+key;
           // Shared sample conversations only cite known team-visible device recordings.
-          if(!w.threads.some(t=>t.id===tid)&&files.every(fid=>w.files.some(f=>f.id===fid&&!f.deleted&&teamRecording(w,f))))w.threads.push({id:tid,user,title,prompt,answer:answer+'\n\n本地模拟 · 基于团队会议记录，未连接 AI 服务。',files,time,visibility:'team',demo:true});
+          if(!(w.deletedThreadIds||[]).includes(tid)&&!w.threads.some(t=>t.id===tid)&&files.every(fid=>w.files.some(f=>f.id===fid&&!f.deleted&&teamRecording(w,f))))w.threads.push({id:tid,user,title,prompt,answer:answer+'\n\n本地模拟 · 基于团队会议记录，未连接 AI 服务。',files,time,visibility:'team',demo:true});
         }
         w.memberHistoryVersion=1;
+      }
+      if(!w.ownTaskVersion){
+        w.automaticTasks ||= [];
+        if(w.id==='team-eureka')for(const [key,title,prompt,frequency,time] of [
+          ['weekly','研发周报自动整理','汇总本周团队会议的研发进展、风险和下周计划。','weekly','09:00'],
+          ['daily','会议决策每日回顾','整理团队会议中的关键决策和需要对齐的问题。','daily','18:00']
+        ])w.automaticTasks.push({id:'team-auto-'+key,user:SELF,title,prompt,frequency,time,enabled:true,runs:[],demo:true});
+        w.ownTaskVersion=1;
       }
       w.files.forEach((f,i)=>{const defaults={size:(f.duration*0.82).toFixed(1)+' MB',creator:w.members.find(m=>m.id===f.owner)?.name||'已移除成员',status:'已总结',tags:['会议记录'],updated:f.created,detail:{}};for(const [k,v]of Object.entries(defaults))if(f[k]==null)f[k]=v;});
     }
@@ -281,5 +322,5 @@
     w.credits.used+=200;w.credits.logs.unshift({id:id('usage'),user:uid,task:prompt.slice(0,80),amount:200,time:stamp()});w.threads.unshift({id:id('chat'),user:uid,prompt,answer,time:stamp(),contactId:cid,files:[]});return answer;
   }
   function load(storage) {try {const s=JSON.parse(storage.getItem(KEY));if(s?.version===2&&Array.isArray(s.spaces)&&s.spaces.some(w=>w.id==='personal'))return enrich(s);}catch{/* recover demo state */}return enrich(seed());}
-  global.WorkspaceModel={KEY,SELF,id,clone,seed:()=>enrich(seed()),enrich,insights,history,getThread,conversation,saveDetail,saveContacts,askContact,purge,get,member,admin,usedSeats,writable,govern,teamRecording,visible,getFile,price,create,invite,memberAction,seats,seatQuote,createSeatOrder,getSeatOrder,cancelSeatOrder,paySeatOrder,advanceCycle,addFile,edit,share,trash,exportFile,importFile,registerDevice,bind,sync,ask,acceptInvite,load,log};
+  global.WorkspaceModel={KEY,SELF,id,clone,seed:()=>enrich(seed()),enrich,insights,history,getThread,conversation,deleteConversation,scheduledTasks,getTask,saveTask,runTask,saveDetail,saveContacts,askContact,purge,get,member,admin,usedSeats,writable,govern,teamRecording,visible,getFile,price,create,invite,memberAction,seats,seatQuote,createSeatOrder,getSeatOrder,cancelSeatOrder,paySeatOrder,advanceCycle,addFile,edit,share,trash,exportFile,importFile,registerDevice,bind,sync,ask,acceptInvite,load,log};
 })(typeof window==='undefined'?globalThis:window);

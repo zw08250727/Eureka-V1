@@ -126,28 +126,35 @@ assert(intel.threads.every(t=>!t.files.includes('team-private')));
   assert.equal(personal.files.find(f=>f.id===old.id).visibility,'private');
 }
 
-// Member-owned sample history is shared explicitly, with recording access rechecked.
+// Team conversations remain private even when legacy records say visibility=team.
 {
   const state=M.seed(),team=M.get(state,'team-eureka');
-  assert.equal(M.history(team).length,4);assert.deepEqual(new Set(M.history(team).map(t=>t.user)),new Set(['lin','kevin',M.SELF]));
-  const cost=team.credits.used;M.enrich(state);assert.equal(M.history(team).length,4);assert.equal(team.credits.used,cost);
-  const source=M.getThread(team,'team-history-research');assert.equal(source.user,'kevin');
-  const result=M.ask(team,'补充下一轮验证重点',null,M.SELF,source.id);
-  const follow=M.getThread(team,result.threadId);assert.equal(follow.user,M.SELF);assert.equal(follow.visibility,'private');assert.equal(source.user,'kevin');assert.deepEqual(follow.files,source.files);
-  assert.equal(M.conversation(team,follow.id).length,2);assert.equal(team.credits.used,cost+200);
-  assert(!M.history(team,'lin').some(t=>t.id===follow.id));assert.throws(()=>M.getThread(team,follow.id,'lin'),/无权访问/);
-  assert.throws(()=>M.getThread(M.get(state,'team-design'),source.id),/无权访问/);
+  assert.equal(M.history(team).length,1);assert(M.history(team).every(t=>t.user===M.SELF));
+  assert.throws(()=>M.getThread(team,'team-history-research'),/无权访问/);
+  const source=M.getThread(team,'team-history-review'),cost=team.credits.used;
+  const follow=M.ask(team,'补充下一轮验证重点',null,M.SELF,source.id);
+  assert.equal(M.conversation(team,follow.threadId).length,2);assert.equal(team.credits.used,cost+200);
+  assert.throws(()=>M.getThread(team,follow.threadId,'lin'),/无权访问/);
+  assert.throws(()=>M.deleteConversation(team,follow.threadId,'lin'),/本人的/);
   assert.throws(()=>M.history(team,'alice'),/访问权限/);
-  const rec=team.files.find(f=>f.id==='team-demo-research');rec.deleted=true;
-  assert(!M.history(team).some(t=>t.id===source.id||t.id===follow.id));
-  const spent=team.credits.used;assert.throws(()=>M.ask(team,'继续',null,M.SELF,source.id),/无权访问/);assert.equal(team.credits.used,spent);
-  rec.deleted=false;assert(M.getThread(team,source.id));
-  team.threads.push({id:'private-old',user:'lin',prompt:'旧私密会话',answer:'private',files:[],time:'2026-10-07'});
-  delete team.memberHistoryVersion;M.enrich(state);assert(!M.history(team).some(t=>t.id==='private-old'));assert.equal(team.threads.filter(t=>t.id===source.id).length,1);
-  assert.equal(M.history(M.get(state,'team-design')).length,0);
-  const legacy=M.seed(),lw=M.get(legacy,'team-eureka');lw.threads=[];delete lw.memberHistoryVersion;M.enrich(legacy);assert.equal(M.history(lw).length,4);
+  team.files.find(f=>f.id==='team-demo-pilot').deleted=true;
+  assert.throws(()=>M.getThread(team,source.id),/无权访问/);
+  team.files.find(f=>f.id==='team-demo-pilot').deleted=false;
+  M.deleteConversation(team,follow.threadId);assert.equal(M.history(team).length,0);
+  delete team.memberHistoryVersion;M.enrich(state);assert.equal(M.history(team).length,0);
+  assert.equal(M.history(team,'lin').length,2);assert.equal(M.history(M.get(state,'team-design')).length,0);
+  assert.equal(M.scheduledTasks(team).length,2);assert.equal(M.scheduledTasks(team,'lin').length,0);
+  const task=M.scheduledTasks(team)[0];assert.throws(()=>M.getTask(team,task.id,'lin'),/无权访问/);
+  task.enabled=false;assert.throws(()=>M.runTask(team,task.id),/启用/);task.enabled=true;
+  const run=M.runTask(team,task.id);assert.equal(M.getThread(team,run.threadId).taskId,task.id);assert.equal(task.runs.length,1);
+  assert.throws(()=>M.saveTask(team,{title:'x',prompt:'x',frequency:'daily',time:'29:00'}),/有效/);
+  const t=M.saveTask(team,{title:'每日复盘',prompt:'整理会议决策',frequency:'daily',time:'18:00'});assert.equal(t.user,M.SELF);
+  const prior=team.credits.used;assert.throws(()=>M.ask(team,'越权引用',null,M.SELF,null,{fileIds:['team-private']}),/访问权限/);assert.equal(team.credits.used,prior);
+  const answer=M.ask(team,'分析',null,M.SELF,null,{fileIds:['team-demo-design'],mode:'deep',web:true,appData:true});
+  assert.match(answer.answer,/深度思考/);assert.match(answer.answer,/未连接外部搜索/);assert.match(answer.answer,/已引用会议应用数据/);
+  assert.deepEqual(M.getThread(team,answer.threadId).files,['team-demo-design']);
 }
-console.log('PASS: member history ownership, scoped continuation, access revocation and additive migration.');
+console.log('PASS: own conversations, deletion, task ownership, scoped sources and composer modes.');
 
 // Adding capacity requires a paid, workspace-scoped and idempotent order.
 {

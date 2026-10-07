@@ -27,7 +27,7 @@ test('team recording home has full columns, custom filters and no personal flash
 });
 test('team recordings reuse six tabs, inline editing, player, sharing, export and recycle',async({page})=>{
   const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
-  await act(page,'file','team-review').click();await expect(page.getByRole('tab')).toHaveCount(6);await expect(md(page,'feedback')).toBeDisabled();
+  await act(page,'file','team-review').click();await expect(page.locator('#meeting-detail-root').getByRole('tab')).toHaveCount(6);await expect(md(page,'feedback')).toBeDisabled();
   await md(page,'edit').click();await page.getByRole('textbox',{name:'编辑正文'}).fill('团队迭代专属结论');await md(page,'save-inline').click();
   await expect(page.locator('#md-content .md-prose')).toContainText('团队迭代专属结论');
   await page.getByRole('tab',{name:'转译文本',exact:true}).click();await expect(page.locator('#md-content')).toContainText('今天先确认');
@@ -52,22 +52,22 @@ test('team hides contacts while personal contacts remain available',async({page}
   await page.locator('[data-contacts-entry]').click();await expect(page.locator('#contacts-root')).toContainText('John Chen');
   await page.locator('.contacts-xiaozhi-entry').click();await expect(page.locator('#contacts-xiaozhi-rail')).toBeVisible();
 });
-test('member history opens in place with ownership, preserves context and survives reload',async({page})=>{
+test('own history opens in place without owner tags, preserves context and survives reload',async({page})=>{
   const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
-  await expect(page.locator('#ws-history [data-ws-action=history]')).toHaveCount(4);
-  await expect(page.locator('#ws-history')).toContainText('林晓');await expect(page.locator('#ws-history')).toContainText('Kevin');await expect(page.locator('#ws-history')).toContainText('张伟');
-  const item=page.locator('#ws-history [data-value=team-history-research]');await item.click();
-  await expect(item).toHaveAttribute('aria-current','true');await expect(page.locator('.ws-agent-history-context')).toContainText('Kevin');
-  await expect(page.locator('.ws-chat-user')).toHaveText('把用户访谈和交互评审串起来，找出值得优先解决的问题。');
-  await expect(page.locator('.ws-chat-answer')).toContainText('上下文连续性');
+  await expect(page.locator('#ws-history [data-ws-action=history]')).toHaveCount(1);
+  await expect(page.locator('#ws-history .ws-history-owner')).toHaveCount(0);
+  const item=page.locator('#ws-history [data-ws-action=history][data-value=team-history-review]');await item.click();
+  await expect(item).toHaveAttribute('aria-current','true');await expect(page.locator('.ws-agent-history-context .ws-history-owner')).toHaveCount(0);
+  await expect(page.locator('.ws-chat-user')).toHaveText('汇总试点复盘和交互评审，整理下一轮体验验证重点。');
+  await expect(page.locator('.ws-chat-answer')).toContainText('交互评审');
   if(process.env.PRD_CAPTURE){await page.setViewportSize({width:1440,height:900});await expect(page.locator('#ws-toast')).toBeHidden();await page.screenshot({path:'src/prototype/prd/images/team-history-agent.png'});}
   for(const [width,height] of [[1920,1080],[1366,768],[1280,650]]){await page.setViewportSize({width,height});await expect(page.locator('.ws-composer textarea')).toBeInViewport({ratio:1});await expect(page.locator('[aria-label="收起 Agent"]')).toBeInViewport({ratio:1});expect(await page.locator('.main').evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThan(3);}
   await page.locator('.ws-composer textarea').fill('补充下一轮验证重点');await page.locator('.ws-composer button[type=submit]').click();
-  await expect(page.locator('.ws-chat-user')).toHaveCount(2);await expect(page.locator('.ws-chat-answer').last()).toContainText('语音记录用户访谈');await expect(page.locator('.ws-chat-answer').last()).not.toContainText('星海试点');
-  await expect(page.locator('.ws-agent-history-context .ws-history-owner')).toHaveText('张伟');
-  await expect(page.locator('#ws-history [data-value=team-history-research] .ws-history-owner')).toHaveText('Kevin');
+  await expect(page.locator('.ws-chat-user')).toHaveCount(2);await expect(page.locator('.ws-chat-answer').last()).toContainText('星海试点');
+  await expect(page.locator('.ws-agent-history-context .ws-history-owner')).toHaveCount(0);
+  await expect(page.locator('#ws-history [data-ws-action=history]')).toHaveCount(1);
   await act(page,'agent-close').click();await page.reload();await page.locator('#ws-history button').filter({hasText:'补充下一轮验证重点'}).click();await expect(page.locator('.ws-chat-user')).toHaveCount(2);
-  await page.locator('#ws-actor').selectOption('lin');await expect(page.locator('#ws-history')).not.toContainText('补充下一轮验证重点');await expect(page.locator('#ws-history')).toContainText('用户访谈中的高频需求');
+  await page.locator('#ws-actor').selectOption('lin');await expect(page.locator('#ws-history')).not.toContainText('补充下一轮验证重点');await expect(page.locator('#ws-history')).toContainText('渠道演示沟通准备');
   await switchTo(page,'team-design');await expect(page.locator('#ws-history')).toContainText('暂无会话');
   await switchTo(page,'personal');await expect(page.locator('#ws-history')).toBeEmpty();await expect(page.locator('[data-contacts-entry]')).toBeVisible();expect(errors).toEqual([]);
 });
