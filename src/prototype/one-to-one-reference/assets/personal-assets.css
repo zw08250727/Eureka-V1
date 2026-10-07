@@ -78,3 +78,24 @@ body[data-ws-type="team"] #todos-entry{display:none!important}
 .pa-with-agent .pa-page-head>div:last-child{max-width:100%;flex-shrink:1}.pa-with-agent .pa-calendar-dates{flex-wrap:wrap}
 
 .pa-agent #pa-prompt:focus,.pa-agent #pa-prompt:focus-visible{outline:0!important;border-color:transparent!important;box-shadow:none!important}
+
+/* Match the other workbench Agents: independent panes, a pinned composer, shared tools. */
+.pa-workspace.pa-with-agent{position:relative;box-sizing:border-box;height:var(--pa-workspace-height,calc(100dvh - 64px));min-height:0;padding-bottom:16px;align-items:stretch;overflow:hidden}
+.pa-workspace.pa-with-agent .pa-content{min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;padding-right:2px}
+.pa-workspace.pa-with-agent #pa-agent{position:relative;top:0;inset:auto;height:100%;max-height:none;min-height:0;box-sizing:border-box;border-radius:16px}
+.pa-agent>header{flex-shrink:0}.pa-agent header .pa-agent-close{width:30px;height:30px;padding:5px;color:#6583a9}
+.pa-agent-body{position:relative;overscroll-behavior:contain;padding:22px 20px}
+.pa-agent-context{font-size:10px;color:#8296b0;line-height:1.6}.pa-agent-welcome h3{font-size:18px;margin:20px 0 10px}.pa-agent-welcome>p{font-size:12px;margin:0;line-height:1.8}
+.pa-agent-prompts{display:grid;gap:8px;margin:22px 0}.pa-agent-prompts .pa-btn{justify-content:space-between;padding:12px;font-weight:400;text-align:left}.pa-agent-prompts .icon{width:13px;height:13px;flex-shrink:0;color:#809ab9}
+.pa-message{padding:14px;margin:20px 0 12px;border-radius:12px;background:#eff5ff;color:#53759e;font-size:12px}
+.pa-agent-answer{font-size:12px;line-height:1.9;color:#63778f}.pa-agent-answer p{font-size:12px;margin:0 0 12px;color:inherit}.pa-agent-answer .pa-hint{display:block;margin-top:12px;font-size:10px}.pa-agent-answer .pa-linked{padding:10px;font-size:12px}
+#pa-agent-prompt.pa-composer{flex-shrink:0;margin:14px;padding:12px 14px;border:1px solid #dce6f3;border-radius:14px;box-shadow:0 4px 15px #243b6205}
+#pa-agent-prompt[hidden]{display:none}
+.pa-agent #pa-prompt{display:block;width:100%;height:64px;min-height:0;margin:0;padding:0;resize:none;border:0!important;outline:0!important;box-shadow:none!important;border-radius:0;background:transparent;color:#506c8d;font-family:inherit;font-size:13px;line-height:1.7}
+.pa-agent #pa-prompt::placeholder{color:#a3afbf}.pa-composer-tools{display:flex;align-items:center;gap:7px;margin:7px 0;flex-wrap:wrap}.pa-composer-tools .pa-tool{width:32px;height:32px;min-height:32px;padding:0;border-radius:10px;border-color:#e5e8ee;color:#667890}.pa-composer-tools .pa-tool.selected{color:#3268b2;background:#edf4ff;border-color:#c4d8f4}
+.pa-agent-mode{display:flex;align-items:center;gap:3px;border:1px solid #e5e8ee;border-radius:10px;padding:0 7px;height:32px;color:#667890}.pa-agent-mode select{max-width:105px;height:30px;border:0;background:transparent;color:inherit;font-family:inherit;font-size:11px}.pa-agent-mode .icon{width:14px;height:14px}
+.pa-composer-tools>[type=submit]{margin-left:auto;width:32px;height:32px;min-height:32px;padding:0;border-radius:10px}.pa-composer-tools>[type=submit]:disabled{opacity:.4;cursor:default}.pa-composer-tools .icon{width:16px;height:16px}
+#pa-agent-scope{font-size:9px;color:#96a5b8}.pa-composer-caption{display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px;margin-top:7px;font-size:9px;color:#a2adba}
+.pa-agent-sources{display:grid;gap:8px;max-height:45dvh;overflow:auto}.pa-agent-sources label{display:flex;align-items:center;gap:9px;border:1px solid #e5edf6;border-radius:10px;padding:12px;font-size:12px;cursor:pointer}.pa-agent-sources small{display:block;color:#8b9ab0;font-size:10px;margin-top:5px}.pa-agent-sources input{accent-color:#3c75bd}
+@media(max-width:1050px){.pa-workspace.pa-with-agent{flex-direction:row}.pa-workspace.pa-with-agent .pa-content{width:100%;flex:1}.pa-workspace.pa-with-agent #pa-agent{position:absolute;top:20px;bottom:16px;right:0;width:min(390px,100%);height:auto;z-index:30;box-shadow:-10px 0 45px #29486c24;order:0}}
+@media(max-height:700px){.pa-agent>header{padding:12px 16px}.pa-agent-body{padding:16px}#pa-agent-prompt.pa-composer{margin:10px;padding:10px}.pa-agent #pa-prompt{height:48px}}
