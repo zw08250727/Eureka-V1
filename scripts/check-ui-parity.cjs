@@ -11,8 +11,7 @@ const baseline =
   origin +
   "/prototype/one-to-one-reference/team-only-app.html?edition=personal&personal=1";
 const cases = [
-  ["auth-login", "@auth", null, "#auth-form"],
-  ["auth-register", "@auth", null, "#auth-form", ".switch button"],
+  // Auth was intentionally redesigned after migration; covered by auth-entry.spec.ts.
   ["home", "home", null, "#recent-meeting-title"],
   ["agent", "home", null, "#xiaozhi-rail", "#xiaozhi-entry"],
   ["upload", "home", null, "#audio-upload-dialog", ".audio-upload-entry"],

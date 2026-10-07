@@ -6,7 +6,10 @@ test('capture functional PRD illustrations from the running prototype',async({pa
   const app='/prototype/one-to-one-reference/team-only-app.html?edition=personal&personal=1';
   const capture=async(name:string)=>{await page.screenshot({path:`src/prototype/prd/images/${name}.png`});};
   const action=(n:string,v?:string)=>page.locator(`[data-ws-action="${n}"]${v?`[data-value="${v}"]`:''}`).filter({visible:true}).first();
-  await page.goto('/prototype/auth-shell.html');await capture('auth');
+  await page.emulateMedia({reducedMotion:'reduce'});await page.goto('/');await capture('auth');
+  await page.getByRole('button',{name:'查看团队共识'}).click();await capture('auth-team');
+  await page.getByRole('button',{name:'查看个人灵感'}).click();await page.getByRole('button',{name:'立即注册',exact:true}).click();await capture('auth-register');
+  await page.emulateMedia({reducedMotion:'no-preference'});
   await page.goto(app);await page.locator('#ws-switcher').click();await capture('workspace-menu');await page.locator('#ws-switcher').click();
   await page.locator('[data-widget-all]').click();await capture('thoughts');
   await page.locator('#thought-toolbar [data-th=calendar]').click();await page.locator('#personal-actions [data-pa=new-schedule]').click();

@@ -40,9 +40,10 @@ test('scope excludes retired flows and Agent business details while retaining wi
   for(const text of ['F-01','F-02','F-07','个人日程与待办闭环'])await expect(page.locator('#journeys')).not.toContainText(text);
   const boundary=page.locator('#milestones .rule-block').filter({has:page.getByRole('heading',{name:'1.2.3 参考与边界',exact:true})});
   for(const topic of ['登录与注册','WiseNote PC','Agentplatform','调用逻辑','运行状态与计费','历史任务调用','自动任务','窗口自适应'])await expect(boundary).toContainText(topic);
-  await expect(page.locator('#auth')).toContainText('不在本次需求与验收范围内');
+  await expect(page.locator('#auth')).toContainText('真实认证服务仍为范围外事项');
+  await expect(page.locator('#auth')).toContainText('团队共识');
   await expect(page.locator('#agent')).toContainText('1.2.3「参考与边界」');
-  await expect(page.locator('#acceptance tbody tr').filter({hasText:'登录与注册'})).toHaveCount(0);
+  await expect(page.locator('#acceptance tbody tr').filter({hasText:'登录注册界面'})).toHaveCount(1);
   await expect(page.locator('#agent .prose table,#agent .prose .flow-svg')).toHaveCount(0);
   await expect(page.locator('#meeting-detail .prose li')).toHaveText(['参考 WiseNote PC 的会议详情页和核心功能。']);
   await expect(page.locator('#meeting-detail .prose table,#meeting-detail .prose figure')).toHaveCount(0);

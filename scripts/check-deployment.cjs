@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-require-imports -- Standalone browser deployment smoke check. */
 const { chromium } = require("playwright");
 const assert = require("node:assert/strict");
+const expectedRevision = require("../src/prototype/prd/content.json").revision;
 const base = (
   process.env.DEPLOYMENT_URL || "http://127.0.0.1:3122/Eureka-V1"
 ).replace(/\/$/, "");
@@ -48,6 +49,9 @@ const routes = [
     const auth = await context.newPage();
     observe(auth);
     await auth.goto(base + "/");
+    assert.equal(await auth.locator(".auth-demo").count(), 0);
+    await auth.getByRole("button", { name: "查看团队共识" }).click();
+    await auth.getByRole("heading", { name: "汇聚交流，让团队同频。" }).waitFor();
     await auth.locator("#submit").click();
     await auth.locator("#recent-meeting-title").waitFor();
     assert.ok(auth.url().startsWith(base + "/workbench/"));
@@ -64,7 +68,7 @@ const routes = [
     }
     const prd = await context.request.get(base + "/prototype/prd/content.json");
     assert.equal(prd.status(), 200);
-    assert.equal((await prd.json()).revision, "prd-20261007-40");
+    assert.equal((await prd.json()).revision, expectedRevision);
     const page = await context.newPage();
     observe(page);
     await page.goto(base + "/prototype/prd/index.html");
@@ -80,7 +84,7 @@ const routes = [
         base,
         nativeViews: routes.length,
         auth: "passed",
-        prd: "prd-20261007-40",
+        prd: expectedRevision,
         reference: "passed",
         errors,
       }),

@@ -13,7 +13,7 @@ npm run dev
 
 ## React 工程
 
-根入口提供原生 React 登录演示；`/workbench/` 承载个人与团队页面、弹窗和 Agent 面板，不再通过 iframe 进入业务界面。沿用原型 CSS、SVG、文案与布局，未重新设计 UI。PRD 地址保持 `/prototype/prd/index.html`。
+根入口提供原生 React 登录演示；`/workbench/` 承载个人与团队页面、弹窗和 Agent 面板，不再通过 iframe 进入业务界面。工作台沿用原型 CSS、SVG、文案与布局。认证页按新版截图调整表单布局，右侧以个人灵感、团队共识与 Agent 助力三个场景展示轻动效。PRD 地址保持 `/prototype/prd/index.html`。
 
 基线版本为 `prototype-baseline-20261007`。组件、数据兼容、验收及服务边界说明见 [React 迁移记录](docs/react-migration.md)。
 
