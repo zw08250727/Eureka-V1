@@ -61,8 +61,8 @@ test("daily brief connects today records, updates suggestions and opens source a
   for (const key of ["inspiration", "ledger"]) {
     await page.locator(`[data-today-category="${key}"]`).click();
     await expect(page.locator(`[data-thought-category="${key}"]`)).toHaveAttribute("aria-current", "true");
-    await page.locator('[data-thought-file="2026-09"]').click();
-    await expect(page.locator("#thought-preview-date-title")).toHaveText("2026-09-23");
+    await page.locator('[data-thought-record]').first().click();
+    await expect(page.locator("#thought-record-dialog")).toContainText("2026-09-23");await page.locator("#thought-record-dialog [data-th=close]").last().click();
     await page.locator("#home-entry").click();
   }
 });
@@ -97,7 +97,7 @@ test("widgets open the full archive and bring today's context into Agent drafts"
   await page.locator("#thought-file-search").fill("给产品演示");
   await expect(page.locator("[data-thought-record]")).toHaveCount(1);
   await page.locator("[data-thought-record]").click();
-  await expect(page.locator("#thought-preview")).toBeVisible();
+  await expect(page.locator("#thought-record-dialog")).toBeVisible();await page.locator("#thought-record-dialog [data-th=close]").last().click();
   await page.locator("#home-entry").click();
   await page.locator('[data-widget-ai="brief"]').click();
   await expect(page.locator("#xiaozhi-rail")).toBeVisible();

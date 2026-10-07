@@ -4352,9 +4352,9 @@
         const { type, records } = widgetAiContext;
         let result = $("#widget-agent-result");
         if (!result) { result = document.createElement("section"); result.id = "widget-agent-result"; result.className = "widget-agent-result"; result.setAttribute("aria-live", "polite"); $(".xiaozhi-intro", xiaozhiRail).append(result); }
-        const title = {brief:"把今天的记录连成下一步",schedule:"会前准备清单",todo:"今天的行动顺序",inspiration:"把灵感变成小计划"}[type];
-        const items = records.map(record => type === "brief" ? `${record.time} · ${record.title}：${record.done ? "已完成，可在今日复盘中回顾。" : record.detail}` : type === "schedule" ? `${record.time} ${record.title}：提前核对议题和材料，列出需要参会人确认的问题。` : type === "todo" ? `${record.done ? "已完成" : record.time + " 前"} · ${record.title}${record.done ? "，可在复盘时回顾结果。" : "：先确认所需资料，再完成交付。"}` : `${record.title}：先写下目标与一个可验证的小步骤，再补齐需要的信息。`);
-        result.innerHTML = `<span>AI · 演示建议</span><h4>${title}</h4><p class="widget-agent-request">${escapeHTML(xiaozhiInput.value.split("\n")[0])}</p><ol>${items.map(item => `<li>${escapeHTML(item)}</li>`).join("")}</ol><small>基于已引用的今日记录整理，仅供参考。</small>`;
+        const title = {thoughts:"回顾当前闪念",brief:"把今天的记录连成下一步",schedule:"会前准备清单",todo:"今天的行动顺序",inspiration:"把灵感变成小计划"}[type];
+        const items = records.map(record => type === "thoughts" ? `${record.date} ${record.time} · ${record.title}：${record.detail}` : type === "brief" ? `${record.time} · ${record.title}：${record.done ? "已完成，可在今日复盘中回顾。" : record.detail}` : type === "schedule" ? `${record.time} ${record.title}：提前核对议题和材料，列出需要参会人确认的问题。` : type === "todo" ? `${record.done ? "已完成" : record.time + " 前"} · ${record.title}${record.done ? "，可在复盘时回顾结果。" : "：先确认所需资料，再完成交付。"}` : `${record.title}：先写下目标与一个可验证的小步骤，再补齐需要的信息。`);
+        result.innerHTML = `<span>AI · 演示建议</span><h4>${title}</h4><p class="widget-agent-request">${escapeHTML(xiaozhiInput.value.split("\n")[0])}</p><ol>${items.map(item => `<li>${escapeHTML(item)}</li>`).join("")}</ol><small>基于已引用的记录整理，仅供参考。</small>`;
         result.scrollIntoView({ block: "nearest", behavior: "smooth" });
       } else {
         const message = document.createElement("article");
@@ -4548,7 +4548,7 @@
       $("#today-date-label").textContent = `${todayNow.toLocaleDateString("zh-CN", { month: "long", day: "numeric" })} · ${todayNow.toLocaleDateString("zh-CN", { weekday: "long" })}`;
       const records = key => assetsForToday(todayAssetTypes.find(type => type.key === key));
       const todos = records("todo"), ideas = records("inspiration"), schedules = records("schedule").sort((a,b)=>a.time.localeCompare(b.time));
-      const amount = records("ledger").reduce((total, record) => total + record.amount, 0);
+      const amount = records("ledger").filter(record => record.direction !== "income").reduce((total, record) => total + record.amount, 0);
       const pendingTodos = todos.filter(record => !record.done);
       const clockTime = `${String(todayNow.getHours()).padStart(2, "0")}:${String(todayNow.getMinutes()).padStart(2, "0")}`;
       const upcoming = schedules.find(record => record.end > clockTime);
@@ -4565,7 +4565,7 @@
         <aside class="daily-rhythm" aria-label="今天的日程"><header><h2>今日日程</h2><button type="button" data-pa="todos" data-id="today" aria-label="查看日程与待办">${schedules.length} 场 ↗</button></header>
           <div class="daily-rhythm-events">${schedules.map(record => `<button type="button" class="rhythm-event" data-today-asset="${record.id}"><time>${record.time}–${record.end}</time><span><strong>${escapeHTML(record.title)}</strong><em>${escapeHTML(record.detail.split(" · ").slice(0, 2).join(" · "))}</em></span><span class="rhythm-arrow" aria-hidden="true">↗</span></button>`).join("") || '<p class="today-asset-empty">今天没有日程，给自己留一段专注时间。</p>'}</div>
         </aside></div>
-        <div class="daily-records"><section class="daily-inspiration" aria-label="今日灵感"><header><h2>灵感</h2><button type="button" data-today-category="inspiration">${ideas.length} 条 ↗</button></header><div>${ideas.map(record => `<button type="button" data-today-asset="${record.id}" class="daily-idea"><span>${escapeHTML(record.title)}</span><time>${record.time}</time></button>`).join("")}</div></section><section class="daily-ledger" aria-label="今日记账"><header><h2>今日记账</h2><button type="button" data-today-category="ledger" aria-label="查看今日记账">↗</button></header><div class="daily-ledger-total"><strong>¥${amount.toFixed(2)}</strong><span>今日支出</span></div><div class="daily-ledger-items">${records("ledger").map(record => `<button type="button" data-today-asset="${record.id}">${escapeHTML(record.title.replace("客户拜访", "").replace("客户工作", ""))} <span>¥${record.amount.toFixed(0)}</span></button>`).join("")}</div></section></div>`;
+        <div class="daily-records"><section class="daily-inspiration" aria-label="今日灵感"><header><h2>灵感</h2><button type="button" data-today-category="inspiration">${ideas.length} 条 ↗</button></header><div>${ideas.map(record => `<button type="button" data-today-asset="${record.id}" class="daily-idea"><span>${escapeHTML(record.title)}</span><time>${record.time}</time></button>`).join("")}</div></section><section class="daily-ledger" aria-label="今日记账"><header><h2>今日记账</h2><button type="button" data-today-category="ledger" aria-label="查看今日记账">↗</button></header><div class="daily-ledger-total"><strong>¥${amount.toFixed(2)}</strong><span>今日支出</span></div><div class="daily-ledger-items">${records("ledger").map(record => `<button type="button" data-today-asset="${record.id}">${escapeHTML(record.title.replace("客户拜访", "").replace("客户工作", ""))} <span>${record.direction === "income" ? "收入 " : ""}¥${record.amount.toFixed(2)}</span></button>`).join("")}</div></section></div>`;
 
     };
     renderTodayAssets();
@@ -4575,6 +4575,7 @@
     const thoughtFileName = (category, file) => `${category.name}-${file.month}.md`;
     const allThoughtEntries = () => Object.entries(thoughtArchiveData).flatMap(([type, category]) => category.files.flatMap(file => file.entries.map((entry, index) => ({ ...entry, type, category: category.name, month: file.month, index })))).sort((a, b) => `${b.date} ${b.time}`.localeCompare(`${a.date} ${a.time}`));
     const renderThoughtFiles = () => {
+      if(window.ThoughtsUI)return window.ThoughtsUI.render();
       const all = activeThoughtCategory === "all";
       const head = $(".thought-file-table-head");
       head.innerHTML = all ? "<span>闪念内容</span><span>类型</span><span>记录时间</span><span>操作</span>" : "<span>文件名</span><span>记录数量</span><span>更新时间</span><span>操作</span>";
@@ -4597,6 +4598,7 @@
       $("#thought-file-list").innerHTML = files.length ? files.map((file) => `<button class="thought-file-row" data-thought-file="${escapeHTML(file.month)}"><span class="thought-file-name"><i>M</i><span><strong>${escapeHTML(thoughtFileName(category, file))}</strong><small>Markdown 月度归档文件</small></span></span><span>${file.count} 条</span><span>${escapeHTML(file.updated)}</span><em>预览<svg class="icon"><use href="#ico-chevron"/></svg></em></button>`).join("") : '<div class="thought-file-empty">没有找到匹配的月度文件</div>';
     };
     const renderThoughtPreview = (file, selectedDate = "") => {
+      if(window.ThoughtsUI)return window.ThoughtsUI.openLegacy(activeThoughtCategory,file,selectedDate);
       const category = thoughtCategory();
       activeThoughtFile = file;
       const dates = [...new Set(file.entries.map((entry) => entry.date))];
@@ -4629,7 +4631,7 @@
       const row = event.target.closest("[data-thought-file]"); if (!row) return; const file = thoughtCategory().files.find((item) => item.month === row.dataset.thoughtFile); if (file) renderThoughtPreview(file); });
     $("#thought-preview-dates").addEventListener("click", (event) => { const button = event.target.closest("[data-thought-date]"); if (button && activeThoughtFile) renderThoughtPreview(activeThoughtFile, button.dataset.thoughtDate); });
     $("#thought-preview-close").addEventListener("click", () => { $("#thought-preview").hidden = true; activeThoughtFile = null; });
-    $("#thought-preview-edit").addEventListener("click", () => showToast("正在打开闪念文件编辑模式"));
+    $("#thought-preview-edit").addEventListener("click", () => window.ThoughtsUI?.edit());
     $("#thought-preview-sort").addEventListener("click", () => showToast("当前按日期倒序展示"));
     $("#today-assets-grid").addEventListener("click", (event) => {
       if (event.target.closest("[data-widget-all]")) {
@@ -4679,7 +4681,7 @@
       if (record && ["schedule","todo"].includes(category) && window.PersonalAssets) { window.PersonalAssets.open(record.id); return; }
       $("[data-meeting-view='thought']")?.click();
       document.querySelector(`[data-thought-category="${category}"]`).click();
-      if (record) renderThoughtPreview(thoughtArchiveData[category].files.find((file) => file.month === todayKey.slice(0, 7)), todayKey);
+      if (record) { if(window.ThoughtsUI)window.ThoughtsUI.open(record.id);else renderThoughtPreview(thoughtArchiveData[category].files.find((file) => file.month === todayKey.slice(0, 7)), todayKey); }
     });
     $("#thought-file-search").addEventListener("input", renderThoughtFiles);
     $("#thought-month-select").addEventListener("change", renderThoughtFiles);
@@ -4688,7 +4690,7 @@
     let activeEnterpriseAsset = "meeting";
     const meetingViewContent = {
       my: ["我的会议", "管理录音、转写、纪要和待办"],
-      thought: ["全部闪念", "按灵感、待办、记账、日程和其他五类查看月度归档"],
+      thought: ["全部闪念", "把随手记下的想法、收支和安排，放在一起回顾。"],
       enterprise: ["企业会议", "查看企业成员共享的会议内容"]
     };
     const MEETING_PAGE_SIZE = 10;
@@ -5338,7 +5340,10 @@
 <script src="assets/recording-upload.js?v=1"></script>
 <link rel="stylesheet" href="assets/personal-assets.css?v=3">
 <script src="assets/personal-assets-model.js?v=2"></script>
-<script src="assets/personal-assets-ui.js?v=4"></script>
+<script src="assets/personal-assets-ui.js?v=5"></script>
+<link rel="stylesheet" href="assets/thoughts.css?v=1">
+<script src="assets/thoughts-model.js?v=1"></script>
+<script src="assets/thoughts-ui.js?v=1"></script>
 <link rel="stylesheet" href="assets/agent-resize.css?v=1">
 <script src="assets/agent-resize.js?v=2"></script>
 </body>

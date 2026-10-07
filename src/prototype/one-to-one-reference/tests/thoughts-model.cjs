@@ -1,0 +1,11 @@
+const assert=require('node:assert/strict'),M=require('../assets/thoughts-model.js');
+const data=new Map(),storage={getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v)};
+const seed={id:'idea',type:'inspiration',title:'原始想法',detail:'原文',capture:'原文',date:'2026-10-07',time:'09:00',source:'capture',revision:0};
+const a=M.create(storage,[seed]),b=M.create(storage,[seed]);
+assert.throws(()=>a.save({...seed,title:''}),/标题/);assert.equal(a.snapshot().records[0].title,'原始想法');
+assert.throws(()=>a.save({...seed,date:'2026-02-30'}),/日期/);
+const r=a.save({...seed,title:'更新',capture:'不应该覆盖'});assert.equal(r.capture,'原文');assert.equal(M.create(storage,[]).snapshot().records[0].title,'更新');
+assert.throws(()=>b.save({...seed,title:'另一个页面'}),/另一页面/);assert.throws(()=>a.save(seed),/已更新/);
+assert.throws(()=>a.save({...r,type:'ledger',amount:'1.234',direction:'expense'}),/金额/);
+const before=a.snapshot();storage.setItem=()=>{throw Error('quota');};assert.throws(()=>a.save({...r,title:'不可落盘'}),/保存失败/);assert.deepEqual(a.snapshot(),before);
+console.log('PASS: thoughts validation, persistence, immutable capture, concurrency and storage rollback.');

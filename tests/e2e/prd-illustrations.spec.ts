@@ -9,7 +9,7 @@ test('capture functional PRD illustrations from the running prototype',async({pa
   await page.goto('/prototype/auth-shell.html');await capture('auth');
   await page.goto(app);await page.locator('#ws-switcher').click();await capture('workspace-menu');await page.locator('#ws-switcher').click();
   await page.locator('[data-widget-all]').click();await capture('thoughts');
-  await page.locator('#thought-toolbar [data-pa=new-schedule]').click();
+  await page.locator('#thought-toolbar [data-th=calendar]').click();await page.locator('#personal-actions [data-pa=new-schedule]').click();
   await page.locator('#pa-edit-form [name=title]').fill('产品方案讨论');await page.locator('#pa-edit-form [name=start]').fill('2026-10-24T14:00');await page.locator('#pa-edit-form [name=end]').fill('2026-10-24T15:00');await page.locator('#pa-edit-form [name=participants]').fill('张伟、Kevin');await capture('schedule-edit');
   await page.locator('#pa-edit-form button[type=submit]').click();await page.locator('#home-entry').click();
   await page.locator('#meeting-date-filter-trigger').click();await capture('meeting-filter');await page.keyboard.press('Escape');

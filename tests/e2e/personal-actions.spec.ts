@@ -6,7 +6,7 @@ test('manual schedule, editing, reminder, notes and associated meeting persist i
   await page.goto(url);
   await expect(page.locator('#todos-entry')).toBeVisible();
   await page.locator('[data-widget-all]').click();
-  await page.locator('#thought-toolbar [data-pa="new-schedule"]').click();
+  await page.locator('#thought-toolbar [data-th=calendar]').click();await page.locator('#personal-actions [data-pa=new-schedule]').click();
   await page.locator('#pa-edit-form [name=title]').fill('客户联调讨论');
   await page.locator('#pa-edit-form [name=start]').fill('2026-10-24T14:00');
   await page.locator('#pa-edit-form [name=end]').fill('2026-10-24T13:00');
@@ -45,7 +45,7 @@ test('manual schedule, editing, reminder, notes and associated meeting persist i
 });
 test('Agent creates one schedule with traceable source in the same archive',async({page})=>{
   await page.goto(url);await page.locator('[data-widget-all]').click();
-  await page.locator('#thought-toolbar [data-pa=agent]').click();
+  await page.locator('#thought-toolbar [data-th=calendar]').click();await page.locator('#personal-actions [data-pa=agent]').click();
   await page.locator('#pa-prompt').fill('帮我安排「团队复盘」');
   await page.locator('#pa-agent-prompt button[type=submit]').click();
   await expect(page.locator('#pa-agent-result')).toContainText('还需要具体日期');
@@ -99,7 +99,7 @@ test('detail, To-dos, Agent and Settings screenshots and responsive layout',asyn
   if(process.env.PRD_CAPTURE)await page.screenshot({path:'src/prototype/prd/images/personal-todo.png'});
   await page.locator('#user-card').click();await page.locator('#ws-menu [data-ws-action=settings]').click();
   if(process.env.PRD_CAPTURE)await page.screenshot({path:'src/prototype/prd/images/personal-settings.png'});
-  await page.locator('[data-settings-close]').click();await page.locator('[data-widget-all]').click();await page.locator('#thought-toolbar [data-pa=agent]').click();
+  await page.locator('[data-settings-close]').click();await page.locator('[data-widget-all]').click();await page.locator('#thought-toolbar [data-th=calendar]').click();await page.locator('#personal-actions [data-pa=agent]').click();
   await page.locator('#pa-prompt').fill('2026-10-24 14:00–15:00，安排「产品方案讨论」');await page.locator('#pa-agent-prompt button[type=submit]').click();
   if(process.env.PRD_CAPTURE)await page.screenshot({path:'src/prototype/prd/images/personal-schedule-agent.png'});
   for(const width of [1440,1280,1024,390]){await page.setViewportSize({width,height:1000});const bounds=await page.locator('#pa-agent').boundingBox();expect(bounds!.x).toBeGreaterThanOrEqual(0);expect(bounds!.x+bounds!.width).toBeLessThanOrEqual(width+1);}
