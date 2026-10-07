@@ -1,0 +1,7 @@
+/* Shared new-task action, always immediately before the Agent close control. */
+.agent-head-actions{display:flex;align-items:center;gap:4px;flex-shrink:0}
+button.agent-new-task,.pa-agent header button.agent-new-task{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;min-height:30px;padding:5px;border:0;border-radius:8px;background:transparent;color:#6583a9;cursor:pointer;flex-shrink:0}
+button.agent-new-task:hover{background:#edf4fc;color:#3268b2}button.agent-new-task:focus-visible{outline:2px solid #8baee0;outline-offset:2px}
+button.agent-new-task svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+
+.drawer-head #drawer-agent-new-task{margin-left:auto;margin-right:4px}
