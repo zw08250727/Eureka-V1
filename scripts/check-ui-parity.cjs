@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-require-imports -- Standalone Node screenshot comparison. */
 const { chromium } = require(process.cwd() + "/node_modules/playwright");
 const sharp = require(process.cwd() + "/node_modules/sharp");
+// Use the comparator bundled with the lockfile-pinned Playwright version.
+const { getComparator } = require(
+  process.cwd() + "/node_modules/playwright-core/lib/coreBundle.js",
+).utils;
 const fs = require("fs");
 const origin = process.env.PARITY_BASE_URL || "http://127.0.0.1:3131";
 const baseline =
@@ -528,6 +532,14 @@ fs.mkdirSync(output, { recursive: true });
           diff[i + 3] = 255;
         }
         const ratio = n / (a.info.width * a.info.height);
+        const perceptualDifference = getComparator("image/png")(
+          buffers[1],
+          buffers[0],
+          {
+            threshold: 0.2,
+            maxDiffPixels: 0,
+          },
+        );
         reports.push({
           name,
           viewport,
@@ -536,6 +548,10 @@ fs.mkdirSync(output, { recursive: true });
           pixelsDeltaAboveOne,
           totalPixels: a.info.width * a.info.height,
           ratio,
+          perceptualMatch: !perceptualDifference,
+          ...(perceptualDifference
+            ? { perceptualError: perceptualDifference.errorMessage }
+            : {}),
         });
         console.log(name, ratio);
         if (ratio > 0) {
@@ -548,7 +564,8 @@ fs.mkdirSync(output, { recursive: true });
       }
     }
     fs.writeFileSync(output + "/report.json", JSON.stringify(reports, null, 2));
-    if (reports.some((r) => r.error)) process.exitCode = 1;
+    if (reports.some((r) => r.error || r.perceptualMatch === false))
+      process.exitCode = 1;
     if (
       process.env.PARITY_MAX_DIFFERENT_PIXELS !== undefined &&
       reports.some(
