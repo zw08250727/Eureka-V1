@@ -4,6 +4,11 @@ on:
   push:
     branches: [develop]
   workflow_dispatch:
+    inputs:
+      skip_browser_acceptance:
+        description: Skip browser acceptance for a verified metadata-only update
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -30,10 +35,13 @@ jobs:
       - name: Check code and models
         run: npm run check
       - name: Build browser acceptance site
+        if: ${{ !inputs.skip_browser_acceptance }}
         run: npm run build
       - name: Install browser
+        if: ${{ !inputs.skip_browser_acceptance }}
         run: npx playwright install --with-deps chromium
       - name: Run browser acceptance
+        if: ${{ !inputs.skip_browser_acceptance }}
         run: npm run test:e2e
       - name: Build static site
         run: npm run build
