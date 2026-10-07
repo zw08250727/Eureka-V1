@@ -3,7 +3,7 @@ test.use({channel:process.env.PLAYWRIGHT_CHANNEL||undefined,viewport:{width:1440
 const url='/prototype/one-to-one-reference/team-only-app.html?edition=personal&personal=1';
 const action=(p:Page,n:string)=>p.locator(`[data-ws-action="${n}"]`).filter({visible:true}).first();
 const settings=async(p:Page)=>{await p.locator('#user-card').click();await p.locator('#ws-menu [data-ws-action=settings]').click();};
-const billing=async(p:Page)=>{await p.locator('#ws-switcher').click();await p.locator('#ws-menu [data-ws-action=page][data-value=billing]').click();};
+const billing=async(p:Page)=>{await p.locator('#user-card').click();await p.locator('#ws-menu [data-ws-action=page][data-value=billing]').click();};
 const submit=(p:Page)=>p.locator('#ws-dialog button[type=submit]').click();
 const snapshot=(p:Page)=>p.evaluate(()=>JSON.parse(localStorage.getItem('eureka:workspaces:v2')!));
 const capture=async(p:Page,name:string)=>{if(process.env.PRD_CAPTURE){await expect(p.locator('#ws-toast')).toBeHidden();await expect(p.locator('#toast')).not.toHaveClass(/show/);await p.screenshot({path:`src/prototype/prd/images/${name}.png`});}};

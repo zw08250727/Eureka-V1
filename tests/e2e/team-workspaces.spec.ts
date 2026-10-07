@@ -4,7 +4,7 @@ test.use({channel:process.env.PLAYWRIGHT_CHANNEL||undefined});
 const url='/prototype/one-to-one-reference/team-only-app.html?edition=personal&personal=1';
 const action=(page:Page,name:string,value?:string)=>page.locator(`[data-ws-action="${name}"]${value?`[data-value="${value}"]`:''}`).filter({visible:true}).first();
 async function switchTo(page:Page,id:string){await page.locator('#ws-switcher').click();await page.locator(`#ws-menu [data-ws-action=switch][data-value="${id}"]`).click();}
-async function section(page:Page,value:string){await page.locator('#ws-switcher').click();await page.locator(`#ws-menu [data-ws-action=page][data-value="${value}"]`).click();}
+async function section(page:Page,value:string){await page.locator('#user-card').click();await page.locator(`#ws-menu [data-ws-action=page][data-value="${value}"]`).click();}
 test.beforeEach(async({page})=>{await page.goto(url);});
 test('one account switches isolated workspaces, private files stay private and sharing is explicit',async({page})=>{
   await expect(page.locator('#meeting-list .home-meeting-row')).toHaveCount(20);
@@ -139,4 +139,25 @@ test('device binding guide routes to app and shop without changing device owners
   await switchTo(page,'personal');await section(page,'devices');await action(page,'bind').click();await expect(guide).toContainText('个人工作空间');await page.keyboard.press('Escape');
   await page.evaluate(()=>{const k='eureka:workspaces:v2',d=JSON.parse(localStorage.getItem(k)!);d.devices=[];localStorage.setItem(k,JSON.stringify(d));});await page.reload();await section(page,'devices');await action(page,'bind').click();await expect(guide).toContainText('下载 App');await expect(guide.locator('[name=serial]')).toHaveCount(0);
   await page.setViewportSize({width:390,height:844});await guide.getByRole('link',{name:'购买设备'}).scrollIntoViewIfNeeded();await expect(guide.getByRole('link',{name:'购买设备'})).toBeInViewport({ratio:1});expect(await guide.evaluate(e=>e.scrollWidth-e.clientWidth)).toBeLessThan(2);await page.keyboard.press('Escape');
+});
+
+
+test('space chooser shows active team counts and keeps account actions only in My menu',async({page})=>{
+  await page.setViewportSize({width:1440,height:1000});
+  await page.locator('#ws-switcher').click();
+  const menu=page.locator('#ws-menu');
+  await expect(menu).toHaveAttribute('data-mode','spaces');
+  await expect(menu.locator('[data-ws-action=page],[data-ws-action=settings],[data-ws-action=logout]')).toHaveCount(0);
+  await expect(menu.locator('[data-ws-action=switch][data-value=personal]')).not.toContainText('位成员');
+  await expect(menu.locator('[data-value=team-eureka]')).toContainText('3 位成员');
+  await expect(menu.locator('[data-value=team-design]')).toContainText('2 位成员');
+  if(process.env.PRD_CAPTURE)await page.screenshot({path:'src/prototype/prd/images/workspace-menu.png'});
+  await menu.locator('[data-value=team-eureka]').click();await expect(page.locator('#ws-switcher')).toContainText('3 位成员');
+  await page.locator('#ws-switcher').click();await expect(menu.locator('[data-ws-action=page],[data-ws-action=settings],[data-ws-action=logout]')).toHaveCount(0);
+  if(process.env.PRD_CAPTURE){await expect(page.locator('#ws-toast')).toBeHidden();await page.screenshot({path:'src/prototype/prd/images/workspace-switcher-team.png'});}
+  await page.locator('#user-card').click();await expect(menu).toHaveAttribute('data-mode','account');await expect(menu.locator('[data-ws-action=page][data-value=devices]')).toBeVisible();await expect(menu.locator('[data-ws-action=page][data-value=billing]')).toBeVisible();await expect(menu.locator('[data-ws-action=settings]')).toBeVisible();await expect(menu.locator('[data-ws-action=logout]')).toBeVisible();
+  await expect(page.locator('#ws-switcher')).toHaveAttribute('aria-expanded','false');await expect(page.locator('#user-card')).toHaveAttribute('aria-expanded','true');await page.keyboard.press('Escape');
+  await action(page,'page','members').click();await action(page,'member-accept','alice').click();await expect(page.locator('#ws-switcher')).toContainText('4 位成员');
+  await action(page,'member-remove','alice').click();await action(page,'confirm').click();await expect(page.locator('#ws-switcher')).toContainText('3 位成员');await page.reload();await expect(page.locator('#ws-switcher')).toContainText('3 位成员');
+  await switchTo(page,'team-design');await expect(page.locator('#ws-switcher')).toContainText('2 位成员');await switchTo(page,'personal');await expect(page.locator('#ws-switcher')).not.toContainText('位成员');
 });
