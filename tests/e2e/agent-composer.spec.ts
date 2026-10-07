@@ -27,15 +27,15 @@ test("composer tools and Enter shortcuts match the new input interaction", async
   await page.goto(pageUrl);
   await page.locator("#xiaozhi-entry").click();
   const input = page.locator("#xiaozhi-input");
-  await expect(input).toHaveAttribute("placeholder", "输入问题，按Enter发送...");
-  await expect(page.locator(".agent-composer-caption")).toHaveText("Enter 发送 / Shift+Enter 换行由百智 AI 生成支持");
+  await expect(input).toHaveAttribute("placeholder", "输入问题，按 Enter 发送…");
+  await expect(page.locator("#xiaozhi-rail .agent-composer-caption")).toHaveText("Enter 发送 / Shift+Enter 换行本地模拟");
   await page.locator("#agent-sources-toggle").click();
   await page.locator("#xiaozhi-audio").click();
   await expect(page.locator("#xiaozhi-audio")).toHaveAttribute("aria-pressed", "true");
   await page.locator("#agent-web-toggle").click();
   await expect(page.locator("#agent-sources-popover")).toBeHidden();
   await expect(page.locator("#agent-web-toggle")).toHaveAttribute("aria-pressed", "true");
-  await page.locator("#agent-response-mode").selectOption("deep");
+
   await input.fill("整理会议");
   await input.press("Shift+Enter");
   await input.pressSequentially("补充行动项");
@@ -44,7 +44,7 @@ test("composer tools and Enter shortcuts match the new input interaction", async
   await expect(input).not.toHaveValue("");
   await input.press("Enter");
   await expect(input).toHaveValue("");
-  await expect(page.locator("#xiaozhi-rail .agent-history-message")).toContainText("深度思考");
+
   await expect(page.locator("#xiaozhi-rail .agent-history-message")).toContainText("未执行真实检索");
   await expect(page.locator("#xiaozhi-send")).toBeDisabled();
   await page.locator("#history-task-list .history-row").first().click();

@@ -2945,19 +2945,19 @@
           <div class="xiaozhi-panel">
             <div class="xiaozhi-head"><div class="xiaozhi-identity"><span class="xiaozhi-mark"><svg class="icon"><use href="#ico-spark"/></svg></span><div><h2 id="xiaozhi-title">小智</h2><p>使用会议与知识库继续工作</p></div></div><div class="xiaozhi-head-actions"><button type="button" class="agent-new-task" id="xiaozhi-new-task" aria-label="新建任务" title="新建任务"><svg class="icon" aria-hidden="true"><use href="#ico-new-task"/></svg></button><button id="xiaozhi-collapse" aria-label="收起小智"><svg class="icon"><use href="#ico-x"/></svg></button></div></div>
             <div class="xiaozhi-body">
-              <div class="xiaozhi-intro"><span class="xiaozhi-state"><i></i>资料准备好后</span><h3>交给小智继续处理</h3><p>引用已沉淀的会议或知识文件，再开始分析与创作。</p><div class="xiaozhi-suggestions"><button data-xiaozhi-prompt="整理本周会议并生成行动清单">整理行动项</button><button data-xiaozhi-prompt="结合知识库生成一份项目复盘报告">生成复盘</button><button data-xiaozhi-prompt="分析近期客户会议中的重点需求">分析需求</button></div></div>
+              <div class="xiaozhi-intro"><span class="xiaozhi-state"><i></i>资料准备好后</span><h3>让每次讨论都有下一步</h3><p>引用已沉淀的会议或知识文件，再开始分析与创作。</p><div class="xiaozhi-suggestions"><button data-xiaozhi-prompt="整理本周会议并生成行动清单">整理行动项</button><button data-xiaozhi-prompt="结合知识库生成一份项目复盘报告">生成复盘</button><button data-xiaozhi-prompt="分析近期客户会议中的重点需求">分析需求</button></div></div>
               <div class="agent-composer-wrap">
                 <div class="xiaozhi-composer">
-                  <textarea id="xiaozhi-input" placeholder="输入问题，按Enter发送..." aria-label="向 Ask Agent 输入问题" aria-describedby="agent-keyboard-hint xiaozhi-context-hint"></textarea>
+                  <textarea id="xiaozhi-input" placeholder="输入问题，按 Enter 发送…" aria-label="向 Ask Agent 输入问题" aria-describedby="agent-keyboard-hint xiaozhi-context-hint"></textarea>
                   <div class="agent-composer-toolbar">
                     <div class="agent-source-wrap"><button type="button" class="agent-tool-button" id="agent-sources-toggle" aria-label="引用资料" title="引用资料" aria-expanded="false" aria-controls="agent-sources-popover"><svg class="icon"><use href="#ico-book"/></svg></button><div id="agent-sources-popover" hidden><strong>引用资料</strong><div class="xiaozhi-context"><button id="xiaozhi-audio" aria-pressed="false"><svg class="icon"><use href="#ico-mic"/></svg>音频文件</button><button id="xiaozhi-knowledge" aria-pressed="false"><svg class="icon"><use href="#ico-book"/></svg>应用数据</button></div><p>选择资料，补充对话上下文</p></div></div>
                     <button type="button" class="agent-tool-button" id="agent-web-toggle" aria-label="联网搜索" title="联网搜索（模拟）" aria-pressed="false"><svg class="icon"><use href="#ico-globe"/></svg></button>
-                    <label class="agent-mode-control"><svg class="icon" viewBox="0 0 24 24"><path d="M19.5 14A8 8 0 0 1 10 4.5 8 8 0 1 0 19.5 14Z"/></svg><select id="agent-response-mode" aria-label="回答模式"><option value="quick">快速</option><option value="deep">深度思考</option></select><svg class="icon agent-mode-chevron"><use href="#ico-chevron"/></svg></label>
-                    <button class="xiaozhi-send" id="xiaozhi-send" aria-label="发送给 Ask Agent" disabled><svg class="icon" viewBox="0 0 24 24"><path d="M6 18 18 6M6 6h12v12"/></svg></button>
+
+                    <button class="xiaozhi-send" id="xiaozhi-send" aria-label="发送给 Ask Agent" disabled><svg class="icon"><use href="#ico-send"/></svg></button>
                   </div>
-                </div>
                 <span id="xiaozhi-context-hint" class="agent-context-hint" aria-live="polite">基于当前页面继续对话</span>
-                <div class="agent-composer-caption"><span id="agent-keyboard-hint">Enter 发送 / Shift+Enter 换行</span><span>由百智 AI 生成支持</span></div>
+                <div class="agent-composer-caption"><span id="agent-keyboard-hint">Enter 发送 / Shift+Enter 换行</span><span>本地模拟</span></div>
+                </div>
               </div>
             </div>
           </div>
@@ -2982,7 +2982,7 @@
                 <div class="agent-picker-top"><div class="agent-picker-head"><svg class="icon"><use href="#ico-agent"/></svg><span>企业智能体</span></div><button class="agent-manage" id="agent-manage">管理</button></div>
                 <div class="scene-agent-head"><span>选择一个场景智能体</span></div>
                 <div class="agent-cards"><article class="agent-card" data-agent="报告撰写助手"><span class="agent-orbit blue"><svg class="icon"><use href="#ico-chat"/></svg></span><div><strong>报告撰写助手</strong><p>生成交付报告</p></div><svg class="icon agent-arrow"><use href="#ico-chevron"/></svg></article><article class="agent-card" data-agent="市场分析助手"><span class="agent-orbit orange"><svg class="icon"><use href="#ico-globe"/></svg></span><div><strong>市场分析助手</strong><p>分析市场与竞争</p></div><svg class="icon agent-arrow"><use href="#ico-chevron"/></svg></article><article class="agent-card" data-agent="经营洞察助手"><span class="agent-orbit violet"><svg class="icon"><use href="#ico-spark"/></svg></span><div><strong>经营洞察助手</strong><p>发现经营机会</p></div><svg class="icon agent-arrow"><use href="#ico-chevron"/></svg></article></div>
-                <div class="general-agent"><div class="general-agent-head"><div><span class="general-agent-icon"><svg class="icon"><use href="#ico-spark"/></svg></span><span><strong id="active-agent-name">通用智能体</strong><small id="active-agent-hint"></small></span></div><span class="agent-online"><i></i>已就绪</span></div><div class="agent-workspace-intro"><span><svg class="icon"><use href="#ico-spark"/></svg></span><h2>交给企业智能体继续完成</h2></div><section class="composer"><div class="composer-head"><button class="research-chip" id="research-mode" aria-haspopup="menu" aria-expanded="false">深度研究</button><textarea id="composer" placeholder="输入任务…"></textarea></div><div class="composer-foot"><div class="composer-tools"><button class="tool-btn icon-only" id="attachment-tool" aria-label="添加附件" aria-haspopup="menu" aria-expanded="false"><svg class="icon"><use href="#ico-attachment"/></svg></button><button class="tool-btn icon-only" id="knowledge-tool" aria-label="知识库" aria-haspopup="menu" aria-expanded="false"><svg class="icon"><use href="#ico-book"/></svg></button><button class="tool-btn quick-record-btn" id="quick-record" aria-label="快速录音"><svg class="icon"><use href="#ico-mic"/></svg><span>录音</span></button><button class="tool-btn" id="skill-tool" aria-haspopup="menu" aria-expanded="false"><svg class="icon"><use href="#ico-skill"/></svg>技能<svg class="icon tool-chevron"><use href="#ico-chevron"/></svg></button><button class="tool-btn" id="mcp-tool" aria-haspopup="menu" aria-expanded="false"><svg class="icon"><use href="#ico-spark"/></svg>连接工具<svg class="icon tool-chevron"><use href="#ico-chevron"/></svg></button><button class="tool-btn" id="site-tool" aria-haspopup="menu" aria-expanded="false"><svg class="icon"><use href="#ico-globe"/></svg>中文网站<svg class="icon tool-chevron"><use href="#ico-chevron"/></svg></button><button class="tool-btn" id="speed-tool" aria-haspopup="menu" aria-expanded="false"><svg class="icon"><use href="#ico-clock"/></svg>快速模式<svg class="icon tool-chevron"><use href="#ico-chevron"/></svg></button></div><button class="send-btn" id="send-button" aria-label="发送" disabled><svg class="icon"><use href="#ico-send"/></svg></button></div><div class="tool-menu" id="tool-menu" role="menu" aria-hidden="true"></div></section><div class="running" id="running"><i class="running-dot"></i><span>正在处理…</span></div></div>
+                <div class="general-agent"><div class="general-agent-head"><div><span class="general-agent-icon"><svg class="icon"><use href="#ico-spark"/></svg></span><span><strong id="active-agent-name">通用智能体</strong><small id="active-agent-hint"></small></span></div><span class="agent-online"><i></i>已就绪</span></div><div class="agent-workspace-intro"><span><svg class="icon"><use href="#ico-spark"/></svg></span><h2>交给企业智能体继续完成</h2></div><section class="composer"><div class="composer-head"><button class="research-chip" id="research-mode" aria-haspopup="menu" aria-expanded="false">深度研究</button><textarea id="composer" placeholder="输入任务…"></textarea></div><div class="composer-foot"><div class="composer-tools"><button class="tool-btn icon-only" id="attachment-tool" aria-label="添加附件" aria-haspopup="menu" aria-expanded="false"><svg class="icon"><use href="#ico-attachment"/></svg></button><button class="tool-btn icon-only" id="knowledge-tool" aria-label="知识库" aria-haspopup="menu" aria-expanded="false"><svg class="icon"><use href="#ico-book"/></svg></button><button class="tool-btn quick-record-btn" id="quick-record" aria-label="快速录音"><svg class="icon"><use href="#ico-mic"/></svg><span>录音</span></button><button class="tool-btn" id="skill-tool" aria-haspopup="menu" aria-expanded="false"><svg class="icon"><use href="#ico-skill"/></svg>技能<svg class="icon tool-chevron"><use href="#ico-chevron"/></svg></button><button class="tool-btn" id="mcp-tool" aria-haspopup="menu" aria-expanded="false"><svg class="icon"><use href="#ico-spark"/></svg>连接工具<svg class="icon tool-chevron"><use href="#ico-chevron"/></svg></button><button class="tool-btn" id="site-tool" aria-haspopup="menu" aria-expanded="false"><svg class="icon"><use href="#ico-globe"/></svg>中文网站<svg class="icon tool-chevron"><use href="#ico-chevron"/></svg></button></div><button class="send-btn" id="send-button" aria-label="发送" disabled><svg class="icon"><use href="#ico-send"/></svg></button></div><div class="tool-menu" id="tool-menu" role="menu" aria-hidden="true"></div></section><div class="running" id="running"><i class="running-dot"></i><span>正在处理…</span></div></div>
               </section>
             </div>
           </section>
@@ -3529,10 +3529,10 @@
       document.body.classList.toggle("knowledge-xiaozhi-open", expanded);
       [knowledgeXiaozhiEntry, knowledgeXiaozhiPreviewEntry].forEach((button) => {
         button.setAttribute("aria-expanded", String(expanded));
-        button.setAttribute("aria-label", expanded ? "收起小智" : "问问小智");
+        button.setAttribute("aria-label", expanded ? "收起 Ask Agent" : "Ask Agent");
       });
-      $("#knowledge-xiaozhi-entry-label").textContent = expanded ? "收起小智" : "问问小智";
-      $("#knowledge-preview-xiaozhi-label").textContent = expanded ? "收起小智" : "问问小智";
+      $("#knowledge-xiaozhi-entry-label").textContent = expanded ? "收起 Ask Agent" : "Ask Agent";
+      $("#knowledge-preview-xiaozhi-label").textContent = expanded ? "收起 Ask Agent" : "Ask Agent";
       $("#knowledge-xiaozhi-entry-icon").setAttribute("href", expanded ? "#ico-collapse" : "#ico-expand");
       $("#knowledge-preview-xiaozhi-icon").setAttribute("href", expanded ? "#ico-collapse" : "#ico-expand");
       if (expanded) setTimeout(() => $("#knowledge-xiaozhi-input").focus(), 180);
@@ -4009,7 +4009,7 @@
       toolMenu.setAttribute("aria-hidden", "false");
       $$(".composer [aria-expanded]").forEach((item) => { item.setAttribute("aria-expanded", String(item === button)); item.classList.toggle("selected", item === button); });
     };
-    ["#research-mode", "#attachment-tool", "#knowledge-tool", "#skill-tool", "#mcp-tool", "#site-tool", "#speed-tool"].forEach((selector) => $(selector).addEventListener("click", (event) => { event.stopPropagation(); openToolMenu($(selector)); }));
+    ["#research-mode", "#attachment-tool", "#knowledge-tool", "#skill-tool", "#mcp-tool", "#site-tool"].forEach((selector) => $(selector).addEventListener("click", (event) => { event.stopPropagation(); openToolMenu($(selector)); }));
     toolMenu.addEventListener("click", (event) => {
       const item = event.target.closest(".tool-menu-item");
       if (!item) return;
@@ -4122,8 +4122,8 @@
       document.body.classList.toggle("xiaozhi-open", expanded);
       xiaozhiRail.setAttribute("aria-hidden", String(!expanded));
       xiaozhiEntry.setAttribute("aria-expanded", String(expanded));
-      xiaozhiEntry.setAttribute("aria-label", expanded ? "收起小智" : "问问小智");
-      $("#xiaozhi-entry-label").textContent = expanded ? "收起小智" : "问问小智";
+      xiaozhiEntry.setAttribute("aria-label", expanded ? "收起 Ask Agent" : "Ask Agent");
+      $("#xiaozhi-entry-label").textContent = expanded ? "收起 Ask Agent" : "Ask Agent";
       xiaozhiPanel.setAttribute("aria-hidden", String(!expanded));
       xiaozhiGrid.classList.toggle("agent-open", expanded);
       if (expanded && !meetingAgentContext) requestAnimationFrame(() => xiaozhiRail.scrollIntoView({ block: "nearest", behavior: "instant" }));
@@ -4148,10 +4148,10 @@
     historySection.setAttribute("aria-labelledby", "agent-history-title");
     historySection.innerHTML = '<header class="agent-session-head"><span>历史会话 <small>模拟对话</small></span><h3 id="agent-history-title" tabindex="-1"></h3><p id="agent-history-source"></p></header><div id="agent-history-messages" role="log" aria-label="当前历史会话消息" aria-live="polite" tabindex="0"></div><button type="button" id="agent-history-continue"></button>';
     $(".xiaozhi-intro", xiaozhiRail).after(historySection);
-    const renderHistoryMessages = () => {
+    const renderHistoryMessages = (scrollToEnd = true) => {
       $("#agent-history-messages").innerHTML = activeHistorySession.messages.map(message => `<article class="agent-history-message ${message.role}"><span>${message.role === "user" ? "你" : "Ask Agent · 模拟回复"}</span><p>${escapeHTML(message.text)}</p></article>`).join("");
       const log = $("#agent-history-messages");
-      log.scrollTop = log.scrollHeight;
+      log.scrollTop = scrollToEnd ? log.scrollHeight : 0;
     };
     const leaveHistorySession = () => {
       if (activeHistorySession) activeHistorySession.draft = xiaozhiInput.value;
@@ -4159,7 +4159,7 @@
       historySection.hidden = true;
       xiaozhiRail.classList.remove("history-mode");
       $(".xiaozhi-intro", xiaozhiRail).hidden = false;
-      xiaozhiInput.placeholder = "输入问题，按Enter发送...";
+      xiaozhiInput.placeholder = "输入问题，按 Enter 发送…";
       historyRows.forEach(row => row.removeAttribute("aria-current"));
     };
     const openHistorySession = (index) => {
@@ -4187,15 +4187,15 @@
       $(".xiaozhi-intro", xiaozhiRail).hidden = true;
       xiaozhiRail.classList.add("history-mode");
       xiaozhiInput.value = activeHistorySession.draft;
-      xiaozhiInput.placeholder = "输入问题，按Enter发送...";
+      xiaozhiInput.placeholder = "输入问题，按 Enter 发送…";
       setXiaozhiExpanded(true);
-      renderHistoryMessages();
+      renderHistoryMessages(false);
       updateXiaozhiComposer();
       requestAnimationFrame(() => {
         xiaozhiRail.style.scrollMarginTop = `${$(".topbar").getBoundingClientRect().height + 16}px`;
         xiaozhiRail.scrollIntoView({ block: "start", behavior: "instant" });
         $("#agent-history-title").focus({ preventScroll: true });
-        renderHistoryMessages();
+        renderHistoryMessages(false);
       });
     };
     historyRows.forEach((row, index) => {
@@ -4320,9 +4320,8 @@
     xiaozhiSend.addEventListener("click", () => {
       if (!xiaozhiInput.value.trim()) return;
       closeSources();
-      const mode = $("#agent-response-mode").value === "deep" ? "深度思考" : "快速";
       const webEnabled = $("#agent-web-toggle").getAttribute("aria-pressed") === "true";
-      const simulationNote = `${mode} · ${webEnabled ? "联网搜索已选，当前仅模拟，未执行真实检索。" : "模拟回复，尚未调用 AI 服务。"}`;
+      const simulationNote = `${webEnabled ? "联网搜索已选，当前仅模拟，未执行真实检索。" : "模拟回复，尚未调用 AI 服务。"}`;
       if (meetingAgentContext) {
         const log = $(".md-agent-messages", meetingAgentContext.intro);
         const request = xiaozhiInput.value.trim();
@@ -4359,7 +4358,7 @@
       } else {
         const message = document.createElement("article");
         message.className = "agent-history-message assistant";
-        message.innerHTML = `<span>Ask Agent · ${mode}</span><p>${escapeHTML(xiaozhiInput.value)}</p><p>${mode === "deep" ? "可以先明确目标，再梳理已有资料、拆解执行步骤，最后逐项检查结果。你可以继续补充具体要求。" : "已收到你的问题，可以继续补充背景，或引用资料展开讨论。"}</p><small>${simulationNote}</small>`;
+        message.innerHTML = `<span>Ask Agent · 本地模拟</span><p>${escapeHTML(xiaozhiInput.value)}</p><p>已收到你的问题，可以继续补充背景，或引用资料展开讨论。</p><small>${simulationNote}</small>`;
         $(".xiaozhi-intro", xiaozhiRail).append(message);
         message.scrollIntoView({ block: "nearest", behavior: "instant" });
       }
@@ -4372,7 +4371,7 @@
       closeSources();
       if(meetingAgentContext){const log=$(".md-agent-messages",meetingAgentContext.intro);rememberAgentTask(meetingAgentContext.title,log.innerHTML,xiaozhiInput.value);log.innerHTML="";meetingAgentContext.draft="";}
       else{leaveHistorySession();rememberAgentTask("个人首页",homeAgentIntro.innerHTML,xiaozhiInput.value);$$(".agent-history-message,#widget-agent-result",homeAgentIntro).forEach(el=>el.remove());widgetAiContext=null;$("#xiaozhi-widget-context")?.remove();homeAgentDraft="";}
-      xiaozhiInput.value="";$("#agent-response-mode").value="quick";$("#agent-web-toggle").setAttribute("aria-pressed","false");$("#agent-web-toggle").classList.remove("selected");
+      xiaozhiInput.value="";$("#agent-web-toggle").setAttribute("aria-pressed","false");$("#agent-web-toggle").classList.remove("selected");
       $$(".xiaozhi-context button",xiaozhiRail).forEach(el=>{el.classList.remove("selected");el.setAttribute("aria-pressed","false");});updateXiaozhiComposer();xiaozhiInput.focus({preventScroll:true});
     });
     $("#knowledge-xiaozhi-new-task").addEventListener("click",()=>{if(ArtifactUI.guard(()=>$("#knowledge-xiaozhi-new-task").click()))return;rememberAgentTask(knowledgeXiaozhiContextName,"",knowledgeXiaozhiInput.value);knowledgeXiaozhiInput.value="";updateKnowledgeXiaozhiComposer();knowledgeXiaozhiInput.focus({preventScroll:true});});
@@ -4894,7 +4893,7 @@
   </script>
   <script src="assets/team-workspace.js?v=enterprise-cleanup"></script>
   <script src="assets/contacts-model.js?v=contacts-v15"></script>
-  <script src="assets/contacts-ui.js?v=contacts-v19"></script>
+  <script src="assets/contacts-ui.js?v=contacts-v20"></script>
   <script>
     (() => {
       const root = document.documentElement;
@@ -5335,17 +5334,18 @@
   <link rel="stylesheet" href="assets/workspace-ui.css?v=15" />
   <script src="assets/workspace-model.js?v=12"></script>
   <script src="assets/personal-subscription-model.js?v=1"></script>
-  <script src="assets/workspace-ui.js?v=21"></script>
+  <script src="assets/workspace-ui.js?v=22"></script>
 <link rel="stylesheet" href="assets/recording-upload.css?v=1">
 <script src="assets/recording-upload.js?v=1"></script>
 <link rel="stylesheet" href="assets/personal-assets.css?v=4">
 <script src="assets/personal-assets-model.js?v=2"></script>
-<script src="assets/personal-assets-ui.js?v=7"></script>
+<script src="assets/personal-assets-ui.js?v=8"></script>
 <link rel="stylesheet" href="assets/thoughts.css?v=2">
 <script src="assets/thoughts-model.js?v=1"></script>
 <script src="assets/thoughts-ui.js?v=2"></script>
 <script src="assets/personal-action-popup.js?v=1"></script>
 <link rel="stylesheet" href="assets/agent-resize.css?v=1">
 <script src="assets/agent-resize.js?v=2"></script>
+<link rel="stylesheet" href="assets/agent-panel.css?v=1">
 </body>
 </html>

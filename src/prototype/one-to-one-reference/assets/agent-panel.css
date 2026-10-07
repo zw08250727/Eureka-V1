@@ -1,0 +1,67 @@
+/* Shared Agent presentation. Contexts, controls and handlers remain owned by each page. */
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel){--agent-ink:#294459;--agent-copy:#536b87;--agent-meta:#71839b;--agent-line:#e0e8f2;--agent-accent:#397ac6;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-head,header:not(.agent-session-head)) {box-sizing:border-box;min-height:80px;padding:16px;gap:8px;flex-shrink:0;border-bottom:1px solid var(--agent-line);}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-identity,.pa-agent-title){min-width:0;gap:10px;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-mark,.ws-agent-mark){width:36px;height:36px;min-width:36px;border-radius:11px;box-shadow:none;background:linear-gradient(135deg,#397dff,#35bdd0);}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-mark,.ws-agent-mark) svg{width:21px;height:21px;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) h2{margin:0;color:var(--agent-ink);font-size:18px;line-height:25px;font-weight:650;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-head,header:not(.agent-session-head)) :is(p,small){display:block;margin:3px 0 0;font-size:12px;line-height:18px;color:var(--agent-copy);}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-head-actions,.agent-head-actions){display:flex;flex-shrink:0;gap:2px;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-head-actions,.agent-head-actions) button{width:36px;height:36px;min-height:36px;padding:8px;border:0;border-radius:9px;background:transparent;color:var(--agent-copy);}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-head-actions,.agent-head-actions) svg{width:18px;height:18px;}
+:is(#xiaozhi-rail,#contacts-xiaozhi-rail,#knowledge-xiaozhi-panel) .xiaozhi-body{padding:16px;gap:16px;min-height:0;overflow:hidden;}
+:is(#pa-agent,.ws-agent) :is(.pa-agent-body,.ws-agent-scroll){padding:16px;min-height:0;overflow-y:auto;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-intro,.pa-agent-welcome){padding:0;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-intro,.pa-agent-welcome,.ws-agent-scroll) h3{margin:16px 0 8px;font-size:18px;line-height:27px;color:var(--agent-ink);}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-intro,.pa-agent-welcome) >p{margin:0;font-size:13px;line-height:22px;color:var(--agent-copy);}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-state,.pa-agent-context,.ws-eyebrow){font-size:11px;line-height:18px;color:var(--agent-meta);}
+:is(#xiaozhi-rail,#contacts-xiaozhi-rail,#knowledge-xiaozhi-panel) .xiaozhi-state i{display:none;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-suggestions,.pa-agent-prompts,.ws-agent-prompts){display:grid;grid-template-columns:1fr;gap:8px;margin:16px 0;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-suggestions,.pa-agent-prompts,.ws-agent-prompts)>button{display:flex;align-items:center;min-height:36px;padding:8px 12px;border:1px solid var(--agent-line);border-radius:10px;background:#f8faff;color:var(--agent-copy);font-size:13px;line-height:20px;text-align:left;font-weight:400;white-space:normal;}
+#pa-agent .pa-agent-prompts svg{display:none;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-composer,.ws-composer,#pa-agent-prompt){box-sizing:border-box;min-height:0;padding:12px;border:1px solid var(--agent-line);border-radius:16px;background:#fff;box-shadow:0 2px 8px #243b6205;flex-shrink:0;}
+:is(#xiaozhi-rail,#contacts-xiaozhi-rail,#knowledge-xiaozhi-panel) .xiaozhi-composer{margin:0;}
+:is(#pa-agent,.ws-agent) :is(.ws-composer,#pa-agent-prompt){margin:0 16px 16px;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-composer,.ws-composer,#pa-agent-prompt):focus-within{border-color:#abc5e6;box-shadow:none;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-composer,.ws-composer,#pa-agent-prompt) textarea{display:block;box-sizing:border-box;width:100%;height:64px;min-height:64px;max-height:120px;margin:0;padding:0;resize:none;border:0!important;outline:0!important;box-shadow:none!important;border-radius:0;background:transparent;font-family:inherit;font-size:14px;line-height:23px;color:var(--agent-ink);}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) textarea::placeholder{color:#8594a8;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.agent-composer-toolbar,.pa-composer-tools,.ws-composer-tools,.xiaozhi-composer-foot){display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.agent-tool-button,.pa-tool,.ws-tool,.xiaozhi-send,.pa-composer-tools>[type=submit],.ws-composer-tools>[type=submit]){display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;min-height:36px;padding:0;border-radius:10px;box-shadow:none;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.agent-tool-button,.pa-tool,.ws-tool){border:1px solid var(--agent-line);color:var(--agent-copy);background:white;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.agent-mode-control,.pa-agent-mode,.ws-agent-mode){box-sizing:border-box;height:36px;padding:0 8px;border:1px solid var(--agent-line);border-radius:10px;color:var(--agent-copy);background:#fff;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.agent-mode-control,.pa-agent-mode,.ws-agent-mode) select{width:82px;max-width:100%;height:32px;font-family:inherit;font-size:12px;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-send,.pa-composer-tools>[type=submit],.ws-composer-tools>[type=submit]){margin-left:auto;background:var(--agent-accent);color:white;border:0;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-send,.pa-composer-tools>[type=submit],.ws-composer-tools>[type=submit]):disabled{opacity:1;background:#e8edf4;color:#a4b2c4;cursor:default;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-send,.pa-composer-tools>[type=submit],.ws-composer-tools>[type=submit]) svg{width:18px;height:18px;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.agent-composer-caption,.pa-composer-caption,.ws-composer-caption){display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px 8px;margin:8px 0 0;padding:0;color:var(--agent-meta);font-size:11px;line-height:16px;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.agent-context-hint,#pa-agent-scope,#ws-composer-hint){display:block;position:static;width:auto;height:auto;overflow:visible;clip-path:none;white-space:normal;font-size:11px;line-height:16px;color:var(--agent-meta);}
+#contacts-xiaozhi-rail .xiaozhi-context{margin:0;display:flex;gap:6px;flex-wrap:wrap;min-width:0;flex:1;}
+#contacts-xiaozhi-rail .xiaozhi-context>span:first-child{display:none;}
+#contacts-xiaozhi-rail .xiaozhi-context .selected{display:flex;align-items:center;gap:6px;padding:7px 10px;background:#edf4ff;border-radius:10px;font-size:12px;line-height:22px;overflow-wrap:anywhere;}
+#contacts-xiaozhi-rail .contacts-xiaozhi-answer{min-height:0;padding:0;margin:16px 0 8px;background:transparent;color:var(--agent-ink);font-size:14px;line-height:1.8;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent) :is(.agent-history-message p,.pa-message,.pa-agent-answer,.pa-agent-answer p,.ws-chat-user,.ws-chat-answer){font-size:14px;line-height:1.8;overflow-wrap:anywhere;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent) :is(.agent-history-message.user,.pa-message,.ws-chat-user){padding:12px;border-radius:12px;background:#eff5ff;color:var(--agent-copy);}
+#agent-history-messages{scroll-padding:12px 0;}
+#xiaozhi-rail.history-mode{height:calc(100dvh - var(--agent-top,77px) - 16px)!important;}
+@media(max-height:700px){
+ :is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-head,header:not(.agent-session-head)){min-height:68px;padding:10px 16px;}
+ :is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-composer,.ws-composer,#pa-agent-prompt) textarea{height:48px;min-height:48px;}
+}
+:is(#xiaozhi-rail,#pa-agent,.ws-agent) :is(.agent-tool-button,.pa-tool,.ws-tool):is(.selected,[aria-pressed="true"],[aria-expanded="true"]){background:#edf4ff;border-color:#b9d1ef;color:#3268b2;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-composer,.ws-composer,#pa-agent-prompt) textarea::placeholder{color:#8594a8;}
+.meeting-agent-grid.agent-open .home-content-stack{container-type:inline-size;container-name:agent-content;}
+@container agent-content (max-width:620px){
+ .today-workbench-head{flex-direction:column;align-items:flex-start;gap:16px;}
+ .today-workbench-head>div{width:100%;min-width:0;}
+ .today-workbench-head .recording-command-actions{justify-content:flex-start;flex-wrap:wrap;}
+}
+/* Keep the send slot on the tool row, including a narrow laptop or a resized pane. */
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.agent-composer-toolbar,.pa-composer-tools,.ws-composer-tools,.xiaozhi-composer-foot){flex-wrap:nowrap;}
+:is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.agent-tool-button,.pa-tool,.ws-tool,.xiaozhi-send,.pa-composer-tools>[type=submit],.ws-composer-tools>[type=submit]){flex-shrink:0;}
+@media(max-width:1280px),(max-height:760px){
+ :is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-head,header:not(.agent-session-head)){min-height:68px;padding:10px 14px;}
+ :is(#xiaozhi-rail,#contacts-xiaozhi-rail,#knowledge-xiaozhi-panel) .xiaozhi-body{padding:12px;gap:12px;}
+ :is(#pa-agent,.ws-agent) :is(.pa-agent-body,.ws-agent-scroll){padding:12px;}
+ :is(#pa-agent,.ws-agent) :is(.ws-composer,#pa-agent-prompt){margin:0 12px 12px;}
+ :is(#xiaozhi-rail,#pa-agent,#contacts-xiaozhi-rail,.ws-agent,#knowledge-xiaozhi-panel) :is(.xiaozhi-composer,.ws-composer,#pa-agent-prompt) textarea{height:48px;min-height:48px;}
+}

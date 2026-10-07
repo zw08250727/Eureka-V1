@@ -22,8 +22,8 @@ test('composer tools, borderless focus and responsive pointer/keyboard resizing'
   const input=page.locator('.ws-composer textarea');await input.focus();expect(await input.evaluate(e=>getComputedStyle(e).outlineStyle)).toBe('none');
   await expect(page.locator('.ws-composer [type=submit]')).toBeDisabled();await action(page,'agent-sources').click();
   await page.locator('#ws-dialog input[value=team-demo-design]').check();await page.locator('#ws-dialog input[name=appData]').check();await page.locator('#ws-dialog [type=submit]').click();
-  await action(page,'agent-web').click();await page.locator('.ws-composer [name=mode]').selectOption('deep');await input.fill('梳理这场会议的决策');await input.press('Enter');
-  await expect(page.locator('.ws-chat-answer')).toContainText('深度思考');await expect(page.locator('.ws-chat-answer')).toContainText('未连接外部搜索');await expect(page.locator('.ws-chat-answer')).toContainText('已引用会议应用数据');
+  await action(page,'agent-web').click();await input.fill('梳理这场会议的决策');await input.press('Enter');
+  await expect(page.locator('.ws-chat-answer')).toContainText('未连接外部搜索');await expect(page.locator('.ws-chat-answer')).toContainText('已引用会议应用数据');
   const rail=page.locator('#ws-view .ws-agent'),handle=rail.getByRole('separator');const before=(await rail.boundingBox())!;const h=(await handle.boundingBox())!;
   await page.mouse.move(h.x+4,h.y+150);await page.mouse.down();await page.mouse.move(h.x-130,h.y+150,{steps:12});await page.mouse.up();expect((await rail.boundingBox())!.width).toBeGreaterThan(before.width+100);
   await handle.focus();await handle.press('ArrowRight');expect((await rail.boundingBox())!.width).toBeLessThan(before.width+130);
