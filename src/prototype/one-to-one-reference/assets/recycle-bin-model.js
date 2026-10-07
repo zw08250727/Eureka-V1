@@ -16,7 +16,7 @@
     };
     let sequence = state.knowledgeRecycle.length + state.recordingRecycle.length;
 
-    const moveToRecycle = (collectionName, id, type) => {
+    const moveToRecycle = (collectionName, id, type, deletedAt) => {
       const collection = state[collectionName];
       const index = collection.findIndex((item) => item.id === id);
       if (index < 0) return null;
@@ -26,7 +26,7 @@
         type,
         space: normalizeSpace(item.space),
         originalLocation: item.folder || (type === "meeting" ? "我的会议" : "我的文件"),
-        deletedAt: new Date().toISOString(),
+        deletedAt: deletedAt && Number.isFinite(Date.parse(deletedAt)) ? deletedAt : new Date().toISOString(),
         expiresInDays: 30,
         item: clone(item),
         name: item.name,
@@ -48,7 +48,7 @@
       addKnowledge(item) { state.knowledge.push(clone(item)); return clone(item); },
       addMeeting(item) { state.meetings.push(clone(item)); return clone(item); },
       deleteKnowledge(id) { return moveToRecycle("knowledge", id, "knowledge"); },
-      deleteMeeting(id) { return moveToRecycle("meetings", id, "meeting"); },
+      deleteMeeting(id, deletedAt) { return moveToRecycle("meetings", id, "meeting", deletedAt); },
       restore(recycleId) {
         const match = findRecycleRecord(recycleId);
         if (!match) return null;

@@ -46,12 +46,12 @@ test('seats, billing, credits and readonly subscription states are functional',a
   await section(page,'files');await action(page,'record').click();await expect(page.locator('#ws-toast')).toContainText('只读');await expect(page.locator('#ws-dialog')).not.toBeVisible();
   await section(page,'billing');await action(page,'renew').click();await action(page,'confirm').click();await expect(page.locator('.ws-readonly')).toHaveCount(0);
 });
-test('device bindings do not follow workspace switching and exported notes import as private copies',async({page})=>{
+test('device bindings stay fixed, detail export remains and audio upload rejects legacy note JSON',async({page})=>{
   await switchTo(page,'team-eureka');await action(page,'page','devices').click();await action(page,'bind').click();await expect(page.locator('#ws-dialog')).toContainText('个人工作空间');await page.locator('#ws-dialog button[type=submit]').click();
   await action(page,'sync','dev-personal').click();await section(page,'files');await expect(page.locator('#ws-view')).toContainText('我的 Eureka Note · 新录音');
   await action(page,'file','team-review').click();await page.locator('[data-md-action=export]').click();await page.locator('[data-md-action=export-next]').click();await page.locator('[name=md-format][value=json]').check();const downloaded=page.waitForEvent('download');await page.locator('[data-md-action=download]').click();const downloadedFile=await downloaded;const exported=JSON.parse(await readFile((await downloadedFile.path())!,'utf8'));expect(exported.demo).toBe(true);
-  await switchTo(page,'team-design');await section(page,'files');await action(page,'import').click();await page.locator('#ws-dialog input[type=file]').setInputFiles({name:'team-note.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(exported))});await page.locator('#ws-dialog button[type=submit]').click();
-  await expect(page.locator('#note-detail-title')).toContainText('团队产品周会');await expect(page.locator('[data-md-action=edit]')).toBeEnabled();
+  await switchTo(page,'team-design');await section(page,'files');await expect(page.locator('[data-ws-action="import"]')).toHaveCount(0);
+  await page.locator('.ws-team-home-head [data-audio-upload]').click();await page.locator('#audio-upload-input').setInputFiles({name:'team-note.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(exported))});await expect(page.locator('#audio-upload-error')).toContainText('暂不支持');await expect(page.locator('#audio-upload-submit')).toBeDisabled();await page.keyboard.press('Escape');
   await switchTo(page,'personal');await section(page,'devices');await expect(page.locator('#ws-view')).not.toContainText('我的 Eureka Note');
 });
 test('incoming team invitation joins as member without changing personal plan',async({page})=>{

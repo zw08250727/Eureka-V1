@@ -2873,7 +2873,7 @@
               <h1 id="today-workbench-title">把今天记下来，让下一步更清楚。</h1>
             </div>
             <div class="today-workbench-head-side">
-              <div class="recording-command-actions"><button class="recording-primary" id="module-start-recording"><svg class="icon"><use href="#ico-mic"/></svg><span><strong>开始录音</strong><small>使用电脑麦克风</small></span></button><button class="xiaozhi-entry" id="xiaozhi-entry" aria-label="问问小智" aria-controls="xiaozhi-rail" aria-expanded="false"><span class="xiaozhi-entry-mark"><svg class="icon"><use href="#ico-spark"/></svg></span><span><strong id="xiaozhi-entry-label">问问小智</strong><small>使用会议与知识</small></span><svg class="icon xiaozhi-expand-icon"><use href="#ico-expand"/></svg></button></div>
+              <div class="recording-command-actions"><button class="recording-primary" id="module-start-recording"><svg class="icon"><use href="#ico-mic"/></svg><span><strong>开始录音</strong><small>使用电脑麦克风</small></span></button><button type="button" class="audio-upload-entry" data-audio-upload><svg class="icon"><use href="#ico-upload"/></svg>上传</button><button class="xiaozhi-entry" id="xiaozhi-entry" aria-label="问问小智" aria-controls="xiaozhi-rail" aria-expanded="false"><span class="xiaozhi-entry-mark"><svg class="icon"><use href="#ico-spark"/></svg></span><span><strong id="xiaozhi-entry-label">问问小智</strong><small>使用会议与知识</small></span><svg class="icon xiaozhi-expand-icon"><use href="#ico-expand"/></svg></button></div>
             </div>
           </header>
           <section class="today-workbench-content" aria-label="今日闪念概览">
@@ -3182,7 +3182,7 @@
   <section class="modal delete-confirm-modal" id="permanent-delete-modal" role="dialog" aria-modal="true" aria-labelledby="permanent-delete-title"><div class="modal-head"><h3 id="permanent-delete-title">确认彻底删除？</h3><button class="close-btn" data-close aria-label="关闭彻底删除确认"><svg class="icon"><use href="#ico-x"/></svg></button></div><div class="modal-body"><p>彻底删除后将无法恢复，请确认是否继续。</p></div><div class="modal-foot"><button class="secondary-btn" data-close>取消</button><button class="danger-btn" id="permanent-delete-submit" type="button">彻底删除</button></div></section>
   <div class="toast" id="toast"></div>
 
-  <script src="assets/recycle-bin-model.js"></script>
+  <script src="assets/recycle-bin-model.js?v=2"></script>
   <script>
     const $ = (selector, root = document) => root.querySelector(selector);
     const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
@@ -3728,6 +3728,8 @@
       if (!action || !row) return;
       const recycleId = row.dataset.recycleId;
       if (action.dataset.recycleAction === "permanent") { pendingPermanentDeleteId = recycleId; openModal("#permanent-delete-modal"); return; }
+      const candidate = assetStore.getRecycleItems({edition:"enterprise",repository:activeRecycleRepository}).find(item=>item.recycleId===recycleId);
+      if (candidate && window.RecordingUpload?.owns(candidate.item.id) && !window.RecordingUpload.trash(candidate.item.id, false)) return;
       const record = assetStore.restore(recycleId);
       if (!record) return;
       if (record.type === "knowledge") {
@@ -3743,7 +3745,7 @@
       showToast(`已恢复到「${record.originalLocation}」`);
     });
     $("#delete-confirm-submit").addEventListener("click", () => { const action = pendingDelete; pendingDelete = null; closeOverlays(); if (action) action(); });
-    $("#permanent-delete-submit").addEventListener("click", () => { const recycleId = pendingPermanentDeleteId; const record = assetStore.getRecycleItems({ edition: "enterprise", repository: activeRecycleRepository }).find((item) => item.recycleId === recycleId); pendingPermanentDeleteId = null; closeOverlays(); if (recycleId && assetStore.permanentlyDelete(recycleId)) { if (record?.type === "meeting") meetingRowsById.delete(record.item.id); renderRecycleBin(); showToast("已彻底删除，无法恢复"); } });
+    $("#permanent-delete-submit").addEventListener("click", () => { const recycleId = pendingPermanentDeleteId; const record = assetStore.getRecycleItems({ edition: "enterprise", repository: activeRecycleRepository }).find((item) => item.recycleId === recycleId); pendingPermanentDeleteId = null; closeOverlays(); if (record && window.RecordingUpload?.owns(record.item.id) && !window.RecordingUpload.purge(record.item.id)) return; if (recycleId && assetStore.permanentlyDelete(recycleId)) { if (record?.type === "meeting") meetingRowsById.delete(record.item.id); renderRecycleBin(); showToast("已彻底删除，无法恢复"); } });
     $$("[data-knowledge-file]").forEach((item) => item.addEventListener("click", () => { $$(".knowledge-file-leaf").forEach((row) => row.classList.toggle("active", row === item)); openKnowledgeFolder("归档"); item.classList.add("active"); const file = knowledgeCatalog.file.find((entry) => entry.folder === activeKnowledgeFolder && entry.name.includes(item.dataset.knowledgeFile.replace(/\.[^.]+$/, ""))) || knowledgeCatalog.file.find((entry) => entry.folder === activeKnowledgeFolder && entry.preview !== "folder"); openKnowledgePreview(file); }));
     document.addEventListener("click", (event) => { if (!event.target.closest("#knowledge-tree-menu") && !event.target.closest("[data-folder-menu]")) closeKnowledgeTreeMenu(); });
     $("#home-entry").addEventListener("click", () => {
@@ -4404,6 +4406,7 @@
       const enterprise = row.dataset.view === "enterprise";
       openDeleteConfirm({ title: "确认删除录音文件？", description: "删除后文件移入回收站，30 天内可恢复，超期永久删除；相关转写和 AI 总结一并移除。", onConfirm: () => {
         const id = row.dataset.meetingId;
+        if (window.RecordingUpload?.owns(id) && !window.RecordingUpload.trash(id, true)) return;
         if (!assetStore.getMeetings().some((item) => item.id === id)) assetStore.addMeeting({ id, name: title, size, source, recordingAt, space: enterprise ? "enterprise" : "personal", folder: enterprise ? "企业会议" : "我的会议" });
         const nextSibling = row.nextElementSibling;
         meetingRowsById.set(id, { row, parent: row.parentElement, nextSibling });
@@ -5308,11 +5311,13 @@
     })();
   </script>
   <script src="assets/workspace-sidebar.js"></script>
-  <script src="assets/meeting-detail.js?v=9"></script>
+  <script src="assets/meeting-detail.js?v=10"></script>
   <script src="assets/meeting-filters.js?v=2"></script>
   <link rel="stylesheet" href="assets/workspace-ui.css?v=10" />
   <script src="assets/workspace-model.js?v=10"></script>
-  <script src="assets/workspace-ui.js?v=10"></script>
+  <script src="assets/workspace-ui.js?v=11"></script>
+<link rel="stylesheet" href="assets/recording-upload.css?v=1">
+<script src="assets/recording-upload.js?v=1"></script>
 <link rel="stylesheet" href="assets/personal-assets.css?v=1">
 <script src="assets/personal-assets-model.js?v=1"></script>
 <script src="assets/personal-assets-ui.js?v=1"></script>
