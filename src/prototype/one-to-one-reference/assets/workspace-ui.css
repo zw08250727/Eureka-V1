@@ -112,3 +112,14 @@ body[data-ws-type=team] [data-contacts-entry],body[data-ws-type=team] .sidebar-q
 .ps-plan-options{order:1;width:100%;max-width:760px;gap:18px;margin:26px auto 18px}.ps-plan-option{padding:20px 24px;border-radius:14px}.ps-plan-option h3{font-size:16px;margin-bottom:10px}.ps-plan-option>strong{font-size:30px}.ps-plan-option dl{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;margin-top:20px}.ps-plan-option dt{margin:0;font-size:11px}.ps-plan-option dd{font-size:12px;padding:5px 8px}.ps-saving{font-size:11px;padding:5px 10px}
 .ps-plan-footer{order:2;gap:6px}.ps-plan-footer .primary{padding:10px;min-width:240px}.ps-plan-details{order:3;width:100%;max-width:760px;margin:14px auto 0;border-top:1px solid #e8edf5;padding-top:12px}.ps-plan-details h3{margin:0 0 6px;font-size:13px}.ps-plan-details p{margin:4px 0;font-size:11px;line-height:1.6}
 @media(max-width:600px){.ps-account{padding:18px;gap:14px}.ps-plans{padding:18px}.ps-plan-options{grid-template-columns:1fr;gap:22px}.ps-plan-option{padding:18px}.ps-plan-footer .primary{min-width:0;width:100%}}
+
+/* Place purchases beside the balances they change; settings span the content area. */
+.ws-credit-balance-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:18px}
+.ws-credit-balance-actions small{color:#8497af;font-size:11px}
+.ws-settings-form{width:100%;max-width:none;box-sizing:border-box;min-width:0}
+.ws-settings-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.ws-settings-fields .ws-field{min-width:0;margin-bottom:0}.ws-settings-fields input{min-width:0;box-sizing:border-box}
+.ws-settings-leave{display:flex;align-items:center;justify-content:space-between;gap:24px}
+.ws-settings-leave h3{font-size:16px;margin:0 0 8px}.ws-settings-leave p{font-size:12px;line-height:1.7;color:#92a0b0;margin:0}
+.ws-settings-leave>.ws-btn{flex-shrink:0}
+@media(max-width:800px){.ws-settings-fields{grid-template-columns:1fr;gap:16px}.ws-settings-leave{flex-direction:column;align-items:flex-start;gap:16px}}
