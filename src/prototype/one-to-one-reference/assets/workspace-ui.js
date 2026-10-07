@@ -3,6 +3,8 @@
   'use strict';
   const M=window.WorkspaceModel;if(!M)return;
   let data=M.load(localStorage), page='overview', filter='all', query='', actor=M.SELF, selected=null, tab='summary', editing=false, noteDraft='', draft='', agentOpen=false;
+  const SETUP_KEY='eureka:team-setup:v1';
+  let setupSnapshot=null;
   let setup={step:0,name:'',country:'中国',cycle:'year',seats:3,orderId:M.id('order')}, answer='', menuAnchor=null;
   const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -199,10 +201,22 @@
   function modal(title,body,footer='',form='') {if(dialog.open)dialog.close();dialog.innerHTML=`<div class="ws-dialog-head"><h2>${title}</h2>${btn('close-dialog',icon('x'),'ws-icon-button','','aria-label="关闭"')}</div><${form?'form':'div'} ${form?`data-ws-form="${form}"`:''} class="ws-dialog-content">${body}<p class="ws-form-error" role="alert"></p>${footer?`<footer class="ws-dialog-footer">${footer}</footer>`:''}</${form?'form':'div'}>`;dialog.showModal();}
   function confirm(title,copy,fn){modal(title,`<p>${copy}</p>`,btn('close-dialog','取消')+btn('confirm','确认','primary'));confirm.fn=fn;}
   const submit=label=>`<button class="ws-btn primary" type="submit">${label}</button>`;
-  function plan(){setup={step:0,name:'',country:'中国',cycle:'year',seats:3,orderId:M.id('order')};renderPlan();}
+  function setupFresh(){if(localStorage.getItem(SETUP_KEY)!==setupSnapshot)throw Error('团队开通信息已在其他页面更新，请重新打开后继续。');}
+  function saveSetup(next){setupFresh();const raw=JSON.stringify({...next,accountId:data.account.id});try{localStorage.setItem(SETUP_KEY,raw);}catch{throw Error('开通信息保存失败，请保留输入并重试。');}setupSnapshot=raw;setup=next;}
+  function clearSetup(){setupFresh();localStorage.removeItem(SETUP_KEY);setupSnapshot=null;}
+  function plan(){
+    setupSnapshot=localStorage.getItem(SETUP_KEY);
+    if(setupSnapshot){
+      let saved;try{saved=JSON.parse(setupSnapshot);}catch{throw Error('开通草稿无法读取，请保留浏览器数据后联系维护者。');}
+      if(!saved||saved.accountId!==data.account.id||typeof saved.orderId!=='string'||typeof saved.name!=='string'||!saved.name.trim()||saved.name.length>40||!['year','month'].includes(saved.cycle)||!Number.isInteger(saved.seats)||saved.seats<2||saved.seats>50||typeof saved.country!=='string'||!saved.country)throw Error('开通草稿无效或不属于当前账号，请保留数据后重试。');
+      if(!data.orders.some(o=>o.id===saved.orderId)){setup=saved;return checkout();}
+      clearSetup();
+    }
+    setup={step:0,name:'',country:'中国',cycle:'year',seats:3,orderId:M.id('order')};renderPlan();
+  }
   function renderPlan(){modal('EurekaMind Team',`<div class="ws-plan-intro"><div><span class="ws-eyebrow">一个账号，无缝协作</span><h1>让团队的每次讨论<br>都有下一步。</h1><p>从独立记录到授权协作，在一个清晰可控的工作空间完成。</p><ul><li>${icon('folder')}<div><strong>独立的团队会议录音</strong><span>团队设备录音自动归集，成员共同查看</span></div></li><li>${icon('users')}<div><strong>成员与席位统一管理</strong><span>每个席位都享有完整 Unlimited 权益</span></div></li><li>${icon('phone')}<div><strong>设备绑定到空间</strong><span>录音同步位置清晰，切换时不混淆</span></div></li><li>${icon('spark')}<div><strong>团队 Credits 共享池</strong><span>按 Token 用量使用，独立于转写权益</span></div></li></ul></div><section class="ws-pricing"><span class="ws-eyebrow">TEAM UNLIMITED</span><div class="ws-cycle">${btn('plan-cycle','月付',setup.cycle==='month'?'active':'','month')}${btn('plan-cycle','年付',setup.cycle==='year'?'active':'','year')}</div><div class="ws-price">${money(setup.cycle==='year'?159:199)}<small>/ 席位 / 月</small></div><p>${setup.cycle==='year'?'按年结算，每席位 ¥1,908 / 年':'按月结算，灵活调整席位'}</p>${btn('setup','创建团队','primary')}<ul><li>✓ 每席位独立 Unlimited 转写</li><li>✓ 50,000 团队 Credits</li><li>✓ 成员、设备与账单管理</li><li>✓ 2–50 席位，可随时扩容</li></ul><small>本版本演示定价，不会发起真实支付。</small></section></div>`);dialog.classList.add('ws-dialog-wide');}
   function renderSetup(){dialog.classList.remove('ws-dialog-wide');modal('创建团队工作空间',`<div class="ws-steps"><b>1 空间信息</b><span>2 确认订单</span><span>3 开通</span></div>${field('工作空间名称','name',setup.name,'text','required maxlength="40" placeholder="例如：EurekaMind 产品团队"')}${select('公司所在地区','country',[['中国','中国'],['新加坡','新加坡'],['美国','美国'],['其他','其他']],setup.country)}<div class="ws-two-fields">${field('席位数量','seats',setup.seats,'number','required min="2" max="50" step="1"')}${select('计费周期','cycle',[['year','年付 · ¥159 / 席位 / 月'],['month','月付 · ¥199 / 席位 / 月']],setup.cycle)}</div><p class="ws-muted">至少 2 席位。你作为管理员占用 1 席位。个人订阅与文件保持独立。</p>`,btn('close-dialog','取消')+submit('确认订单'),'setup');}
-  function checkout(){modal('确认团队订单',`<div class="ws-steps"><span>1 空间信息</span><b>2 确认订单</b><span>3 开通</span></div><div class="ws-order"><h3>${esc(setup.name)}</h3><p>${esc(setup.country)} · Team Unlimited · ${setup.cycle==='year'?'年付':'月付'}</p><div><span>${setup.seats} 席位 × ${money(M.price(setup.cycle))}</span><strong>${money(setup.seats*M.price(setup.cycle))}</strong></div><div><span>本次模拟支付</span><strong>${money(setup.seats*M.price(setup.cycle))}</strong></div></div><div class="ws-info">演示订单：无需银行卡，不会真实扣款或发送邮件。</div>`,btn('setup','上一步')+btn('payment-fail','模拟支付失败')+btn('payment','模拟支付并开通','primary'));}
+  function checkout(){modal('确认团队订单',`<div class="ws-steps"><span>1 空间信息</span><b>2 确认订单</b><span>3 开通</span></div><div class="ws-order"><h3>${esc(setup.name)}</h3><p>${esc(setup.country)} · Team Unlimited · ${setup.cycle==='year'?'年付':'月付'}</p><div><span>${setup.seats} 席位 × ${money(M.price(setup.cycle))}</span><strong>${money(setup.seats*M.price(setup.cycle))}</strong></div><div><span>本次模拟支付</span><strong>${money(setup.seats*M.price(setup.cycle))}</strong></div></div><div class="ws-info">演示订单：无需银行卡，不会真实扣款或发送邮件。信息已保存在此浏览器；关闭后可从“创建团队工作空间”继续。</div>`,btn('cancel-setup','取消订单')+btn('setup','上一步')+btn('payment-fail','模拟支付失败')+btn('payment','模拟支付并开通','primary'));}
   function inviteDialog(){M.govern(w(),actor);M.writable(w());modal('邀请空间成员',`<p>邀请加入 <strong>${esc(w().name)}</strong></p><p>当前可邀请 <b>${Math.min(w().seats,w().pendingSeats??w().seats)-M.usedSeats(w())}</b> 位伙伴。邀请发送后即占用席位。</p><label class="ws-field">邮箱地址<textarea name="emails" required placeholder="name@company.com，多位用逗号分隔"></textarea></label>${select('角色','role',[['member','成员 · 使用录音与 AI，管理自己的文件'],['admin','管理员 · 管理成员、设备和账单']],'member')}<p class="ws-muted">本地模拟邀请，不会发送真实邮件。</p>`,btn('page','增加席位','','billing')+submit('发送模拟邀请'),'invite');}
   const download=(name,text,type='application/json')=>{const link=document.createElement('a');link.href=URL.createObjectURL(new Blob([text],{type}));link.download=name;link.click();setTimeout(()=>URL.revokeObjectURL(link.href),1000);};
   function registerDeviceDialog(){
@@ -233,8 +247,9 @@
     if(name==='plan'){closeMenu();return plan();}
     if(name==='plan-cycle'){setup.cycle=value;return renderPlan();}
     if(name==='setup'){dialog.classList.remove('ws-dialog-wide');return renderSetup();}
+    if(name==='cancel-setup'){clearSetup();dialog.close();toast('已取消开通，未创建团队或扣款');return;}
     if(name==='payment-fail'){$('.ws-form-error',dialog).textContent='模拟支付失败，未创建空间或扣款。请重试。';return;}
-    if(name==='payment'){mutate(()=>M.create(data,setup));actor=M.SELF;chrome();show('overview');modal('团队已准备好',`<div class="ws-success">${icon('users')}<h3>${esc(w().name)}</h3><p>${w().seats} 个席位已开通。可以邀请伙伴，也可以直接进入团队开始工作。</p></div>`,btn('close-dialog','进入团队')+btn('invite','邀请伙伴','primary'));return;}
+    if(name==='payment'){setupFresh();if(localStorage.getItem(M.KEY)!==savedState)throw Error('空间数据已在其他页面更新，请刷新后继续开通。');mutate(()=>M.create(data,setup));try{clearSetup();}catch{/* The fulfilled order ID prevents duplicate creation on recovery. */}actor=M.SELF;chrome();show('overview');modal('团队已准备好',`<div class="ws-success">${icon('users')}<h3>${esc(w().name)}</h3><p>${w().seats} 个席位已开通。可以邀请伙伴，也可以直接进入团队开始工作。</p></div>`,btn('close-dialog','进入团队')+btn('invite','邀请伙伴','primary'));return;}
     if(name==='invites'){closeMenu();modal('工作空间邀请',data.invitations.filter(i=>i.status==='pending').map(i=>`<div class="ws-invitation"><h3>${esc(i.teamName)}</h3><p>${esc(i.admin)} 邀请你以成员身份加入，团队为你提供 Unlimited 席位。</p>${btn('decline-invite','婉拒','',i.id)}${btn('join','接受并进入','primary',i.id)}</div>`).join('')||empty('没有待处理的邀请','新的工作空间邀请会显示在这里。'));return;}
     if(name==='join'){mutate(()=>M.acceptInvite(data,value));dialog.close();switchSpace(data.activeId);return;}
     if(name==='decline-invite'){mutate(()=>{const i=data.invitations.find(i=>i.id===value);if(i)i.status='declined';});return action('invites');}
@@ -319,7 +334,7 @@
     if(kind==='personal-pay'){personalFresh();if(v.workspaceId!==w().id)throw new Error('工作空间已变化');const o=mutate(()=>PS.pay(w(),v.orderId,'success',v.method));render();return personalSuccess(o);}
     if(kind==='auto-task'){mutate(()=>M.saveTask(w(),v,actor));dialog.close();chrome();toast('自动任务已保存');return;}
     if(kind==='agent-sources'){const ids=values.getAll('files');ids.forEach(id=>M.getFile(w(),id,actor));agentOptions.fileIds=ids;agentOptions.appData=values.has('appData');dialog.close();refreshAgent();return;}
-    if(kind==='setup'){setup={...setup,...v,seats:Number(v.seats)};return checkout();}
+    if(kind==='setup'){const next={...setup,...v,name:String(v.name||'').trim(),seats:Number(v.seats)};if(!next.name||next.name.length>40||!Number.isInteger(next.seats)||next.seats<2||next.seats>50||!['year','month'].includes(next.cycle))throw Error('请填写有效的空间名称、周期和 2–50 个席位');saveSetup(next);return checkout();}
     if(kind==='invite'){mutate(()=>M.invite(w(),v.emails,v.role,actor));dialog.close();show('members');toast('模拟邀请已创建，可在成员列表体验接受流程');return;}
     if(kind==='role')mutate(()=>M.memberAction(data,w(),v.memberId,'role',v.role,actor));
     if(kind==='seats'){

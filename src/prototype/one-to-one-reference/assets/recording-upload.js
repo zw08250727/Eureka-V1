@@ -6,10 +6,11 @@
   const note='音频已加入会议列表，等待转写处理。本地演示仅保存文件信息，未上传原音频，也未生成真实转写或总结。';
   const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   let uploads=[],selected=null,context=null,trigger=null,busy=false,loadError=false;
-  try{const value=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(value)||value.some(f=>!f||typeof f.id!=='string'||!f.id.startsWith('upload-')||!['title','name','size','created'].every(k=>typeof f[k]==='string')||!Number.isFinite(Date.parse(f.created))))throw Error();uploads=value;}catch{loadError=true;}
+  let savedUploads=null;
+  try{savedUploads=localStorage.getItem(KEY);const value=JSON.parse(savedUploads||'[]');if(!Array.isArray(value)||value.some(f=>!f||typeof f.id!=='string'||!f.id.startsWith('upload-')||!['title','name','size','created'].every(k=>typeof f[k]==='string')||!Number.isFinite(Date.parse(f.created))))throw Error();uploads=value;}catch{loadError=true;}
   const time=iso=>new Date(iso).toLocaleString('sv-SE').slice(0,16);
   const size=n=>n<1024?n+' B':n<1024*1024?(n/1024).toFixed(1)+' KB':(n/1024/1024).toFixed(1)+' MB';
-  function persist(next){if(loadError)throw Error('上传记录无法读取，请先保留浏览器数据并联系维护者。');localStorage.setItem(KEY,JSON.stringify(next));uploads=next;}
+  function persist(next){if(loadError)throw Error('上传记录无法读取，请先保留浏览器数据并联系维护者。');if(localStorage.getItem(KEY)!==savedUploads)throw Error('上传记录已在其他页面更新，请刷新后重试。');const serialized=JSON.stringify(next);localStorage.setItem(KEY,serialized);savedUploads=serialized;uploads=next;}
   function change(id,patch){try{persist(uploads.map(f=>f.id===id?{...f,...patch}:f));return true;}catch{showToast('保存失败，现有录音未改变。请检查浏览器存储空间后重试。');return false;}}
   function rowFor(f){
     const row=document.createElement('div');row.className='meeting-row home-meeting-row';row.setAttribute('role','button');row.tabIndex=0;

@@ -72,7 +72,7 @@
   function highlight(id){for(const a of document.querySelectorAll('.nav-link')){if(a.hash===`#${id}`)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current');}}
   function chapter(s,i){return `<article class="chapter" id="${s.id}" aria-labelledby="title-${s.id}"><div class="chapter-header"><div><div class="chapter-overline">${String(i+1).padStart(2,'0')} / ${escape(s.group)}${!publishedView&&changed(s)?'<span class="local-marker">本地修订</span>':''}</div><h2 id="title-${s.id}">${escape(s.title)}</h2></div><div class="chapter-tools"><button data-link="${s.id}" aria-label="复制${escape(s.title)}章节链接">↗ 链接</button><button data-edit="${s.id}">编辑</button></div></div><p class="chapter-summary">${escape(s.summary)}</p><div class="prose">${markdown(s.body)}</div><details class="review-note ${s.reviewNotes?'has-note':''}" ${s.reviewNotes?'open':''}><summary>${s.reviewNotes?'评审记录':'添加评审结论：点击本章「编辑」'}</summary><p>${escape(s.reviewNotes||'尚未填写。建议记录结论、确认人、日期与影响范围。')}</p></details></article>`;}
   function render(){
-    $('#sections').innerHTML=activeDoc().sections.map(chapter).join('');navigation();status();notices();
+    $('#sections').innerHTML=activeDoc().sections.map(chapter).join('');window.PRDReader.enhance($('#sections'));navigation();status();notices();
     if(observer)observer.disconnect();observer=new IntersectionObserver(followReading,{rootMargin:'-90px 0px -65% 0px',threshold:0});document.querySelectorAll('.chapter').forEach(el=>observer.observe(el));
   }
   function followReading(){
@@ -96,6 +96,7 @@
   function preview(){const v=values();$('.live-preview').innerHTML=`<h3>${escape(v.title)}</h3><p>${escape(v.summary)}</p>${markdown(v.body)}`;pending();}
   function finishEditor(){editor=null;try{sessionStorage.removeItem(PENDING);}catch{}render();}
   function edit(id,recovered){
+    window.PRDReader.close();
     if(editor){notify('请先保存或退出当前章节编辑');document.getElementById(editor.id).scrollIntoView();return;}
     if(publishedView){publishedView=false;render();}
     const s=working.sections.find(v=>v.id===id);if(!s)return;
