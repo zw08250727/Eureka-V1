@@ -1227,6 +1227,12 @@ function enrich(s, now = new Date()) {
   for (const w of s.spaces.filter(
     (w) => w.type === "team" && w.status !== "dissolved",
   )) {
+    // Upgrade only the built-in demo teams, once; preserve later role edits.
+    if (!w.demoAdminVersion && ["team-eureka", "team-design"].includes(w.id)) {
+      const self = member(w, s.account.id);
+      if (self) self.role = "admin";
+      w.demoAdminVersion = 1;
+    }
     if (!w.recordingWorkbenchVersion) {
       if (w.id === "team-eureka") {
         const demos = [

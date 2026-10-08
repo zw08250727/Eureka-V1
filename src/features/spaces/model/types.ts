@@ -74,6 +74,7 @@ export interface Invoice {
   status: string;
 }
 export interface Workspace {
+  demoAdminVersion?: number;
   demoWeekDays?: string[];
   id: string;
   type: "personal" | "team";
