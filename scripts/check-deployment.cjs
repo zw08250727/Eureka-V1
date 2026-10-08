@@ -62,6 +62,7 @@ const routes = [
       observe(page);
       await page.goto(base + "/workbench/?view=" + view);
       await page.locator(selector).waitFor();
+      await page.locator('.topbar-right select[aria-label="评审视角"]').waitFor();
       assert.equal(await page.locator("iframe").count(), 0);
       assert.doesNotMatch(await page.locator(".sidebar").innerText(), /任务管理|历史会话|全部任务|自动任务/);
       assert.equal(await page.getByRole("button", { name: /退出团队|解散团队/ }).count(), 0);
