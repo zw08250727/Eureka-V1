@@ -40,7 +40,7 @@ function memory(): Storage {
 }
 
 for (const plan of demoWeek) {
-  test(`${plan.date}: personal overview and both demo team briefs have date-specific content`, async () => {
+  test(`${plan.date}: personal overview and the single demo team brief have date-specific content`, async () => {
     const now = at(plan.date),
       storage = memory();
     // Simulate a returning browser that already persisted the old seed week.
@@ -76,7 +76,7 @@ for (const plan of demoWeek) {
         .every((r) => r.date <= plan.date),
     ).toBe(true);
     const spaces = createWorkspaceStore(storage, () => now).read();
-    for (const id of ["team-eureka", "team-design"]) {
+    for (const id of ["team-eureka"]) {
       const w = M.get(spaces, id);
       for (const member of w.members.filter((m) => m.status === "active")) {
         const insight = M.insights(w, member.id, now).items.find(
@@ -116,11 +116,11 @@ test("normalization is idempotent, keeps edits and does not resurrect deleted sa
   const before = structuredClone(thoughts);
   expect(fillWeekThoughts(thoughts, now)).toEqual(before);
   const state = M.seed(now),
-    w = M.get(state, "team-design");
+    w = M.get(state, "team-eureka");
   w.files = w.files.filter(
-    (f) => f.id !== "demo-week-team-design-2026-10-08-0",
+    (f) => f.id !== "demo-week-team-eureka-2026-10-08-0",
   );
-  w.files.find((f) => f.id === "demo-week-team-design-2026-10-09-0")!.summary =
+  w.files.find((f) => f.id === "demo-week-team-eureka-2026-10-09-0")!.summary =
     "已编辑";
   const copy = structuredClone(state);
   expect(M.enrich(state, now)).toEqual(copy);
@@ -129,18 +129,18 @@ test("normalization is idempotent, keeps edits and does not resurrect deleted sa
 test("briefs respect current evidence, visibility and membership; new teams stay empty", () => {
   const now = at("2026-10-08"),
     state = M.seed(now),
-    w = M.get(state, "team-design");
+    w = M.get(state, "team-eureka");
   const source = w.files.find(
-    (f) => f.id === "demo-week-team-design-2026-10-08-1",
+    (f) => f.id === "demo-week-team-eureka-2026-10-08-1",
   )!;
   source.shared = [];
-  expect(M.insights(w, "zhang", now).items).toHaveLength(0);
+  expect(M.insights(w, "zhang", now).items.filter((i) => i.id === "demo-week-insight-2026-10-08")).toHaveLength(0);
   source.shared = ["zhang"];
   source.summary = "用户已改写会议结论";
-  expect(M.insights(w, "zhang", now).items).toHaveLength(0);
+  expect(M.insights(w, "zhang", now).items.filter((i) => i.id === "demo-week-insight-2026-10-08")).toHaveLength(0);
   source.summary = demoWeek[0].evidence[1];
   source.deleted = true;
-  expect(M.insights(w, "zhang", now).items).toHaveLength(0);
+  expect(M.insights(w, "zhang", now).items.filter((i) => i.id === "demo-week-insight-2026-10-08")).toHaveLength(0);
   const empty = {
     ...structuredClone(w),
     id: "new-user-team",

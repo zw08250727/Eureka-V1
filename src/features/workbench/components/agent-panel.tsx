@@ -1,4 +1,6 @@
 "use client";
+import { useSceneAgent } from "@/features/agent/session";
+import { AgentHistoryButton } from "@/features/agent/history-button";
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { RefIcon as Icon } from "@/features/reference/symbols";
 import {useAgentLayout} from "@/features/reference/use-agent-layout";
@@ -24,6 +26,7 @@ export function AgentPanel({
   gateway?: AgentGateway;
   files?: { id: string; title: string }[];
 }) {
+  const agent = useSceneAgent(draft.context.widget === "thoughts" ? "thoughts" : "home");
   const rail=useRef<HTMLElement>(null);
   useAgentLayout(rail,open);
   const sizing = useAgentWidth(host),
@@ -95,6 +98,7 @@ export function AgentPanel({
         controller.signal,
       );
       if (!controller.signal.aborted) {
+        agent.record(prompt, [reply.title, reply.text, ...reply.items].join("\n"));
         setMessages((m) =>
           context.widget && widget
             ? [{ prompt, reply }]
@@ -109,12 +113,13 @@ export function AgentPanel({
     }
   }
   function reset() {
+    agent.reset();
     request.current?.abort();
     setBusy(false);
     setSources(false);
     setMessages([]);
     setInput("");
-    setContext({ kind: "page", title: "当前页面", lines: [] });
+    setContext(draft.context);
     setError("");
     setAudio(false);
     setApps(false);
@@ -174,12 +179,13 @@ export function AgentPanel({
             </div>
           </div>
           <div className="xiaozhi-head-actions">
+            <AgentHistoryButton />
             <button
               type="button"
               className="agent-new-task"
               id="xiaozhi-new-task"
-              aria-label="新建任务"
-              title="新建任务"
+              aria-label="新建会话"
+              title="新建会话"
               onClick={reset}
             >
               <Icon name="new-task" />

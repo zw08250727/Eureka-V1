@@ -12,7 +12,6 @@ import {
   ManagementToast,
   managementDate,
 } from "./management-ui";
-import { ExitTeamDialog, assertExitAllowed } from "./management-dialogs";
 import { appUrl } from "@/lib/routes";
 export function SpaceSettingsPage({
   controller,
@@ -27,17 +26,8 @@ export function SpaceSettingsPage({
 }) {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [exit, setExit] = useState<"leave" | "dissolve" | null>(null);
   const w = M.get(controller.state!, space);
-  function open(kind: "leave" | "dissolve") {
-    try {
-      assertExitAllowed(w, actor, kind);
-      setExit(kind);
-    } catch (e) {
-      setNotice((e as Error).message);
-    }
-  }
-  if (!M.admin(w, actor) && !exit)
+  if (!M.admin(w, actor))
     return (
       <ManagementRoot w={w} actor={actor}>
         <ManagementEmpty
@@ -146,45 +136,8 @@ export function SpaceSettingsPage({
               保存设置
             </button>
           </form>
-          <section className="ws-surface ws-settings-form ws-settings-leave">
-            <div>
-              <h3>退出团队</h3>
-              <p>仅退出你自己的成员身份。唯一管理员需先完成交接。</p>
-            </div>
-            <Button
-              action="leave"
-              className="danger"
-              onClick={() => open("leave")}
-            >
-              退出团队
-            </Button>
-          </section>
-          <section className="ws-surface ws-settings-form ws-settings-leave">
-            <div>
-              <h3>解散团队</h3>
-              <p>
-                所有成员将失去访问权限，团队订阅与自动任务停止。此操作无法在界面撤销。
-              </p>
-            </div>
-            <Button
-              action="dissolve"
-              className="danger"
-              onClick={() => open("dissolve")}
-            >
-              解散团队
-            </Button>
-          </section>
         </>
       )}
-      {exit ? (
-        <ExitTeamDialog
-          controller={controller}
-          space={space}
-          actor={actor}
-          kind={exit}
-          onClose={() => setExit(null)}
-        />
-      ) : null}
       <ManagementToast message={notice} />
     </ManagementRoot>
   );

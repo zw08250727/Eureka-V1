@@ -30,7 +30,7 @@ const routes = [
     "space-settings",
     "audit",
   ].map((view) => [view + "&space=team-eureka", "#ws-view"]),
-  ["tasks&space=team-eureka", "#ws-dialog"],
+  ["tasks&space=team-eureka", 'p[role="alert"]'],
 ];
 (async () => {
   const browser = await chromium.launch({
@@ -63,6 +63,15 @@ const routes = [
       await page.goto(base + "/workbench/?view=" + view);
       await page.locator(selector).waitFor();
       assert.equal(await page.locator("iframe").count(), 0);
+      assert.doesNotMatch(await page.locator(".sidebar").innerText(), /任务管理|历史会话|全部任务|自动任务/);
+      assert.equal(await page.getByRole("button", { name: /退出团队|解散团队/ }).count(), 0);
+      if (view.startsWith("history")) {
+        await page.getByRole("button", { name: "历史会话", exact: true }).click();
+        await page.getByRole("dialog", { name: "历史会话", exact: true }).waitFor();
+        await page.keyboard.press("Escape");
+        await page.getByRole("button", { name: "新建会话", exact: true }).waitFor();
+      }
+      if (view.startsWith("tasks")) assert.match(await page.locator(selector).innerText(), /此入口不属于当前工作空间/);
       console.log("PASS", view);
       await page.close();
     }

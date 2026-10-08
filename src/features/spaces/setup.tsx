@@ -9,6 +9,7 @@ import {
   ManagementButton as Button,
   ManagementIcon as Icon,
   ManagementEmpty,
+  ManagementToast,
   managementMoney as money,
 } from "./management-ui";
 import { Workbench } from "@/features/workbench/workbench";
@@ -93,6 +94,7 @@ export function CreateTeamDialog({
       throw Error("团队开通信息已在其他页面更新，请重新打开后继续。");
   }
   function save(next: Setup) {
+    M.assertCanJoinTeam(controller.state!);
     fresh();
     const raw = JSON.stringify(next);
     try {
@@ -161,6 +163,8 @@ export function CreateTeamDialog({
         </div>
       </Dialog>
     );
+  if (M.accountTeam(controller.state!))
+    return <><ManagementToast message="你已创建或加入一个团队，不能再创建或加入其他团队" /><Dialog title="无法创建团队" onClose={onClose}><p>一个账号仅可创建或加入一个团队。</p></Dialog></>;
   if (!setup)
     return (
       <Dialog title="EurekaMind Team" onClose={onClose} error={error}>
@@ -474,6 +478,7 @@ export function InvitationsDialog({
   );
   return (
     <Dialog title="工作空间邀请" onClose={onClose} error={error}>
+      <ManagementToast message={error} />
       {invitations.map((i) => (
         <div className="ws-invitation" key={i.id}>
           <h3>{i.teamName}</h3>

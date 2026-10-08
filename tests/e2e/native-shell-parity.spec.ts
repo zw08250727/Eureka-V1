@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import M from "../../src/features/spaces/model/core";
 test("native recording permission can cancel and authorize without losing the current page", async ({
   page,
 }) => {
@@ -24,6 +25,8 @@ test("native recording permission can cancel and authorize without losing the cu
 test("workspace menu dialogs preserve the underlying native calendar", async ({
   page,
 }) => {
+  const state = M.seed(); state.spaces = state.spaces.filter((w) => w.type === "personal"); state.devices = [];
+  await page.addInitScript((state) => localStorage.setItem("eureka:workspaces:v2", JSON.stringify(state)), state);
   await page.goto("/workbench/?view=calendar");
   await page.locator("#ws-switcher").click();
   await page

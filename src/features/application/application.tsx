@@ -1,5 +1,4 @@
 "use client";
-import { ExitTeamDialog } from "@/features/spaces/management-dialogs";
 import { ReferenceShell } from "@/features/reference/shell";
 import dynamic from "next/dynamic";
 
@@ -50,9 +49,6 @@ const Invitations = dynamic(() =>
 const SpaceSettings = dynamic(() =>
   import("@/features/spaces/settings").then((m) => m.SpaceSettingsPage),
 );
-const Tasks = dynamic(() =>
-  import("@/features/spaces/tasks").then((m) => m.TasksPage),
-);
 export function Application() {
   const route = useAppRoute(),
     spaces = useSpaces(),
@@ -65,30 +61,7 @@ export function Application() {
     );
   const w = spaces.state.spaces.find((w) => w.id === route.space),
     actor = route.actor;
-  if (
-    w?.status === "dissolved" &&
-    w.closure?.actor === actor &&
-    actor === M.SELF
-  )
-    return (
-      <ReferenceShell
-        title="我的 AI 工作台"
-        view="home"
-        space="personal"
-        actor={actor}
-        controller={spaces}
-      >
-        <Workbench />
-        <ExitTeamDialog
-          controller={spaces}
-          space={w.id}
-          actor={actor}
-          kind="dissolve"
-          onClose={() => location.assign(appUrl("home", "", "personal", actor))}
-        />
-      </ReferenceShell>
-    );
-  if (!w || !M.member(w, actor))
+  if (!w || !M.member(w, actor) || (w.type === "team" && M.accountTeam(spaces.state, actor)?.id !== w.id))
     return (
       <main className="p-8">
         <p role="alert">工作空间不存在或没有访问权限。</p>
@@ -135,8 +108,6 @@ export function Application() {
       ) : (
         <Workbench historyId={route.id} />
       )
-    ) : route.view === "tasks" ? (
-      <Tasks {...props} />
     ) : route.view === "trash" ? (
       team ? (
         <TeamHome {...props} trash />

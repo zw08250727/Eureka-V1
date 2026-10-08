@@ -1,0 +1,18 @@
+/* The same Agent history control is used by every scene. */
+.unified-agent-history { width:min(520px,calc(100vw - 32px)); max-height:80dvh; padding:20px; border:1px solid #dfe5eb; border-radius:16px; color:#253344; background:#fff; }
+.unified-agent-history::backdrop { background:rgb(20 30 45 / 28%); }
+.unified-agent-history header { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:16px; }
+.unified-agent-history h2 { margin:0; font-size:17px; }
+.unified-agent-history p,.unified-agent-history small { color:#64748b; font-size:12px; }
+.unified-agent-history button { display:flex; align-items:center; justify-content:center; width:32px; height:32px; border:0; border-radius:8px; background:transparent; cursor:pointer; color:inherit; flex-shrink:0; }
+.unified-agent-history button:hover { background:#f1f5f9; }
+.agent-history-list { display:grid; gap:6px; }
+.agent-history-item { display:flex; align-items:center; gap:8px; padding:10px; border:1px solid #e9edf2; border-radius:9px; }
+.agent-history-item a { flex:1; min-width:0; text-decoration:none; color:inherit; font-size:13px; }
+.agent-history-item span,.agent-history-item small { display:block; overflow-wrap:anywhere; }
+.agent-history-item small { margin-top:5px; }
+.agent-history-empty { padding:24px 0; }
+.agent-history-button:focus-visible,.unified-agent-history :focus-visible { outline:2px solid #5b9fc9; outline-offset:2px; }
+.unified-agent-history { box-sizing:border-box; font-family:inherit; }
+.unified-agent-history button { font:inherit; }
+.unified-agent-history .icon { width:18px; height:18px; }

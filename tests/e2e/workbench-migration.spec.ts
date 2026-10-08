@@ -175,7 +175,7 @@ test("Agent drafts, keyboard, local responses and panel width survive UI changes
     "true",
   );
   await panel.getByRole("button", { name: "引用资料", exact: true }).click();
-  await panel.getByRole("button", { name: "新建任务" }).click();
+  await panel.getByRole("button", { name: "新建会话" }).click();
   await expect(input).toHaveValue("");
   await expect(panel.locator(".xiaozhi-intro")).toBeVisible();
 });

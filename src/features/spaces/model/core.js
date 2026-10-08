@@ -1,3 +1,4 @@
+import { agentRoute } from "../../agent/registry";
 import {
   fillWeekWorkspaces,
   weekInsights,
@@ -131,19 +132,6 @@ function seed() {
   a.audit = [
     { time: "2026-10-06 09:00", actor: "张伟", action: "邀请 Alice 加入团队" },
   ];
-  const b = baseTeam(
-    "team-design",
-    "设计共创空间",
-    [
-      person("lin", "林晓", "lin.xiao@eureka.example", "admin"),
-      person(SELF, "张伟", "zhang.wei@eureka.example"),
-    ],
-    3,
-  );
-  b.files = [
-    file("design-file", "设计评审 · 新版工作台", "lin", [SELF]),
-    file("design-own", "我的设计调研笔记", SELF),
-  ];
   return {
     version: 2,
     account: { id: SELF, name: "张伟", email: "zhang.wei@eureka.example" },
@@ -160,7 +148,6 @@ function seed() {
         credits: { total: 3000, used: 0, logs: [] },
       },
       a,
-      b,
     ],
     devices: [
       {
@@ -261,6 +248,7 @@ function create(s, { name, country, cycle, seats, orderId }) {
     fail("请选择 2–50 个席位及有效计费周期");
   const done = s.orders.find((o) => o.id === orderId);
   if (done) return get(s, done.spaceId);
+  assertCanJoinTeam(s);
   const w = baseTeam(
     id("team"),
     name,
@@ -343,11 +331,13 @@ function memberAction(s, w, mid, action, value, actor = SELF) {
   )
     fail("必须至少保留一位管理员");
   if (action === "remove") {
-    if (mid === actor) fail("请使用退出工作空间入口");
+    if (mid === actor) fail("当前不支持退出团队");
     departure(s, w, mid, "removed");
   } else if (action === "role") m.role = value;
   else if (action === "accept") {
     if (m.status !== "pending") fail("此邀请已处理");
+    if (s.spaces.some((other) => other.id !== w.id && other.type === "team" && other.status !== "dissolved" && other.members.some((existing) => existing.status === "active" && (existing.id === mid || existing.email.toLowerCase() === m.email.toLowerCase()))))
+      fail("该成员已加入其他团队");
     m.status = "active";
   } else if (action === "resend") {
     if (m.status !== "pending") fail("仅待接受的邀请可以重发");
@@ -377,86 +367,17 @@ function departure(s, w, uid, reason) {
       t.pauseReason = reason;
     });
 }
-function leave(s, w, uid = SELF) {
-  if (w.type !== "team") fail("个人空间不能退出");
-  access(w, uid);
-  if (
-    admin(w, uid) &&
-    w.members.filter((m) => m.status === "active" && m.role === "admin")
-      .length === 1
-  )
-    fail("你是唯一管理员，请先指定另一位管理员，或解散团队");
-  log(w, "退出团队：释放已分配席位，已购席位与团队 Credits 保留", uid);
-  departure(s, w, uid, "left");
-  if (uid === s.account.id && s.activeId === w.id) s.activeId = "personal";
+function leave() {
+  fail("当前不支持退出团队");
 }
-function dissolve(s, w, name, uid = SELF) {
-  if (w.type !== "team") fail("个人空间不能解散");
-  govern(w, uid);
-  if (String(name || "").trim() !== w.name)
-    fail("团队名称不一致，请输入完整团队名称");
-  const endedAt = stamp();
-  // Preserve balances and invoices for settlement; dissolution is not a refund or forfeiture.
-  const closure = {
-    id: id("CLOSE"),
-    workspaceId: w.id,
-    name: w.name,
-    actor: uid,
-    endedAt,
-    purchasedSeats: w.seats,
-    assignedSeats: usedSeats(w),
-    cycle: w.cycle,
-    paidThrough: w.nextDate,
-    subscriptionStatus: w.status,
-    frozenCredits: creditBalance(w),
-    refundStatus: "not_requested",
-    invoices: clone(w.invoices),
-    policy: "demo-freeze-v1",
-  };
-  log(w, "解散团队：停止续费与权益，剩余 Credits 冻结，未自动退款", uid);
-  w.members
-    .filter((m) => m.status === "active")
-    .forEach((m) => departure(s, w, m.id, "dissolved"));
-  w.members
-    .filter((m) => m.status === "pending")
-    .forEach((m) => {
-      m.status = "removed";
-      m.exitReason = "dissolved";
-      m.leftAt = endedAt;
-    });
-  s.devices
-    .filter((d) => d.spaceId === w.id)
-    .forEach((d) => {
-      d.spaceId = null;
-    });
-  (w.automaticTasks || []).forEach((t) => {
-    t.enabled = false;
-    t.pauseReason = "dissolved";
-  });
-  [...(w.seatOrders || []), ...(w.creditOrders || [])]
-    .filter((o) => ["pending", "failed"].includes(o.status))
-    .forEach((o) => {
-      o.status = "cancelled";
-      o.updated = endedAt;
-      o.cancelReason = "dissolved";
-    });
-  (s.invitations || [])
-    .filter(
-      (i) =>
-        (i.workspaceId === w.id || i.spaceId === w.id) &&
-        i.status === "pending",
-    )
-    .forEach((i) => {
-      i.status = "revoked";
-    });
-  w.status = "dissolved";
-  w.renew = false;
-  w.pendingSeats = null;
-  w.pendingCycle = null;
-  w.closedAt = endedAt;
-  w.closure = closure;
-  if (s.activeId === w.id) s.activeId = "personal";
-  return closure;
+function dissolve() {
+  fail("当前不支持解散团队");
+}
+function accountTeam(s, uid = s.account.id) {
+  return s.spaces.find((w) => w.type === "team" && member(w, uid));
+}
+function assertCanJoinTeam(s, uid = s.account.id) {
+  if (accountTeam(s, uid)) fail("你已创建或加入一个团队，不能再创建或加入其他团队");
 }
 function validateSeatCount(w, count, actor = SELF) {
   govern(w, actor);
@@ -1261,6 +1182,8 @@ function ask(w, prompt, fid, uid = SELF, historyId = null, options = {}) {
     );
   const charge = settleCredits(w, runId, prompt, usage, uid);
   const thread = {
+    ...agentRoute(fid ? "meeting" : "team"),
+    dataMcp: w.type === "team" ? ["team-meetings"] : ["meetings"],
     id: id("chat"),
     runId,
     usage: { ...usage, cost: charge.amount },
@@ -1279,6 +1202,7 @@ function ask(w, prompt, fid, uid = SELF, historyId = null, options = {}) {
   return { answer, cost: charge.amount, threadId: thread.id, usage };
 }
 function acceptInvite(s, iid) {
+  assertCanJoinTeam(s);
   const i =
     s.invitations.find((i) => i.id === iid && i.status === "pending") ||
     fail("邀请已失效或已处理");
@@ -1691,6 +1615,8 @@ const workspaceModel = {
   sync,
   ask,
   acceptInvite,
+  accountTeam,
+  assertCanJoinTeam,
   load,
   log,
 };

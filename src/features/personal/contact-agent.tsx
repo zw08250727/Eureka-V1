@@ -1,3 +1,4 @@
+import { AgentHistoryButton } from "@/features/agent/history-button";
 import type { RefObject } from "react";
 import { RefIcon } from "@/features/reference/symbols";
 import type { Contact } from "./store";
@@ -100,12 +101,13 @@ export function ContactAgent({
             </div>
           </div>
           <div className="xiaozhi-head-actions">
+            <AgentHistoryButton />
             <button
               type="button"
               className="agent-new-task"
               data-contact-action="new-agent-task"
-              aria-label="新建任务"
-              title="新建任务"
+              aria-label="新建会话"
+              title="新建会话"
               onClick={onNewTask}
             >
               <RefIcon name="new-task" />
