@@ -1,3 +1,8 @@
+import {
+  fillWeekWorkspaces,
+  weekInsights,
+  isWeekInsightPrompt,
+} from "../../workbench/model/demo-week";
 // Pure business rules preserved from the verified prototype; no DOM or global registration.
 
 const KEY = "eureka:workspaces:v2";
@@ -947,7 +952,7 @@ function sync(s, did, uid = SELF) {
 }
 // Cross-meeting signals are derived only from currently readable summaries.
 // These rules model the experience; they are not a remote AI inference service.
-function insights(w, uid = SELF) {
+function insights(w, uid = SELF, now = new Date()) {
   const files = visible(w, uid).filter((f) => f.status === "已总结");
   const evidence = (pattern) =>
     files.flatMap((f) => {
@@ -1042,7 +1047,7 @@ function insights(w, uid = SELF) {
         },
   );
   return {
-    items: findings,
+    items: [...weekInsights(files, now), ...findings],
     meetings: files.length,
     members: new Set(files.map((f) => f.owner)).size,
   };
@@ -1173,9 +1178,10 @@ function ask(w, prompt, fid, uid = SELF, historyId = null, options = {}) {
     !previous &&
     !fid &&
     !insight &&
-    /星海试点的交付承诺与验收准备尚未对齐|客户承诺与研发排期相差 5 天|验收标准已明确，异常处理仍未对齐|跨会议追溯，正在成为共同需求/.test(
-      prompt,
-    )
+    (isWeekInsightPrompt(prompt) ||
+      /星海试点的交付承诺与验收准备尚未对齐|客户承诺与研发排期相差 5 天|验收标准已明确，异常处理仍未对齐|跨会议追溯，正在成为共同需求/.test(
+        prompt,
+      ))
   )
     return {
       answer:
@@ -1292,7 +1298,8 @@ function acceptInvite(s, iid) {
   return w;
 }
 // Versioned, additive migration: never replace user recordings or edited contacts.
-function enrich(s) {
+function enrich(s, now = new Date()) {
+  fillWeekWorkspaces(s, now);
   for (const w of s.spaces.filter(
     (w) => w.type === "team" && w.status !== "dissolved",
   )) {
@@ -1626,7 +1633,7 @@ const workspaceModel = {
   SELF,
   id,
   clone,
-  seed: () => enrich(seed()),
+  seed: (now) => enrich(seed(), now),
   enrich,
   insights,
   history,

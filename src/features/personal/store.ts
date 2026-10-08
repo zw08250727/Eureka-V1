@@ -1,4 +1,9 @@
 import {
+  fillWeekActions,
+  fillWeekThoughts,
+  type WeekThoughtState,
+} from "@/features/workbench/model/demo-week";
+import {
   seedActions,
   seedThoughts,
 } from "@/features/workbench/model/local-repository";
@@ -102,11 +107,11 @@ export function validateAction(r: ActionRecord) {
   if (r.location.length > 300 || r.participants.length > 300)
     throw Error("地点和参与人各不能超过 300 字");
 }
-export function createActions(storage: Storage) {
+export function createActions(storage: Storage, now = () => new Date()) {
   const store = createJsonStore<ActionState>(
     storage,
     "eureka:personal-actions:v1",
-    () => seedActions(new Date()),
+    () => seedActions(now()),
     (v) =>
       !!v &&
       typeof v === "object" &&
@@ -114,6 +119,7 @@ export function createActions(storage: Storage) {
       v.version === 1 &&
       "records" in v &&
       Array.isArray(v.records),
+    (value) => fillWeekActions(value, now()),
   );
   return {
     ...store,
@@ -174,11 +180,11 @@ export function createActions(storage: Storage) {
     },
   };
 }
-export function createThoughts(storage: Storage) {
-  const store = createJsonStore<{ version: 1; records: ThoughtRecord[] }>(
+export function createThoughts(storage: Storage, now = () => new Date()) {
+  const store = createJsonStore<WeekThoughtState>(
     storage,
     "eureka:thoughts:v1",
-    () => ({ version: 1, records: seedThoughts(new Date()) }),
+    () => ({ version: 1, records: seedThoughts(now()) }),
     (v) =>
       !!v &&
       typeof v === "object" &&
@@ -186,6 +192,7 @@ export function createThoughts(storage: Storage) {
       v.version === 1 &&
       "records" in v &&
       Array.isArray(v.records),
+    (value) => fillWeekThoughts(value, now()),
   );
   return {
     ...store,

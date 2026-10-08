@@ -1,3 +1,9 @@
+import {
+  fillWeekActions,
+  fillWeekThoughts,
+  type WeekThoughtState,
+} from "./demo-week";
+import { createWorkspaceStore } from "../../spaces/model/store";
 import baseline from "./baseline.json";
 import { localDay } from "./selectors";
 import type {
@@ -113,6 +119,10 @@ export function createLocalRepository(
       )
     )
       throw Error("闪念记录格式无效，请保留浏览器数据后重试。");
+    const thoughts = fillWeekThoughts(
+      thoughtValue as unknown as WeekThoughtState,
+      now(),
+    );
     const patches = parse(
       storage.getItem("eureka:meeting-details:v1"),
       {},
@@ -167,11 +177,7 @@ export function createLocalRepository(
     ];
     let accountName = "张伟",
       personalPlan = "标准版";
-    const workspace = parse(
-      storage.getItem("eureka:workspaces:v2"),
-      null,
-      "工作空间",
-    );
+    const workspace = createWorkspaceStore(storage, now).read();
     if (workspace !== null) {
       if (
         !object(workspace) ||
@@ -202,9 +208,9 @@ export function createLocalRepository(
             creator: accountName,
             tag: Array.isArray(f.tags) ? f.tags.join("、") : "设备录音",
             duration: `${f.duration || 0} 分钟`,
-            status: String(f.status),
+            status: String(f.status || "已总结"),
             created: String(f.created),
-            updated: String(f.updated),
+            updated: String(f.updated || f.created || "—"),
           });
         }
       }
@@ -227,9 +233,7 @@ export function createLocalRepository(
           .map((w) => ({
             id: String(w.id),
             name: String(w.name),
-            members: (w.members as Record<string, unknown>[]).filter(
-              (m) => m.status === "active",
-            ).length,
+            members: w.members.filter((m) => m.status === "active").length,
           })),
       );
     }
@@ -259,7 +263,7 @@ export function createLocalRepository(
       : 6;
     return {
       actions: clone(actions.records),
-      thoughts: clone(thoughtValue.records as ThoughtRecord[]),
+      thoughts: clone(thoughts.records),
       meetings,
       spaces,
       accountName,
@@ -277,7 +281,7 @@ export function createLocalRepository(
     const value = parse(rawActions, seedActions(now()), "个人记录");
     if (!actionState(value))
       throw Error("个人记录格式无效，请保留浏览器数据后重试。");
-    actions = value;
+    actions = fillWeekActions(value, now());
     rawUploads = storage.getItem(UPLOAD_KEY);
     const files = parse(rawUploads, [], "上传记录");
     if (
