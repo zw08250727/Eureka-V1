@@ -36,6 +36,7 @@ export function appUrl(
     space: view === "spaces" ? id : workspace,
   });
   if (id && view !== "spaces") query.set("id", id);
+  if (current?.get("demo") === "create-team") query.set("demo", "create-team");
   if (actor || current?.get("actor"))
     query.set("actor", actor || current!.get("actor")!);
   if (
