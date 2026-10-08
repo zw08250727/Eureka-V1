@@ -1,4 +1,6 @@
 "use client";
+import { useSceneAgent } from "@/features/agent/session";
+import { AgentHistoryButton } from "@/features/agent/history-button";
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { RefIcon as Icon } from "@/features/reference/symbols";
 import type { AgentGateway } from "@/features/workbench/model/types";
@@ -17,6 +19,7 @@ export function MeetingAgent({
   host: RefObject<HTMLDivElement | null>;
   gateway?: AgentGateway;
 }) {
+  const agent = useSceneAgent("meeting", r.id);
   const [sessions, setSessions] = useState<Record<string, Session>>({}),
     [sources, setSources] = useState(false),
     [audio, setAudio] = useState(false),
@@ -114,6 +117,7 @@ export function MeetingAgent({
         text = [reply.text, ...reply.items].join("\n");
       }
       if (!controller.signal.aborted) {
+        agent.record(prompt, text);
         setSessions((prev) => ({
           ...prev,
           [id]: {
@@ -196,13 +200,15 @@ export function MeetingAgent({
             </div>
           </div>
           <div className="xiaozhi-head-actions">
+            <AgentHistoryButton />
             <button
               type="button"
               className="agent-new-task"
               id="xiaozhi-new-task"
-              aria-label="新建任务"
-              title="新建任务"
+              aria-label="新建会话"
+              title="新建会话"
               onClick={() => {
+                agent.reset();
                 abort.current?.abort();
                 change({ input: "", messages: [] });
                 setError("");

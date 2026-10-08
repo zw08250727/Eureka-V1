@@ -11,19 +11,13 @@ import {
 import { createPortal } from "react-dom";
 import { RefIcon, Symbols } from "./symbols";
 import { appUrl, assetUrl, basePath, prdUrl, type AppView } from "@/lib/routes";
+import { AgentScope } from "@/features/agent/history-button";
 import { PageTitleContext } from "./page-title";
 import { RecordingPermission } from "@/features/meetings/recording-permission";
 import { CreateTeamDialog, InvitationsDialog } from "@/features/spaces/setup";
-import { TeamTaskList } from "@/features/spaces/tasks";
 import { M } from "@/features/spaces/model/store";
 import PS from "@/features/spaces/model/subscription";
 import type { SpacesController } from "@/features/spaces/use-spaces";
-const personalHistory = [
-  ["本周会议决策整理", "今天"],
-  ["研发周报自动整理", "09:00"],
-  ["客户访谈高频问题", "昨天"],
-  ["周报与行动项", "周五"],
-];
 export function ReferenceShell({
   children,
   title,
@@ -66,7 +60,6 @@ export function ReferenceShell({
   const [collapsed, setCollapsed] = useState(false),
     [menu, setMenu] = useState<"spaces" | "account" | null>(null),
     [position, setPosition] = useState<CSSProperties>({}),
-    [auto, setAuto] = useState(false),
     [download, setDownload] = useState(false),
     [toast, setToast] = useState("");
   const menuRef = useRef<HTMLDivElement>(null),
@@ -114,6 +107,11 @@ export function ReferenceShell({
       if (toastTimer.current) clearTimeout(toastTimer.current);
     };
   }, []);
+  useEffect(() => {
+    const listener = (e: Event) => notify((e as CustomEvent<string>).detail);
+    window.addEventListener("eureka:notice", listener);
+    return () => window.removeEventListener("eureka:notice", listener);
+  }, []);
   function go(v: AppView, id = "", wid = space) {
     if (v === "recording" && !team && !skipRecordPermission) {
       setRecordRequest({ id });
@@ -157,6 +155,7 @@ export function ReferenceShell({
     <PageTitleContext.Provider
       value={{ baseTitle: title, setTitle: setPageTitle }}
     >
+      <AgentScope.Provider value={{ controller, space, actor }}>
       <Symbols />
       <div className="app">
         <aside className="sidebar" id="workspace-sidebar">
@@ -316,14 +315,6 @@ export function ReferenceShell({
                 <>
                   <div className="ws-nav-label">工作空间</div>
                   {nav("团队成员", "users", "members", view === "members")}
-                  <button
-                    type="button"
-                    className="ws-btn"
-                    onClick={() => notify("即将上线")}
-                  >
-                    <RefIcon name="skill-breakdown" className="ws-icon" />
-                    任务管理
-                  </button>
                   {nav("设备管理", "phone", "devices", view === "devices")}
                   {admin
                     ? nav(
@@ -341,96 +332,6 @@ export function ReferenceShell({
                 </>
               ) : null}
             </nav>
-            {team ? (
-              <TeamTaskList
-                controller={controller}
-                space={space}
-                actor={actor}
-              />
-            ) : (
-              <div id="ws-history" />
-            )}
-            <div className="side-groups" />
-            {!team ? (
-              <section
-                className="history-section"
-                aria-labelledby="history-task-title"
-              >
-                <div className="history-title" id="history-task-title">
-                  项目
-                </div>
-                <div
-                  className="history-tabs"
-                  role="tablist"
-                  aria-label="项目分类"
-                >
-                  {["全部任务", "自动任务"].map((label, i) => (
-                    <button
-                      className={
-                        "history-tab " + (auto === !!i ? "active" : "")
-                      }
-                      id={i ? "history-tab-scheduled" : "history-tab-all"}
-                      type="button"
-                      role="tab"
-                      aria-selected={auto === !!i}
-                      aria-controls="history-task-list"
-                      key={label}
-                      onClick={() => setAuto(!!i)}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-                <div
-                  className="history"
-                  id="history-task-list"
-                  role="tabpanel"
-                  aria-live="polite"
-                  aria-labelledby={
-                    auto ? "history-tab-scheduled" : "history-tab-all"
-                  }
-                >
-                  {personalHistory
-                    .filter((_, i) => !auto || i % 2 === 1)
-                    .map(([label, time]) => (
-                      <div
-                        className="history-row"
-                        aria-current={
-                          view === "history" &&
-                          typeof window !== "undefined" &&
-                          new URLSearchParams(location.search).get("id") ===
-                            label
-                            ? "true"
-                            : undefined
-                        }
-                        data-history-type={
-                          time.includes(":") || time === "周五"
-                            ? "scheduled"
-                            : "normal"
-                        }
-                        role="button"
-                        tabIndex={0}
-                        key={label}
-                        onClick={() => go("history", label)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ")
-                            go("history", label);
-                        }}
-                      >
-                        <RefIcon
-                          name={
-                            time.includes(":") || time === "周五"
-                              ? "clock"
-                              : "chat"
-                          }
-                        />
-                        <span className="history-text">{label}</span>
-                        <span className="history-time">{time}</span>
-                      </div>
-                    ))}
-                </div>
-              </section>
-            ) : null}
           </div>
           <div className="user-footer">
             <button
@@ -595,7 +496,7 @@ export function ReferenceShell({
               </div>
               <div className="ws-menu-caption">工作空间</div>
               {data.spaces
-                .filter((s) => M.member(s))
+                .filter((s) => M.member(s) && (s.type === "personal" || s.id === M.accountTeam(data)?.id))
                 .map((s) => (
                   <button
                     type="button"
@@ -632,7 +533,8 @@ export function ReferenceShell({
                 className="ws-btn ws-menu-item"
                 onClick={() => {
                   setMenu(null);
-                  setSetupDialog("create");
+                  try { M.assertCanJoinTeam(data); setSetupDialog("create"); }
+                  catch (e) { notify((e as Error).message); }
                 }}
               >
                 <RefIcon name="plus" className="ws-icon" />
@@ -702,6 +604,7 @@ export function ReferenceShell({
       <div className={"toast " + (toast ? "show" : "")} role="status">
         {toast}
       </div>
+      </AgentScope.Provider>
     </PageTitleContext.Provider>
   );
 }

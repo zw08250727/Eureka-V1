@@ -1,4 +1,5 @@
 "use client";
+import { useSceneAgent } from "@/features/agent/session";
 import {
   useEffect,
   useLayoutEffect,
@@ -50,6 +51,7 @@ function ContactButton({
 export function ContactsPage({ id }: { id: string }) {
   const { data, error, repo, refresh } = usePersonal();
   const [selected, setSelected] = useState(id || "john");
+  const agent = useSceneAgent("contacts", selected);
   const [detail, setDetail] = useState(Boolean(id));
   const [tab, setTab] = useState("概览");
   const [query, setQuery] = useState("");
@@ -414,16 +416,17 @@ export function ContactsPage({ id }: { id: string }) {
               inputRef={inputRef}
               onAsk={(question) => {
                 resetContentScroll();
-                setAnswer(contactAnswer(question, person));
+                setAnswer(agent.run(question, () => contactAnswer(question, person)));
               }}
               onSend={() => {
                 if (draft.trim()) {
                   resetContentScroll();
-                  setAnswer(contactAnswer(draft.trim(), person));
+                  setAnswer(agent.run(draft.trim(), () => contactAnswer(draft.trim(), person)));
                   setDraft("");
                 }
               }}
               onNewTask={() => {
+                agent.reset();
                 resetContentScroll();
                 setAnswer("");
                 setDraft("");

@@ -10,7 +10,7 @@ test("native meeting tabs, local audio, drafts and generation stay isolated", as
   await expect(page.locator("#note-detail-title")).toHaveText(
     "三季度产品复盘会议",
   );
-  await expect(page.locator(".md-library-item")).toHaveCount(20);
+  await expect(page.locator('.md-library-item[data-md-meeting^="meeting-"]')).toHaveCount(20);
   await expect(
     page.getByRole("tablist", { name: "录音详情内容" }).getByRole("tab"),
   ).toHaveText([
@@ -49,9 +49,9 @@ test("native meeting tabs, local audio, drafts and generation stay isolated", as
     "正文不能为空",
   );
   await editor.fill("原生会议草稿");
-  await page.locator(".md-library-item").nth(1).click();
+  await page.locator('[data-md-meeting="meeting-2"]').click();
   await expect(editor).toHaveCount(0);
-  await page.locator(".md-library-item").first().click();
+  await page.locator('[data-md-meeting="meeting-1"]').click();
   await expect(editor).toHaveText("原生会议草稿");
   await editor.press("ControlOrMeta+a");
   await page.getByRole("button", { name: "加粗", exact: true }).click();
@@ -174,12 +174,12 @@ test("native meeting viewport and Agent preserve conversation and draft", async 
   await page.getByRole("button", { name: "Ask Agent", exact: true }).click();
   await expect(page.locator("#xiaozhi-input")).toHaveValue("继续整理负责人");
   await page.getByRole("button", { name: "切换录音列表" }).click();
-  await page.locator(".md-library-item").nth(1).click();
+  await page.locator('[data-md-meeting="meeting-2"]').click();
   await expect(page.locator(".md-agent-messages")).not.toContainText(
     "会议追问",
   );
   await page.getByRole("button", { name: "切换录音列表" }).click();
-  await page.locator(".md-library-item").first().click();
+  await page.locator('[data-md-meeting="meeting-1"]').click();
   await expect(page.locator("#xiaozhi-input")).toHaveValue("继续整理负责人");
   await expect(page.getByRole("textbox", { name: "编辑正文" })).toHaveText(
     "未保存内容",

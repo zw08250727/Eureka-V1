@@ -1,4 +1,5 @@
 "use client";
+import { AgentHistoryButton } from "@/features/agent/history-button";
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { RefIcon } from "@/features/reference/symbols";
 import { M } from "./model/store";
@@ -202,11 +203,12 @@ export function TeamHomeAgent({
             </div>
           </div>
           <div className="agent-head-actions">
+            <AgentHistoryButton />
             <Button
               action="agent-new"
               className="agent-new-task"
-              aria-label="新建任务"
-              title="新建任务"
+              aria-label="新建会话"
+              title="新建会话"
               onClick={() => {
                 setFresh(true);
                 setHistoryId(undefined);

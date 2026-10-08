@@ -22,8 +22,8 @@ async function contacts(page: Page) {
   await page.goto("/workbench/?view=contacts&space=personal");
   await expect(page.locator(".contacts-person-card").first()).toBeVisible();
 }
-async function settings(page: Page, space = "personal") {
-  await page.goto(`/workbench/?view=settings&space=${space}`);
+async function settings(page: Page, space = "personal", actor = "zhang") {
+  await page.goto(`/workbench/?view=settings&space=${space}&actor=${actor}`);
   await expect(page.locator(".settings-profile")).toBeVisible();
 }
 async function openAdd(page: Page, name: string) {
@@ -371,11 +371,11 @@ test("native settings: language and summary persist across reload and Personal/T
   await expect(language).toHaveValue("zh-Hant");
   await expect(notes).toHaveValue("zh-Hans");
   await expect(summary).toHaveAttribute("aria-checked", "false");
-  for (const [space, name, role] of [
-    ["team-eureka", "EurekaMind 产品团队", "管理员"],
-    ["team-design", "设计共创空间", "成员"],
+  for (const [space, name, role, actor] of [
+    ["team-eureka", "EurekaMind 产品团队", "管理员", "zhang"],
+    ["team-eureka", "EurekaMind 产品团队", "成员", "kevin"],
   ]) {
-    await settings(page, space);
+    await settings(page, space, actor);
     await expect(page.locator(".settings-profile small")).toHaveText(
       `Team Unlimited · ${name} · ${role}`,
     );

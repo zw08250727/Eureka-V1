@@ -1,4 +1,6 @@
 "use client";
+import { useSceneAgent } from "@/features/agent/session";
+import { AgentHistoryButton } from "@/features/agent/history-button";
 import {
   Fragment,
   useEffect,
@@ -48,6 +50,7 @@ export function CalendarAgent({
   onOpen: (r: ActionRecord) => void;
   navigationGuardRef: RefObject<((next: () => void) => void) | null>;
 }) {
+  const agent = useSceneAgent("calendar", selected?.id || "");
   const [prompt, setPrompt] = useState(""),
     [ids, setIds] = useState<string[]>([]),
     [web, setWeb] = useState(false),
@@ -220,6 +223,7 @@ export function CalendarAgent({
           ),
         },
       ]);
+      agent.record(text, pending.length ? pending.slice(0, 8).map((r) => `${r.title} · ${localDate(r.start)}`).join("\n") : "暂无匹配的日程与待办。");
       setPrompt("");
       return;
     }
@@ -233,6 +237,7 @@ export function CalendarAgent({
       if (type === "todo") parsed.end = "";
       const sid = crypto.randomUUID();
       repo.session(sid, text, parsed);
+      agent.record(text, `已生成${type === "todo" ? "待办" : "日程"}草稿：${parsed.title}。需要在日程场景确认后才会保存。`);
       setSessionId(sid);
       setDraft(parsed);
       setMessages((m) => [...m, { prompt: text, body: null }]);
@@ -257,6 +262,7 @@ export function CalendarAgent({
       });
       setMessages([]);
       setError("");
+      agent.record("确认保存", `已加入日程与待办：${r?.title || draft.title}`);
       setToast("已加入日程与待办");
       return true;
     } catch (e) {
@@ -324,14 +330,16 @@ export function CalendarAgent({
           </div>
         </div>
         <div className="agent-head-actions">
+            <AgentHistoryButton />
           <button
             type="button"
             className="agent-new-task"
             data-pa="new-agent-task"
-            aria-label="新建任务"
-            title="新建任务"
+            aria-label="新建会话"
+            title="新建会话"
             onClick={() =>
               guarded(() => {
+                agent.reset();
                 setActiveSession(undefined);
                 setMessages([]);
                 setPrompt("");

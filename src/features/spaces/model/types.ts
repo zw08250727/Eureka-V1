@@ -290,4 +290,6 @@ export interface WorkspaceAPI {
     options?: { fileIds?: string[]; web?: boolean; appData?: boolean },
   ): { answer: string; cost: number; threadId: string };
   acceptInvite(s: WorkspaceState, id: string): Workspace;
+  accountTeam(s: WorkspaceState, actor?: string): Workspace | undefined;
+  assertCanJoinTeam(s: WorkspaceState, actor?: string): void;
 }

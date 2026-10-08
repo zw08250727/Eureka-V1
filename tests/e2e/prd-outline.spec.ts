@@ -6,7 +6,7 @@ const url='/prototype/prd/index.html';
 
 test('hierarchical numbering stays stable through search, editing and Markdown export',async({page})=>{
   await page.goto(url);
-  await expect(page.locator('.nav-intro .version')).toHaveText('V1.1');
+  await expect(page.locator('.nav-intro .version')).toHaveText('V1.2');
   await expect(page.locator('.nav-group')).toHaveText(['一：产品定义','二：业务模型','三：个人工作台','四：团队版','五：交付约束','六：评审与验收']);
   await expect(page.locator('#navigation a[href="#overview"]')).toHaveText('1.1文档说明与决策摘要');
   await expect(page.locator('#navigation a[href="#objects"]')).toHaveText('2.1业务对象');
@@ -34,7 +34,7 @@ test('hierarchical numbering stays stable through search, editing and Markdown e
   expect(markdown).not.toContain('2.1.2 2.1.2');
 });
 
-test('scope excludes retired flows and Agent business details while retaining window UI',async({page})=>{
+test('scope defines one Agent and single team while excluding real service implementation',async({page})=>{
   await page.goto(url);
   await expect(page.locator('#journeys .flow-svg')).toHaveCount(4);
   for(const text of ['F-01','F-02','F-07','个人日程与待办闭环'])await expect(page.locator('#journeys')).not.toContainText(text);
@@ -42,16 +42,17 @@ test('scope excludes retired flows and Agent business details while retaining wi
   for(const topic of ['登录与注册','WiseNote PC','Agentplatform','调用逻辑','运行状态与计费','历史任务调用','自动任务','窗口自适应'])await expect(boundary).toContainText(topic);
   await expect(page.locator('#auth')).toContainText('真实认证服务仍为范围外事项');
   await expect(page.locator('#auth')).toContainText('团队共识');
-  await expect(page.locator('#agent')).toContainText('1.2.3「参考与边界」');
+  await expect(page.locator('#agent')).toContainText('全站只有一个 Agent');
   await expect(page.locator('#acceptance tbody tr').filter({hasText:'登录注册界面'})).toHaveCount(1);
-  await expect(page.locator('#agent .prose table,#agent .prose .flow-svg')).toHaveCount(0);
+  await expect(page.locator('#agent .prose table')).toHaveCount(1);
+  await expect(page.locator('#agent')).toContainText('对应数据 MCP 范围');
   await expect(page.locator('#meeting-detail .prose li')).toHaveText(['参考 WiseNote PC 的会议详情页和核心功能。']);
   await expect(page.locator('#meeting-detail .prose table,#meeting-detail .prose figure')).toHaveCount(0);
   await expect(page.locator('#agent-process')).toContainText('300–760px');
   await expect(page.locator('#agent-process')).toContainText('24px');
   await expect(page.locator('#agent-process')).toContainText('小窗口与窄屏');
   await expect(page.locator('#thoughts')).toContainText('跨日');
-  await expect(page.locator('#settings')).toContainText('保存失败整批回滚');
+  await expect(page.locator('#settings')).toContainText('保留输入及原有效值');
   const doc=JSON.parse(await readFile('src/prototype/prd/content.json','utf8'));
   const all=doc.sections.map((s:{body:string})=>s.body).join('\n');
   const defined=new Set(doc.sections.find((s:{id:string})=>s.id==='acceptance').body.match(/AC-\d+/g));

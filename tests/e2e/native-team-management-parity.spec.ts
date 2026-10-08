@@ -100,7 +100,7 @@ test("native members: pending invite, accept, roles, resend, removal and refresh
   ).toBe(before);
 });
 
-test("native members: member permissions and sole-admin handoff block", async ({
+test("native members: member permissions and no exit for any role", async ({
   page,
 }) => {
   await seed(page, (s) => {
@@ -113,13 +113,9 @@ test("native members: member permissions and sole-admin handoff block", async ({
   await expect(
     page.locator("#ws-view [data-ws-action=member-role]"),
   ).toHaveCount(0);
-  await action(page, "leave").click();
-  await expect(page.locator("#ws-toast")).toContainText("请先切回自己的视角");
+  await expect(action(page, "leave")).toHaveCount(0);
   await open(page, "members");
-  await action(page, "leave").click();
-  await expect(dialog(page).locator("h2")).toHaveText("请先交接管理员");
-  await dialog(page).getByRole("button", { name: "前往成员管理" }).click();
-  await expect(page.locator(".ws-page-head h1")).toHaveText("成员与角色");
+  await expect(action(page, "leave")).toHaveCount(0);
 });
 
 test("native members: invalid/full invites and failed storage preserve form and data", async ({
@@ -242,33 +238,18 @@ test("native settings: immutable region, rename persistence, conflict and audit 
   await expect(page.locator(".ws-list")).not.toContainText("私有");
 });
 
-test("native dissolve: exact-name guard and closure receipt, frozen credits and cancelled orders", async ({
-  page,
-}) => {
+test("native settings do not expose dissolution", async ({ page }) => {
   await seed(page);
+  const before = M.seed();
   await open(page, "space-settings");
-  const before = M.get(await read(page), "team-eureka");
-  await action(page, "dissolve").click();
-  await expect(dialog(page).locator(".ws-exit-rules > div")).toHaveCount(5);
-  await dialog(page).locator("[name=confirmName]").fill("wrong");
-  await dialog(page).getByRole("button", { name: "确认解散团队" }).click();
-  await expect(dialog(page).locator(".ws-form-error")).toContainText("名称");
-  await dialog(page).locator("[name=confirmName]").fill(before.name);
-  await dialog(page).getByRole("button", { name: "确认解散团队" }).click();
-  await expect(dialog(page).locator("h2")).toHaveText("团队已解散");
-  const after = M.get(await read(page), "team-eureka");
-  expect(after.status).toBe("dissolved");
-  expect(after.renew).toBe(false);
-  expect(after.closure!.frozenCredits).toBe(M.creditBalance(before));
-  const download = page.waitForEvent("download");
-  await dialog(page).getByRole("button", { name: "下载结算记录" }).click();
-  expect((await download).suggestedFilename()).toContain("解散结算记录");
+  await expect(page.getByRole("button", { name: /退出团队|解散团队/ })).toHaveCount(0);
+  expect((await read(page)).spaces).toEqual(before.spaces);
 });
 
 test("native create team: plans, draft recovery, failure, retry, success invite and cancellation", async ({
   page,
 }) => {
-  await seed(page);
+  await seed(page, (s) => { s.spaces = s.spaces.filter((w) => w.type === "personal"); s.devices = []; });
   await open(page, "create-team", "zhang", "personal");
   await expect(dialog(page)).toHaveClass(/ws-dialog-wide/);
   await dialog(page).getByRole("button", { name: "月付", exact: true }).click();
@@ -293,32 +274,11 @@ test("native create team: plans, draft recovery, failure, retry, success invite 
   await expect(dialog(page).locator("h2")).toHaveText("邀请空间成员");
 });
 
-test("native own automatic task: save, paused-run guard, simulation and own history", async ({
-  page,
-}) => {
+test("native task management routes are no longer available", async ({ page }) => {
   await seed(page);
-  await open(page, "tasks");
-  await dialog(page).locator("[name=title]").fill("原生自动任务");
-  await dialog(page).locator("[name=prompt]").fill("整理当前团队的会议行动项");
-  await dialog(page).getByRole("button", { name: "保存任务" }).click();
-  const task = M.scheduledTasks(
-    M.get(await read(page), "team-eureka"),
-    "zhang",
-  ).find((t) => t.title === "原生自动任务")!;
-  await open(page, "tasks", "zhang", "team-eureka", task.id);
-  await dialog(page).getByRole("button", { name: "暂停任务" }).click();
-  await expect(
-    dialog(page).getByRole("button", { name: "模拟运行" }),
-  ).toBeDisabled();
-  await dialog(page).getByRole("button", { name: "启用任务" }).click();
-  await dialog(page).getByRole("button", { name: "模拟运行" }).click();
-  await expect(page.locator(".ws-agent-history-context h3")).toHaveText(
-    "原生自动任务",
-  );
-  await expect(page.locator(".ws-chat-answer")).not.toBeEmpty();
-  await page.locator(".ws-composer textarea").fill("继续整理");
-  await page.locator(".ws-composer [type=submit]").click();
-  await expect(page.locator(".ws-chat-user")).toHaveCount(2);
+  await page.goto(route("tasks"));
+  await expect(page.getByText("此入口不属于当前工作空间。", { exact: true })).toBeVisible();
+  await expect(page.locator(".sidebar")).not.toContainText(/任务管理|全部任务|自动任务|历史会话/);
 });
 
 for (const width of [1920, 1440, 1024, 390])
@@ -350,43 +310,12 @@ for (const width of [1920, 1440, 1024, 390])
     ).toBeTruthy();
   });
 
-test("native leave: active second admin allows leaving with device/task cleanup and personal return", async ({
-  page,
-}) => {
-  await seed(page, (s) => {
-    const w = M.get(s, "team-eureka");
-    M.registerDevice(
-      s,
-      w.id,
-      { serial: "EXIT-DEVICE-001", model: "W2", user: "zhang" },
-      "zhang",
-    );
-    M.saveTask(
-      w,
-      {
-        title: "离开后暂停",
-        prompt: "整理会议",
-        frequency: "daily",
-        time: "09:00",
-      },
-      "zhang",
-    );
-  });
+test("native members do not expose exit", async ({ page }) => {
+  await seed(page);
+  const before = M.seed();
   await open(page, "members");
-  await action(page, "leave").click();
-  await expect(dialog(page).locator(".ws-exit-rules > div")).toHaveCount(4);
-  await dialog(page).getByRole("button", { name: "确认退出团队" }).click();
-  await expect(page).toHaveURL(/space=personal/);
-  const s = await read(page),
-    w = M.get(s, "team-eureka");
-  expect(w.members.find((m) => m.id === "zhang")!.status).toBe("removed");
-  expect(
-    s.devices.find((d) => d.serial === "EXIT-DEVICE-001")!.spaceId,
-  ).toBeNull();
-  expect(w.automaticTasks.find((t) => t.title === "离开后暂停")!.enabled).toBe(
-    false,
-  );
-  expect(w.seats).toBe(6);
+  await expect(page.getByRole("button", { name: /退出团队|解散团队/ })).toHaveCount(0);
+  expect((await read(page)).spaces).toEqual(before.spaces);
 });
 
 test("native sole-admin demotion is rejected; pending revoke releases capacity", async ({
@@ -490,7 +419,7 @@ test("native settings: expired write denied, nonadmin denial, and empty audit", 
 test("native creation cancellation and stale draft do not create teams", async ({
   page,
 }) => {
-  await seed(page);
+  await seed(page, (s) => { s.spaces = s.spaces.filter((w) => w.type === "personal"); s.devices = []; });
   await open(page, "create-team", "zhang", "personal");
   await dialog(page)
     .getByRole("button", { name: "创建团队", exact: true })
@@ -525,7 +454,7 @@ test("native creation cancellation and stale draft do not create teams", async (
 test("native incoming invitations: decline to empty and accept into isolated team", async ({
   page,
 }) => {
-  await seed(page);
+  await seed(page, (s) => { s.spaces = s.spaces.filter((w) => w.type === "personal"); s.devices = []; });
   await open(page, "invitations", "zhang", "personal");
   await expect(dialog(page).locator(".ws-invitation")).toContainText("王晨");
   await dialog(page).getByRole("button", { name: "婉拒" }).click();
@@ -543,45 +472,7 @@ test("native incoming invitations: decline to empty and accept into isolated tea
   expect((await read(page)).invitations[0].status).toBe("accepted");
 });
 
-test("native task privacy, low credits, deleted results, sources and keyboard resizing", async ({
-  page,
-}) => {
-  const s = M.seed(),
-    w = M.get(s, "team-eureka");
-  const t = M.saveTask(
-    w,
-    {
-      title: "额度与权限验证",
-      prompt: "整理团队会议",
-      frequency: "daily",
-      time: "09:00",
-    },
-    "zhang",
-  );
-  t.runs = [
-    { time: "2026-10-07 09:00", status: "success", threadId: "removed-thread" },
-  ];
-  w.credits.used = w.credits.total;
-  await page.addInitScript((s) => {
-    if (!sessionStorage.getItem("native-team-management-seeded")) {
-      localStorage.setItem("eureka:workspaces:v2", JSON.stringify(s));
-      sessionStorage.setItem("native-team-management-seeded", "1");
-    }
-  }, s);
-  await open(page, "tasks", "kevin", "team-eureka", t.id);
-  await expect(dialog(page).locator(".ws-form-error")).toContainText(
-    "无权访问",
-  );
-  await open(page, "tasks", "zhang", "team-eureka", t.id);
-  await expect(dialog(page)).toContainText("会话已删除或不可访问");
-  await dialog(page).getByRole("button", { name: "模拟运行" }).click();
-  await expect(page.locator("#ws-toast")).toBeVisible();
-  expect(
-    M.scheduledTasks(M.get(await read(page), "team-eureka"), "zhang").find(
-      (x) => x.id === t.id,
-    )!.runs,
-  ).toHaveLength(1);
-});
+
 
 test("native personal history: exact replies, continuation, sources, new task and resize", async ({
   page,

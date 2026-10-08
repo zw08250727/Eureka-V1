@@ -1,4 +1,6 @@
 "use client";
+import { readSessions, useSceneAgent } from "@/features/agent/session";
+import { AgentHistoryButton } from "@/features/agent/history-button";
 import { Fragment, useLayoutEffect, useEffect, useRef, useState } from "react";
 import { useAgentLayout } from "@/features/reference/use-agent-layout";
 import { M } from "./model/store";
@@ -10,6 +12,7 @@ import {
   ManagementDialog as Dialog,
   managementDate,
 } from "./management-ui";
+import { SCENES } from "@/features/agent/registry";
 import personalHistory from "@/features/personal/history-seeds.json";
 export const personalHistoryTitles = [
   "本周会议决策整理",
@@ -192,11 +195,12 @@ export function TeamHistoryAgent({
           </div>
         </div>
         <div className="agent-head-actions">
+            <AgentHistoryButton />
           <Button
             action="agent-new"
             className="agent-new-task"
-            aria-label="新建任务"
-            title="新建任务"
+            aria-label="新建会话"
+            title="新建会话"
             onClick={() => {
               setSelected("");
               setInput("");
@@ -411,8 +415,18 @@ export function PersonalHistoryAgent({
     return () => document.body.classList.remove("xiaozhi-open");
   }, []);
   useAgentLayout(rail, true, true);
-  const index = Math.max(0, personalHistoryTitles.indexOf(id)),
-    seed = personalHistory[index];
+  const [saved] = useState(() => {
+    try { return readSessions(localStorage).find((s) => (s.id === id || s.id === "seed:" + id) && s.space === "personal" && s.actor === (new URLSearchParams(location.search).get("actor") || "zhang")); }
+    catch { return undefined; }
+  });
+  const index = personalHistoryTitles.indexOf(id);
+  const seed = saved ? {
+    ...personalHistory[0], messages: saved.messages,
+    source: SCENES[saved.scene]?.label || "历史会话",
+    next: "基于这条会话继续梳理下一步",
+    followup: "这条历史会话已恢复。当前为本地模拟；需要最新数据或执行操作时，请回到对应场景。",
+  } : personalHistory[index] || { ...personalHistory[0], messages: [], source: "不可用", next: "", followup: "会话不存在或已删除。" };
+  const agent = useSceneAgent(saved?.scene || "home", saved?.sourceId || "", saved?.id || (index >= 0 ? "seed:" + id : undefined), { title: personalHistoryTitles[index] || id, messages: seed.messages });
   const [fresh, setFresh] = useState(false);
   const [messages, setMessages] = useState(seed.messages),
     [input, setInput] = useState(""),
@@ -432,17 +446,11 @@ export function PersonalHistoryAgent({
     return () => document.removeEventListener("click", close);
   }, []);
   function send() {
-    if (!input.trim()) return;
-    setMessages((rows) => [
-      ...rows,
-      { role: "user", text: input.trim() },
-      {
-        role: "assistant",
-        text: fresh
-          ? input.trim()
-          : `收到你的补充：“${input.trim()}”\n\n结合这条会话的已有记录，${seed.followup}\n\n${web ? "联网搜索已选，当前仅模拟，未执行真实检索。" : "模拟回复，尚未调用 AI 服务。"}`,
-      },
-    ]);
+    if (!input.trim() || (!fresh && !saved && index < 0)) return;
+    const text = agent.run(input.trim(), () => fresh
+      ? `已收到：${input.trim()}。当前为本地模拟。`
+      : `收到你的补充：“${input.trim()}”\n\n${seed.followup}\n\n${web ? "当前未执行真实联网检索。" : "模拟回复，尚未调用 AI 服务。"}`);
+    setMessages((rows) => [...rows, { role: "user", text: input.trim() }, { role: "assistant", text }]);
     setInput("");
     requestAnimationFrame(() => {
       if (log.current) log.current.scrollTop = log.current.scrollHeight;
@@ -469,13 +477,15 @@ export function PersonalHistoryAgent({
             </div>
           </div>
           <div className="xiaozhi-head-actions">
+            <AgentHistoryButton />
             <button
               type="button"
               className="agent-new-task"
               id="xiaozhi-new-task"
-              aria-label="新建任务"
-              title="新建任务"
+              aria-label="新建会话"
+              title="新建会话"
               onClick={() => {
+                agent.reset();
                 setFresh(true);
                 setMessages([]);
                 setInput("");
@@ -556,7 +566,7 @@ export function PersonalHistoryAgent({
                 历史会话 <small>模拟对话</small>
               </span>
               <h3 id="agent-history-title" tabIndex={-1}>
-                {personalHistoryTitles[index]}
+                {saved?.title || personalHistoryTitles[index] || "会话不存在或已删除"}
               </h3>
               <p id="agent-history-source">{`已带入上下文 · ${seed.source}`}</p>
             </header>

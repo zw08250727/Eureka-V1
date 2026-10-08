@@ -29,7 +29,6 @@ type Dialog =
   | { type: "seats"; increaseOnly: boolean }
   | { type: "pack" }
   | { type: "billing" }
-  | { type: "leave" }
   | { type: "confirm"; title: string; copy: string; run: () => void }
   | null;
 export function BillingPage({
@@ -180,13 +179,6 @@ export function BillingPage({
             2,
           ),
         );
-        return;
-      }
-      if (action === "leave") {
-        if (!M.member(w, actor)) throw Error("请进入有效的团队空间");
-        if (actor !== M.SELF)
-          throw Error("请先切回自己的视角，再操作团队退出或解散");
-        setModal({ type: "leave" });
         return;
       }
       M.govern(w, actor);
@@ -613,58 +605,7 @@ export function BillingPage({
           </label>
         </WsDialog>
       ) : null}
-      {modal?.type === "leave" ? (
-        <WsDialog
-          title="退出团队"
-          form="leave"
-          error={error}
-          onClose={close}
-          footer={
-            <>
-              {cancel}
-              <button className="ws-btn danger" type="submit">
-                确认退出团队
-              </button>
-            </>
-          }
-          onSubmit={(e) => {
-            e.preventDefault();
-            guard(() => {
-              controller.change((s) => M.leave(s, M.get(s, space), actor));
-              location.assign(appUrl("home", "", "personal", M.SELF));
-            });
-          }}
-        >
-          <p className="ws-exit-name">{w.name}</p>
-          <dl className="ws-exit-rules">
-            {[
-              [
-                "席位与订阅",
-                "释放你占用的 1 个席位，管理员可重新分配；已购席位、账单和续费不变，不自动退款或减席。",
-              ],
-              [
-                "转写与 Credits",
-                "你的团队 Unlimited 转写权益立即停止；Credits 属于团队，余额及历史消耗保留，不能带走。个人套餐与用量、其他团队权益不变。",
-              ],
-              [
-                "资料与设备",
-                "你将无法访问该团队的资料，已有资料留在原团队且保持原授权，不自动转入个人空间。你的设备解除与该团队的绑定，你在该团队创建的自动任务暂停。",
-              ],
-              [
-                "重新加入",
-                "退出后回到个人空间。再次加入需要管理员重新邀请，不会自动恢复设备绑定或启用自动任务。",
-              ],
-            ].map(([title, copy]) => (
-              <div key={title}>
-                <dt>{title}</dt>
-                <dd>{copy}</dd>
-              </div>
-            ))}
-          </dl>
-          <input type="hidden" name="workspaceId" value={w.id} />
-          <input type="hidden" name="actor" value={actor} />
-        </WsDialog>
-      ) : null}
+
     </>
   );
 }

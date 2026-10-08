@@ -329,13 +329,6 @@ export function TeamBilling({
           </Badge>
           <TeamTerm w={w} />
           <p>账单、席位和续费请联系团队管理员。</p>
-          <Button
-            action="leave"
-            className="danger"
-            onClick={() => act("leave")}
-          >
-            退出团队
-          </Button>
         </section>
       </>
     );

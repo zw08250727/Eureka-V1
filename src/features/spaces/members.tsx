@@ -14,8 +14,6 @@ import {
 } from "./management-ui";
 import {
   InviteMembersDialog,
-  ExitTeamDialog,
-  assertExitAllowed,
 } from "./management-dialogs";
 export function MembersPage({
   controller,
@@ -84,18 +82,6 @@ export function MembersPage({
                 邀请成员
               </Button>
             ) : null}
-            <Button
-              action="leave"
-              className="danger"
-              onClick={() =>
-                act(() => {
-                  assertExitAllowed(w, actor, "leave");
-                  setModal("leave");
-                })
-              }
-            >
-              退出团队
-            </Button>
           </>
         }
       />
@@ -243,15 +229,6 @@ export function MembersPage({
           actor={actor}
           onClose={() => setModal("")}
           onSaved={() => setNotice("模拟邀请已创建，可在成员列表体验接受流程")}
-        />
-      ) : null}
-      {modal === "leave" ? (
-        <ExitTeamDialog
-          controller={controller}
-          space={space}
-          actor={actor}
-          kind="leave"
-          onClose={() => setModal("")}
         />
       ) : null}
       {modal === "role" && member ? (
