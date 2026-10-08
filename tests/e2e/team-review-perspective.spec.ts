@@ -75,10 +75,10 @@ test("legacy team defaults to admin and header preview survives navigation witho
   await page.locator("#ws-menu").getByRole("button", { name: /个人工作空间/ }).click();
   await expect(page).not.toHaveURL(/perspective=/);
   await expect(page.locator("#recent-meeting-title")).toBeVisible();
-  await expect(toggle).toHaveCount(0);
+  await expect(toggle).toHaveValue("personal");
 });
 
-test("review switch fits narrow screens and is absent for actual member-only teams", async ({ page }) => {
+test("review switch fits narrow screens and cannot elevate actual member-only teams", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/workbench/?view=members&space=team-eureka");
   const toggle = page.getByRole("combobox", { name: "评审视角", exact: true });
@@ -96,5 +96,42 @@ test("review switch fits narrow screens and is absent for actual member-only tea
   M.get(s, "team-eureka").members.find((m) => m.id === "zhang")!.role = "member";
   await page.evaluate((s) => localStorage.setItem("eureka:workspaces:v2", JSON.stringify(s)), s);
   await page.reload();
-  await expect(toggle).toHaveCount(0);
+  await expect(toggle).toHaveValue("member");
+  await expect(toggle.locator('option[value="admin"]')).toHaveJSProperty("disabled", true);
+});
+
+test("personal pages expose global review entry and can enter both team perspectives", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const toggle = page.getByRole("combobox", { name: "评审视角", exact: true });
+  for (const view of ["home", "thoughts", "calendar", "contacts", "settings", "devices"]) {
+    await page.goto(`/workbench/?view=${view}`);
+    await expect(toggle).toHaveValue("personal");
+    await expect(toggle).toBeVisible();
+  }
+  await page.goto("/workbench/?view=thoughts");
+  await expect(page.locator("#thought-workspace")).toBeVisible();
+  if (process.env.PRD_CAPTURE) await page.screenshot({ path: "src/prototype/prd/images/review-personal.png", animations: "disabled" });
+  await toggle.selectOption("admin");
+  await expect(page).toHaveURL(/space=team-eureka/);
+  await expect(toggle).toHaveValue("admin");
+  await expect(page.locator(".sidebar").getByRole("button", { name: "空间管理", exact: true })).toBeVisible();
+  await toggle.selectOption("personal");
+  await expect(page).toHaveURL(/space=personal/);
+  await expect(page.locator("#recent-meeting-title")).toBeVisible();
+  await toggle.selectOption("member");
+  await expect(toggle).toHaveValue("member");
+  await expect(page.locator(".sidebar").getByRole("button", { name: "空间管理", exact: true })).toHaveCount(0);
+  await toggle.selectOption("personal");
+  await expect(page).not.toHaveURL(/perspective=/);
+});
+
+test("accounts without a team retain the review entry without creating a team", async ({ page }) => {
+  const s = M.seed();
+  s.spaces = s.spaces.filter((w) => w.type === "personal");
+  await page.addInitScript((s) => localStorage.setItem("eureka:workspaces:v2", JSON.stringify(s)), s);
+  await page.goto("/workbench/?view=thoughts");
+  const toggle = page.getByRole("combobox", { name: "评审视角", exact: true });
+  await expect(toggle).toHaveValue("personal");
+  await expect(toggle.locator('option[value="admin"]')).toHaveJSProperty("disabled", true);
+  await expect(toggle.locator('option[value="member"]')).toHaveJSProperty("disabled", true);
 });
