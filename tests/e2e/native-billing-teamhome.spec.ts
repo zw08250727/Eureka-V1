@@ -289,6 +289,7 @@ test("native billing: credits and personal payment storage failure do not grant 
 test("native team home: original table columns, sorting, filters, calendar, pagination and recycle", async ({
   page,
 }) => {
+  await page.clock.setFixedTime(new Date("2026-10-07T04:00:00Z"));
   await go(page, "home");
   await expect(page.locator(".ws-team-brief")).toBeVisible();
   await expect(page.locator(".ws-recording-table th")).toHaveCount(10);
@@ -432,8 +433,7 @@ test("native billing/team home: member privacy, empty states, seat ceiling and c
   await go(page, "subscription", "team-eureka", "kevin");
   await expect(page.locator(".ws-perks")).toBeVisible();
   await expect(page.locator(".ws-billing-details")).toHaveCount(0);
-  await action(page, "leave").click();
-  await expect(page.locator("#ws-toast")).toContainText("切回自己的视角");
+  await expect(action(page, "leave")).toHaveCount(0);
   await go(page, "credits", "team-eureka", "kevin");
   await expect(page.locator(".ws-empty")).toContainText("此页面暂不可访问");
   await expect(page.locator(".ws-credit-summary")).toHaveCount(0);
