@@ -17,5 +17,6 @@ export function useAppRoute() {
     space: p.get("space") || "personal",
     actor: p.get("actor") || "zhang",
     memberView: p.get("perspective") === "member",
+    creationDemo: p.get("demo") === "create-team",
   };
 }

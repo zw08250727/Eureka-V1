@@ -1,10 +1,11 @@
 import M from "./core";
 import type { WorkspaceState, Workspace } from "./types";
 export { M };
-export function createWorkspaceStore(storage: Storage, now = () => new Date()) {
-  let raw = storage.getItem(M.KEY);
+export function createWorkspaceStore(storage: Storage, now = () => new Date(), options: { key?: string; seed?: (now: Date) => WorkspaceState } = {}) {
+  const key = options.key || M.KEY;
+  let raw = storage.getItem(key);
   function parse(): WorkspaceState {
-    if (raw === null) return M.seed(now());
+    if (raw === null) return (options.seed || M.seed)(now());
     const state = JSON.parse(raw);
     if (
       state?.version !== 2 ||
@@ -19,18 +20,18 @@ export function createWorkspaceStore(storage: Storage, now = () => new Date()) {
   return {
     read: () => structuredClone(state),
     reload() {
-      raw = storage.getItem(M.KEY);
+      raw = storage.getItem(key);
       state = parse();
       return structuredClone(state);
     },
     change<T>(fn: (s: WorkspaceState) => T): T {
-      if (storage.getItem(M.KEY) !== raw)
+      if (storage.getItem(key) !== raw)
         throw Error("空间已在其他页面更新，请保留输入并刷新重试");
       const next = structuredClone(state);
       const result = fn(next);
       const json = JSON.stringify(next);
       try {
-        storage.setItem(M.KEY, json);
+        storage.setItem(key, json);
       } catch {
         throw Error("保存失败，请检查浏览器存储空间。输入已保留");
       }

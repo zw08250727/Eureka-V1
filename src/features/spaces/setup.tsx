@@ -4,6 +4,8 @@ import { M } from "./model/store";
 import type { Cycle, Workspace } from "./model/types";
 import type { SpacesController } from "./use-spaces";
 import { appUrl } from "@/lib/routes";
+import { CREATION_DEMO_DRAFT } from "./creation-demo";
+import { useAppRoute } from "@/features/application/route";
 import {
   ManagementDialog as Dialog,
   ManagementButton as Button,
@@ -24,7 +26,6 @@ interface Setup {
   orderId: string;
   accountId: string;
 }
-const KEY = "eureka:team-setup:v1";
 export function CreateTeamDialog({
   controller,
   onClose,
@@ -32,6 +33,8 @@ export function CreateTeamDialog({
   controller: SpacesController;
   onClose: () => void;
 }) {
+  const { creationDemo } = useAppRoute();
+  const key = creationDemo ? CREATION_DEMO_DRAFT : "eureka:team-setup:v1";
   const accountId = controller.state!.account.id;
   const [setup, setSetup] = useState<Setup | null>(null);
   const [error, setError] = useState("");
@@ -43,7 +46,7 @@ export function CreateTeamDialog({
     let alive = true;
     Promise.resolve().then(() => {
       try {
-        snapshot.current = localStorage.getItem(KEY);
+        snapshot.current = localStorage.getItem(key);
         let value: Setup | null = snapshot.current
           ? JSON.parse(snapshot.current)
           : null;
@@ -63,7 +66,7 @@ export function CreateTeamDialog({
         )
           throw Error("开通草稿无效或不属于当前账号，请保留数据后重试。");
         if (value && orders.current.some((o) => o.id === value!.orderId)) {
-          localStorage.removeItem(KEY);
+          localStorage.removeItem(key);
           snapshot.current = null;
           value = null;
         }
@@ -88,9 +91,9 @@ export function CreateTeamDialog({
     return () => {
       alive = false;
     };
-  }, [accountId]);
+  }, [accountId, key]);
   function fresh() {
-    if (localStorage.getItem(KEY) !== snapshot.current)
+    if (localStorage.getItem(key) !== snapshot.current)
       throw Error("团队开通信息已在其他页面更新，请重新打开后继续。");
   }
   function save(next: Setup) {
@@ -98,7 +101,7 @@ export function CreateTeamDialog({
     fresh();
     const raw = JSON.stringify(next);
     try {
-      localStorage.setItem(KEY, raw);
+      localStorage.setItem(key, raw);
     } catch {
       throw Error("开通信息保存失败，请保留输入并重试。");
     }
@@ -108,7 +111,7 @@ export function CreateTeamDialog({
   }
   function clear() {
     fresh();
-    localStorage.removeItem(KEY);
+    localStorage.removeItem(key);
     snapshot.current = null;
   }
   function act(fn: () => void) {
