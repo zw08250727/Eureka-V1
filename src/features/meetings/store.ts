@@ -1,4 +1,4 @@
-import type { WorkspaceState } from "@/features/spaces/model/types";
+import { createWorkspaceStore } from "@/features/spaces/model/store";
 import seeds from "./baseline.json";
 import baseline from "@/features/workbench/model/baseline.json";
 import { createJsonStore, createActions } from "@/features/personal/store";
@@ -22,9 +22,7 @@ export function createMeetingDetails(storage: Storage) {
         record = createActions(storage)
           .read()
           .meetings.find((m) => m.id === id);
-      const workspace = JSON.parse(
-        storage.getItem("eureka:workspaces:v2") || "null",
-      ) as WorkspaceState | null;
+      const workspace = createWorkspaceStore(storage).read();
       const device = workspace?.spaces
         .find((w) => w.id === "personal")
         ?.files.find((f) => f.id === id && !f.deleted);

@@ -74,6 +74,7 @@ export interface Invoice {
   status: string;
 }
 export interface Workspace {
+  demoWeekDays?: string[];
   id: string;
   type: "personal" | "team";
   name: string;
@@ -160,8 +161,8 @@ export interface WorkspaceAPI {
   SELF: string;
   id(prefix: string): string;
   clone<T>(value: T): T;
-  seed(): WorkspaceState;
-  enrich(s: WorkspaceState): WorkspaceState;
+  seed(now?: Date): WorkspaceState;
+  enrich(s: WorkspaceState, now?: Date): WorkspaceState;
   load(storage: Storage): WorkspaceState;
   get(s: WorkspaceState, id?: string): Workspace;
   member(w: Workspace, id?: string): Member | false | undefined;
@@ -268,6 +269,7 @@ export interface WorkspaceAPI {
   insights(
     w: Workspace,
     actor?: string,
+    now?: Date,
   ): { items: Insight[]; [key: string]: unknown };
   history(w: Workspace, actor?: string): Thread[];
   conversation(w: Workspace, id: string, actor?: string): Thread[];

@@ -31,6 +31,7 @@ export interface ActionState {
   }[];
   settings: Record<string, unknown>;
   calendarDemoVersion?: number;
+  demoWeekDays?: string[];
 }
 export interface ThoughtRecord {
   id: string;
