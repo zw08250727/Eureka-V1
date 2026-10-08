@@ -1,10 +1,10 @@
 import M from "./core";
 import type { WorkspaceState, Workspace } from "./types";
 export { M };
-export function createWorkspaceStore(storage: Storage) {
+export function createWorkspaceStore(storage: Storage, now = () => new Date()) {
   let raw = storage.getItem(M.KEY);
   function parse(): WorkspaceState {
-    if (raw === null) return M.seed();
+    if (raw === null) return M.seed(now());
     const state = JSON.parse(raw);
     if (
       state?.version !== 2 ||
@@ -13,7 +13,7 @@ export function createWorkspaceStore(storage: Storage) {
       !state.spaces.some((s: Workspace) => s.id === "personal")
     )
       throw Error("工作空间数据无法读取，请保留浏览器数据后重试");
-    return M.enrich(state);
+    return M.enrich(state, now());
   }
   let state = parse();
   return {
