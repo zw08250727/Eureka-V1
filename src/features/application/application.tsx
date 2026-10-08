@@ -4,6 +4,8 @@ import dynamic from "next/dynamic";
 
 import { useAppRoute } from "./route";
 import { useSpaces } from "@/features/spaces/use-spaces";
+import { useReviewPerspective } from "@/features/spaces/review-perspective";
+import { TeamReviewSwitch } from "@/features/spaces/review-switch";
 import { M } from "@/features/spaces/model/store";
 import { Workbench } from "@/features/workbench/workbench";
 
@@ -51,7 +53,8 @@ const SpaceSettings = dynamic(() =>
 );
 export function Application() {
   const route = useAppRoute(),
-    spaces = useSpaces(),
+    actualSpaces = useSpaces(),
+    spaces = useReviewPerspective(actualSpaces, route.space, route.actor, route.memberView),
     home = useWorkbench();
   if (!spaces.state)
     return (
@@ -152,6 +155,7 @@ export function Application() {
       space={w.id}
       actor={actor}
       controller={spaces}
+      reviewSwitch={<TeamReviewSwitch w={M.get(actualSpaces.state!, w.id)} account={spaces.state.account.id} actor={actor} view={route.view} memberView={route.memberView} />}
       contactCount={home.data?.contactCount}
     >
       {content}

@@ -1,0 +1,27 @@
+.team-review-switch {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 10px;
+  border: 1px solid #d6e3f3;
+  border-radius: 9px;
+  background: #fff;
+  color: #67809e;
+  font-size: 11px;
+}
+.team-review-switch select {
+  min-height: 28px;
+  border: 0;
+  background: transparent;
+  color: #315e97;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.team-review-switch select:focus-visible { outline: 2px solid #397ccd; outline-offset: 2px; }
+@media (max-width: 800px) {
+  .topbar-inner:has(.team-review-switch) { flex-wrap: wrap; padding-block: 8px; gap: 8px; }
+  .team-review-switch { padding: 3px 6px; }
+  .team-review-switch > span { display: none; }
+}

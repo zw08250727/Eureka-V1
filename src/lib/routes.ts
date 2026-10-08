@@ -38,6 +38,12 @@ export function appUrl(
   if (id && view !== "spaces") query.set("id", id);
   if (actor || current?.get("actor"))
     query.set("actor", actor || current!.get("actor")!);
+  if (
+    workspace !== "personal" &&
+    workspace === current?.get("space") &&
+    (!actor || actor === (current?.get("actor") || "zhang")) &&
+    current?.get("perspective") === "member"
+  ) query.set("perspective", "member");
   return `${basePath}/workbench/?${query}`;
 }
 export const legacyUrl = appUrl;

@@ -25,6 +25,7 @@ export function ReferenceShell({
   space,
   actor,
   controller,
+  reviewSwitch,
   contactCount = 6,
 }: {
   children: ReactNode;
@@ -33,6 +34,7 @@ export function ReferenceShell({
   space: string;
   actor: string;
   controller: SpacesController;
+  reviewSwitch?: ReactNode;
   contactCount?: number;
 }) {
   const [pageTitle, setPageTitle] = useState(title);
@@ -117,7 +119,7 @@ export function ReferenceShell({
       setRecordRequest({ id });
       return;
     }
-    location.assign(appUrl(v, id, wid, actor));
+    location.assign(appUrl(v, id, wid, wid === "personal" ? data.account.id : actor));
   }
   function open(kind: "spaces" | "account", anchor: HTMLElement) {
     if (menu === kind) {
@@ -365,6 +367,7 @@ export function ReferenceShell({
                 {pageTitle}
               </div>
               <div className="topbar-right">
+                {reviewSwitch}
                 <a
                   className="prd-review-entry"
                   href={prdUrl}
