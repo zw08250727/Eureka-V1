@@ -1,0 +1,24 @@
+/* Keep every active workbench toast consistent after the reference theme. */
+body :is(.toast, .contacts-toast, .ws-toast),
+body :is(.toast, .contacts-toast, .ws-toast).show {
+  position: fixed;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: min(480px, calc(100vw - 32px));
+  margin: 0;
+  padding: 14px 20px;
+  border: 1px solid #344f71;
+  border-radius: 10px;
+  color: #fff;
+  background: #344f71;
+  box-shadow: 0 12px 36px #21375433;
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: center;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+}
