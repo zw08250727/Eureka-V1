@@ -97,6 +97,7 @@ export interface DeviceThought extends ThoughtRecord {
   sharedAt?: string;
 }
 export interface Workspace {
+  customerDemoVersion?: number;
   customerSharing?: Record<string, boolean>;
   contentSharing?: Record<string, Partial<Record<"meetings" | "thoughts", { enabled: boolean; users: string[]; editors?: string[] }>>>;
   entitlementResumedAt?: string;

@@ -54,6 +54,8 @@ test("manual entry and CRM import retain CRM precedence without exposing source 
 });
 
 test("workspace private notes, personal-only thoughts and customer sharing switches", async ({ page, context }) => {
+  const initial = M.seed(); M.get(initial, "team-eureka").customerDemoVersion = 1;
+  await page.addInitScript(s => { if (!localStorage.getItem("eureka:workspaces:v2")) localStorage.setItem("eureka:workspaces:v2", JSON.stringify(s)); }, initial);
   await go(page, "home");
   await page.getByRole("button", { name: "新建笔记", exact: true }).click();
   await page.getByLabel("标题", { exact: true }).fill("不公开的产品笔记");

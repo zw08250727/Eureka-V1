@@ -1,4 +1,5 @@
 import { Fragment, type ReactNode } from "react";
+import "./today-overview.css";
 import {
   actionTime,
   ledgerCurrency,
@@ -259,7 +260,7 @@ export function TodayOverview({
               </header>
               <div>
                 {!r.ideas.length && <p>今天暂无灵感</p>}
-                {r.ideas.map((i) => (
+                {r.ideas.slice(-2).reverse().map((i) => (
                   <button
                     type="button"
                     className="daily-idea"

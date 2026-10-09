@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from "react";
+import { ensureTeamCustomerDemo } from "./team-customer-demo";
 import {
   createActions,
   createThoughts,
@@ -35,6 +36,7 @@ export function usePersonal(accountId = "zhang", workspaceId = "personal") {
     let active = true;
     Promise.resolve().then(() => {
       try {
+        ensureTeamCustomerDemo(localStorage, workspaceId, accountId);
         repo.current = {
           actions: createActions(localStorage, () => new Date(), accountId, workspaceId),
           thoughts: createThoughts(localStorage),
