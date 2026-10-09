@@ -19,7 +19,7 @@ export function startCreationDemo(restart = false) {
     if (!restart) sessionStorage.setItem(RETURN_KEY, location.href);
     localStorage.setItem(CREATION_DEMO_KEY, JSON.stringify(creationDemoSeed()));
     localStorage.removeItem(CREATION_DEMO_DRAFT);
-    const url = new URL(appUrl("create-team", "", "personal", M.SELF), location.origin);
+    const url = new URL(appUrl("home", "", "personal", M.SELF), location.origin);
     url.searchParams.set("demo", "create-team");
     url.searchParams.delete("perspective");
     location.assign(url.href);

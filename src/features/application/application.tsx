@@ -6,7 +6,6 @@ import { useAppRoute } from "./route";
 import { useSpaces } from "@/features/spaces/use-spaces";
 import { useReviewPerspective } from "@/features/spaces/review-perspective";
 import { ReviewPerspectiveSwitch } from "@/features/spaces/review-switch";
-import { CreationDemoHome } from "@/features/spaces/creation-demo-home";
 import { M } from "@/features/spaces/model/store";
 import { Workbench } from "@/features/workbench/workbench";
 
@@ -76,9 +75,7 @@ export function Application() {
 
   const props = { controller: spaces, space: w.id, actor };
   const content =
-    route.creationDemo && (!team || route.view === "settings") ? (
-      <CreationDemoHome controller={spaces} view={route.view} />
-    ) : route.view === "home" ? (
+    route.view === "home" ? (
       team ? (
         <TeamHome {...props} />
       ) : (
@@ -158,7 +155,6 @@ export function Application() {
       space={w.id}
       actor={actor}
       controller={spaces}
-      creationDemo={route.creationDemo}
       reviewSwitch={<ReviewPerspectiveSwitch state={actualSpaces.state!} space={w.id} actor={actor} view={route.view} memberView={route.memberView} creationDemo={route.creationDemo} />}
       contactCount={home.data?.contactCount}
     >

@@ -26,7 +26,6 @@ export function ReferenceShell({
   actor,
   controller,
   reviewSwitch,
-  creationDemo = false,
   contactCount = 6,
 }: {
   children: ReactNode;
@@ -36,7 +35,6 @@ export function ReferenceShell({
   actor: string;
   controller: SpacesController;
   reviewSwitch?: ReactNode;
-  creationDemo?: boolean;
   contactCount?: number;
 }) {
   const [pageTitle, setPageTitle] = useState(title);
@@ -255,7 +253,7 @@ export function ReferenceShell({
                   <span className="nav-label">首页</span>
                 </span>
               </button>
-              {!creationDemo || team ? <button
+              <button
                 className={`nav-item recording-nav-item${view === "recording" ? " active" : ""}`}
                 aria-current={view === "recording" ? "page" : undefined}
                 id="start-recording"
@@ -270,8 +268,8 @@ export function ReferenceShell({
                   </span>
                   <span className="nav-label">开始录音</span>
                 </span>
-              </button> : null}
-              {!team && !creationDemo ? (
+              </button>
+              {!team ? (
                 <>
                   <button
                     type="button"

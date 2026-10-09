@@ -4,6 +4,17 @@ import { creationDemoSeed, CREATION_DEMO_KEY, CREATION_DEMO_DRAFT } from "../../
 
 const ORIGINAL_DRAFT = "eureka:team-setup:v1";
 const toggle = (page: Page) => page.getByRole("combobox", { name: "评审视角", exact: true });
+async function openCreate(page: Page) {
+  await page.locator("#ws-switcher").click();
+  await page.getByRole("button", { name: "创建团队工作空间", exact: true }).click();
+}
+async function expectPersonalWorkbench(page: Page) {
+  await expect(page.locator("#recent-meeting-title")).toBeVisible();
+  await expect(page.locator("#contacts-entry,.sidebar [data-contacts-entry=true]")).toBeVisible();
+  await expect(page.locator("#todos-entry")).toBeVisible();
+  await expect(page.locator("#start-recording")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "创建团队演示", exact: true })).toHaveCount(0);
+}
 
 test("creation demo starts without membership and keeps personal device ownership valid", () => {
   const state = creationDemoSeed();
@@ -27,6 +38,9 @@ test("existing team account can demo checkout, recovery, invitation, restart and
   const originalRaw = await page.evaluate((key) => localStorage.getItem(key), M.KEY);
   await toggle(page).selectOption("creation-demo");
   await expect(page).toHaveURL(/demo=create-team/);
+  await expectPersonalWorkbench(page);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await openCreate(page);
   await expect(page.getByRole("dialog", { name: "EurekaMind Team", exact: true })).toBeVisible();
   if (process.env.PRD_CAPTURE) await page.screenshot({ path: "src/prototype/prd/images/team-creation-demo.png", animations: "disabled" });
   await page.getByRole("button", { name: "创建团队", exact: true }).click();
@@ -35,6 +49,8 @@ test("existing team account can demo checkout, recovery, invitation, restart and
   await page.getByRole("button", { name: "模拟支付失败", exact: true }).click();
   await expect(page.getByRole("dialog")).toContainText("模拟支付失败");
   await page.reload();
+  await expectPersonalWorkbench(page);
+  await openCreate(page);
   await expect(page.getByRole("dialog", { name: "确认团队订单", exact: true })).toContainText("评审创建的新团队");
   await page.getByRole("button", { name: "模拟支付并开通", exact: true }).click();
   await expect(page.getByRole("dialog")).toContainText("团队已准备好");
@@ -53,15 +69,17 @@ test("existing team account can demo checkout, recovery, invitation, restart and
   expect(await page.evaluate((key) => localStorage.getItem(key), M.KEY)).toBe(originalRaw);
   expect(await page.evaluate((key) => localStorage.getItem(key), ORIGINAL_DRAFT)).toBe("original draft must remain untouched");
   await page.getByRole("button", { name: "重新体验", exact: true }).click();
-  await expect(page.getByRole("dialog", { name: "EurekaMind Team", exact: true })).toBeVisible();
+  await expectPersonalWorkbench(page);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   const demo = await page.evaluate((key) => JSON.parse(localStorage.getItem(key)!), CREATION_DEMO_KEY);
   expect(demo.spaces).toHaveLength(1);
   expect(demo.orders).toHaveLength(0);
   expect(await page.evaluate((key) => localStorage.getItem(key), CREATION_DEMO_DRAFT)).toBeNull();
+  await openCreate(page);
   await page.getByRole("button", { name: "创建团队", exact: true }).waitFor();
   await page.getByRole("button", { name: "关闭", exact: true }).click();
   await expect(page).toHaveURL(/view=home/);
-  await expect(page.getByRole("heading", { name: "创建团队演示", exact: true })).toBeVisible();
+  await expectPersonalWorkbench(page);
   await toggle(page).selectOption("exit-demo");
   await expect(page).toHaveURL(/view=members&space=team-eureka/);
   await expect(page).not.toHaveURL(/demo=/);
@@ -69,19 +87,34 @@ test("existing team account can demo checkout, recovery, invitation, restart and
   expect(await page.evaluate((key) => localStorage.getItem(key), M.KEY)).toBe(originalRaw);
 });
 
-test("direct demo links support cancellation, joining and safe personal-page boundaries", async ({ page }) => {
+test("demo keeps normal personal modules and supports joining through the workspace menu", async ({ page }) => {
   await page.goto("/workbench/?view=create-team&space=personal&demo=create-team");
   await expect(page.getByRole("dialog", { name: "EurekaMind Team", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "创建团队", exact: true }).waitFor();
   await page.getByRole("button", { name: "关闭", exact: true }).click();
   await expect(page).toHaveURL(/view=home/);
-  await page.getByRole("button", { name: "体验接受邀请", exact: true }).click();
+  await expectPersonalWorkbench(page);
+  await page.locator(".sidebar [data-contacts-entry=true]").click();
+  await expect(page.locator("#contacts-root")).toBeVisible();
+  await expect(page.locator(".contacts-person-card").first()).toBeVisible();
+  await expect(page).toHaveURL(/demo=create-team/);
+  await openCreate(page);
+  await page.getByRole("button", { name: "创建团队", exact: true }).waitFor();
+  await page.getByRole("button", { name: "关闭", exact: true }).click();
+  await expect(page.locator("#contacts-root")).toBeVisible();
+  await page.locator("#todos-entry").click();
+  await expect(page.locator("#personal-actions")).toBeVisible();
+  await page.goto("/workbench/?view=thoughts&space=personal&demo=create-team");
+  await expect(page.getByRole("heading", { name: "全部闪念", exact: true }).last()).toBeVisible();
+  await page.goto("/workbench/?view=settings&space=personal&demo=create-team");
+  await expect(page.locator("#personal-settings")).toBeVisible();
+  await page.locator("#ws-switcher").click();
+  await page.getByRole("button", { name: /工作空间邀请/ }).click();
   await page.getByRole("button", { name: "接受并进入", exact: true }).click();
   await expect(page.locator("#ws-switcher")).toContainText("增长研究小组");
   await expect(page).toHaveURL(/demo=create-team/);
   await page.goto("/workbench/?view=contacts&space=personal&demo=create-team");
-  await expect(page.getByRole("heading", { name: "创建团队演示", exact: true })).toBeVisible();
-  await expect(page.locator("#contacts-root")).toHaveCount(0);
+  await expect(page.locator("#contacts-root")).toBeVisible();
   await toggle(page).selectOption("exit-demo");
   await expect(page).not.toHaveURL(/demo=/);
   await expect(page.locator("#recent-meeting-title")).toBeVisible();
