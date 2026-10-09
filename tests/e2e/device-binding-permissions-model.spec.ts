@@ -3,6 +3,28 @@ import M from "../../src/features/spaces/model/core";
 import { createWorkspaceStore } from "../../src/features/spaces/model/store";
 const rebind = (s: ReturnType<typeof M.seed>, wid: string) => { M.unbind(s, "dev-personal"); M.bind(s, "dev-personal", wid); };
 
+for (const [bound, viewed] of [["personal", "team-eureka"], ["team-eureka", "personal"]]) {
+  test(`device bound to ${bound} keeps its target and usage after viewing ${viewed} and reloading`, () => {
+    const state = M.seed();
+    if (bound !== "personal") rebind(state, bound);
+    const binding = structuredClone(state.devices[0].bindings);
+    const otherBefore = structuredClone(M.get(state, viewed));
+    state.activeId = viewed;
+    M.setCaptureSpace(state, viewed);
+    const s = M.enrich(JSON.parse(JSON.stringify(state)));
+    const result = M.sync(s, "dev-personal", "zhang", { sourceId: "fixed-workspace" });
+    expect(result.space.id).toBe(bound);
+    expect(result.file.recordedWorkspaceId).toBe(bound);
+    expect(s.devices[0].bindings).toEqual(binding);
+    expect(M.get(s, bound).transcriptionUsage?.used).toBe(12);
+    expect(M.get(s, viewed).files).toEqual(otherBefore.files);
+    expect(M.get(s, viewed).credits).toEqual(otherBefore.credits);
+    expect(M.get(s, viewed).transcriptionUsage).toEqual(otherBefore.transcriptionUsage);
+    M.sync(s, "dev-personal", "zhang", { sourceId: "fixed-workspace" });
+    expect(M.get(s, bound).transcriptionUsage?.used).toBe(12);
+  });
+}
+
 test("hardware stays bound to A after switching to B; explicit unbind/rebind moves only future recordings", () => {
   const s = M.seed(), a = M.get(s, "team-eureka"), b = M.acceptInvite(s, "invite-growth");
   rebind(s, a.id);

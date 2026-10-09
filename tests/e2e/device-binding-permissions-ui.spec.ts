@@ -17,6 +17,14 @@ test("owner confirms rebind; switching workspaces never changes binding and admi
   await page.getByLabel("目标工作区").selectOption("team-eureka");
   await page.getByRole("button", { name: "确认解绑并绑定" }).click();
   await expect(row).toContainText("EurekaMind 产品团队");
+  const binding = (await raw(page)).devices[0].bindings;
+  await page.locator("#ws-switcher").click();
+  await expect(page.locator("#ws-menu")).toContainText("不改变设备绑定");
+  await page.locator("#ws-menu").getByRole("button", { name: /个人工作空间/ }).click();
+  await expect(page).toHaveURL(/space=personal/);
+  await page.reload();
+  expect((await raw(page)).devices[0].spaceId).toBe("team-eureka");
+  expect((await raw(page)).devices[0].bindings).toEqual(binding);
   await go(page, "home", "zhang", b.id);
   expect((await raw(page)).devices[0].spaceId).toBe("team-eureka");
   await go(page, "devices"); await expect(row).toBeVisible();

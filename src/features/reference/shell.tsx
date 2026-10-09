@@ -491,7 +491,7 @@ export function ReferenceShell({
                   <small>{data.account.email}</small>
                 </div>
               </div>
-              <div className="ws-menu-caption">工作空间 · 仅切换视图，不移动或合并内容</div>
+              <div className="ws-menu-caption">工作空间 · 切换不移动内容，也不改变设备绑定</div>
               {data.spaces
                 .filter((s) => M.member(s))
                 .map((s) => (

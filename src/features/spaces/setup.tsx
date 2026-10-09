@@ -204,7 +204,7 @@ export function CreateTeamDialog({
                   "成员与席位统一管理",
                   "每个席位都享有完整 Unlimited 权益",
                 ],
-                ["phone", "设备绑定到空间", "录音同步位置清晰，切换时不混淆"],
+                ["phone", "设备绑定到空间", "App 切换不改变设备录音同步位置"],
                 [
                   "spark",
                   "团队 Credits 共享池",

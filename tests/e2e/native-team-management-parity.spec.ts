@@ -295,7 +295,7 @@ test("personal devices: binding guide, own metadata, failed unbind rollback and 
   await expect(dialog(page).locator(".ws-device-guide-card")).toHaveCount(2);
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "查看信息", exact: true }).click();
-  await expect(dialog(page)).toContainText("绑定成员");
+  await expect(dialog(page)).toContainText("设备所有者");
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "解绑", exact: true }).click();
   await failStorage(page);
