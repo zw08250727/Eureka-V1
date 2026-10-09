@@ -1,4 +1,5 @@
 "use client";
+import "./workspace-navigation.css";
 import {
   useEffect,
   useRef,
@@ -26,7 +27,6 @@ export function ReferenceShell({
   actor,
   controller,
   reviewSwitch,
-  contactCount = 6,
 }: {
   children: ReactNode;
   title: string;
@@ -35,7 +35,6 @@ export function ReferenceShell({
   actor: string;
   controller: SpacesController;
   reviewSwitch?: ReactNode;
-  contactCount?: number;
 }) {
   const [pageTitle, setPageTitle] = useState(title);
   const [recordRequest, setRecordRequest] = useState<{ id: string } | null>(
@@ -45,13 +44,14 @@ export function ReferenceShell({
   useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent<{ id: string }>).detail;
+      try { M.assertEntitlement(M.get(controller.state!, space), actor); } catch (e) { window.dispatchEvent(new CustomEvent("eureka:notice", { detail: (e as Error).message })); return; }
       if (skipRecordPermission)
         location.assign(appUrl("recording", detail.id, space, actor));
       else setRecordRequest(detail);
     };
     window.addEventListener("eureka:record-request", handler);
     return () => window.removeEventListener("eureka:record-request", handler);
-  }, [space, actor, skipRecordPermission]);
+  }, [space, actor, skipRecordPermission, controller.state]);
   const [setupDialog, setSetupDialog] = useState<
     "create" | "invitations" | null
   >(null);
@@ -115,10 +115,7 @@ export function ReferenceShell({
     return () => window.removeEventListener("eureka:notice", listener);
   }, []);
   function go(v: AppView, id = "", wid = space) {
-    if (v === "recording" && !team && !skipRecordPermission) {
-      setRecordRequest({ id });
-      return;
-    }
+    if (v === "recording") { window.dispatchEvent(new CustomEvent("eureka:record-request", { detail: { id } })); return; }
     location.assign(appUrl(v, id, wid, wid === "personal" ? data.account.id : actor));
   }
   function open(kind: "spaces" | "account", anchor: HTMLElement) {
@@ -205,7 +202,7 @@ export function ReferenceShell({
               <small>
                 {team
                   ? `Team · ${admin ? "管理员" : "成员"} · ${w.members.filter((m) => m.status === "active").length} 位成员`
-                  : "Personal · " + PS.current(w).plan}
+                  : "Personal · " + (PS.current(w).frozen ? "权益已冻结" : PS.current(w).plan)}
               </small>
             </span>
             <RefIcon name="chevron" className="ws-icon" />
@@ -269,9 +266,8 @@ export function ReferenceShell({
                   <span className="nav-label">开始录音</span>
                 </span>
               </button>
-              {!team ? (
-                <>
-                  <button
+              <>
+                  {space === "personal" && <button
                     type="button"
                     id="todos-entry"
                     className={
@@ -287,7 +283,7 @@ export function ReferenceShell({
                       </span>
                       <span className="nav-label">日程与待办</span>
                     </span>
-                  </button>
+                  </button>}
                   <div className="knowledge-tree-leaf-row team-only-root-entry">
                     <button
                       className={
@@ -296,41 +292,27 @@ export function ReferenceShell({
                       }
                       data-contacts-entry="true"
                       type="button"
-                      aria-label="联系人"
-                      title="联系人"
+                      aria-label={team ? "团队客户" : "我的客户"}
+                      title={team ? "团队客户" : "我的客户"}
                       onClick={() => go("contacts")}
                     >
                       <RefIcon name="user" />
-                      <span className="tree-folder-name">联系人</span>
-                      <span className="tree-count">{contactCount}</span>
+                      <span className="tree-folder-name">{team ? "团队客户" : "我的客户"}</span>
                     </button>
                   </div>
-                </>
-              ) : null}
+              </>
             </nav>
             <nav
               id="ws-team-nav"
               className="ws-team-nav"
-              aria-label="团队工作空间"
+              aria-label="团队工作区"
             >
               {team ? (
                 <>
-                  <div className="ws-nav-label">工作空间</div>
+                  <div className="ws-nav-label">团队工作区</div>
                   {nav("团队成员", "users", "members", view === "members")}
-                  {nav("设备管理", "phone", "devices", view === "devices")}
-                  {admin
-                    ? nav(
-                        "空间管理",
-                        "task",
-                        "subscription",
-                        [
-                          "subscription",
-                          "space-settings",
-                          "credits",
-                          "audit",
-                        ].includes(view),
-                      )
-                    : null}
+                  {admin && nav("设备查看", "phone", "devices", view === "devices")}
+                  {nav("空间设置", "task", "content-permissions", ["subscription", "space-settings", "content-permissions", "credits", "audit"].includes(view))}
                   <a
                     className="ws-btn"
                     href="https://wisenote-open-api.vercel.app/#_2"
@@ -509,9 +491,9 @@ export function ReferenceShell({
                   <small>{data.account.email}</small>
                 </div>
               </div>
-              <div className="ws-menu-caption">工作空间</div>
+              <div className="ws-menu-caption">工作空间 · 仅切换视图，不移动或合并内容</div>
               {data.spaces
-                .filter((s) => M.member(s) && (s.type === "personal" || s.id === M.accountTeam(data)?.id))
+                .filter((s) => M.member(s))
                 .map((s) => (
                   <button
                     type="button"
@@ -531,7 +513,7 @@ export function ReferenceShell({
                       {s.name}
                       <small>
                         {s.type === "personal"
-                          ? "个人订阅独立计费"
+                          ? (s.entitlementFreeze ? "个人权益已冻结 · 历史内容保留" : "个人权益独立维护")
                           : (M.admin(s) ? "管理员" : "成员") +
                             " · " +
                             s.members.filter((m) => m.status === "active")
@@ -587,7 +569,7 @@ export function ReferenceShell({
                   <div className="ws-menu-divider" />
                   {[
                     ["home", "mic", "会议录音"],
-                    ["devices", "phone", "设备与同步"],
+                    ["my-devices", "phone", "我的设备"],
                     ["subscription", "task", team ? "订阅与席位" : "个人订阅"],
                     ["settings", "edit", "个人设置"],
                   ].map(([v, icon, label]) => (

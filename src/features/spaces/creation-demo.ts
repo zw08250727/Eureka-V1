@@ -7,10 +7,11 @@ const RETURN_KEY = "eureka:team-creation-return:v1";
 
 export function creationDemoSeed(now = new Date()) {
   const state = M.seed(now);
-  state.spaces = state.spaces.filter((w) => w.type === "personal");
-  state.devices = state.devices.filter((d) => d.spaceId === "personal");
+  state.spaces = state.spaces.filter((w) => w.type === "personal" && !!M.member(w, state.account.id));
+  state.devices = state.devices.filter((d) => d.user === state.account.id);
   state.activeId = "personal";
   state.orders = [];
+  M.reconcileEntitlements(state, now);
   return state;
 }
 

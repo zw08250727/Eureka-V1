@@ -10,6 +10,7 @@ export type AppView =
   | "meeting"
   | "recording"
   | "devices"
+  | "my-devices"
   | "settings"
   | "subscription"
   | "history"
@@ -19,6 +20,7 @@ export type AppView =
   | "members"
   | "credits"
   | "space-settings"
+  | "content-permissions"
   | "audit"
   | "tasks"
   | "trash";

@@ -1,3 +1,4 @@
+import type { ThoughtRecord } from "@/features/workbench/model/types";
 export type Cycle = "month" | "year";
 export interface Member {
   id: string;
@@ -12,6 +13,8 @@ export interface WorkspaceFile {
   title: string;
   owner: string;
   shared: string[];
+  editors?: string[];
+  bindingId?: string;
   duration: number;
   created: string;
   updated: string;
@@ -25,10 +28,16 @@ export interface WorkspaceFile {
   status: string;
   tags: string[];
   detail: Record<string, unknown>;
+  rawAudio?: boolean;
+  processingPaused?: boolean;
   origin?: string;
   visibility?: string;
   recordedWorkspaceId?: string;
   deviceId?: string;
+  sourceAccountId?: string;
+  sourceRecordId?: string;
+  sourceFileId?: string;
+  sharedAt?: string;
 }
 export interface Thread {
   recordingId?: string;
@@ -71,10 +80,29 @@ export interface Invoice {
   id: string;
   date: string;
   amount: number;
+  currency?: string;
   label: string;
   status: string;
 }
+export interface DeviceThought extends ThoughtRecord {
+  shared?: string[];
+  editors?: string[];
+  bindingId?: string;
+  sourceThoughtId?: string;
+  sharingMode?: string;
+  owner: string;
+  deviceId?: string;
+  sourceRecordId?: string;
+  sourceAccountId?: string;
+  sharedAt?: string;
+}
 export interface Workspace {
+  customerSharing?: Record<string, boolean>;
+  contentSharing?: Record<string, Partial<Record<"meetings" | "thoughts", { enabled: boolean; users: string[]; editors?: string[] }>>>;
+  entitlementResumedAt?: string;
+  entitlementFreeze?: { since: string; teamIds: string[] };
+  transcriptionUsage?: { used: number; logs: { id: string; workspaceId: string; user: string; minutes: number; time: string }[] };
+  thoughts?: DeviceThought[];
   demoAdminVersion?: number;
   demoWeekDays?: string[];
   id: string;
@@ -84,7 +112,7 @@ export interface Workspace {
   members: Member[];
   seats: number;
   cycle: Cycle;
-  status: "active" | "expired" | "dissolved";
+  status: "active" | "expired" | "cancelled" | "dissolved";
   renew: boolean;
   nextDate: string;
   pendingSeats: number | null;
@@ -125,6 +153,9 @@ export interface Workspace {
   };
 }
 export interface Subscription {
+  frozen?: boolean;
+  frozenSince?: string;
+  remainingDays?: number;
   startsAt?: string;
   plan: string;
   minutes: number;
@@ -140,16 +171,27 @@ export interface Device {
   serial: string;
   model: string;
   user: string;
-  spaceId: string | null;
+  bound: boolean;
+  /** Fixed workspace binding; missing legacy values require owner confirmation. */
+  spaceId?: string | null;
+  bindings?: { id: string; workspaceId: string; boundAt: string; unboundAt?: string }[];
   lastSync?: string;
 }
+export interface CapturePreferences {
+  workspaceId: string;
+  teams: Record<string, Partial<Record<"meetings" | "thoughts", { enabled: boolean; users: string[]; editors?: string[] }>>>;
+}
 export interface WorkspaceState {
+  privateContentVersion?: number;
+  captureSettings?: Record<string, CapturePreferences>;
+  accountDevicesVersion?: number;
+  accountSpaces?: Record<string, Workspace>;
   version: number;
   activeId: string;
   account: { id: string; name: string; email: string };
   spaces: Workspace[];
   devices: Device[];
-  invitations: { id: string; teamName: string; role: string; status: string }[];
+  invitations: { id: string; workspaceId?: string; teamName: string; role: string; status: string }[];
   orders: { id: string; spaceId: string }[];
 }
 export interface Insight {
@@ -176,6 +218,7 @@ export interface WorkspaceAPI {
   getFile(w: Workspace, id: string, actor?: string): WorkspaceFile;
   teamRecording(w: Workspace, f: WorkspaceFile): boolean;
   price(cycle: Cycle): number;
+  teamPricing: Record<Cycle, { monthly: number; originalMonthly: number; firstAmount: number; renewalAmount: number; currency: string }>;
   create(
     s: WorkspaceState,
     input: {
@@ -251,7 +294,8 @@ export interface WorkspaceAPI {
     patch: Record<string, unknown>,
     actor?: string,
   ): WorkspaceFile;
-  share(w: Workspace, id: string, users: string[], actor?: string): void;
+  canEdit(w: Workspace, record: WorkspaceFile | DeviceThought | undefined, actor?: string): boolean;
+  share(w: Workspace, id: string, users: string[], actor?: string, editors?: string[]): void;
   trash(w: Workspace, id: string, restore?: boolean, actor?: string): void;
   purge(w: Workspace, id: string, actor?: string): void;
   exportFile(w: Workspace, id: string, actor?: string): unknown;
@@ -262,11 +306,26 @@ export interface WorkspaceAPI {
     input: { serial: string; model: string; user: string },
     actor?: string,
   ): Device;
+  contentPreferences(w: Workspace, actor?: string): Partial<Record<"meetings" | "thoughts", { enabled: boolean; users: string[]; editors?: string[] }>>;
+  applyContentSharing(w: Workspace, record: WorkspaceFile | DeviceThought, kind: "meetings" | "thoughts", actor?: string): void;
+  capturePreferences(s: WorkspaceState, actor?: string): CapturePreferences;
+  setCaptureSpace(s: WorkspaceState, wid: string, actor?: string): void;
+  setCustomerSharing(s: WorkspaceState, wid: string, enabled: boolean, actor?: string): void;
+  setDeviceSharing(s: WorkspaceState, wid: string, owner: string, kind: "meetings" | "thoughts", enabled: boolean, users: string[], actor?: string, editors?: string[]): void;
+  addThought(w: Workspace, input: { title: string; detail: string }, actor?: string): DeviceThought;
+  editThought(w: Workspace, id: string, input: { title: string; detail: string }, actor?: string): DeviceThought;
+  shareThought(w: Workspace, id: string, users: string[], actor?: string, editors?: string[]): void;
+  accountSpace(s: WorkspaceState, actor?: string): Workspace;
+  deviceList(s: WorkspaceState, wid: string, actor?: string): Device[];
+  unbind(s: WorkspaceState, id: string, actor?: string): void;
+  visibleThoughts(w: Workspace, actor?: string): DeviceThought[];
+  syncThought(s: WorkspaceState, id: string, actor?: string, input?: { sourceId?: string; title?: string; detail?: string; workspaceId?: string; bindingId?: string }): { space: Workspace; thought: DeviceThought; rawAudio?: WorkspaceFile; sharedTeam?: Workspace; sharedTeams?: Workspace[]; duplicate?: boolean };
   sync(
     s: WorkspaceState,
     id: string,
     actor?: string,
-  ): { space: Workspace; file: WorkspaceFile };
+    input?: { sourceId?: string; title?: string; workspaceId?: string; bindingId?: string },
+  ): { space: Workspace; file: WorkspaceFile; sharedTeam?: Workspace; sharedTeams?: Workspace[]; duplicate?: boolean };
   bind(s: WorkspaceState, id: string, wid: string, actor?: string): void;
   insights(
     w: Workspace,
@@ -292,6 +351,12 @@ export interface WorkspaceAPI {
     options?: { fileIds?: string[]; web?: boolean; appData?: boolean },
   ): { answer: string; cost: number; threadId: string };
   acceptInvite(s: WorkspaceState, id: string): Workspace;
+  accountTeams(s: WorkspaceState, actor?: string): Workspace[];
+  reconcileEntitlements(s: WorkspaceState, now?: Date): void;
+  assertEntitlement(w: Workspace, actor?: string): void;
+  simulatedTokenUsage(input: string, output: string): { inputTokens: number; outputTokens: number };
+  settleCredits(w: Workspace, runId: string, prompt: string, usage: { inputTokens: number; outputTokens: number }, actor?: string): { amount: number };
+  consumeMinutes(w: Workspace, runId: string, minutes: number, actor?: string): { id: string; workspaceId: string; user: string; minutes: number; time: string };
   accountTeam(s: WorkspaceState, actor?: string): Workspace | undefined;
   assertCanJoinTeam(s: WorkspaceState, actor?: string): void;
 }

@@ -3,6 +3,8 @@ import M from "../../src/features/spaces/model/core";
 test("native recording permission can cancel and authorize without losing the current page", async ({
   page,
 }) => {
+  const state = M.seed(); state.spaces = state.spaces.filter(w => w.type === "personal"); M.reconcileEntitlements(state);
+  await page.addInitScript(s => { if (!localStorage.getItem("eureka:workspaces:v2")) localStorage.setItem("eureka:workspaces:v2", JSON.stringify(s)); }, state);
   await page.goto("/workbench/");
   await page.locator("#module-start-recording").click();
   await expect(page.locator("#record-permission-modal")).toBeVisible();

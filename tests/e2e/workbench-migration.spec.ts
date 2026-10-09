@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import M from "../../src/features/spaces/model/core";
 const url = "/workbench/";
 const legacy =
   "/prototype/one-to-one-reference/team-only-app.html?edition=personal&personal=1";
@@ -66,6 +67,7 @@ test("meeting search, source, date, incremental rows, tag and recycle interactio
   await expect(rows).toHaveCount(4);
   await page.locator("#meeting-source-filter-trigger").click();
   await page.getByRole("option", { name: "全部来源", exact: true }).click();
+  const firstTitle = (await rows.first().locator(".home-meeting-title").innerText()).trim();
   await rows.first().locator("[data-meeting-action=tag]").click();
   await expect(page.locator(".md-dialog")).toBeVisible();
   await page.locator("#md-tags").fill("迁移验证");
@@ -84,7 +86,7 @@ test("meeting search, source, date, incremental rows, tag and recycle interactio
   await expect(page.locator(".home-meeting-head")).toContainText("共 20");
   await rows.first().click();
   await expect(page.locator("#note-detail-title")).toHaveText(
-    "三季度产品复盘会议",
+    firstTitle,
   );
 });
 
@@ -141,6 +143,10 @@ test("upload rejects invalid files, retains selection on failure and shares reco
 test("Agent drafts, keyboard, local responses and panel width survive UI changes", async ({
   page,
 }) => {
+  const state = M.seed(new Date("2026-10-07T04:00:00Z"));
+  state.spaces = state.spaces.filter(w => w.type === "personal");
+  M.reconcileEntitlements(state);
+  await page.addInitScript(s => { if (!localStorage.getItem("eureka:workspaces:v2")) localStorage.setItem("eureka:workspaces:v2", JSON.stringify(s)); }, state);
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(url);
   await page.getByRole("button", { name: "帮我安排", exact: true }).click();

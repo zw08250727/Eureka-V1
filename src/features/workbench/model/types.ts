@@ -1,4 +1,5 @@
 export interface ActionRecord {
+  contactId?: string;
   id: string;
   type: "schedule" | "todo";
   title: string;

@@ -214,7 +214,7 @@ export function BillingPage({
       if (action === "cycle") {
         confirm(
           "切换计费周期？",
-          `改为${w.cycle === "year" ? "月付" : "年付"}后，下一周期费用为 ${money((w.pendingSeats ?? w.seats) * M.price(w.cycle === "year" ? "month" : "year"))}。本次为演示，不产生真实扣款。`,
+          `改为${w.cycle === "year" ? "月付" : "年付"}后，下一周期费用为 ${dollars((w.pendingSeats ?? w.seats) * M.price(w.cycle === "year" ? "month" : "year"))}。本次为演示，不产生真实扣款。`,
           () => {
             mutate((current) => {
               M.govern(current, actor);
@@ -290,7 +290,7 @@ export function BillingPage({
         if (!i) throw Error("账单不存在");
         downloadText(
           i.id + ".txt",
-          `EurekaMind 模拟账单\n${i.id}\n${w.billing.company}\n${i.label}\n${money(i.amount)}\n${date(i.date)}\n仅供演示，不作为真实支付或报销凭证。`,
+          `EurekaMind 模拟账单\n${i.id}\n${w.billing.company}\n${i.label}\n${money(i.amount, i.currency)}\n${date(i.date)}\n仅供演示，不作为真实支付或报销凭证。`,
         );
         return;
       }
@@ -475,7 +475,7 @@ export function BillingPage({
                   新增 {n - w.seats} 席位 ·{" "}
                   {w.cycle === "year" ? "年付" : "月付"}
                 </span>
-                <strong>{money((n - w.seats) * M.price(w.cycle))}</strong>
+                <strong>{dollars((n - w.seats) * M.price(w.cycle))}</strong>
                 <small>本次应付 · 演示按完整周期计价</small>
               </>
             ) : n < w.seats ? (

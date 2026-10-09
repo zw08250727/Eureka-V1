@@ -80,6 +80,7 @@ export function AgentPanel({
     setBusy(true);
     setError("");
     try {
+      agent.ensureAvailable();
       const reply = await gateway.send(
         prompt,
         {

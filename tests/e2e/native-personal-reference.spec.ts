@@ -1,4 +1,9 @@
+import M from "../../src/features/spaces/model/core";
 import { expect, test, type Page } from "@playwright/test";
+test.beforeEach(async ({ page }) => {
+  const state = M.seed(); state.spaces = state.spaces.filter(w => w.type === "personal"); M.reconcileEntitlements(state);
+  await page.addInitScript(s => { if (!localStorage.getItem("eureka:workspaces:v2")) localStorage.setItem("eureka:workspaces:v2", JSON.stringify(s)); }, state);
+});
 const enter = (page: Page, view: string) =>
   page.goto(`/workbench/?view=${view}&space=personal`);
 const submit = (page: Page, form: string) =>

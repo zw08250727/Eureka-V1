@@ -62,7 +62,8 @@ test("legacy team defaults to admin and header preview survives navigation witho
   if (process.env.PRD_CAPTURE) await page.screenshot({ path: "src/prototype/prd/images/review-member.png" });
   await page.reload();
   await expect(toggle).toHaveValue("member");
-  await page.locator(".sidebar").getByRole("button", { name: "设备管理", exact: true }).click();
+  await expect(page.locator(".sidebar").getByRole("button", { name: "设备查看", exact: true })).toHaveCount(0);
+  await page.locator(".sidebar").getByRole("button", { name: "空间设置", exact: true }).click();
   await expect(toggle).toHaveValue("member");
   expect(await page.evaluate(() => localStorage.getItem("eureka:workspaces:v2"))).toBe(original);
   await toggle.selectOption("admin");
@@ -114,13 +115,13 @@ test("personal pages expose global review entry and can enter both team perspect
   await toggle.selectOption("admin");
   await expect(page).toHaveURL(/space=team-eureka/);
   await expect(toggle).toHaveValue("admin");
-  await expect(page.locator(".sidebar").getByRole("button", { name: "空间管理", exact: true })).toBeVisible();
+  await expect(page.locator(".sidebar").getByRole("button", { name: "空间设置", exact: true })).toBeVisible();
   await toggle.selectOption("personal");
   await expect(page).toHaveURL(/space=personal/);
   await expect(page.locator("#recent-meeting-title")).toBeVisible();
   await toggle.selectOption("member");
   await expect(toggle).toHaveValue("member");
-  await expect(page.locator(".sidebar").getByRole("button", { name: "空间管理", exact: true })).toHaveCount(0);
+  await expect(page.locator(".sidebar").getByRole("button", { name: "空间设置", exact: true })).toBeVisible();
   await toggle.selectOption("personal");
   await expect(page).not.toHaveURL(/perspective=/);
 });

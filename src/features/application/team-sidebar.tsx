@@ -27,18 +27,8 @@ export function TeamSidebar({
   const w = M.get(state, space),
     admin = M.admin(w, actor);
   const nav: [AppView, string][] = [
-    ["home", "团队工作台"],
-    ["members", "成员与角色"],
-    ["devices", "设备管理"],
-    ["tasks", "任务管理"],
-    ["credits", "团队 Credits"],
-    ...(admin
-      ? ([
-          ["subscription", "空间管理"],
-          ["space-settings", "空间设置"],
-          ["audit", "活动记录"],
-        ] as [AppView, string][])
-      : []),
+    ["home", "首页"], ["recording", "开始录音"], ["contacts", "团队客户"],
+    ["members", "团队成员"], ...(admin ? [["devices", "设备查看"] as [AppView, string]] : []), ["content-permissions", "空间设置"],
   ];
   return (
     <aside
@@ -144,7 +134,7 @@ export function TeamSidebar({
         {account ? (
           <div className="nav-menu">
             <a href={appUrl("settings", "", space, actor)}>个人设置</a>
-            <a href={appUrl("members", "", space, actor)}>退出团队</a>
+            <a href={appUrl("members", "", space, actor)}>团队成员</a>
           </div>
         ) : null}
         <Button

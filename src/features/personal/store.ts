@@ -1,3 +1,5 @@
+import { createWorkspaceStore, M } from "@/features/spaces/model/store";
+import type { CustomerSource, CustomerField } from "./contact-identity";
 import type { ContactPromise, ContactInteraction } from "./contact-rules";
 import { ledgerCurrency, ledgerDate, localDay } from "./asset-rules";
 import {
@@ -16,6 +18,12 @@ import type {
 } from "@/features/workbench/model/types";
 import contactSeeds from "./contact-seeds.json";
 export interface Contact {
+  subjectType?: "enterprise" | "person";
+  createdAt?: string;
+  ownerId?: string;
+  sources?: CustomerSource[];
+  fieldSources?: Partial<Record<CustomerField, string>>;
+  sourceConflicts?: { field: CustomerField; value: string; source: string }[];
   id: string;
   initials: string;
   name: string;
@@ -40,6 +48,7 @@ export interface Contact {
   inferences: string[];
 }
 export interface ContactsState {
+  customerDemoVersion?: number;
   contacts: Contact[];
   notes: Record<string, { text: string; time: string }[]>;
   tasks: {
@@ -115,11 +124,19 @@ export function validateAction(r: ActionRecord) {
   if (r.location.length > 300 || r.participants.length > 300)
     throw Error("地点和参与人各不能超过 300 字");
 }
-export function createActions(storage: Storage, now = () => new Date()) {
+export function createActions(storage: Storage, now = () => new Date(), accountId = "zhang", workspaceId = "personal") {
+  const legacy = accountId === "zhang" && workspaceId === "personal";
+  const authorize = (write = false) => {
+    if (workspaceId === "personal") return;
+    const w = M.get(createWorkspaceStore(storage).read(), workspaceId);
+    if (!M.member(w, accountId)) throw Error("没有此工作空间的访问权限");
+    if (write && w.type === "team") throw Error("日程与待办仅在个人工作区使用");
+    if (write) M.writable(w);
+  };
   const store = createJsonStore<ActionState>(
     storage,
-    "eureka:personal-actions:v1",
-    () => seedActions(now()),
+    legacy ? "eureka:personal-actions:v1" : `eureka:actions:${workspaceId}:${accountId}:v1`,
+    () => legacy ? seedActions(now()) : { version: 1, records: [], meetings: [], sessions: [], settings: {} },
     (v) =>
       !!v &&
       typeof v === "object" &&
@@ -127,11 +144,13 @@ export function createActions(storage: Storage, now = () => new Date()) {
       v.version === 1 &&
       "records" in v &&
       Array.isArray(v.records),
-    (value) => fillWeekActions(value, now()),
+    (value) => legacy ? fillWeekActions(value, now()) : value,
   );
   return {
-    ...store,
+    read() { authorize(); return workspaceId === "personal" ? store.read() : { version: 1, records: [], meetings: [], sessions: [], settings: {} }; },
+    change<R>(fn: (s: ActionState) => R): R { authorize(true); return store.change(fn); },
     session(id: string, prompt: string, draft: ActionRecord) {
+      authorize(true);
       return store.change((s) => {
         s.sessions.push({
           id,
@@ -142,6 +161,7 @@ export function createActions(storage: Storage, now = () => new Date()) {
       });
     },
     confirm(sessionId: string, input: ActionRecord) {
+      authorize(true);
       return store.change((s) => {
         const session = s.sessions.find((x) => x.id === sessionId);
         if (!session) throw Error("会话不存在，请重新生成草稿");
@@ -165,6 +185,7 @@ export function createActions(storage: Storage, now = () => new Date()) {
     save(input: ActionRecord) {
       if (input.type === "todo" && !input.start)
         input = { ...input, reminder: "none" };
+      authorize(true);
       return store.change((s) => {
         const old = s.records.find((x) => x.id === input.id);
         if (
@@ -204,9 +225,32 @@ export function createThoughts(storage: Storage, now = () => new Date()) {
       Array.isArray(v.records),
     (value) => fillWeekThoughts(value, now()),
   );
+  const workspaceStore = createWorkspaceStore(storage, now);
   return {
     ...store,
+    read() {
+      const data = store.read();
+      const ws = workspaceStore.read();
+      const personal = M.get(ws, "personal");
+      data.records = [...M.visibleThoughts(personal, ws.account.id), ...data.records];
+      return data;
+    },
     save(input: ThoughtRecord) {
+      const ws = workspaceStore.read();
+      if (M.get(ws, "personal").thoughts?.some((t) => t.id === input.id)) {
+        if (!input.title.trim() || input.title.length > 200 || input.detail.length > 5000)
+          throw Error("请填写有效标题和内容");
+        if (!validDate(input.date + "T" + input.time)) throw Error("日期或时间无效");
+        return workspaceStore.change((state) => {
+          const thought = M.get(state, "personal").thoughts!.find((t) => t.id === input.id)!;
+          if (thought.owner !== state.account.id) throw Error("只能修改本人闪念");
+          if (thought.revision !== input.revision) throw Error("记录已更新，请重新打开");
+          Object.assign(thought, { title: input.title.trim(), detail: input.detail,
+            date: input.date, time: input.time, revision: (thought.revision || 0) + 1, updated: now().toISOString() });
+          // Device thoughts remain private personal assets.
+          return thought;
+        });
+      }
       return store.change((s) => {
         if (!input.title.trim() || input.title.length > 200)
           throw Error("请填写 1–200 字的标题");
@@ -250,34 +294,85 @@ export function createThoughts(storage: Storage, now = () => new Date()) {
     },
   };
 }
-export function createContacts(storage: Storage) {
-  return createJsonStore<Record<string, ContactsState>>(
-    storage,
-    "baizhi-v14-contacts",
-    () => ({
-      personal: { contacts: contactSeeds as Contact[], notes: {}, tasks: [] },
-    }),
+export function createContacts(storage: Storage, accountId = "zhang", workspaceId = "personal") {
+  const empty = (): ContactsState => ({ contacts: [], notes: {}, tasks: [] });
+  const key = workspaceId !== "personal" ? `workspace:${workspaceId}:account:${accountId}` : accountId === "zhang" ? "personal" : `account:${accountId}`;
+  const authorize = () => { if (workspaceId !== "personal") { const w = M.get(createWorkspaceStore(storage).read(), workspaceId); if (!M.member(w, accountId)) throw Error("没有此工作空间的访问权限"); return w; } };
+  const store = createJsonStore<Record<string, ContactsState>>(
+    storage, "baizhi-v14-contacts",
+    () => ({ personal: { ...empty(), contacts: structuredClone(contactSeeds) as Contact[] } }),
     (v) => !!v && typeof v === "object" && !Array.isArray(v),
     (value) => {
-      const scope = value.personal;
-      if (!scope)
-        return {
-          ...value,
-          personal: {
-            contacts: structuredClone(contactSeeds) as Contact[],
-            notes: {},
-            tasks: [],
-          },
-        };
-      if (
-        !Array.isArray(scope.contacts) ||
-        !Array.isArray(scope.tasks) ||
-        !scope.notes
-      )
-        throw Error("联系人数据格式无效，请保留浏览器数据后重试");
+      value.personal ||= { ...empty(), contacts: structuredClone(contactSeeds) as Contact[] };
+      value[key] ||= empty();
+      if (!value.personal.customerDemoVersion) {
+        if (value.personal.contacts.some((p) => p.id === "john" && p.name === "John Chen")) {
+          for (const demo of (contactSeeds as Contact[]).filter((p) => p.subjectType === "enterprise"))
+            if (!value.personal.contacts.some((p) => p.id === demo.id)) value.personal.contacts.push(structuredClone(demo));
+        }
+        value.personal.customerDemoVersion = 2;
+      }
+      for (const [scopeKey, scope] of Object.entries(value)) {
+        if (scopeKey !== "personal" && !scopeKey.includes("account:")) continue;
+        if (!Array.isArray(scope.contacts) || !Array.isArray(scope.tasks) || !scope.notes)
+          throw Error("联系人数据格式无效，请保留浏览器数据后重试");
+        const owner = scopeKey === "personal" ? "zhang" : scopeKey.split("account:").pop()!;
+        for (const person of scope.contacts) {
+          person.ownerId ||= owner;
+          person.subjectType ||= "person";
+          if (scopeKey === "personal") {
+            const demo = (contactSeeds as Contact[]).find((c) => c.id === person.id);
+            if (demo) {
+              person.createdAt ||= demo.createdAt;
+              person.sources ||= demo.sources?.map((source) => ({ ...structuredClone(source), verifiedEmail: source.verifiedEmail === person.email ? source.verifiedEmail : undefined, fields: { name: person.name, company: person.company, role: person.role, region: person.region, email: person.email, tag: person.tag, summary: person.summary } }));
+              person.interactions ||= structuredClone(demo.interactions);
+            }
+          }
+        }
+      }
       return value;
     },
   );
+  return {
+    read() {
+      authorize();
+      const all = store.read();
+      const scope = all[key];
+      return { personal: { ...scope, contacts: scope.contacts.filter((p) => p.ownerId === accountId) } };
+    },
+    readVisible() {
+      const workspace = authorize();
+      const all = store.read();
+      if (!workspace) return { personal: { ...all[key], contacts: all[key].contacts.filter(p => p.ownerId === accountId) } };
+      const result = empty();
+      for (const member of workspace.members.filter(m => m.status === "active" && (m.id === accountId || workspace.customerSharing?.[m.id]))) {
+        const scope = all[`workspace:${workspaceId}:account:${member.id}`];
+        if (!scope) continue;
+        for (const person of scope.contacts.filter(p => p.ownerId === member.id)) {
+          result.contacts.push(person);
+          result.notes[`${member.id}:${person.id}`] = scope.notes[person.id] || [];
+        }
+      }
+      return { personal: result };
+    },
+    change<R>(fn: (s: Record<string, ContactsState>) => R): R {
+      const workspace = authorize();
+      if (workspace) M.writable(workspace);
+      return store.change((all) => {
+        const scope = all[key];
+        const visible = scope.contacts.filter((p) => p.ownerId === accountId);
+        const hidden = scope.contacts.filter((p) => p.ownerId !== accountId);
+        const view = { personal: { ...scope, contacts: visible } };
+        const result = fn(view);
+        for (const person of view.personal.contacts) {
+          if (person.ownerId && person.ownerId !== accountId) throw Error("不能写入其他成员的客户档案");
+          person.ownerId = accountId;
+        }
+        all[key] = { ...view.personal, contacts: [...view.personal.contacts, ...hidden] };
+        return result;
+      });
+    },
+  };
 }
 export function day(value = new Date()) {
   return localDay(value);

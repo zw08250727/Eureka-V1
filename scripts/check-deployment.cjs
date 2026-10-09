@@ -31,6 +31,8 @@ const routes = [
     "audit",
   ].map((view) => [view + "&space=team-eureka", "#ws-view"]),
   ["tasks&space=team-eureka", 'p[role="alert"]'],
+  ["contacts&space=team-eureka", "#contacts-root"],
+  ["content-permissions&space=team-eureka", ".ws-sharing-settings"],
 ];
 (async () => {
   const browser = await chromium.launch({
@@ -73,6 +75,20 @@ const routes = [
         await page.getByRole("button", { name: "新建会话", exact: true }).waitFor();
       }
       if (view.startsWith("tasks")) assert.match(await page.locator(selector).innerText(), /此入口不属于当前工作空间/);
+      if (view === "contacts&space=team-eureka") {
+        await page.getByRole("heading", { name: "团队客户", exact: true }).waitFor();
+        assert.deepEqual(await page.getByLabel("筛选客户来源").locator("option").allTextContents(), ["全部来源", "手动录入", "Agent 创建", "CRM"]);
+        await page.getByLabel("筛选所属成员").waitFor();
+      }
+      if (view === "content-permissions&space=team-eureka") {
+        assert.equal(await page.getByRole("switch").count(), 2);
+        await page.getByRole("switch", { name: "我的客户共享给团队", exact: true }).waitFor();
+      }
+      if (view === "create-team") {
+        assert.match(await page.locator(".ws-price").innerText(), /\$20\.00/);
+        await page.getByRole("button", { name: "月付", exact: true }).click();
+        assert.match(await page.locator(".ws-price").innerText(), /\$28\.00/);
+      }
       console.log("PASS", view);
       await page.close();
     }

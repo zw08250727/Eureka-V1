@@ -1,7 +1,15 @@
+import M from "../../src/features/spaces/model/core";
 import { expect, test } from "@playwright/test";
 const base = process.env.NATIVE_BASE_URL || "";
 const meeting = `${base}/workbench/?view=meeting&space=personal&id=meeting-1`;
 test.use({ channel: process.env.PLAYWRIGHT_CHANNEL || undefined });
+// These tests exercise personal recording and AI with no active Team benefits.
+test.beforeEach(async ({ page }) => {
+  const state = M.seed();
+  state.spaces = state.spaces.filter(w => w.type === "personal");
+  M.reconcileEntitlements(state);
+  await page.addInitScript(s => { if (!localStorage.getItem("eureka:workspaces:v2")) localStorage.setItem("eureka:workspaces:v2", JSON.stringify(s)); }, state);
+});
 
 test("native meeting tabs, local audio, drafts and generation stay isolated", async ({
   page,

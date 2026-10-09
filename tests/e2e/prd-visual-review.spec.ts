@@ -14,8 +14,9 @@ test('compact cover, top controls, requested content and functional illustration
   for(const id of ['draft-view','published-view','print-button','import-button','export-button','publish-button'])await expect(page.locator('.toolbar #'+id)).toBeVisible();
   await expect(page.locator('#market')).not.toContainText('需求机会');await expect(page.locator('#market tbody tr')).toHaveCount(1);await expect(page.locator('#market tbody')).toContainText('Plaud Workspace');
   await expect(page.locator('#milestones')).toContainText('Plaud 的账号、工作空间、席位和设备关系是参考；EurekaMind 的视觉、首页、Agent Credits 共享池和演示价格为自身设计。');
-  await expect(page.locator('.flow-error[role=alert]')).toHaveCount(0);await expect(page.locator('.flow-svg')).toHaveCount(5);
-  for(const id of ['home','thoughts','recording','meeting-list','agent-process','contacts','workspaces','team-create','members','team-files','devices','billing','credits','settings'])expect(await page.locator('#'+id+' img').count()).toBeGreaterThan(0);
+  await expect(page.locator('.flow-error[role=alert]')).toHaveCount(0);await expect(page.locator('.flow-svg')).toHaveCount(4);
+  for(const id of ['home','thoughts','recording','meeting-list','agent-process','workspaces','team-create','members','team-files','billing','credits','settings'])expect(await page.locator('#'+id+' img').count()).toBeGreaterThan(0);
+  await expect(page.locator("#contacts img,#devices img")).toHaveCount(0); // Retired illustrations must not present obsolete permissions.
   // Load every image URL once without relying on scrolling all long sections.
   const imageResults=await page.locator('.prose img').evaluateAll(async imgs=>Promise.all([...new Set(imgs.map(img=>(img as HTMLImageElement).src))].map(src=>new Promise<{src:string,loaded:boolean}>(resolve=>{const img=new Image();img.onload=()=>resolve({src,loaded:img.naturalWidth>0});img.onerror=()=>resolve({src,loaded:false});img.src=src;}))));
   expect(imageResults.filter(r=>!r.loaded)).toEqual([]);

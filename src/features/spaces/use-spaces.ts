@@ -30,9 +30,12 @@ export function useSpaces(creationDemo = false) {
         setError((e as Error).message);
       }
     };
+    const local = () => external({ key } as StorageEvent);
     window.addEventListener("storage", external);
+    window.addEventListener("eureka:data", local);
     return () => {
       window.removeEventListener("storage", external);
+      window.removeEventListener("eureka:data", local);
       active = false;
     };
   }, [creationDemo, key]);

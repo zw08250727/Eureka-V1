@@ -3,7 +3,6 @@ import M from "../../src/features/spaces/model/core";
 import { agentRoute } from "../../src/features/agent/registry";
 import type { WorkspaceState } from "../../src/features/spaces/model/types";
 const KEY = "eureka:workspaces:v2";
-const blocked = "你已创建或加入一个团队，不能再创建或加入其他团队";
 function personalOnly() { const s = M.seed(); s.spaces = s.spaces.filter((w) => w.type === "personal"); s.devices = []; return s; }
 async function seed(page: Page, state: WorkspaceState) {
   await page.addInitScript(({ state, key }) => {
@@ -11,30 +10,33 @@ async function seed(page: Page, state: WorkspaceState) {
   }, { state, key: KEY });
 }
 
-test("single team model rejects create/join and lifecycle mutations without side effects", () => {
+test("multiple teams allow create/join while rejecting voluntary exit and dissolution", () => {
   const s = M.seed();
   expect(s.spaces.filter((w) => w.type === "team")).toHaveLength(1);
   const before = JSON.stringify(s), w = M.get(s, "team-eureka");
-  expect(() => M.create(s, { name: "第二个", country: "中国", cycle: "year", seats: 3, orderId: "second" })).toThrow(blocked);
-  expect(() => M.acceptInvite(s, "invite-growth")).toThrow(blocked);
+
   expect(() => M.leave(s, w)).toThrow("不支持退出");
   expect(() => M.dissolve(s, w, w.name)).toThrow("不支持解散");
   expect(() => M.memberAction(s, w, "zhang", "remove")).toThrow("不支持退出");
   expect(JSON.stringify(s)).toBe(before);
   w.status = "expired";
-  expect(() => M.assertCanJoinTeam(s)).toThrow(blocked);
+  expect(() => M.assertCanJoinTeam(s)).not.toThrow();
+  M.create(s, { name: "第二个", country: "中国", cycle: "year", seats: 3, orderId: "second" });
+  M.acceptInvite(s, "invite-growth");
+  expect(M.accountTeams(s)).toHaveLength(3);
 });
 
-test("first creation is idempotent and first join blocks creation", () => {
+test("creation is idempotent and another team can still be joined or created", () => {
   const s = personalOnly(), input = { name: "唯一团队", country: "中国", cycle: "year" as const, seats: 3, orderId: "one" };
   const w = M.create(s, input);
   expect(M.create(s, input).id).toBe(w.id);
   expect(s.orders).toHaveLength(1);
-  expect(() => M.acceptInvite(s, "invite-growth")).toThrow(blocked);
+  M.acceptInvite(s, "invite-growth");
+  expect(M.accountTeams(s)).toHaveLength(2);
   const joined = personalOnly();
   M.acceptInvite(joined, "invite-growth");
-  expect(() => M.create(joined, input)).toThrow(blocked);
-  expect(joined.spaces.filter((w) => w.type === "team")).toHaveLength(1);
+  M.create(joined, input);
+  expect(joined.spaces.filter((w) => w.type === "team")).toHaveLength(2);
 });
 
 test("one Agent identity uses different scene data and skills", () => {
@@ -47,26 +49,23 @@ test("one Agent identity uses different scene data and skills", () => {
   expect(w.threads.find((t) => t.id === reply.threadId)).toMatchObject({ agentId: "eurekamind-agent", scene: "team", dataMcp: ["team-meetings"] });
 });
 
-test("create and accept show toast for existing team and keep current page and data", async ({ page }) => {
+test("existing team members can open another creation flow and accept another invitation", async ({ page }) => {
   await seed(page, M.seed());
   await page.goto("/workbench/?view=calendar");
-  const original = await page.evaluate((key) => localStorage.getItem(key), KEY);
   await page.locator("#ws-switcher").click();
   await page.getByRole("button", { name: "创建团队工作空间", exact: true }).click();
-  await expect(page.getByRole("status").filter({ hasText: blocked })).toBeVisible();
-  await expect(page.locator("#ws-dialog")).toHaveCount(0);
+  await expect(page.locator("#ws-dialog")).toBeVisible();
   await expect(page.locator("#personal-actions")).toBeVisible();
+  await page.keyboard.press("Escape");
   await page.locator("#ws-switcher").click();
   await page.getByRole("button", { name: /工作空间邀请/ }).click();
   await page.getByRole("button", { name: "接受并进入" }).click();
-  await expect(page.getByRole("status").filter({ hasText: blocked }).last()).toBeVisible();
-  expect(await page.evaluate((key) => localStorage.getItem(key), KEY)).toBe(original);
-  await page.goto("/workbench/?view=create-team");
-  await expect(page.getByRole("dialog", { name: "无法创建团队" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "模拟支付并开通" })).toHaveCount(0);
+  await expect(page.locator("#ws-switcher")).toContainText("增长研究小组");
+  const count = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!).spaces.filter((w: { type: string }) => w.type === "team").length, KEY);
+  expect(count).toBe(2);
 });
 
-test("no-team account can create through payment and cannot create or join again", async ({ page }) => {
+test("no-team account can create through payment and open another creation flow", async ({ page }) => {
   await seed(page, personalOnly());
   await page.goto("/workbench/?view=create-team");
   await page.getByRole("button", { name: "创建团队", exact: true }).click();
@@ -78,7 +77,7 @@ test("no-team account can create through payment and cannot create or join again
   await expect(page.locator("#ws-switcher")).toContainText("唯一新团队");
   await page.locator("#ws-switcher").click();
   await page.getByRole("button", { name: "创建团队工作空间", exact: true }).click();
-  await expect(page.getByRole("status").filter({ hasText: blocked })).toBeVisible();
+  await expect(page.getByRole("dialog")).toContainText("EurekaMind Team");
 });
 
 test("navigation and management have no task, leave or dissolve controls", async ({ page }) => {
@@ -96,11 +95,12 @@ test("navigation and management have no task, leave or dissolve controls", async
 });
 
 test("personal scene conversations share history and resume after refresh", async ({ page }) => {
+  await seed(page, personalOnly());
   await page.goto("/workbench/?view=contacts&id=john");
   await page.locator('[data-contact-action="toggle-xiaozhi"]').first().click();
   await page.locator('[data-contact-xiaozhi-input]').fill("整理开放承诺");
   await page.locator('[data-contact-action="send-xiaozhi"]').click();
-  await expect(page.locator(".contacts-xiaozhi-answer")).toContainText("开放承诺");
+  await expect(page.locator(".contacts-xiaozhi-answer")).toContainText("双方待办");
   await page.getByRole("button", { name: "新建会话", exact: true }).click();
   await page.getByRole("button", { name: "历史会话", exact: true }).click();
   await expect(page.getByRole("dialog", { name: "历史会话", exact: true })).toContainText("整理开放承诺");
@@ -144,7 +144,7 @@ test("scene headers share history across home, thoughts, calendar, contacts, mee
     { name: "thoughts", url: "/workbench/?view=thoughts", entry: '[data-th="ask"]' },
     { name: "calendar", url: "/workbench/?view=calendar", entry: '[data-pa="agent"]' },
     { name: "contacts", url: "/workbench/?view=contacts&id=john", entry: '.contacts-xiaozhi-entry' },
-    { name: "team", url: "/workbench/?space=team-eureka", entry: '[data-ws-action="agent"]' },
+    { name: "team", url: "/workbench/?space=team-eureka", entry: 'button[aria-label="Ask Agent"]' },
     { name: "meeting", url: "/workbench/?view=meeting&id=meeting-1", entry: '.md-ask-agent' },
     { name: "team-meeting", url: "/workbench/?view=meeting&space=team-eureka&id=team-review", entry: '.md-ask-agent' },
   ];
@@ -169,7 +169,7 @@ test("team history remains scoped to actor and excludes personal conversations",
   M.ask(w, "Kevin专属会话记录", null, "kevin");
   await seed(page, s);
   await page.goto("/workbench/?space=team-eureka&actor=kevin");
-  await page.locator('[data-ws-action="agent"]').click();
+  await page.locator('button[aria-label="Ask Agent"]').click();
   await page.getByRole("button", { name: "历史会话", exact: true }).click();
   const history = page.getByRole("dialog", { name: "历史会话", exact: true });
   await expect(history).toContainText("Kevin专属会话记录");
@@ -204,6 +204,6 @@ test("single-team settings and membership capture match the revised PRD", async 
   await expect(page.locator("#ws-menu .ws-menu-space")).toHaveCount(2);
   if (process.env.PRD_CAPTURE) await page.screenshot({ path: "src/prototype/prd/images/single-team-switcher.png" });
   await page.getByRole("button", { name: "创建团队工作空间", exact: true }).click();
-  await expect(page.getByRole("status").filter({ hasText: blocked })).toBeVisible();
+  await expect(page.getByRole("dialog")).toContainText("EurekaMind Team");
   if (process.env.PRD_CAPTURE) await page.screenshot({ path: "src/prototype/prd/images/single-team-toast.png" });
 });

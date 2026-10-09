@@ -57,15 +57,15 @@ test("missing contact cannot silently open or edit another contact", async ({
   await seedContacts(page);
   await contacts(page, "does-not-exist");
   await expect(page.locator(".contacts-main").getByRole("alert")).toContainText(
-    "联系人不存在或已删除",
+    "客户不存在、已删除或所属成员已关闭共享",
   );
   await expect(page.locator(".contacts-profile")).toHaveCount(0);
   await expect(page.locator("[data-contact-action=note]")).toHaveCount(0);
-  await page.getByRole("button", { name: "返回联系人列表" }).click();
+  await page.getByRole("button", { name: "返回我的客户列表" }).click();
   await expect(page.locator(".contacts-person-card")).toHaveCount(1);
 });
 
-test("same names remain distinct; editing, own commitments and notes persist", async ({
+test("same names remain distinct; editing and notes persist without legacy commitment status or memory confirmation", async ({
   page,
 }) => {
   await seedContacts(page);
@@ -78,12 +78,10 @@ test("same names remain distinct; editing, own commitments and notes persist", a
     .click();
   await page.getByRole("tab", { name: "承诺", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "我的承诺", exact: true }),
+    page.getByRole("heading", { name: "我的待办", exact: true }),
   ).toBeVisible();
-  await page.getByLabel("承诺状态：我提供材料").selectOption("已完成");
-  await expect(
-    page.locator(".contacts-metrics").getByText("开放承诺").locator(".."),
-  ).toHaveText("0开放承诺");
+  await expect(page.getByLabel("承诺状态：我提供材料")).toHaveCount(0);
+  await expect(page.locator(".contacts-metrics")).toHaveCount(0);
   await page.locator("[data-contact-action=edit]").click();
   await page.locator("[name=company]").fill("甲公司已更正");
   await submit(page).click();
@@ -93,8 +91,7 @@ test("same names remain distinct; editing, own commitments and notes persist", a
   await page.getByRole("button", { name: "编辑备注", exact: true }).click();
   await page.locator("[name=text]").fill("更正后的备注");
   await submit(page).click();
-  await page.getByRole("button", { name: "确认记忆", exact: true }).click();
-  await expect(page.locator(".contacts-main")).toContainText("用户已确认");
+  await expect(page.getByRole("button", { name: "确认记忆", exact: true })).toHaveCount(0);
   page.on("dialog", (d) => d.accept());
   await page.getByRole("button", { name: "删除备注", exact: true }).click();
   await page.reload();
@@ -105,7 +102,7 @@ test("same names remain distinct; editing, own commitments and notes persist", a
   expect(data.contacts).toHaveLength(2);
   expect(data.contacts[0].company).toBe("甲公司已更正");
   expect(data.contacts[1].company).toBe("乙公司");
-  expect(data.contacts[0].promises[0].status).toBe("已完成");
+
   expect(data.notes[person.id]).toEqual([]);
 });
 
@@ -158,6 +155,7 @@ for (const space of ["personal", "team-eureka"])
     page,
   }) => {
     const state = M.seed();
+    if (space === "personal") { state.spaces = state.spaces.filter(w => w.type === "personal"); M.reconcileEntitlements(state); }
     await page.addInitScript((state) => {
       if (!localStorage.getItem("eureka:workspaces:v2"))
         localStorage.setItem("eureka:workspaces:v2", JSON.stringify(state));

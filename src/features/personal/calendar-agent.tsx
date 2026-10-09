@@ -182,6 +182,7 @@ export function CalendarAgent({
   };
   const generate = (text: string) => {
     if (!text.trim() || draft) return;
+    try { agent.ensureAvailable(); } catch (error) { setError((error as Error).message); return; }
     const wantsCreate =
       /创建|新建|提醒我/.test(text) ||
       (/安排/.test(text) && !/哪些|优先|汇总|总结|回顾/.test(text));
@@ -251,6 +252,7 @@ export function CalendarAgent({
   const confirm = () => {
     if (!draft || !form.current?.reportValidity()) return false;
     try {
+      agent.ensureAvailable();
       const r = repo.confirm(sessionId, actionValues(form.current, draft));
       setDraft(null);
       onRefresh();

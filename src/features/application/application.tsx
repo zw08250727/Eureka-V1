@@ -9,7 +9,6 @@ import { ReviewPerspectiveSwitch } from "@/features/spaces/review-switch";
 import { M } from "@/features/spaces/model/store";
 import { Workbench } from "@/features/workbench/workbench";
 
-import { useWorkbench } from "@/features/workbench/hooks/use-workbench";
 
 import { appUrl } from "@/lib/routes";
 const Calendar = dynamic(() =>
@@ -54,8 +53,7 @@ const SpaceSettings = dynamic(() =>
 export function Application() {
   const route = useAppRoute(),
     actualSpaces = useSpaces(route.creationDemo),
-    spaces = useReviewPerspective(actualSpaces, route.space, route.actor, route.memberView),
-    home = useWorkbench();
+    spaces = useReviewPerspective(actualSpaces, route.space, route.actor, route.memberView);
   if (!spaces.state)
     return (
       <main className="p-8" role={spaces.error ? "alert" : "status"}>
@@ -64,7 +62,7 @@ export function Application() {
     );
   const w = spaces.state.spaces.find((w) => w.id === route.space),
     actor = route.actor;
-  if (!w || !M.member(w, actor) || (w.type === "team" && M.accountTeam(spaces.state, actor)?.id !== w.id))
+  if (!w || !M.member(w, actor))
     return (
       <main className="p-8">
         <p role="alert">工作空间不存在或没有访问权限。</p>
@@ -75,24 +73,28 @@ export function Application() {
 
   const props = { controller: spaces, space: w.id, actor };
   const content =
-    route.view === "home" ? (
+    team && ["calendar", "thoughts"].includes(route.view) ? (
+      <section className="p-8"><p role="status">闪念、日程与待办仅在个人工作区使用。</p><a href={appUrl("home", "", "personal", "zhang")}>切换到个人工作区</a></section>
+    ) : route.view === "home" ? (
       team ? (
         <TeamHome {...props} />
       ) : (
         <Workbench />
       )
-    ) : route.view === "calendar" && !team ? (
-      <Calendar id={route.id} />
-    ) : route.view === "thoughts" && !team ? (
+    ) : route.view === "calendar" ? (
+      <Calendar key={`${w.id}:${actor}`} id={route.id} {...props} />
+    ) : route.view === "thoughts" ? (
       <Thoughts id={route.id} />
-    ) : route.view === "contacts" && !team ? (
-      <Contacts id={route.id} />
+    ) : route.view === "contacts" ? (
+      <Contacts key={`${w.id}:${actor}`} id={route.id} actor={actor} space={w.id} controller={spaces} />
     ) : route.view === "settings" ? (
       <Settings {...props} />
     ) : route.view === "meeting" ? (
       <Meeting id={route.id} spaces={spaces} space={w.id} actor={actor} />
     ) : route.view === "recording" ? (
       <Recording {...props} id={route.id} />
+    ) : route.view === "my-devices" ? (
+      <Devices {...props} own />
     ) : route.view === "devices" ? (
       <Devices {...props} />
     ) : route.view === "members" && team ? (
@@ -103,8 +105,8 @@ export function Application() {
       <CreateTeam controller={spaces} />
     ) : route.view === "invitations" ? (
       <Invitations controller={spaces} />
-    ) : ["space-settings", "audit"].includes(route.view) && team ? (
-      <SpaceSettings {...props} audit={route.view === "audit"} />
+    ) : ["space-settings", "audit", "content-permissions"].includes(route.view) && team ? (
+      <SpaceSettings {...props} audit={route.view === "audit"} permissions={route.view === "content-permissions"} />
     ) : route.view === "history" ? (
       team ? (
         <TeamHome {...props} historyId={route.id} />
@@ -123,15 +125,17 @@ export function Application() {
   const titles: Record<string, string> = {
     home: team ? w.name : "我的 AI 工作台",
     calendar: "日程与待办",
-    contacts: "联系人",
+    contacts: team ? "团队客户" : "我的客户",
     thoughts: "全部闪念",
     settings: "个人设置",
-    devices: team ? "设备管理" : "设备与同步",
+    "my-devices": "我的设备",
+    devices: team ? "设备查看" : "设备与同步",
     members: "团队成员",
-    subscription: team ? "空间管理" : "个人订阅",
-    credits: "空间管理",
-    "space-settings": "空间管理",
-    audit: "空间管理",
+    subscription: team ? "空间设置" : "个人订阅",
+    credits: "空间设置",
+    "space-settings": "空间设置",
+    "content-permissions": "空间设置",
+    audit: "空间设置",
     meeting: "语音笔记",
     recording: "开始录音",
     history: "我的 AI 工作台",
@@ -156,7 +160,6 @@ export function Application() {
       actor={actor}
       controller={spaces}
       reviewSwitch={<ReviewPerspectiveSwitch state={actualSpaces.state!} space={w.id} actor={actor} view={route.view} memberView={route.memberView} creationDemo={route.creationDemo} />}
-      contactCount={home.data?.contactCount}
     >
       {content}
     </ReferenceShell>

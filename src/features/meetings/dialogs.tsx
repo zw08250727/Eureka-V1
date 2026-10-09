@@ -79,10 +79,11 @@ export function MeetingDialogs({
   seek: (n: number) => void;
   workspace?: Workspace;
   actor: string;
-  onShare: (users: string[]) => void;
+  onShare: (users: string[], editors: string[]) => void;
   copyText: string;
   previewImage?: { name: string; url: string };
 }) {
+  const [editors, setEditors] = useState(workspace?.files.find(f => f.id === r.id)?.editors || []);
   const [openedAt] = useState(() => Date.now());
   const [page, setPage] = useState(kind),
     [error, setError] = useState(""),
@@ -626,7 +627,7 @@ export function MeetingDialogs({
           onSubmit={(e) => {
             e.preventDefault();
             try {
-              onShare(users);
+              onShare(users, editors.filter(id => users.includes(id)));
               onClose();
             } catch (e) {
               setError((e as Error).message);
@@ -635,7 +636,7 @@ export function MeetingDialogs({
         >
           <p>{r.title}</p>
           <p className="ws-muted">
-            勾选成员可访问此文件，取消勾选将撤销访问。不会向其他空间开放。
+            选择当前工作区的接收成员及查看／编辑权限。编辑不含删除或转授权；取消勾选撤销访问，不向其他工作区开放。
           </p>
           <div className="ws-share-list">
             {workspace.members
@@ -659,7 +660,7 @@ export function MeetingDialogs({
                     {m.name}
                     <small>{m.email}</small>
                   </span>
-                  <span className="ws-badge">可查看</span>
+                  <select aria-label={`${m.name}的内容权限`} disabled={!users.includes(m.id)} value={editors.includes(m.id) ? "edit" : "view"} onChange={e => setEditors(e.target.value === "edit" ? [...editors, m.id] : editors.filter(id => id !== m.id))}><option value="view">查看</option><option value="edit">编辑</option></select>
                 </label>
               ))}
           </div>

@@ -15,6 +15,9 @@ export interface ContactInteraction {
   verifiedParticipation: boolean;
   sourceAvailable: boolean;
   themes: string[];
+  extractedSummary?: string;
+  todos?: { side: "mine" | "theirs"; title: string; due: string }[];
+  profile?: Record<string, string>;
 }
 export function contactPromises(person: Contact): ContactPromise[] {
   if (person.promises)

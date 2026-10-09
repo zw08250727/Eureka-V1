@@ -34,9 +34,9 @@ test('hierarchical numbering stays stable through search, editing and Markdown e
   expect(markdown).not.toContain('2.1.2 2.1.2');
 });
 
-test('scope defines one Agent and single team while excluding real service implementation',async({page})=>{
+test('scope defines one Agent and multiple workspaces while excluding real service implementation',async({page})=>{
   await page.goto(url);
-  await expect(page.locator('#journeys .flow-svg')).toHaveCount(4);
+  await expect(page.locator('#journeys .flow-svg')).toHaveCount(3);
   for(const text of ['F-01','F-02','F-07','个人日程与待办闭环'])await expect(page.locator('#journeys')).not.toContainText(text);
   const boundary=page.locator('#milestones .rule-block').filter({has:page.getByRole('heading',{name:'1.2.3 参考与边界',exact:true})});
   for(const topic of ['登录与注册','WiseNote PC','Agentplatform','调用逻辑','运行状态与计费','历史任务调用','自动任务','窗口自适应'])await expect(boundary).toContainText(topic);
@@ -55,8 +55,8 @@ test('scope defines one Agent and single team while excluding real service imple
   await expect(page.locator('#settings')).toContainText('保留输入及原有效值');
   const doc=JSON.parse(await readFile('src/prototype/prd/content.json','utf8'));
   const all=doc.sections.map((s:{body:string})=>s.body).join('\n');
-  const defined=new Set(doc.sections.find((s:{id:string})=>s.id==='acceptance').body.match(/AC-\d+/g));
-  for(const reference of all.match(/AC-[A-Z0-9]+/g)||[])expect(defined.has(reference)).toBe(true);
+  const defined=new Set(doc.sections.find((s:{id:string})=>s.id==='acceptance').body.match(/AC-(?:[A-Z]+-)*\d+/g));
+  for(const reference of all.match(/AC-(?:[A-Z]+-)*\d+/g)||[])expect(defined.has(reference)).toBe(true);
 });
 
 test('key flowcharts are compact on desktop and scroll inside narrow screens',async({page})=>{

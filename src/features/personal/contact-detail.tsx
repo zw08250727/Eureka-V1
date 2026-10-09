@@ -1,284 +1,59 @@
-import {
-  contactPromises,
-  promiseStatus,
-  openPromise,
-  type ContactPromise,
-} from "./contact-rules";
-import { Fragment, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import type { Contact, ContactsState } from "./store";
+import { appUrl } from "@/lib/routes";
+import { keywordRule, meetingKeywords, profileDimensions, useCustomerMeetings, type CustomerMeeting } from "./contact-insights";
 
 export function ContactTag({ children }: { children: string }) {
-  return (
-    <span
-      className={`contacts-tag ${["需关注", "待回复"].includes(children) ? "warm" : ["已完成", "进行中"].includes(children) ? "green" : ""}`}
-    >
-      {children}
-    </span>
-  );
+  return <span className="contacts-tag">{children}</span>;
 }
-export function ContactCard({
-  title,
-  children,
-}: {
-  title: string;
-  children: ReactNode;
+export function ContactCard({ title, children }: { title: string; children: ReactNode }) {
+  return <section className="contacts-card"><h2>{title}</h2>{children}</section>;
+}
+export function ContactLine({ title, children }: { title: ReactNode; children: ReactNode }) {
+  return <div className="contacts-line"><strong>{title}</strong><small>{children}</small></div>;
+}
+function Followups({ meetings, space, actor }: { meetings: CustomerMeeting[]; space: string; actor: string }) {
+  if (!meetings.length) return <p className="contacts-muted">暂无会议跟进记录</p>;
+  return <div className="customer-followups">{meetings.map((m) => <a className="customer-meeting" key={m.id} href={appUrl("meeting", m.id, space, actor)}>
+    <time>{m.occurredAt.slice(0, 10)}</time><strong>{m.title}<span aria-hidden="true"> ↗</span></strong>
+    <p>{(m.summary.match(/[^。！？.!?]+[。！？.!?]?/g) || [m.summary]).slice(0, 3).join("")}</p>
+    <small>查看会议详情</small>
+  </a>)}</div>;
+}
+export function ContactDetail({ person, tab, notes, space, actor, readonly = false, onEditNote, onDeleteNote }: {
+  person: Contact; tab: string; notes: ContactsState["notes"][string]; space: string; actor: string;
+  readonly?: boolean;
+  onEditNote: (index: number) => void; onDeleteNote: (index: number) => void;
 }) {
-  return (
-    <section className="contacts-card ">
-      <h2>{title}</h2>
-      {children}
-    </section>
-  );
-}
-export function ContactLine({
-  title,
-  children,
-}: {
-  title: ReactNode;
-  children: ReactNode;
-}) {
-  return (
-    <div className="contacts-line">
-      <strong>{title}</strong>
-      <small>{children}</small>
-    </div>
-  );
-}
-function Themes({ person, empty }: { person: Contact; empty: ReactNode }) {
-  return person.themes?.length
-    ? person.themes.map((theme, i) => (
-        <Fragment key={theme}>
-          {i > 0 ? " " : null}
-          <ContactTag>
-            {theme.replace(/\s*·\s*\d+(?:\s*次互动)?$/, "")}
-          </ContactTag>
-        </Fragment>
-      ))
-    : empty;
-}
-function Commitments({
-  items,
-  onChange,
-}: {
-  items: ContactPromise[];
-  onChange: (id: string, status: string) => void;
-}) {
-  if (!items.length) return <p>暂无承诺</p>;
-  return items.map((item) => (
-    <ContactLine
-      key={item.id}
-      title={
-        <>
-          {item.title} <ContactTag>{promiseStatus(item)}</ContactTag>
-        </>
-      }
-    >
-      {item.due || "未设置截止时间"}
-      <label className="contact-commitment-state">
-        状态{" "}
-        <select
-          aria-label={`承诺状态：${item.title}`}
-          value={item.status}
-          onChange={(e) => onChange(item.id, e.target.value)}
-        >
-          {["待确认", "待完成", "进行中", "已完成", "已取消"].map((status) => (
-            <option key={status}>{status}</option>
-          ))}
-        </select>
-      </label>
-    </ContactLine>
-  ));
-}
-export function ContactDetail({
-  person,
-  tab,
-  notes,
-  onFollowup,
-  onPromise,
-  onConfirmMemory,
-  onEditNote,
-  onDeleteNote,
-}: {
-  person: Contact;
-  tab: string;
-  notes: ContactsState["notes"][string];
-  onFollowup: () => void;
-  onPromise: (id: string, status: string) => void;
-  onConfirmMemory: (text: string) => void;
-  onEditNote: (index: number) => void;
-  onDeleteNote: (index: number) => void;
-}) {
-  const promises = contactPromises(person);
-  if (tab === "概览")
-    return (
-      <div className="contacts-detail-grid">
-        <div className="contacts-wide">
-          <ContactCard title="AI 关系摘要">
-            <p>{person.summary || "暂无关系摘要"}</p>
-          </ContactCard>
-        </div>
-        <ContactCard title="档案">
-          <dl className="contacts-facts">
-            <dt>公司</dt>
-            <dd>{person.company}</dd>
-            <dt>角色</dt>
-            <dd>{person.role}</dd>
-            <dt>地区</dt>
-            <dd>{person.region || "待补充"}</dd>
-            <dt>邮箱</dt>
-            <dd>{person.email || "待补充"}</dd>
-            <dt>关系</dt>
-            <dd>
-              <ContactTag>{person.tag}</ContactTag>
-            </dd>
-          </dl>
-        </ContactCard>
-        <ContactCard title="开放承诺">
-          <Commitments
-            items={promises.filter(openPromise)}
-            onChange={onPromise}
-          />
-        </ContactCard>
-        <div className="contacts-wide">
-          <ContactCard title="关键主题">
-            <Themes person={person} empty={<p>暂无主题</p>} />
-          </ContactCard>
-        </div>
-      </div>
-    );
-  if (tab === "时间线")
-    return (
-      <ContactCard title="关系时间线">
-        {person.timeline?.length ? (
-          <div className="contacts-timeline">
-            {person.timeline.map(([title, meta, description], i) => (
-              <ContactLine key={i} title={title}>
-                {meta}
-                <br />
-                {description}
-              </ContactLine>
-            ))}
-          </div>
-        ) : (
-          <div className="contacts-empty">暂无时间线记录</div>
-        )}
-      </ContactCard>
-    );
-  if (tab === "承诺")
-    return (
-      <div className="contacts-detail-grid">
-        <ContactCard title={`来自 ${person.name} 的承诺`}>
-          <Commitments
-            items={promises.filter((p) => p.side === "theirs")}
-            onChange={onPromise}
-          />
-        </ContactCard>
-        <ContactCard title="我的承诺">
-          <Commitments
-            items={promises.filter((p) => p.side === "mine")}
-            onChange={onPromise}
-          />
-        </ContactCard>
-        <div className="contacts-wide">
-          <ContactCard title="跟进建议">
-            <p>
-              {promises.some(openPromise)
-                ? "可围绕上述未完成承诺确认进展；创建跟进前请核对责任人与期限。"
-                : "暂无未完成承诺。"}
-            </p>
-            <button
-              type="button"
-              className="contacts-button primary"
-              data-contact-action="followup"
-              onClick={onFollowup}
-            >
-              创建跟进
-            </button>
-          </ContactCard>
-        </div>
-      </div>
-    );
-  if (tab === "主题")
-    return (
-      <>
-        <ContactCard title="主题">
-          <Themes
-            person={person}
-            empty={<div className="contacts-empty">暂无主题</div>}
-          />
-        </ContactCard>
-        <p className="contacts-muted">
-          活跃主题仅统计最近 30
-          天已核实互动涉及的主题；旧主题标签不作为计数依据。
-        </p>
-      </>
-    );
-  return (
-    <>
-      <ContactCard title="关系记忆">
-        {person.memories?.length ? (
-          person.memories.map((item) => (
-            <div key={item}>
-              <p>{item}</p>
-              <small>
-                {person.memoryConfirmations?.[item]
-                  ? "用户已确认"
-                  : "来源待核实"}
-              </small>
-              {!person.memoryConfirmations?.[item] && (
-                <button
-                  type="button"
-                  className="contacts-button"
-                  onClick={() => onConfirmMemory(item)}
-                >
-                  确认记忆
-                </button>
-              )}
-            </div>
-          ))
-        ) : (
-          <p>暂无关系记忆</p>
-        )}
-      </ContactCard>
-      <br />
-      <ContactCard title="AI 推断">
-        {person.inferences?.length ? (
-          <>
-            {person.inferences.map((item, i) => (
-              <p key={i}>{`• ${item}`}</p>
-            ))}
-            <p className="contacts-muted">以上推断需要后续互动确认。</p>
-          </>
-        ) : (
-          <p>暂无推断</p>
-        )}
-      </ContactCard>
-      {notes.length ? (
-        <>
-          <br />
-          <ContactCard title="我的备注">
-            {notes.map((note, i) => (
-              <ContactLine key={i} title={note.text}>
-                {note.time}
-                <button
-                  type="button"
-                  className="contacts-button"
-                  onClick={() => onEditNote(i)}
-                >
-                  编辑备注
-                </button>
-                <button
-                  type="button"
-                  className="contacts-button"
-                  onClick={() => onDeleteNote(i)}
-                >
-                  删除备注
-                </button>
-              </ContactLine>
-            ))}
-          </ContactCard>
-        </>
-      ) : null}
-    </>
-  );
+  const meetings = useCustomerMeetings(person, actor, space);
+  const keywords = meetingKeywords(meetings);
+  if (tab === "概览") return <div className="contacts-detail-grid">
+    <div className="contacts-wide"><ContactCard title="客户简介"><p>{person.summary || "暂无客户简介"}</p></ContactCard></div>
+    <ContactCard title="客户档案"><dl className="contacts-facts">
+      <dt>主体类型</dt><dd>{person.subjectType === "enterprise" ? "企业" : "自然人"}</dd>
+      <dt>{person.subjectType === "enterprise" ? "企业" : "所属公司"}</dt><dd>{person.company || "待补充"}</dd>
+      <dt>{person.subjectType === "enterprise" ? "行业" : "职务"}</dt><dd>{person.role || "待补充"}</dd>
+      <dt>地区</dt><dd>{person.region || "待补充"}</dd><dt>邮箱</dt><dd>{person.email || "待补充"}</dd>
+    </dl></ContactCard>
+    <ContactCard title="关键主题"><div className="customer-keywords">{keywords.length ? keywords.map((k) => <span key={k.word} className="contacts-tag">{k.word}<small>{k.count} 场会议</small></span>) : <p className="contacts-muted">暂无会议关键词</p>}</div><details className="customer-rule"><summary>关键词如何生成</summary><p>{keywordRule}</p></details></ContactCard>
+    <div className="contacts-wide"><ContactCard title="跟进记录"><Followups meetings={meetings} space={space} actor={actor} /></ContactCard></div>
+  </div>;
+  if (tab === "时间线") return <ContactCard title="跟进记录"><p className="contacts-muted">按会议时间倒序排列，点击记录回到会议详情。</p><Followups meetings={meetings} space={space} actor={actor} /></ContactCard>;
+  if (tab === "承诺") return <>
+    <p className="contacts-muted">Agent 根据每次会议提取双方待办，仅展示行动、约定时间与来源。</p>
+    <div className="contacts-detail-grid">{(["theirs", "mine"] as const).map((side) => <ContactCard key={side} title={side === "mine" ? "我的待办" : "客户的待办"}>
+      {meetings.some((m) => m.todos?.some((t) => t.side === side)) ? meetings.flatMap((m) => (m.todos || []).filter((t) => t.side === side).map((t, i) => <ContactLine key={`${m.id}:${i}`} title={t.title}>
+        {t.due || "时间未约定"}<br /><a className="customer-source" href={appUrl("meeting", m.id, space, actor)}>来源：{m.title} ↗</a>
+      </ContactLine>)) : <p className="contacts-muted">暂无会议提取的待办</p>}
+    </ContactCard>)}</div>
+  </>;
+  return <>
+    <ContactCard title="客户画像"><p className="contacts-muted">从多次会议中整理业务信息；每项保留来源，缺少依据时待补充。{meetings.length ? `最近会议：${meetings[0].occurredAt.slice(0, 10)}` : ""}</p>
+      <div className="customer-profile-grid">{profileDimensions.map((dimension) => {
+        const source = meetings.find((m) => m.profile?.[dimension]);
+        return <section key={dimension}><h3>{dimension}</h3><p>{source?.profile?.[dimension] || "待补充，暂无会议依据"}</p>{source && <a className="customer-source" href={appUrl("meeting", source.id, space, actor)}>{source.title} · {source.occurredAt.slice(0, 10)} ↗</a>}</section>;
+      })}</div>
+    </ContactCard>
+    <ContactCard title={person.ownerId && person.ownerId !== actor ? "所属成员备注" : "我的备注"}>{notes.length ? notes.map((note, index) => <ContactLine key={index} title={note.text}>{note.time}<span className="customer-note-actions"><button type="button" disabled={readonly} className="contacts-button" onClick={() => onEditNote(index)}>编辑备注</button><button type="button" disabled={readonly} className="contacts-button" onClick={() => onDeleteNote(index)}>删除备注</button></span></ContactLine>) : <p className="contacts-muted">暂无备注</p>}</ContactCard>
+  </>;
 }

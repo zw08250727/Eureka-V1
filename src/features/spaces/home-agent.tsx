@@ -13,6 +13,7 @@ export function TeamHomeAgent({
   actor,
   insightId,
   initialHistoryId,
+  initialPrompt,
   onClose,
 }: {
   controller: SpacesController;
@@ -20,6 +21,7 @@ export function TeamHomeAgent({
   actor: string;
   insightId?: string;
   initialHistoryId?: string;
+  initialPrompt?: string;
   onClose: () => void;
 }) {
   const w = M.get(controller.state!, space),
@@ -28,7 +30,7 @@ export function TeamHomeAgent({
       insightId,
     ),
     [historyId, setHistoryId] = useState(initialHistoryId),
-    [draft, setDraft] = useState(insight?.title || ""),
+    [draft, setDraft] = useState(initialPrompt || insight?.title || ""),
     [answer, setAnswer] = useState(""),
     [fresh, setFresh] = useState(false),
     [error, setError] = useState(""),

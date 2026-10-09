@@ -1,4 +1,5 @@
 "use client";
+import { M } from "@/features/spaces/model/store";
 import { actionOnDay, assetActive } from "./asset-rules";
 import { usePageTitle } from "@/features/reference/page-title";
 import { useLayoutEffect, useRef, useState } from "react";
@@ -46,11 +47,13 @@ const dayLabel = (d: string) =>
 export function CalendarPage({
   id,
   onBack,
+  actor = "zhang", space = "personal", controller,
 }: {
   id: string;
+  actor?: string; space?: string; controller?: import("@/features/spaces/use-spaces").SpacesController;
   onBack?: () => void;
 }) {
-  const { data, error, repo, refresh } = useLivePersonal(),
+  const { data, error, repo, refresh } = useLivePersonal(actor, space),
     meetings = useWorkbench();
   const [date, setDate] = useState(day),
     [mode, setMode] = useState("day"),
@@ -109,6 +112,7 @@ export function CalendarPage({
         </div>
       </section>
     );
+  const readonly = space !== "personal" && !!controller?.state && M.get(controller.state, space).status !== "active";
   const records = data.actions.records,
     record = records.find((r) => r.id === selected);
   const unscheduled = records.filter(
@@ -169,7 +173,7 @@ export function CalendarPage({
     });
   };
   const askButton = (
-    <PaButton action="agent" className="pa-ask-agent" onClick={() => ask()}>
+    <PaButton action="agent" disabled={readonly} className="pa-ask-agent" onClick={() => ask()}>
       <span className="ws-agent-mark" aria-hidden="true">
         <RefIcon name="spark" />
       </span>
@@ -198,6 +202,7 @@ export function CalendarPage({
           type="button"
           className="pa-complete"
           data-pa="toggle"
+          disabled={readonly}
           data-id={r.id}
           aria-label={`${r.done ? "重新打开" : "完成"} ${r.title}`}
           onClick={() => toggle(r)}
@@ -234,6 +239,7 @@ export function CalendarPage({
         type="button"
         className="pa-calendar-edit"
         data-pa="quick-edit"
+        disabled={readonly}
         data-id={r.id}
         aria-label={`编辑 ${r.title}`}
         title="编辑"
@@ -244,7 +250,7 @@ export function CalendarPage({
       </button>
     </div>
   );
-  const allMeetings = meetings.data?.meetings.filter((m) => !m.deletedAt) || [];
+  const allMeetings = space !== "personal" ? (controller?.state ? M.visible(M.get(controller.state, space), actor).filter((m) => !m.deleted) : []) : actor === "zhang" ? meetings.data?.meetings.filter((m) => !m.deletedAt) || [] : [];
   return (
     <section
       ref={host}
@@ -290,7 +296,7 @@ export function CalendarPage({
                 )}
               </div>
               <div>
-                <PaButton action="edit" onClick={() => startEdit(record)}>
+                <PaButton action="edit" disabled={readonly} onClick={() => startEdit(record)}>
                   编辑
                 </PaButton>
                 {askButton}
@@ -337,7 +343,7 @@ export function CalendarPage({
                       <dt>提醒时间</dt>
                       <dd>
                         <PaButton
-                          action="edit-reminder"
+                          action="edit-reminder" disabled={readonly}
                           className="plain"
                           onClick={() => startEdit(record)}
                         >
@@ -356,7 +362,7 @@ export function CalendarPage({
                   <div className="pa-section-head">
                     <h2>我的备注</h2>
                     <PaButton
-                      action="notes"
+                      action="notes" disabled={readonly}
                       onClick={() => {
                         setModalRecord(record);
                         setNote(record.notes);
@@ -377,7 +383,7 @@ export function CalendarPage({
                         关联会议 <small>{record.links.length} 场</small>
                       </h2>
                       <PaButton
-                        action="links"
+                        action="links" disabled={readonly}
                         onClick={() => {
                           setModalRecord(record);
                           setModal("links");
@@ -420,7 +426,7 @@ export function CalendarPage({
                 <footer className="pa-detail-footer">
                   {record.type === "todo" ? (
                     <PaButton
-                      action="toggle"
+                      action="toggle" disabled={readonly}
                       id={record.id}
                       className="primary"
                       onClick={() => toggle(record)}
@@ -429,16 +435,16 @@ export function CalendarPage({
                     </PaButton>
                   ) : (
                     <PaButton
-                      action="record"
+                      action="record" disabled={readonly}
                       className="primary"
-                      onClick={() => requestRecording(record.id)}
+                      onClick={() => requestRecording(space === "personal" ? record.id : "")}
                     >
                       ♩ 开始录音
                     </PaButton>
                   )}
                   <small>
                     {record.type === "schedule"
-                      ? "会议开始了？录音完成后会自动关联到此日程。"
+                      ? space === "personal" ? "会议开始了？录音完成后会自动关联到此日程。" : "录音保存在当前工作区，完成后可通过管理关联会议。"
                       : "状态会同步到首页与全部闪念。"}
                   </small>
                 </footer>
@@ -483,7 +489,7 @@ export function CalendarPage({
                       />
                       <small>演示音频 · 非真实原始录音</small>
                     </details>
-                    <PaButton action="recall" onClick={() => ask()}>
+                    <PaButton action="recall" disabled={readonly} onClick={() => ask()}>
                       ✧ 回顾当时的上下文
                     </PaButton>
                   </>
@@ -491,7 +497,7 @@ export function CalendarPage({
                 <p className="pa-hint">
                   创建于 {localDate(record.created)}
                   <br />
-                  仅保存在当前个人工作空间
+                  仅保存在当前工作区，本人可见
                 </p>
               </aside>
             </div>
@@ -505,7 +511,7 @@ export function CalendarPage({
               </div>
               <div>
                 <PaButton
-                  action="new-todo"
+                  action="new-todo" disabled={readonly}
                   onClick={() =>
                     transition(() =>
                       setEdit({
@@ -518,7 +524,7 @@ export function CalendarPage({
                   ＋ 新建待办
                 </PaButton>
                 <PaButton
-                  action="new-schedule"
+                  action="new-schedule" disabled={readonly}
                   className="primary"
                   onClick={() =>
                     transition(() =>
@@ -580,16 +586,12 @@ export function CalendarPage({
                 </PaButton>
               </div>
             </div>
-            <section className="pa-card pa-day-section" aria-label="未安排待办">
+            {unscheduled.length > 0 && <section className="pa-card pa-day-section" aria-label="未安排待办">
               <h2>
                 未安排 <small>{unscheduled.length} 项待办</small>
               </h2>
-              {unscheduled.length ? (
-                unscheduled.map((r) => card(r))
-              ) : (
-                <p className="pa-empty">暂无未安排待办</p>
-              )}
-            </section>
+              {unscheduled.map((r) => card(r))}
+            </section>}
             <section className="pa-card pa-calendar">
               <div id="pa-list">
                 <div className="pa-calendar-heading">
@@ -763,7 +765,7 @@ export function CalendarPage({
             setModal(null);
           }}
         >
-          <p>选择当前个人空间中的会议，可同时关联多场。</p>
+          <p>选择当前工作区中有权查看的会议，可同时关联多场。</p>
           <div className="pa-meeting-choices">
             {allMeetings.length ? (
               allMeetings.map((m) => (
@@ -782,7 +784,7 @@ export function CalendarPage({
                       <p>
                         {(() => {
                           try {
-                            return createMeetingDetails(localStorage).read(m.id)
+                            return space !== "personal" ? ("summary" in m ? String(m.summary || "暂无总结") : "暂无总结") : createMeetingDetails(localStorage).read(m.id)
                               .summary;
                           } catch {
                             return "暂无总结";

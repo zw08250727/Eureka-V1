@@ -1,4 +1,7 @@
 "use client";
+import "./team-home.css";
+import { TeamOverview } from "./team-overview";
+import { ManagementDialog } from "./management-ui";
 import { Fragment, useState } from "react";
 import { M } from "./model/store";
 import type { SpacesController } from "./use-spaces";
@@ -39,20 +42,17 @@ export function TeamHome({
     [sortAsc, setSortAsc] = useState(false),
     [recycle, setRecycle] = useState(trash),
     [upload, setUpload] = useState(false),
+    [note, setNote] = useState(false),
     [deleting, setDeleting] = useState<WorkspaceFile | null>(null),
-    [record, setRecord] = useState(false),
     [error, setError] = useState(""),
     [toast, setToast] = useState(""),
-    [agent, setAgent] = useState<{ insight?: string; key: number } | null>(
+    [agent, setAgent] = useState<{ insight?: string; key: number; prompt?: string } | null>(
       historyId ? { key: 0 } : null,
     );
   const w = M.get(controller.state!, space),
-    report = M.insights(w, actor),
+    report = w.status === "active" ? M.insights(w, actor) : { items: [] },
     now = new Date(),
-    dayLabel =
-      now.toLocaleDateString("zh-CN", { month: "long", day: "numeric" }) +
-      " · " +
-      now.toLocaleDateString("zh-CN", { weekday: "long" });
+    readonly = w.status !== "active";
   const files = recycle
     ? w.files.filter(
         (f) =>
@@ -65,7 +65,7 @@ export function TeamHome({
   const list = files
     .filter(
       (f) =>
-        f.title.toLowerCase().includes(query.toLowerCase()) &&
+        [f.title, f.summary, f.transcript].join(" ").toLowerCase().includes(query.toLowerCase()) &&
         (source === "all" || f.source === source) &&
         (!dateFilter || f.created.slice(0, 10) === dateFilter) &&
         (status === "all" || (f.status || "已总结") === status),
@@ -94,8 +94,7 @@ export function TeamHome({
           "更新时间",
           "操作",
         ];
-  const userName = (id: string) =>
-    w.members.find((m) => m.id === id)?.name || "已移除成员";
+  const userName = (id: string) => w.members.find(m => m.id === id)?.name || "已移除成员";
   function guard(fn: () => void) {
     try {
       setError("");
@@ -103,7 +102,7 @@ export function TeamHome({
     } catch (e) {
       const msg = (e as Error).message;
       setError(msg);
-      if (!deleting && !record) setToast(msg);
+      if (!deleting) setToast(msg);
     }
   }
   const icon = (name: string) => <RefIcon name={name} className="ws-icon" />;
@@ -121,138 +120,18 @@ export function TeamHome({
               space={space}
               actor={actor}
               insightId={agent.insight}
+              initialPrompt={agent.prompt}
               initialHistoryId={historyId}
               onClose={() => setAgent(null)}
             />
           ) : undefined
         }
       >
-        <header className="ws-page-head ws-team-home-head">
-          <div>
-            <span className="today-workbench-eyebrow ws-home-date">
-              <i />
-              <time>{dayLabel}</time>
-            </span>
-            <h1>让分散的讨论，成为共同的判断。</h1>
-          </div>
-          <div className="ws-actions">
-            <Button
-              action="record"
-              className="primary"
-              onClick={() =>
-                guard(() => {
-                  M.writable(w);
-                  setRecord(true);
-                })
-              }
-            >
-              {icon("mic")}开始录音
-            </Button>
-            <button
-              type="button"
-              className="audio-upload-entry"
-              data-audio-upload
-              onClick={() =>
-                guard(() => {
-                  M.writable(w);
-                  setUpload(true);
-                })
-              }
-            >
-              {icon("upload")}上传
-            </button>
-            <Button
-              action="agent"
-              className="agent"
-              onClick={() => setAgent({ key: (agent?.key || 0) + 1 })}
-            >
-              <span className="ws-agent-mark">{icon("spark")}</span>Ask Agent
-            </Button>
-          </div>
-        </header>
-        {!recycle ? (
-          <section
-            className="ws-meeting-intelligence ws-surface ws-team-intelligence ws-team-brief"
-            aria-label="团队简报"
-          >
-            <header className="ws-intelligence-top">
-              <div className="ws-intelligence-label">
-                {icon("spark")} Agent 团队简报 <span>本地模拟</span>
-              </div>
-              <span className="ws-insight-scope">
-                近 7 天与未闭环事项 · 仅限可访问会议
-              </span>
-            </header>
-            {report.items.length ? (
-              <div className="ws-brief-narrative">
-                {report.items.slice(0, 2).map((i) => (
-                  <article
-                    key={i.id}
-                    className="ws-brief-finding"
-                    data-insight-id={i.id}
-                  >
-                    <p className="ws-brief-paragraph">
-                      <strong>{i.title}。</strong>
-                      {i.description}{" "}
-                      <span className="ws-brief-attribution">
-                        <span>
-                          {[
-                            ...new Set(
-                              i.sources.map((e) =>
-                                userName(
-                                  w.files.find((f) => f.id === e.fileId)
-                                    ?.owner || "",
-                                ),
-                              ),
-                            ),
-                          ].join("、")}
-                          提供的 {i.sources.length} 场会议
-                        </span>
-                        <Button
-                          action="meeting-prompt"
-                          value={i.title}
-                          className="ws-brief-ask"
-                          aria-label={`问问 Agent：${i.title}`}
-                          onClick={() =>
-                            setAgent({
-                              insight: i.id,
-                              key: (agent?.key || 0) + 1,
-                            })
-                          }
-                        >
-                          {icon("spark")}问问 Agent
-                        </Button>
-                      </span>
-                    </p>
-                    <details className="ws-brief-evidence">
-                      <summary>查看会议依据</summary>
-                      {i.sources.map((source) => (
-                        <div key={source.fileId}>
-                          <a
-                            href={appUrl(
-                              "meeting",
-                              source.fileId,
-                              space,
-                              actor,
-                            )}
-                          >
-                            {source.title}
-                          </a>
-                          <p>{source.quote}</p>
-                        </div>
-                      ))}
-                    </details>
-                  </article>
-                ))}
-              </div>
-            ) : (
-              <div className="ws-insight-empty">
-                暂无可展示的会议要点。完成会议处理后，Agent 会基于近 7
-                天及仍未闭环事项的授权证据整理。
-              </div>
-            )}
-          </section>
-        ) : null}
+        {!recycle && <TeamOverview now={now} workspace={w} actor={actor} insights={report.items} readOnly={readonly} agentOpen={!!agent}
+          onAsk={() => { if (!readonly) setAgent(agent ? null : { key: Date.now() }); }}
+          onInsight={id => setAgent({ insight: id, key: Date.now() })}
+          onUpload={() => guard(() => { M.writable(w); setUpload(true); })}
+          onNote={() => setNote(true)} />}
         <section className="ws-surface ws-recordings">
           <header className="ws-recording-head">
             <div>
@@ -260,7 +139,7 @@ export function TeamHome({
               <p>
                 {recycle
                   ? "删除的录音可恢复，30 天后过期清理"
-                  : "团队设备录音自动汇入，无需分享"}
+                  : "录音、转录与笔记 · 仅本人或已获邀内容"}
               </p>
             </div>
             <div className="ws-meeting-tools">
@@ -269,7 +148,7 @@ export function TeamHome({
                 <input
                   id="ws-file-search"
                   type="search"
-                  placeholder="搜索会议"
+                  placeholder="搜索录音、转录和笔记"
                   aria-label="搜索团队会议"
                   value={query}
                   onChange={(e) => {
@@ -317,7 +196,7 @@ export function TeamHome({
                   setPage(1);
                 }}
               >
-                {["all", "已总结", "处理中", "待处理"].map((v) => (
+                {["all", "已总结", "处理中", "待处理", "原始音频 · 待处理"].map((v) => (
                   <option key={v} value={v}>
                     {v === "all" ? "全部状态" : v}
                   </option>
@@ -399,13 +278,14 @@ export function TeamHome({
                     <td>{f.size || "—"}</td>
                     {recycle ? (
                       <>
-                        <td>{f.source}</td>
+                        <td>{f.source}<small style={{ display: "block" }}>{f.owner !== actor ? (M.canEdit(w, f, actor) ? "共享给我 · 可编辑" : "共享给我 · 仅查看") : f.shared.length ? "已邀请成员" : "仅自己可见"}</small></td>
                         <td>{date(f.created)}</td>
                         <td>{date(f.deletedAt)}</td>
                         <td>
                           <div className="ws-actions">
                             <Button
                               action="restore"
+                              disabled={readonly}
                               value={f.id}
                               className="link"
                               onClick={() =>
@@ -420,6 +300,7 @@ export function TeamHome({
                             </Button>
                             <Button
                               action="purge"
+                              disabled={readonly}
                               value={f.id}
                               className="link danger"
                               onClick={() => {
@@ -435,7 +316,7 @@ export function TeamHome({
                     ) : (
                       <>
                         <td>{f.creator || userName(f.owner)}</td>
-                        <td>{f.source}</td>
+                        <td>{f.source}<small style={{ display: "block" }}>{f.owner !== actor ? (M.canEdit(w, f, actor) ? "共享给我 · 可编辑" : "共享给我 · 仅查看") : f.shared.length ? "已邀请成员" : "仅自己可见"}</small></td>
                         <td>
                           {(f.tags || []).map((t, i) => (
                             <Fragment key={`${t}-${i}`}>
@@ -464,7 +345,7 @@ export function TeamHome({
                         <td>{date(f.updated || f.created)}</td>
                         <td>
                           <div className="ws-actions">
-                            {f.owner === actor ? (
+                            {f.owner === actor && !readonly ? (
                               <Button
                                 action="delete"
                                 value={f.id}
@@ -477,7 +358,7 @@ export function TeamHome({
                                 删除
                               </Button>
                             ) : (
-                              <Badge>只读</Badge>
+                              <Badge>{M.canEdit(w, f, actor) ? "可编辑" : "只读"}</Badge>
                             )}
                           </div>
                         </td>
@@ -519,6 +400,7 @@ export function TeamHome({
         </section>
       </WsRoot>
       <WsToast message={toast} onClear={() => setToast("")} />
+      {note && <ManagementDialog title="新建笔记" form="note" onClose={() => setNote(false)} onSubmit={data => { const file = controller.change(s => M.addFile(M.get(s, space), { title: String(data.get("title")), source: "笔记", transcript: "", summary: String(data.get("body")), duration: 0 }, actor)); setNote(false); location.assign(appUrl("meeting", file.id, space, actor)); }} footer={<button className="ws-btn primary" type="submit">保存笔记</button>}><label className="ws-field">标题<input name="title" required maxLength={200} /></label><label className="ws-field">内容<textarea name="body" rows={6} maxLength={10000} /></label><p>遵循当前工作区的本人内容权限设置，可在详情中单独调整接收成员。</p></ManagementDialog>}
       {upload ? (
         <UploadDialog
           target={w.name}
@@ -548,12 +430,11 @@ export function TeamHome({
                     ? (file.size / 1024).toFixed(1) + " KB"
                     : (file.size / 1048576).toFixed(1) + " MB";
               f.status = "待处理";
-              f.visibility = "team";
               f.recordedWorkspaceId = space;
               Object.assign(f, { fileName: file.name });
               const current = M.get(s, space);
               if (current.audit[0])
-                current.audit[0].action = "上传团队录音：" + f.title;
+                current.audit[0].action = "上传录音";
             });
             setRecycle(false);
             setQuery("");
@@ -597,55 +478,6 @@ export function TeamHome({
             {recycle
               ? "永久删除后无法恢复，其他成员的访问也将失效。"
               : "此录音将从列表中移除，伙伴的访问权限也会暂时失效。30 天内可在录音回收站恢复。"}
-          </p>
-        </WsDialog>
-      ) : null}
-      {record ? (
-        <WsDialog
-          title="新建网页录音"
-          form="record"
-          error={error}
-          onClose={() => setRecord(false)}
-          footer={
-            <>
-              <Button action="close-dialog" onClick={() => setRecord(false)}>
-                取消
-              </Button>
-              <button type="submit" className="ws-btn primary">
-                开始模拟录音
-              </button>
-            </>
-          }
-          onSubmit={(e) => {
-            e.preventDefault();
-            const title = String(
-              new FormData(e.currentTarget).get("title"),
-            ).trim();
-            guard(() => {
-              M.writable(w);
-              if (!title) throw Error("请输入会议名称");
-              location.assign(
-                appUrl("recording", "", space, actor) +
-                  "&title=" +
-                  encodeURIComponent(title),
-              );
-            });
-          }}
-        >
-          <label className="ws-field">
-            会议名称
-            <input
-              name="title"
-              type="text"
-              required
-              placeholder="例如：十月产品评审"
-            />
-          </label>
-          <div className="ws-record-target">
-            {icon("mic")} 保存到 <b>{w.name}</b> · 仅自己可见
-          </div>
-          <p className="ws-muted">
-            进入录音界面，可暂停、继续、标记重点和结束保存。本地模拟，不启用麦克风。
           </p>
         </WsDialog>
       ) : null}
