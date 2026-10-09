@@ -4,7 +4,9 @@ import { RefIcon } from "@/features/reference/symbols";
 import { M } from "@/features/spaces/model/store";
 import type { SpacesController } from "@/features/spaces/use-spaces";
 import { createActions } from "@/features/personal/store";
-import { createLocalRepository } from "@/features/workbench/model/local-repository";
+import { useSceneAgent } from "@/features/agent/session";
+import { agentRoute } from "@/features/agent/registry";
+import { AgentHistoryButton } from "@/features/agent/history-button";
 import { appUrl } from "@/lib/routes";
 const transcript = [
   [
@@ -67,6 +69,10 @@ export function RecordingPage({
   actor: string;
   id: string;
 }) {
+  const [startedAt] = useState(() => new Date());
+  const [recordingId] = useState(() => crypto.randomUUID());
+  const agent = useSceneAgent("recording", recordingId);
+  const lastThread = useRef<string | undefined>(undefined);
   const [title, setTitle] = useState(() =>
       typeof window !== "undefined"
         ? new URLSearchParams(window.location.search).get("title")?.trim() ||
@@ -125,62 +131,92 @@ export function RecordingPage({
   }, [toast]);
   function send() {
     if (!input.trim()) return;
-    setMessages((m) => [
-      ...m,
-      { role: "user", text: input.trim() },
-      {
-        role: "assistant",
-        text: "已结合当前演示转写记录。讨论重点包括录音授权说明、双轨采集，以及录制中展开小智进行提问。",
-      },
-    ]);
-    setInput("");
+    const prompt = input.trim();
+    const answer =
+      "基于当前演示转写：讨论涉及录音授权说明、采集范围及录制中提问。请回到原文确认具体行动与责任人；本地模拟尚未调用真实 AI 服务。";
+    try {
+      if (w.type === "team") {
+        const nextId = crypto.randomUUID();
+        controller.change((s) => {
+          const target = M.get(s, space);
+          M.writable(target);
+          if (!M.member(target, actor)) throw Error("没有访问此工作空间的权限");
+          target.threads.push({
+            ...agentRoute("recording"),
+            id: nextId,
+            user: actor,
+            title: prompt.slice(0, 60),
+            prompt,
+            answer,
+            time: new Date().toISOString(),
+            files: saved ? [saved] : [],
+            recordingId,
+            parentThreadId: lastThread.current,
+          });
+        });
+        lastThread.current = nextId;
+      } else agent.record(prompt, answer);
+      setMessages((m) => [
+        ...m,
+        { role: "user", text: prompt },
+        { role: "assistant", text: answer },
+      ]);
+      setInput("");
+    } catch (e) {
+      setError((e as Error).message);
+    }
   }
   async function save() {
     if (saving.current) return;
     saving.current = true;
     try {
       if (!title.trim()) throw Error("请输入会议名称");
-      let fid = "";
+      const text = transcript
+        .map(([speaker, words]) => `${speaker}：${words}`)
+        .join("\n");
+      const summary =
+        "本地演示录音，讨论录音入口、采集授权与后续内容沉淀；未连接真实转写服务。";
+      const fid = recordingId;
       if (w.type === "team") {
-        fid = controller.change((s) =>
-          M.addFile(
-            M.get(s, space),
+        controller.change((s) => {
+          const target = M.get(s, space);
+          const f = M.addFile(
+            target,
             {
               title,
               source: "网页录音",
               duration: Math.max(1, Math.ceil(seconds / 60)),
-              transcript:
-                "00:00 张伟：先确认本次讨论的范围。\n00:07 Kevin：请把关键决策和行动项记下来。",
-              summary: "本地模拟录音结束；记录讨论范围、关键决策与下一步行动。",
+              transcript: text,
+              summary,
             },
             actor,
-          ),
-        ).id;
-      } else if (id) {
-        const repo = createActions(localStorage);
-        fid = repo.change((s) => {
-          const r = s.records.find((r) => r.id === id);
-          if (!r) throw Error("关联日程不存在");
-          const mid = crypto.randomUUID();
-          s.meetings.push({
-            id: mid,
-            title,
-            created: new Date().toISOString(),
-            seconds,
-          });
-          r.links.push(mid);
-          r.updated = new Date().toISOString();
-          return mid;
+          );
+          f.id = recordingId;
+          f.detail = { ...f.detail, marks: [...marks] };
+          for (const thread of target.threads)
+            if (thread.recordingId === recordingId && thread.user === actor)
+              thread.files = [recordingId];
         });
       } else {
-        const repo = createLocalRepository(localStorage);
-        await repo.load();
-        fid = (
-          await repo.upload({
-            name: title + ".wav",
-            size: Math.max(seconds, 1) * 1000,
-          })
-        ).meetings[0].id;
+        const repo = createActions(localStorage);
+        repo.change((s) => {
+          const linked = id ? s.records.find((r) => r.id === id) : undefined;
+          if (id && !linked) throw Error("关联日程不存在");
+          if (!s.meetings.some((m) => m.id === fid))
+            s.meetings.push({
+              id: fid,
+              title,
+              created: new Date().toISOString(),
+              seconds,
+              transcript: text,
+              summary,
+              marks: [...marks],
+            });
+          if (linked && !linked.links.includes(fid)) {
+            linked.links.push(fid);
+            linked.updated = new Date().toISOString();
+          }
+        });
       }
       setPaused(true);
       setSaved(fid);
@@ -241,7 +277,14 @@ export function RecordingPage({
                   </button>
                 </div>
                 <div className="recording-meta">
-                  <span id="recording-start-time">今天 14:37</span>
+                  <span id="recording-start-time">
+                    {startedAt.toLocaleString("zh-CN", {
+                      month: "long",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
                   <span>·</span>
                   <span className="live" id="recording-live-state">
                     <i />
@@ -345,7 +388,16 @@ export function RecordingPage({
               <article className="transcript-item recording-session-generated">
                 <time>{recordingTime(seconds)}　系统</time>
                 <p>
-                  录音已结束，演示转写内容已保存，可以继续交给小智总结和整理。
+                  录音已结束，演示转写与重点标记已保存。
+                  <button
+                    type="button"
+                    className="pa-btn"
+                    onClick={() =>
+                      location.assign(appUrl("meeting", saved, space, actor))
+                    }
+                  >
+                    查看会议
+                  </button>
                 </p>
               </article>
             ) : (
@@ -452,13 +504,16 @@ export function RecordingPage({
                 </div>
               </div>
               <div className="agent-head-actions">
+                <AgentHistoryButton />
                 <button
                   type="button"
                   className="agent-new-task"
                   id="recording-assistant-new-task"
-                  aria-label="新建任务"
-                  title="新建任务"
+                  aria-label="新建会话"
+                  title="新建会话"
                   onClick={() => {
+                    agent.reset();
+                    lastThread.current = undefined;
                     setNewTask(true);
                     setMessages([]);
                     setInput("");
@@ -488,7 +543,7 @@ export function RecordingPage({
                 ))
               ) : newTask ? (
                 <div className="recording-assistant-empty">
-                  <h3>开始新的任务</h3>
+                  <h3>开始新的会话</h3>
                   <p>继续围绕当前转写提问。</p>
                 </div>
               ) : (

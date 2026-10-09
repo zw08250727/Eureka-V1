@@ -1,3 +1,4 @@
+import { contactPromises, openPromise } from "./contact-rules";
 import { AgentHistoryButton } from "@/features/agent/history-button";
 import type { RefObject } from "react";
 import { RefIcon } from "@/features/reference/symbols";
@@ -6,23 +7,14 @@ import { ContactResizeHandle } from "./contact-resize";
 
 export function contactAnswer(question: string, person?: Contact) {
   if (!person) return "当前没有可用联系人上下文。";
-  if (person.id !== "john") {
-    if (question.includes("承诺"))
-      return person.commitments?.length
-        ? `${person.name} 的开放承诺：${person.commitments.map((item) => item[0]).join("；")}。`
-        : `${person.name} 暂无已记录的开放承诺，可先补充沟通记录。`;
-    if (question.includes("第一次"))
-      return `${person.name} 尚未记录首次认识的时间。`;
-    return `${person.name}：${person.summary || "暂无关系摘要。"}${question.includes("下一次") ? "建议围绕已记录的主题确认下一步；尚未创建或发送任何安排。" : ""}`;
-  }
+  const promises = contactPromises(person).filter(openPromise);
+  if (question.includes("承诺"))
+    return promises.length
+      ? `${person.name} 相关的未闭环承诺共 ${promises.length} 项：${promises.map((p) => `${p.side === "mine" ? "我" : person.name}：${p.title}（${p.status}）`).join("；")}。`
+      : `${person.name} 暂无已记录的开放承诺。`;
   if (question.includes("第一次"))
-    return "首次联系发生在 2026 年 6 月 12 日的 Energy Storage Summit。";
-  if (question.includes("三个")) return "当前重点是认证、交付周期与渠道支持。";
-  if (question.includes("会议") || question.includes("下一次"))
-    return "建议先确认德国经销商名单，再同步 Demo 环境准备情况，并讨论认证时间表。";
-  if (question.includes("开放承诺"))
-    return "当前有 2 个开放承诺：发送德国经销商名单、确认认证时间表。";
-  return "John 承诺发送德国经销商名单，并确认认证时间表；你需要准备 Demo 环境。";
+    return `${person.name} 尚未提供已核实的首次认识时间。`;
+  return `${person.name}：${person.summary || "暂无关系摘要。"}\n建议围绕已记录的事实确认下一步；尚未创建或发送任何安排。`;
 }
 export function ContactAgentEntry({
   expanded,

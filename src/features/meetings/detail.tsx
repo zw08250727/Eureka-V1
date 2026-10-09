@@ -734,16 +734,37 @@ export function MeetingPage({
                         }}
                       />
                     ) : (
-                      <MeetingContent
-                        r={r}
-                        tab={tab}
-                        readonly={readonly}
-                        score={score}
-                        setScore={setScore}
-                        action={action}
-                        seek={seek}
-                        zoom={zoom}
-                      />
+                      <>
+                        {!!r.marks?.length && (
+                          <section className="md-card" aria-label="重点标记">
+                            <h3>重点标记</h3>
+                            {r.marks.map((second, index) => (
+                              <button
+                                type="button"
+                                key={index}
+                                className="pa-btn"
+                                onClick={() => {
+                                  if (audio.current)
+                                    audio.current.currentTime = second;
+                                  setTime(second);
+                                }}
+                              >
+                                {clockTime(second)}
+                              </button>
+                            ))}
+                          </section>
+                        )}
+                        <MeetingContent
+                          r={r}
+                          tab={tab}
+                          readonly={readonly}
+                          score={score}
+                          setScore={setScore}
+                          action={action}
+                          seek={seek}
+                          zoom={zoom}
+                        />
+                      </>
                     )}
                   </section>
                 </div>

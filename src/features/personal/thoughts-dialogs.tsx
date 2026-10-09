@@ -10,6 +10,7 @@ import {
 import type { ThoughtRecord } from "@/features/workbench/model/types";
 import { RefIcon } from "@/features/reference/symbols";
 import { assetUrl } from "@/lib/routes";
+import { ledgerCurrency, ledgerDate, money } from "./asset-rules";
 import { RefDialog } from "./calendar-dialogs";
 export const thoughtNames = {
   schedule: "日程",
@@ -18,8 +19,10 @@ export const thoughtNames = {
   ledger: "记账",
   other: "其他",
 };
-export const thoughtMoney = (r: Pick<ThoughtRecord, "direction" | "amount">) =>
-  `${r.direction === "income" ? "收入" : "支出"} ¥${Number(r.amount || 0).toLocaleString("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+export const thoughtMoney = (
+  r: Pick<ThoughtRecord, "direction" | "amount" | "currency">,
+) =>
+  `${r.direction === "income" ? "收入" : "支出"} ${money(r.amount ?? NaN, ledgerCurrency(r))}`;
 export function ThButton({
   action,
   children,
@@ -176,6 +179,37 @@ export function ThoughtDialog({
                 hidden={type !== "ledger"}
               >
                 <label>
+                  收支发生日期
+                  <input
+                    name="occurredOn"
+                    type="date"
+                    defaultValue={ledgerDate(base)}
+                  />
+                  <small>未知可留空，不计入当日收支</small>
+                </label>
+                <label>
+                  币种
+                  <input
+                    name="currency"
+                    maxLength={3}
+                    pattern="[A-Z]{3}"
+                    defaultValue={ledgerCurrency(base)}
+                    placeholder="CNY / USD"
+                  />
+                </label>
+                <label>
+                  记录性质
+                  <select
+                    name="entryKind"
+                    defaultValue={base.entryKind || "actual"}
+                  >
+                    <option value="actual">实际收支</option>
+                    <option value="planned">
+                      预算／计划（不计入实际收支）
+                    </option>
+                  </select>
+                </label>
+                <label>
                   收支
                   <select
                     name="direction"
@@ -188,7 +222,7 @@ export function ThoughtDialog({
                   </select>
                 </label>
                 <label>
-                  金额（人民币）
+                  金额
                   <input
                     name="amount"
                     type="number"
@@ -237,7 +271,13 @@ export function ThoughtDialog({
               {`${r.date} ${r.time} · ${r.source === "manual" ? "手动创建" : "闪念提取"}${r.updated ? " · 已编辑" : ""}`}
             </div>
             {r.type === "ledger" && (
-              <div className="th-detail-money">{thoughtMoney(r)}</div>
+              <div className="th-detail-money">
+                {thoughtMoney(r)}
+                <p>
+                  收支发生日期：{ledgerDate(r) || "待补充"}
+                  {r.entryKind === "planned" ? " · 预算／计划" : ""}
+                </p>
+              </div>
             )}
             <p className="th-detail-content">{r.detail || "暂无补充内容"}</p>
             {r.capture && (

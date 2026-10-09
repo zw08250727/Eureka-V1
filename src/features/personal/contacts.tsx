@@ -1,4 +1,6 @@
 "use client";
+import "./contacts-controls.css";
+import { contactPromises, contactStats } from "./contact-rules";
 import { useSceneAgent } from "@/features/agent/session";
 import {
   useEffect,
@@ -55,6 +57,9 @@ export function ContactsPage({ id }: { id: string }) {
   const [detail, setDetail] = useState(Boolean(id));
   const [tab, setTab] = useState("概览");
   const [query, setQuery] = useState("");
+  const modalSnapshot = useRef<string | null>(null);
+  const [modalPerson, setModalPerson] = useState<import("./store").Contact>();
+  const [noteIndex, setNoteIndex] = useState<number | null>(null);
   const [modal, setModal] = useState<ContactDialogKind | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [answer, setAnswer] = useState("");
@@ -98,6 +103,11 @@ export function ContactsPage({ id }: { id: string }) {
       if (toastTimer.current) clearTimeout(toastTimer.current);
     };
   }, []);
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(""), 2200);
+    return () => clearTimeout(timer);
+  }, [toast]);
   function toggleAgent() {
     setExpanded(!expanded);
     requestAnimationFrame(() =>
@@ -107,8 +117,7 @@ export function ContactsPage({ id }: { id: string }) {
     );
   }
   const state = data?.contacts;
-  const person =
-    state?.contacts.find((c) => c.id === selected) || state?.contacts[0];
+  const person = state?.contacts.find((c) => c.id === selected);
   const people =
     state?.contacts.filter((c) =>
       [c.name, c.company, c.role, c.summary, c.region, ...(c.themes || [])]
@@ -122,33 +131,79 @@ export function ContactsPage({ id }: { id: string }) {
         (t) => t.contactId === person.id || t.contactId === person.name,
       ) || []
     : [];
+  const stats = person ? contactStats(person) : null;
+  function openModal(kind: ContactDialogKind, index: number | null = null) {
+    modalSnapshot.current = localStorage.getItem("baizhi-v14-contacts");
+    setModalPerson(person ? structuredClone(person) : undefined);
+    setNoteIndex(index);
+    setModal(kind);
+  }
+  function updatePerson(change: (p: import("./store").Contact) => void) {
+    try {
+      repo.current!.contacts.change((all) => {
+        const target = all.personal.contacts.find((p) => p.id === selected);
+        if (!target) throw Error("联系人不存在或已删除");
+        change(target);
+        target.updatedAt = new Date().toISOString();
+      });
+      refresh();
+      setToast("联系人信息已保存");
+    } catch (e) {
+      setToast((e as Error).message);
+    }
+  }
   function save(values: FormData) {
+    if (localStorage.getItem("baizhi-v14-contacts") !== modalSnapshot.current)
+      throw Error("另一页面已更新，请保留输入并重新打开后编辑");
     const kind = modal;
     const contactId = String(values.get("person") || "");
     const createdId = repo.current!.contacts.change((all) => {
       const s = all.personal;
-      if (kind === "add") {
+      if (kind === "add" || kind === "edit") {
         const name = String(values.get("name") || "").trim();
         if (!name) throw Error("请填写联系人姓名");
-        if (s.contacts.some((p) => p.name === name))
-          throw Error("联系人已存在");
+        const existing =
+          kind === "edit"
+            ? s.contacts.find((p) => p.id === contactId)
+            : undefined;
+        if (kind === "edit" && !existing) throw Error("联系人不存在或已删除");
         const record = {
-          id: `contact-${Date.now()}`,
+          id: existing?.id || crypto.randomUUID(),
           initials: name.slice(0, 2),
           name,
           company: String(values.get("company") || "待补充").trim(),
           role: String(values.get("role") || "待补充").trim(),
           summary: String(values.get("summary") || "").trim(),
-          tag: "最近",
+          tag: String(values.get("tag") || "待补充").trim(),
           count: 0,
-          recent: "刚刚",
-          region: "待补充",
-          email: "待补充",
+          recent: "暂无已核实互动",
+          region: String(values.get("region") || "").trim(),
+          email: String(values.get("email") || "").trim(),
           themes: [],
           memories: [],
           inferences: [],
         };
-        s.contacts.push(record);
+        const confirmedFields = [
+          "name",
+          "company",
+          "role",
+          "summary",
+          "region",
+          "email",
+          "tag",
+        ];
+        if (existing)
+          Object.assign(
+            existing,
+            Object.fromEntries(
+              confirmedFields.map((key) => [
+                key,
+                record[key as keyof typeof record],
+              ]),
+            ),
+            { initials: record.initials, confirmedFields },
+          );
+        else s.contacts.push({ ...record, confirmedFields });
         return record.id;
       }
       if (!s.contacts.some((p) => p.id === contactId))
@@ -156,10 +211,13 @@ export function ContactsPage({ id }: { id: string }) {
       if (kind === "note") {
         const text = String(values.get("text") || "").trim();
         if (!text) throw Error("备注内容不能为空");
-        (s.notes[contactId] ??= []).unshift({
-          text,
-          time: new Date().toLocaleString("zh-CN"),
-        });
+        if (text.length > 2000) throw Error("备注最多 2000 字");
+        const note = { text, time: new Date().toLocaleString("zh-CN") };
+        if (noteIndex !== null) {
+          if (!s.notes[contactId]?.[noteIndex])
+            throw Error("备注已删除，请重新打开");
+          s.notes[contactId][noteIndex] = note;
+        } else (s.notes[contactId] ??= []).unshift(note);
       } else if (kind === "followup") {
         const title = String(values.get("title") || "").trim();
         if (!title) throw Error("请填写任务标题");
@@ -168,7 +226,7 @@ export function ContactsPage({ id }: { id: string }) {
           contactId,
           title,
           description: String(values.get("description") || ""),
-          owner: String(values.get("owner") || ""),
+          owner: "张伟",
           createdAt: new Date().toLocaleString("zh-CN"),
         });
       }
@@ -244,9 +302,15 @@ export function ContactsPage({ id }: { id: string }) {
                           ← 返回联系人
                         </ContactButton>
                         <ContactButton
+                          action="edit"
+                          onClick={() => openModal("edit")}
+                        >
+                          编辑资料
+                        </ContactButton>
+                        <ContactButton
                           action="note"
                           value={person.id}
-                          onClick={() => setModal("note")}
+                          onClick={() => openModal("note")}
                         >
                           ＋ 添加备注
                         </ContactButton>
@@ -254,28 +318,41 @@ export function ContactsPage({ id }: { id: string }) {
                           action="followup"
                           value={person.id}
                           primary
-                          onClick={() => setModal("followup")}
+                          onClick={() => openModal("followup")}
                         >
                           创建跟进
                         </ContactButton>
                       </>
-                    ) : (
+                    ) : !detail ? (
                       <ContactButton
                         action="add"
                         primary
-                        onClick={() => setModal("add")}
+                        onClick={() => openModal("add")}
                       >
                         ＋ 添加联系人
                       </ContactButton>
+                    ) : null}
+                    {(!detail || person) && (
+                      <ContactAgentEntry
+                        expanded={expanded}
+                        onToggle={toggleAgent}
+                        buttonRef={entryRef}
+                      />
                     )}
-                    <ContactAgentEntry
-                      expanded={expanded}
-                      onToggle={toggleAgent}
-                      buttonRef={entryRef}
-                    />
                   </div>
                 </header>
-                {detail && person ? (
+                {detail && !person ? (
+                  <div className="contacts-empty" role="alert">
+                    联系人不存在或已删除。
+                    <button
+                      type="button"
+                      className="contacts-button"
+                      onClick={() => setDetail(false)}
+                    >
+                      返回联系人列表
+                    </button>
+                  </div>
+                ) : detail && person ? (
                   <>
                     <div className="contacts-profile">
                       <span className="contacts-avatar large">
@@ -285,20 +362,16 @@ export function ContactsPage({ id }: { id: string }) {
                         <h1>
                           {person.name} <ContactTag>{person.tag}</ContactTag>
                         </h1>
-                        <p>
-                          {`${person.role} · ${person.company}${person.id === "john" ? " · 德国业务" : ""}`}
-                        </p>
-                        <p>
-                          {`最近互动：${person.recent}${person.id === "john" ? " · 首次认识：2026/06/12" : ""}`}
-                        </p>
+                        <p>{`${person.role} · ${person.company}`}</p>
+                        <p>{`最近互动：${stats?.recent}`}</p>
                       </div>
                     </div>
                     <div className="contacts-metrics">
                       {[
-                        [person.count, "互动"],
+                        [stats?.interactions || 0, "已核实互动"],
                         [notes.length, "备注"],
-                        [(person.commitments || []).length, "开放承诺"],
-                        [(person.themes || []).length, "活跃主题"],
+                        [stats?.open || 0, "开放承诺"],
+                        [stats?.activeThemes || 0, "活跃主题"],
                       ].map(([value, label]) => (
                         <div key={label}>
                           <strong>{value}</strong>
@@ -334,7 +407,38 @@ export function ContactsPage({ id }: { id: string }) {
                       person={person}
                       notes={notes}
                       tab={tab}
-                      onFollowup={() => setModal("followup")}
+                      onFollowup={() => openModal("followup")}
+                      onPromise={(id, status) =>
+                        updatePerson((p) => {
+                          p.promises = contactPromises(p).map((item) =>
+                            item.id === id
+                              ? {
+                                  ...item,
+                                  status,
+                                  updatedAt: new Date().toISOString(),
+                                }
+                              : item,
+                          );
+                        })
+                      }
+                      onConfirmMemory={(text) =>
+                        updatePerson((p) => {
+                          (p.memoryConfirmations ||= {})[text] =
+                            new Date().toISOString();
+                        })
+                      }
+                      onEditNote={(index) => openModal("note", index)}
+                      onDeleteNote={(index) => {
+                        if (!window.confirm("删除这条备注？")) return;
+                        try {
+                          repo.current!.contacts.change((s) => {
+                            s.personal.notes[person.id]?.splice(index, 1);
+                          });
+                          refresh();
+                        } catch (e) {
+                          setToast((e as Error).message);
+                        }
+                      }}
                     />
                     {tasks.length ? (
                       <ContactCard title="跟进任务">
@@ -394,7 +498,7 @@ export function ContactsPage({ id }: { id: string }) {
                           <p>{p.summary}</p>
                           <span className="contacts-person-foot">
                             <ContactTag>{p.tag}</ContactTag>
-                            <span>{`${p.count} 次互动 · ${p.recent}`}</span>
+                            <span>{`${contactStats(p).interactions} 次已核实互动 · ${contactStats(p).recent}`}</span>
                           </span>
                         </button>
                       ))}
@@ -416,12 +520,18 @@ export function ContactsPage({ id }: { id: string }) {
               inputRef={inputRef}
               onAsk={(question) => {
                 resetContentScroll();
-                setAnswer(agent.run(question, () => contactAnswer(question, person)));
+                setAnswer(
+                  agent.run(question, () => contactAnswer(question, person)),
+                );
               }}
               onSend={() => {
                 if (draft.trim()) {
                   resetContentScroll();
-                  setAnswer(agent.run(draft.trim(), () => contactAnswer(draft.trim(), person)));
+                  setAnswer(
+                    agent.run(draft.trim(), () =>
+                      contactAnswer(draft.trim(), person),
+                    ),
+                  );
                   setDraft("");
                 }
               }}
@@ -438,7 +548,12 @@ export function ContactsPage({ id }: { id: string }) {
         {modal ? (
           <ContactDialog
             kind={modal}
-            person={person}
+            person={modalPerson}
+            noteText={
+              noteIndex !== null && modalPerson
+                ? state?.notes[modalPerson.id]?.[noteIndex]?.text
+                : ""
+            }
             onClose={() => setModal(null)}
             onSave={save}
           />

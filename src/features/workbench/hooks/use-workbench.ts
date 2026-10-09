@@ -46,10 +46,15 @@ export function useWorkbench() {
       )
         void reload();
     };
+    const onData = () => {
+      void reload();
+    };
     window.addEventListener("storage", onStorage);
+    window.addEventListener("eureka:data", onData);
     return () => {
       active = false;
       window.removeEventListener("storage", onStorage);
+      window.removeEventListener("eureka:data", onData);
     };
   }, [reload]);
   const setMeetingTag = useCallback(async (id: string, tag: string) => {

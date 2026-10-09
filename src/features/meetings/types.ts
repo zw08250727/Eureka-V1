@@ -1,4 +1,5 @@
 export interface MeetingDetail {
+  marks?: number[];
   deleted?: boolean;
   purged?: boolean;
   deletedAt?: string;
