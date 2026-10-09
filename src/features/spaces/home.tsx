@@ -185,7 +185,7 @@ export function TeamHome({
             </header>
             {report.items.length ? (
               <div className="ws-brief-narrative">
-                {report.items.map((i) => (
+                {report.items.slice(0, 2).map((i) => (
                   <article
                     key={i.id}
                     className="ws-brief-finding"
