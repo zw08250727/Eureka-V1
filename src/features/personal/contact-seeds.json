@@ -34,12 +34,28 @@
       ]
     ],
     "commitments": [
-      ["John → 发送德国经销商名单", "9 月 18 日", "待跟进"],
-      ["确认认证时间表", "9 月 22 日 · 来源：9 月 3 日会议", "待跟进"]
+      [
+        "John → 发送德国经销商名单",
+        "9 月 18 日",
+        "待跟进"
+      ],
+      [
+        "确认认证时间表",
+        "9 月 22 日 · 来源：9 月 3 日会议",
+        "待跟进"
+      ]
     ],
     "myCommitments": [
-      ["准备 Demo 环境", "9 月 19 日 · 来源：9 月 15 日会议", "进行中"],
-      ["发送新版 Product Deck", "9 月 20 日 · 来源：9 月 10 日邮件", "进行中"]
+      [
+        "准备 Demo 环境",
+        "9 月 19 日 · 来源：9 月 15 日会议",
+        "进行中"
+      ],
+      [
+        "发送新版 Product Deck",
+        "9 月 20 日 · 来源：9 月 10 日邮件",
+        "进行中"
+      ]
     ],
     "themes": [
       "德国市场 · 12 次互动",
@@ -59,6 +75,120 @@
     "inferences": [
       "John 似乎比价格本身更关注交付确定性。",
       "他可能更倾向先做小规模 Pilot，再讨论独家合作。"
+    ],
+    "subjectType": "person",
+    "createdAt": "2026-06-12T09:00:00+08:00",
+    "sources": [
+      {
+        "id": "seed-john",
+        "channel": "crm",
+        "fields": {
+          "name": "John Chen",
+          "company": "ABC Energy",
+          "role": "销售副总裁",
+          "region": "德国 / 欧盟",
+          "email": "john@abc-energy.example",
+          "tag": "需关注",
+          "summary": "负责德国储能渠道合作，讨论涉及经销商名单、认证和 Demo 支持。"
+        },
+        "updatedAt": "2026-06-12T09:00:00+08:00",
+        "crmSystem": "演示 CRM",
+        "crmId": "CRM-john",
+        "verifiedEmail": "john@abc-energy.example"
+      }
+    ],
+    "interactions": [
+      {
+        "id": "meeting-16",
+        "occurredAt": "2026-08-13",
+        "verifiedParticipation": true,
+        "sourceAvailable": true,
+        "themes": [
+          "德国渠道",
+          "试点",
+          "认证",
+          "交付周期",
+          "方案格式"
+        ],
+        "extractedSummary": "John Chen 代表 ABC Energy 负责德国渠道销售，希望先以 3 家经销商开展试点。双方讨论了认证和交付周期，John 希望方案以简洁的数据表呈现。John 将提供经销商名单，我方准备 Demo 环境。",
+        "todos": [
+          {
+            "side": "theirs",
+            "title": "提供首批经销商名单",
+            "due": "2026-08-18"
+          },
+          {
+            "side": "mine",
+            "title": "准备 Demo 环境",
+            "due": "2026-08-19"
+          }
+        ],
+        "profile": {
+          "业务背景": "负责 ABC Energy 的德国渠道销售。",
+          "需求与目标": "先以 3 家经销商开展试点。",
+          "沟通偏好": "偏好简洁、数据化的方案。"
+        }
+      },
+      {
+        "id": "meeting-21",
+        "occurredAt": "2026-08-08",
+        "verifiedParticipation": true,
+        "sourceAvailable": true,
+        "themes": [
+          "德国渠道",
+          "Pilot",
+          "认证",
+          "交付周期",
+          "采购审批"
+        ],
+        "extractedSummary": "John Chen 与我方复盘德国渠道试点，继续关注认证和交付周期。采购预算需要 Alice 审批，技术可行性由 David 评估，目前尚未确认预算金额。John 将协调采购评审，我方补充认证材料。",
+        "todos": [
+          {
+            "side": "theirs",
+            "title": "协调采购评审",
+            "due": "时间未约定"
+          },
+          {
+            "side": "mine",
+            "title": "补充认证材料",
+            "due": "时间未约定"
+          }
+        ],
+        "profile": {
+          "决策与协作": "John 协调渠道；Alice 审批采购预算，David 评估技术可行性。",
+          "预算与约束": "预算金额尚未确认，需采购审批。"
+        }
+      },
+      {
+        "id": "meeting-23",
+        "occurredAt": "2026-08-06",
+        "verifiedParticipation": true,
+        "sourceAvailable": true,
+        "themes": [
+          "德国渠道",
+          "试点",
+          "认证",
+          "交付周期",
+          "Demo"
+        ],
+        "extractedSummary": "John Chen 确认德国渠道试点仍为当前合作重点，认证材料和交付周期是进入下一阶段的前提。双方计划在 8 月 12 日检查 Demo 和材料，但尚未承诺正式采购时间。我方将发送 Demo 演示方案，John 汇总试点客户反馈。",
+        "todos": [
+          {
+            "side": "theirs",
+            "title": "汇总试点客户反馈",
+            "due": "2026-08-12"
+          },
+          {
+            "side": "mine",
+            "title": "发送 Demo 演示方案",
+            "due": "2026-08-12"
+          }
+        ],
+        "profile": {
+          "合作阶段": "渠道试点评估中，认证和交付周期是进入下一阶段的前提。",
+          "时间与里程碑": "计划 8 月 12 日检查 Demo 和材料；正式采购时间未约定。"
+        }
+      }
     ]
   },
   {
@@ -73,9 +203,32 @@
     "recent": "4 天前",
     "region": "德国",
     "email": "alice@abc-energy.example",
-    "themes": ["试点预算 · 4", "供应商准入 · 3"],
-    "memories": ["负责采购流程与预算确认。"],
-    "inferences": []
+    "themes": [
+      "试点预算 · 4",
+      "供应商准入 · 3"
+    ],
+    "memories": [
+      "负责采购流程与预算确认。"
+    ],
+    "inferences": [],
+    "subjectType": "person",
+    "createdAt": "2026-06-13T09:00:00+08:00",
+    "sources": [
+      {
+        "id": "seed-alice",
+        "channel": "manual",
+        "fields": {
+          "name": "Alice Wang",
+          "company": "ABC Energy",
+          "role": "采购负责人",
+          "region": "德国",
+          "email": "alice@abc-energy.example",
+          "tag": "待回复",
+          "summary": "负责采购与预算确认，当前主要议题是试点预算和供应商准入。"
+        },
+        "updatedAt": "2026-06-13T09:00:00+08:00"
+      }
+    ]
   },
   {
     "id": "david",
@@ -89,9 +242,35 @@
     "recent": "3 天前",
     "region": "德国",
     "email": "david@abc-energy.example",
-    "themes": ["系统集成 · 6", "认证 · 4"],
-    "memories": ["负责技术评估和系统集成。"],
-    "inferences": []
+    "themes": [
+      "系统集成 · 6",
+      "认证 · 4"
+    ],
+    "memories": [
+      "负责技术评估和系统集成。"
+    ],
+    "inferences": [],
+    "subjectType": "person",
+    "createdAt": "2026-06-14T09:00:00+08:00",
+    "sources": [
+      {
+        "id": "seed-david",
+        "channel": "crm",
+        "fields": {
+          "name": "David Lee",
+          "company": "ABC Energy",
+          "role": "技术负责人",
+          "region": "德国",
+          "email": "david@abc-energy.example",
+          "tag": "活跃",
+          "summary": "技术评估负责人，重点关注系统集成、认证和 Pilot 技术可行性。"
+        },
+        "updatedAt": "2026-06-14T09:00:00+08:00",
+        "crmSystem": "演示 CRM",
+        "crmId": "CRM-david",
+        "verifiedEmail": "david@abc-energy.example"
+      }
+    ]
   },
   {
     "id": "lisa",
@@ -105,9 +284,31 @@
     "recent": "1 周前",
     "region": "新加坡",
     "email": "lisa@invest.example",
-    "themes": ["AI hardware · 3"],
-    "memories": ["关注 AI hardware 与知识工作者方向。"],
-    "inferences": []
+    "themes": [
+      "AI hardware · 3"
+    ],
+    "memories": [
+      "关注 AI hardware 与知识工作者方向。"
+    ],
+    "inferences": [],
+    "subjectType": "person",
+    "createdAt": "2026-07-15T09:00:00+08:00",
+    "sources": [
+      {
+        "id": "seed-lisa",
+        "channel": "thought",
+        "fields": {
+          "name": "Lisa Tan",
+          "company": "Singapore",
+          "role": "投资人",
+          "region": "新加坡",
+          "email": "lisa@invest.example",
+          "tag": "最近",
+          "summary": "关注 AI hardware、knowledge worker 与个人智能体方向。"
+        },
+        "updatedAt": "2026-07-15T09:00:00+08:00"
+      }
+    ]
   },
   {
     "id": "michael",
@@ -121,9 +322,32 @@
     "recent": "2 周前",
     "region": "德国",
     "email": "michael@solarhub.example",
-    "themes": ["Distribution · 2", "Pilot · 2"],
-    "memories": ["正在评估德国渠道合作。"],
-    "inferences": []
+    "themes": [
+      "Distribution · 2",
+      "Pilot · 2"
+    ],
+    "memories": [
+      "正在评估德国渠道合作。"
+    ],
+    "inferences": [],
+    "subjectType": "person",
+    "createdAt": "2026-07-16T09:00:00+08:00",
+    "sources": [
+      {
+        "id": "seed-michael",
+        "channel": "meeting",
+        "fields": {
+          "name": "Michael Zhou",
+          "company": "SolarHub",
+          "role": "创始人",
+          "region": "德国",
+          "email": "michael@solarhub.example",
+          "tag": "合作伙伴",
+          "summary": "德国渠道潜在合作伙伴，与 Distribution 和 Pilot Project 相关。"
+        },
+        "updatedAt": "2026-07-16T09:00:00+08:00"
+      }
+    ]
   },
   {
     "id": "emma",
@@ -137,8 +361,92 @@
     "recent": "今天",
     "region": "中国",
     "email": "emma@baizhi.example",
-    "themes": ["People · 12", "Knowledge · 8", "录音 · 6"],
-    "memories": ["负责产品协作与知识工作台体验。"],
-    "inferences": []
+    "themes": [
+      "People · 12",
+      "Knowledge · 8",
+      "录音 · 6"
+    ],
+    "memories": [
+      "负责产品协作与知识工作台体验。"
+    ],
+    "inferences": [],
+    "subjectType": "person",
+    "createdAt": "2026-07-17T09:00:00+08:00",
+    "sources": [
+      {
+        "id": "seed-emma",
+        "channel": "manual",
+        "fields": {
+          "name": "Emma Li",
+          "company": "Internal",
+          "role": "产品负责人",
+          "region": "中国",
+          "email": "emma@baizhi.example",
+          "tag": "高频",
+          "summary": "产品协作联系人，最近围绕 People、Knowledge 和录音入口讨论。"
+        },
+        "updatedAt": "2026-07-17T09:00:00+08:00"
+      }
+    ]
+  },
+  {
+    "id": "abc-energy",
+    "initials": "AB",
+    "name": "ABC Energy",
+    "subjectType": "enterprise",
+    "createdAt": "2026-08-01T09:00:00+08:00",
+    "company": "ABC Energy",
+    "role": "能源服务",
+    "region": "德国",
+    "email": "",
+    "tag": "客户",
+    "summary": "储能渠道企业，评估德国经销商试点合作。",
+    "count": 0,
+    "recent": "暂无会议",
+    "themes": [],
+    "memories": [],
+    "inferences": [],
+    "sources": [
+      {
+        "id": "seed-abc-energy",
+        "channel": "crm",
+        "fields": {
+          "name": "ABC Energy",
+          "company": "ABC Energy"
+        },
+        "updatedAt": "2026-08-01",
+        "crmSystem": "演示 CRM",
+        "crmId": "CRM-abc-energy"
+      }
+    ]
+  },
+  {
+    "id": "solarhub-company",
+    "initials": "So",
+    "name": "SolarHub GmbH",
+    "subjectType": "enterprise",
+    "createdAt": "2026-09-21T09:00:00+08:00",
+    "company": "SolarHub GmbH",
+    "role": "能源服务",
+    "region": "德国",
+    "email": "",
+    "tag": "客户",
+    "summary": "能源服务企业，关注渠道分销与试点项目。",
+    "count": 0,
+    "recent": "暂无会议",
+    "themes": [],
+    "memories": [],
+    "inferences": [],
+    "sources": [
+      {
+        "id": "seed-solarhub-company",
+        "channel": "manual",
+        "fields": {
+          "name": "SolarHub GmbH",
+          "company": "SolarHub GmbH"
+        },
+        "updatedAt": "2026-09-21"
+      }
+    ]
   }
 ]

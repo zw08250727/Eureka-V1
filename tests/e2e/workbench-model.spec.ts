@@ -30,7 +30,8 @@ test("typed repository preserves existing records, revisions, sessions and unkno
   const storage = memory(),
     repo = createLocalRepository(storage, now);
   let data = await repo.load();
-  expect(data.meetings).toHaveLength(20);
+  expect(data.meetings).toHaveLength(20); // Workspace switching never imports team records.
+  expect(data.meetings.some(m => m.id === "team-demo-pilot")).toBe(false);
   data = await repo.toggleTodo("todo-1");
   const before = JSON.parse(storage.getItem(ACTION_KEY)!);
   before.sessions.push({ id: "keep-session" });

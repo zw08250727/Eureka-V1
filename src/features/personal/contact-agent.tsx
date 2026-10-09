@@ -1,4 +1,3 @@
-import { contactPromises, openPromise } from "./contact-rules";
 import { AgentHistoryButton } from "@/features/agent/history-button";
 import type { RefObject } from "react";
 import { RefIcon } from "@/features/reference/symbols";
@@ -7,11 +6,9 @@ import { ContactResizeHandle } from "./contact-resize";
 
 export function contactAnswer(question: string, person?: Contact) {
   if (!person) return "当前没有可用联系人上下文。";
-  const promises = contactPromises(person).filter(openPromise);
-  if (question.includes("承诺"))
-    return promises.length
-      ? `${person.name} 相关的未闭环承诺共 ${promises.length} 项：${promises.map((p) => `${p.side === "mine" ? "我" : person.name}：${p.title}（${p.status}）`).join("；")}。`
-      : `${person.name} 暂无已记录的开放承诺。`;
+  const todos = (person.interactions || []).flatMap((m) => m.todos || []);
+  if (/承诺|待办/.test(question))
+    return todos.length ? `${person.name} 相关的双方待办共 ${todos.length} 项：${todos.map((p) => `${p.side === "mine" ? "我" : person.name}：${p.title}（${p.due || "时间未约定"}）`).join("；")}。` : `${person.name} 暂无会议提取的待办。`;
   if (question.includes("第一次"))
     return `${person.name} 尚未提供已核实的首次认识时间。`;
   return `${person.name}：${person.summary || "暂无关系摘要。"}\n建议围绕已记录的事实确认下一步；尚未创建或发送任何安排。`;
@@ -41,7 +38,7 @@ export function ContactAgentEntry({
       </span>
       <span>
         <strong>{expanded ? "收起 Ask Agent" : "Ask Agent"}</strong>
-        <small>使用联系人关系继续工作</small>
+        <small>结合客户资料与会议继续工作</small>
       </span>
       <RefIcon
         name={expanded ? "collapse" : "expand"}
@@ -89,7 +86,7 @@ export function ContactAgent({
             </span>
             <div>
               <h2 id="contacts-xiaozhi-title">Ask Agent</h2>
-              <p>使用联系人关系继续工作</p>
+              <p>结合客户资料与会议继续工作</p>
             </div>
           </div>
           <div className="xiaozhi-head-actions">
@@ -127,7 +124,7 @@ export function ContactAgent({
                 {[
                   "总结这位联系人的最新进展",
                   "准备下一次沟通",
-                  "整理开放承诺",
+                  "整理双方待办",
                 ].map((prompt) => (
                   <button
                     key={prompt}

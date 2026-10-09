@@ -28,7 +28,9 @@ export function createWorkspaceStore(storage: Storage, now = () => new Date(), o
       if (storage.getItem(key) !== raw)
         throw Error("空间已在其他页面更新，请保留输入并刷新重试");
       const next = structuredClone(state);
+      M.reconcileEntitlements(next, now());
       const result = fn(next);
+      M.reconcileEntitlements(next, now());
       const json = JSON.stringify(next);
       try {
         storage.setItem(key, json);

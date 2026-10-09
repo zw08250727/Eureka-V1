@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, type ReactNode } from "react";
 import {
   actionTime,
   ledgerCurrency,
@@ -38,6 +38,8 @@ export function TodayOverview({
   onUpload,
   onToggle,
   agentOpen,
+  readOnly = false,
+  headerActions,
 }: {
   data: WorkbenchSnapshot;
   now: Date;
@@ -46,6 +48,8 @@ export function TodayOverview({
   onUpload: () => void;
   onToggle: (id: string) => void;
   agentOpen: boolean;
+  readOnly?: boolean;
+  headerActions?: ReactNode;
 }) {
   const r = todayRecords(data.actions, data.thoughts, now),
     pending = r.todos.filter((t) => !t.done);
@@ -63,6 +67,7 @@ export function TodayOverview({
           <div className="recording-command-actions">
             <button
               className="recording-primary"
+              disabled={readOnly}
               id="module-start-recording"
               type="button"
               onClick={() => navigateLegacy("recording")}
@@ -75,6 +80,7 @@ export function TodayOverview({
             </button>
             <button
               type="button"
+              disabled={readOnly}
               className="audio-upload-entry"
               onClick={onUpload}
             >
@@ -82,6 +88,7 @@ export function TodayOverview({
               上传
             </button>
             <button
+              disabled={readOnly}
               className="xiaozhi-entry"
               id="xiaozhi-entry"
               aria-label="Ask Agent"
@@ -101,6 +108,7 @@ export function TodayOverview({
               </span>
               <Icon name="expand" className="icon xiaozhi-expand-icon" />
             </button>
+            {headerActions}
           </div>
         </div>
       </header>
@@ -167,6 +175,7 @@ export function TodayOverview({
                     className={`brief-task ${t.done ? "is-done" : ""}`}
                     key={t.id}
                     aria-pressed={t.done}
+                    disabled={readOnly}
                     data-today-toggle={t.id}
                     onClick={() => onToggle(t.id)}
                     title={t.title}
@@ -183,6 +192,7 @@ export function TodayOverview({
               </div>
               <div className="daily-brief-actions">
                 <button
+                  disabled={readOnly}
                   className="brief-primary"
                   onClick={() => onHomeAgent(dailyContext(data, now))}
                 >

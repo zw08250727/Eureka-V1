@@ -3,7 +3,7 @@ import {
   fillWeekThoughts,
   type WeekThoughtState,
 } from "./demo-week";
-import { createWorkspaceStore } from "../../spaces/model/store";
+import { createWorkspaceStore, M } from "../../spaces/model/store";
 import baseline from "./baseline.json";
 import { localDay } from "./selectors";
 import type {
@@ -170,11 +170,7 @@ export function createLocalRepository(
         deletedAt: f.deletedAt,
       });
     }
-    const spaces = [
-      { id: "personal", name: "个人工作空间", members: 1 },
-      { id: "team-eureka", name: "EurekaMind 产品团队", members: 3 },
-      { id: "team-design", name: "设计共创空间", members: 2 },
-    ];
+    const spaces = createWorkspaceStore(storage, now).read().spaces.filter(w => M.member(w)).map(w => ({ id: w.id, name: w.name, members: w.members.filter(m => m.status === "active").length }));
     let accountName = "张伟",
       personalPlan = "标准版";
     const workspace = createWorkspaceStore(storage, now).read();
@@ -196,6 +192,7 @@ export function createLocalRepository(
         String(personal.personalSubscription.endsAt) > now().toISOString()
       )
         personalPlan = "Pro";
+      if (object(personal) && personal.entitlementFreeze) personalPlan += " · 已冻结";
       if (object(personal) && Array.isArray(personal.files)) {
         for (const f of personal.files) {
           if (!object(f) || f.deleted) continue;
@@ -249,6 +246,7 @@ export function createLocalRepository(
           recycled.unshift({ ...m, deletedAt: String(p.deletedAt) });
       }
     }
+    meetings.sort((a, b) => Date.parse(b.created.replace(" ", "T")) - Date.parse(a.created.replace(" ", "T")));
     const contacts = parse(
       storage.getItem("baizhi-v14-contacts"),
       {},
@@ -259,11 +257,11 @@ export function createLocalRepository(
         ? contacts.personal.contacts
         : null;
     const contactCount = Array.isArray(personalContacts)
-      ? personalContacts.length
+      ? personalContacts.filter((p) => object(p) && (!p.ownerId || p.ownerId === workspace.account.id)).length
       : 6;
     return {
       actions: clone(actions.records),
-      thoughts: clone(thoughts.records),
+      thoughts: clone([...(workspace.spaces.find((w) => w.id === "personal")?.thoughts || []).filter((t) => !t.deleted && t.owner === workspace.account.id), ...thoughts.records]),
       meetings,
       spaces,
       accountName,

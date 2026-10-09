@@ -9,17 +9,13 @@ import {
   ManagementHeading,
   ManagementIcon as Icon,
   ManagementButton as Button,
-  ManagementBadge as Badge,
   ManagementEmpty as Empty,
   ManagementDialog as Dialog,
-  ManagementToast,
   managementDate,
 } from "./management-ui";
 export function DeviceBindingDialog({
-  name,
   onClose,
 }: {
-  name: string;
   onClose: () => void;
 }) {
   return (
@@ -78,350 +74,37 @@ export function DeviceBindingDialog({
         </section>
       </div>
       <p className="ws-device-guide-note">
-        在 App 中登录同一账号，选择「{name}
-        」完成设备绑定。绑定成功后，录音将同步到设备所属的工作空间。
+        在 App 中登录本人账号并选择绑定工作区。设备录音固定进入该区；换团队使用需先解绑再绑定。内容在绑定工作区内按查看／编辑权限共享。
       </p>
     </Dialog>
   );
 }
-export function DevicesPage({
-  controller,
-  space,
-  actor,
-}: {
-  controller: SpacesController;
-  space: string;
-  actor: string;
-}) {
-  const [modal, setModal] = useState("");
+export function DevicesPage({ controller, space, actor, own = false }: { controller: SpacesController; space: string; actor: string; own?: boolean }) {
   const [selected, setSelected] = useState("");
+  const [modal, setModal] = useState("");
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
-  const state = controller.state!,
-    w = M.get(state, space),
-    admin = M.admin(w, actor);
-  const devices = state.devices.filter(
-    (d) => d.spaceId === space && (admin || d.user === actor),
-  );
-  const device = devices.find((d) => d.id === selected);
-  const name = (uid: string) =>
-    w.members.find((m) => m.id === uid)?.name || "已移除成员";
-  function open(kind: string, id = "") {
-    setError("");
-    setSelected(id);
-    setModal(kind);
-  }
-  function act(fn: () => void) {
-    try {
-      fn();
-    } catch (e) {
-      setNotice((e as Error).message);
-    }
-  }
-  return (
-    <ManagementRoot w={w} actor={actor}>
-      <ManagementHeading
-        w={w}
-        actor={actor}
-        title="设备与同步"
-        subtitle={
-          w.type === "team"
-            ? "绑定团队设备的录音自动进入团队会议，成员无需额外分享即可查看。切换工作空间不会改变设备归属。"
-            : "录音同步到设备绑定的个人空间，仅自己可见。切换工作空间不会改变设备归属。"
-        }
-        actions={
-          <Button
-            action="bind"
-            className="primary"
-            onClick={() => open("guide")}
-          >
-            <Icon name="plus" />
-            绑定已有设备
-          </Button>
-        }
-      />
-      <section className="ws-surface">
-        <div className="ws-table-scroll">
-          <table className="ws-table">
-            <thead>
-              <tr>
-                <th>设备</th>
-                <th>绑定成员</th>
-                <th>录音目标</th>
-                <th>最近同步</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              {devices.map((d) => (
-                <tr key={d.id}>
-                  <td>
-                    <div className="ws-person">
-                      <span className="ws-device-mark">
-                        <Icon name="phone" />
-                      </span>
-                      <span>
-                        <strong>{d.name}</strong>
-                        <small>{`SN ${d.serial} · ${d.model}`}</small>
-                      </span>
-                    </div>
-                  </td>
-                  <td>{name(d.user)}</td>
-                  <td>
-                    <Badge kind="blue">{w.name}</Badge>
-                  </td>
-                  <td>
-                    {d.lastSync ? managementDate(d.lastSync) : "尚未同步"}
-                  </td>
-                  <td>
-                    {d.user === actor ? (
-                      <>
-                        <Button
-                          action="sync"
-                          value={d.id}
-                          className="link"
-                          onClick={() =>
-                            act(() => {
-                              const result = controller.change((s) =>
-                                M.sync(s, d.id, actor),
-                              );
-                              setNotice(
-                                `已同步至${result.space.name}，${M.teamRecording(result.space, result.file) ? "团队成员可直接查看" : "新录音仅自己可见"}`,
-                              );
-                            })
-                          }
-                        >
-                          模拟同步
-                        </Button>
-                        <Button
-                          action="device-detail"
-                          value={d.id}
-                          className="link"
-                          onClick={() => open("detail", d.id)}
-                        >
-                          详情
-                        </Button>
-                        <Button
-                          action="unbind"
-                          value={d.id}
-                          className="link"
-                          onClick={() => open("unbind", d.id)}
-                        >
-                          解绑
-                        </Button>
-                      </>
-                    ) : (
-                      <Button
-                        action="device-detail"
-                        value={d.id}
-                        className="link"
-                        onClick={() => open("detail", d.id)}
-                      >
-                        查看
-                      </Button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        {!devices.length ? (
-          <Empty
-            title="当前空间尚未绑定设备"
-            action={
-              w.type === "personal" ? (
-                <Button
-                  action="bind"
-                  className="primary"
-                  onClick={() => open("guide")}
-                >
-                  下载 App 绑定
-                </Button>
-              ) : undefined
-            }
-          >
-            {w.type === "personal"
-              ? "在手机 App 完成设备绑定后，即可在这里查看。"
-              : "可在 App 绑定设备，或录入设备信息并绑定团队成员。"}
-          </Empty>
-        ) : null}
-      </section>
-      {w.type === "team" ? (
-        <section className="ws-surface">
-          <div className="ws-section-head">
-            <div>
-              <h2>设备录入</h2>
-              <p className="ws-muted">
-                填写 SN 码和设备型号，绑定{admin ? "对应的团队成员" : "到自己"}
-                。
-              </p>
-            </div>
-            <Button
-              action="register-device"
-              onClick={() =>
-                act(() => {
-                  M.writable(w);
-                  open("register");
-                })
-              }
-            >
-              <Icon name="plus" />
-              录入设备
-            </Button>
-          </div>
-        </section>
-      ) : null}
-      <div className="ws-info">
-        <Icon name="phone" />{" "}
-        重新绑定只影响之后的录音。已有文件留在原空间，可手动导出、导入。
-      </div>
-      {modal === "register" ? (
-        <Dialog
-          title="录入并绑定设备"
-          form="register-device"
-          onClose={() => setModal("")}
-          onSubmit={(f) => {
-            const d = controller.change((s) =>
-              M.registerDevice(
-                s,
-                space,
-                {
-                  serial: String(f.get("serial")),
-                  model: String(f.get("model")),
-                  user: String(f.get("user")),
-                },
-                actor,
-              ),
-            );
-            setModal("");
-            setNotice(`设备 ${d.model} 已录入并绑定至 ${name(d.user)}`);
-          }}
-          footer={
-            <>
-              <Button action="close-dialog" onClick={() => setModal("")}>
-                取消
-              </Button>
-              <button className="ws-btn primary" type="submit">
-                保存并绑定
-              </button>
-            </>
-          }
-        >
-          <p>录入设备信息，并选择使用这台设备的成员。</p>
-          <label className="ws-field">
-            SN 码
-            <input
-              name="serial"
-              type="text"
-              required
-              maxLength={64}
-              placeholder="例如：474204126010000027"
-              autoComplete="off"
-              spellCheck={false}
-            />
-          </label>
-          <label className="ws-field">
-            设备型号
-            <input
-              name="model"
-              type="text"
-              required
-              maxLength={40}
-              placeholder="例如：W2"
-            />
-          </label>
-          <label className="ws-field">
-            绑定成员
-            <select name="user" defaultValue={actor}>
-              {w.members
-                .filter(
-                  (m) => m.status === "active" && (admin || m.id === actor),
-                )
-                .map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name} · {m.email}
-                    {m.id === actor ? "（我）" : ""}
-                  </option>
-                ))}
-            </select>
-          </label>
-          <div className="ws-record-target">
-            录音目标：<strong>{w.name}</strong>
-          </div>
-          <p className="ws-muted">
-            保存后设备将显示在列表中；新录音记录绑定成员，并自动进入团队会议供空间成员查看。
-          </p>
-        </Dialog>
-      ) : null}
-      {modal === "guide" ? (
-        <DeviceBindingDialog name={w.name} onClose={() => setModal("")} />
-      ) : null}
-      {modal === "detail" && device ? (
-        <Dialog
-          title={device.name}
-          onClose={() => setModal("")}
-          footer={
-            <Button action="close-dialog" onClick={() => setModal("")}>
-              关闭
-            </Button>
-          }
-        >
-          <dl className="ws-device-detail">
-            <dt>序列号</dt>
-            <dd>{device.serial}</dd>
-            <dt>设备型号</dt>
-            <dd>{device.model}</dd>
-            <dt>绑定空间</dt>
-            <dd>{w.name}</dd>
-            <dt>绑定成员</dt>
-            <dd>{name(device.user)}</dd>
-            <dt>同步说明</dt>
-            <dd>
-              切换界面不会改变设备的录音同步位置。管理员仅可查看设备元数据。
-            </dd>
-          </dl>
-        </Dialog>
-      ) : null}
-      {modal === "unbind" && device ? (
-        <Dialog
-          title="模拟解除设备绑定？"
-          error={error}
-          onClose={() => setModal("")}
-          footer={
-            <>
-              <Button action="close-dialog" onClick={() => setModal("")}>
-                取消
-              </Button>
-              <Button
-                action="confirm"
-                className="primary"
-                onClick={() => {
-                  try {
-                    controller.change((s) => {
-                      const d = s.devices.find((d) => d.id === selected);
-                      if (!d || d.user !== actor || d.spaceId !== space)
-                        throw Error("只能解绑自己的设备");
-                      const target = M.get(s, space);
-                      M.writable(target);
-                      d.spaceId = null;
-                      M.log(target, "模拟解绑自己的设备", actor);
-                    });
-                    setModal("");
-                  } catch (e) {
-                    setError((e as Error).message);
-                  }
-                }}
-              >
-                确认
-              </Button>
-            </>
-          }
-        >
-          <p>解除后设备不再向此空间同步，已有录音保留。可在 App 重新绑定。</p>
-        </Dialog>
-      ) : null}
-      <ManagementToast message={notice} />
-    </ManagementRoot>
-  );
+  const state = controller.state!, w = M.get(state, space), team = w.type === "team" && !own;
+  if (team && !M.admin(w, actor)) return <ManagementRoot w={w} actor={actor}><Empty title="仅管理员可查看设备信息">请从账号菜单的「我的设备」管理本人设备绑定。</Empty></ManagementRoot>;
+  const devices = team ? M.deviceList(state, space, actor) : state.devices.filter(d => d.user === actor), device = devices.find(d => d.id === selected);
+  const name = (uid: string) => state.spaces.flatMap(s => s.members).find(m => m.id === uid)?.name || uid;
+  const personal = M.accountSpace(state, actor);
+  const targets = [personal, ...M.accountTeams(state, actor).filter(s => s.status === "active")];
+  const spaceName = (id?: string | null) => state.spaces.find(s => s.id === id)?.name || (id === personal.id ? personal.name : "待确认绑定工作区");
+  const open = (id: string, kind: string) => { setSelected(id); setError(""); setModal(kind); };
+  return <ManagementRoot w={w} actor={actor}>
+    <ManagementHeading w={w} actor={actor} title={team ? "设备查看" : "我的设备"} subtitle={team ? "仅展示绑定在当前团队工作区的设备。管理员只能查看信息，不能替成员解绑或读取私有内容。" : "设备每次只能绑定一个工作区。切换页面不会换绑，会议录音进入录制时绑定的工作区；闪念始终仅保存在本人个人工作区。"} actions={!team && <Button className="primary" onClick={() => setModal("guide")}>绑定已有设备</Button>} />
+    <section className="ws-surface"><div className="ws-table-scroll"><table className="ws-table"><thead><tr><th>设备 / SN</th><th>设备型号</th><th>绑定成员</th><th>绑定工作区</th><th>最近同步</th><th>操作</th></tr></thead><tbody>
+      {devices.map(d => <tr key={d.id}><td><strong>{d.name}</strong><small style={{ display: "block" }}>SN {d.serial}</small></td><td>{d.model}</td><td>{name(d.user)}</td><td>{d.bound ? spaceName(d.spaceId) : "未绑定工作区"}</td><td>{d.lastSync ? managementDate(d.lastSync) : "尚未同步"}</td><td><Button className="link" onClick={() => open(d.id, "detail")}>查看信息</Button>{!team && <><Button className="link" onClick={() => open(d.id, "binding")}>{d.bound && d.spaceId ? "更换绑定工作区" : "绑定工作区"}</Button>{d.bound && <Button className="link" onClick={() => open(d.id, "unbind")}>解绑</Button>}</>}</td></tr>)}
+    </tbody></table></div>{!devices.length && <Empty title="暂无绑定设备">设备经本人绑定当前工作区后显示在这里。</Empty>}</section>
+    <p className="ws-info">共享权限只决定当前工作区内其他成员能否查看或编辑，不改变设备绑定。团队到期后绑定不变，新录音仍进入该区并保留原始音频，暂停转录与 AI。</p>
+    {modal === "guide" && !team && <DeviceBindingDialog onClose={() => setModal("")} />}
+    {modal === "detail" && device && <Dialog title="设备信息" onClose={() => setModal("")}><dl className="ws-device-detail"><dt>设备名称</dt><dd>{device.name}</dd><dt>序列号</dt><dd>{device.serial}</dd><dt>设备型号</dt><dd>{device.model}</dd><dt>绑定成员</dt><dd>{name(device.user)}</dd><dt>绑定工作区</dt><dd>{device.bound ? spaceName(device.spaceId) : "未绑定工作区"}</dd><dt>最近同步</dt><dd>{device.lastSync ? managementDate(device.lastSync) : "尚未同步"}</dd></dl></Dialog>}
+    {modal === "binding" && device && !team && <Dialog title={device.bound && device.spaceId ? "更换设备绑定工作区" : "绑定设备工作区"} form="device-binding" onClose={() => setModal("")} onSubmit={data => { const target = String(data.get("workspace")); controller.change(s => { if (device.bound) M.unbind(s, device.id, actor); M.bind(s, device.id, target, actor); }); setModal(""); }} footer={<><Button onClick={() => setModal("")}>取消</Button><button type="submit" className="ws-btn primary">{device.bound && device.spaceId ? "确认解绑并绑定" : "确认绑定"}</button></>}>
+      <p>{device.name} · {device.serial}</p><p>当前绑定：{device.bound ? spaceName(device.spaceId) : "未绑定"}</p>
+      <label className="ws-field">目标工作区<select name="workspace" required defaultValue=""><option value="" disabled>请选择工作区</option>{targets.filter(t => !device.bound || t.id !== device.spaceId).map(t => <option key={t.id} value={t.id}>{t.name}</option>)}</select></label>
+      <p className="ws-info">确认后先解除原绑定，再绑定目标工作区。之后的新录音进入目标区；历史会议与原绑定期间录制的离线音频仍属于原区，不移动或合并。</p>
+      <p className="ws-muted">原型仅演示绑定状态；真实设备需在 App 确认设备身份。</p>
+    </Dialog>}
+    {modal === "unbind" && device && !team && <Dialog title="解除设备绑定？" error={error} onClose={() => setModal("")} footer={<><Button onClick={() => setModal("")}>取消</Button><Button className="primary" onClick={() => { try { controller.change(s => M.unbind(s, selected, actor)); setModal(""); } catch (e) { setError((e as Error).message); } }}>确认解绑</Button></>}><p>解除与「{spaceName(device.spaceId)}」的绑定。历史内容和既有授权保留，绑定新的工作区后才可继续录制并同步新内容。</p></Dialog>}
+  </ManagementRoot>;
 }

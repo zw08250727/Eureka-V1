@@ -1,0 +1,6 @@
+/* Common primary navigation is identical in personal and team workspaces. */
+body[data-ws-type="team"] #workspace-sidebar .sidebar-quick-nav #todos-entry,
+body[data-ws-type="team"] #workspace-sidebar .sidebar-quick-nav [data-contacts-entry],
+body[data-ws-type="team"] #workspace-sidebar .sidebar-quick-nav > .knowledge-tree-leaf-row:has([data-contacts-entry]) {
+  display: flex !important;
+}

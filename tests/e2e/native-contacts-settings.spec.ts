@@ -51,20 +51,19 @@ async function rawContacts(page: Page) {
   return page.evaluate((key) => localStorage.getItem(key), contactsKey);
 }
 
-test("native contacts: all five populated tabs, empty tabs and search", async ({
+test("native contacts: all four detail tabs, empty tabs and search", async ({
   page,
 }) => {
   await contacts(page);
-  await expect(page.locator(".contacts-person-card")).toHaveCount(6);
+  await expect(page.locator(".contacts-person-card")).toHaveCount(8);
   await page.locator("#contacts-search").fill("  德国 / 欧盟  ");
   await expect(page.locator(".contacts-person-card")).toHaveCount(1);
   await person(page, "John Chen").click();
   for (const [tab, copy] of [
-    ["概览", "AI 关系摘要"],
-    ["时间线", "Energy Storage Summit"],
-    ["承诺", "来自 John Chen 的承诺"],
-    ["主题", "活跃主题仅统计最近 30 天"],
-    ["记忆", "以上推断需要后续互动确认。"],
+    ["概览", "客户简介"],
+    ["时间线", "渠道合作方案沟通"],
+    ["承诺", "客户的待办"],
+    ["记忆", "客户画像"],
   ]) {
     await page.getByRole("tab", { name: tab, exact: true }).click();
     await expect(
@@ -77,9 +76,9 @@ test("native contacts: all five populated tabs, empty tabs and search", async ({
   await page.locator("#contacts-search").fill("Alice");
   await person(page, "Alice Wang").click();
   for (const [tab, copy] of [
-    ["时间线", "暂无时间线记录"],
-    ["承诺", "暂无承诺"],
-    ["记忆", "暂无推断"],
+    ["时间线", "暂无会议跟进记录"],
+    ["承诺", "暂无会议提取的待办"],
+    ["记忆", "待补充，暂无会议依据"],
   ]) {
     await page.getByRole("tab", { name: tab, exact: true }).click();
     await expect(main(page)).toContainText(copy);
@@ -87,10 +86,10 @@ test("native contacts: all five populated tabs, empty tabs and search", async ({
   await page.locator("[data-contact-action=list]").click();
   await page.locator("#contacts-search").fill("no-such-contact-unique");
   await expect(page.locator(".contacts-person-card")).toHaveCount(0);
-  await expect(page.locator(".contacts-empty")).toHaveText("未找到联系人");
+  await expect(page.locator(".contacts-empty")).toHaveText("未找到客户，请调整筛选条件或添加客户。");
 });
 
-test("native contacts: same-name add, note and human-owned followup persist after reload", async ({
+test("native contacts: same-name add and note persist after reload", async ({
   page,
 }) => {
   const errors: string[] = [];
@@ -98,7 +97,7 @@ test("native contacts: same-name add, note and human-owned followup persist afte
   await contacts(page);
   await openAdd(page, "   ");
   await submit(page).click();
-  await expect(formError(page)).toHaveText("请填写联系人姓名");
+  await expect(formError(page)).toHaveText("请填写客户名称");
   await page.locator("[name=name]").fill("原生核验联系人");
   await page.locator("[name=company]").fill("测试公司");
   await page.locator("[name=role]").fill("产品负责人");
@@ -124,53 +123,15 @@ test("native contacts: same-name add, note and human-owned followup persist afte
     page.getByRole("tab", { name: "记忆", exact: true }),
   ).toHaveAttribute("aria-selected", "true");
   await expect(main(page)).toContainText("下次确认交付范围");
-  await expect(page.locator(".contacts-metrics > div").nth(1)).toHaveText(
-    "1备注",
-  );
-  await page
-    .locator(".contacts-actions [data-contact-action=followup]")
-    .click();
-  await page.locator("[name=title]").fill("   ");
-  await submit(page).click();
-  await expect(formError(page)).toHaveText("请填写任务标题");
-  await page.locator("[name=title]").fill("确认验收时间");
-  await page
-    .locator("[data-contact-form=followup] [name=description]")
-    .fill("先核对双方的交付范围");
-  await expect(page.locator("[name=owner]")).toHaveValue("张伟");
-  await submit(page).click();
-  await expect(main(page)).toContainText("确认验收时间");
-  await expect(main(page)).toContainText("先核对双方的交付范围");
+  await expect(page.locator(".contacts-metrics")).toHaveCount(0);
   await page.reload();
   await person(page, "原生核验联系人").first().click();
   await page.getByRole("tab", { name: "记忆", exact: true }).click();
   await expect(main(page)).toContainText("下次确认交付范围");
-  await expect(main(page)).toContainText("确认验收时间");
-  const saved = await page.evaluate((key) => {
-    const data = JSON.parse(localStorage.getItem(key)!).personal;
-    const contact = data.contacts.find(
-      (item: { name: string }) => item.name === "原生核验联系人",
-    );
-    return {
-      count: data.contacts.filter(
-        (item: { name: string }) => item.name === contact.name,
-      ).length,
-      id: contact.id,
-      notes: data.notes[contact.id],
-      tasks: data.tasks,
-    };
-  }, contactsKey);
-  expect(saved.count).toBe(2);
-  expect(saved.notes).toHaveLength(1);
-  expect(saved.tasks).toHaveLength(1);
-  expect(saved.tasks[0]).toMatchObject({
-    contactId: saved.id,
-    owner: "张伟",
-  });
   expect(errors).toEqual([]);
 });
 
-test("native contacts: storage quota rolls back add, note and followup; each retry saves once", async ({
+test("native contacts: storage quota rolls back add and note; each retry saves once", async ({
   page,
 }) => {
   await contacts(page);
@@ -187,7 +148,6 @@ test("native contacts: storage quota rolls back add, note and followup; each ret
   await person(page, "可恢复联系人").click();
   for (const [kind, field, copy] of [
     ["note", "text", "重试备注"],
-    ["followup", "title", "重试跟进"],
   ]) {
     const before = await rawContacts(page);
     await page
@@ -211,14 +171,10 @@ test("native contacts: storage quota rolls back add, note and followup; each ret
     (item: { name: string }) => item.name === "可恢复联系人",
   );
   expect(stored.notes[record.id]).toHaveLength(1);
-  expect(
-    stored.tasks.filter(
-      (item: { contactId: string }) => item.contactId === record.id,
-    ),
-  ).toHaveLength(1);
+  expect(stored.tasks).toHaveLength(0);
 });
 
-test("native contacts: CAS rejects stale add, note and followup without losing draft or winner", async ({
+test("native contacts: CAS rejects stale add and note without losing draft or winner", async ({
   page,
   context,
 }) => {
@@ -237,7 +193,6 @@ test("native contacts: CAS rejects stale add, note and followup without losing d
   await person(stale, "John Chen").click();
   for (const [kind, field, copy] of [
     ["note", "text", "旧备注草稿"],
-    ["followup", "title", "旧跟进草稿"],
   ]) {
     await stale
       .locator(`.contacts-actions [data-contact-action=${kind}]`)
@@ -261,6 +216,9 @@ test("native contacts: CAS rejects stale add, note and followup without losing d
 test("native contacts: Agent drafts, new task and replies remain scoped to the selected person", async ({
   page,
 }) => {
+  const agentSeed = M.seed();
+  agentSeed.spaces = agentSeed.spaces.filter((w) => w.type === "personal");
+  await page.addInitScript((seed) => { if (!localStorage.getItem("eureka:workspaces:v2")) localStorage.setItem("eureka:workspaces:v2", JSON.stringify(seed)); }, agentSeed);
   await contacts(page);
   const input = page.locator("[data-contact-xiaozhi-input]");
   const answer = page.locator(".contacts-xiaozhi-answer");
@@ -288,9 +246,9 @@ test("native contacts: Agent drafts, new task and replies remain scoped to the s
     "Alice Wang",
   );
   await page
-    .locator('[data-contact-action=ask][data-value="整理开放承诺"]')
+    .locator('[data-contact-action=ask][data-value="整理双方待办"]')
     .click();
-  await expect(answer).toContainText("Alice Wang 暂无已记录的开放承诺");
+  await expect(answer).toContainText("Alice Wang 暂无会议提取的待办");
   await expect(answer).not.toContainText("德国经销商");
   await input.fill("新草稿");
   await page.locator("[data-contact-action=new-agent-task]").click();
@@ -363,7 +321,7 @@ test("native settings: language and summary persist across reload and Personal/T
   await expect(language).toHaveValue("en");
   await expect(notes).toHaveValue("detected");
   await expect(page.locator(".settings-profile small")).toHaveText(
-    "标准版 · 个人工作空间",
+    "标准版 · 权益已冻结 · 个人工作空间",
   );
   await expect(page.locator(".settings-usage")).toContainText("剩余 400 分钟");
   await language.selectOption("zh-Hant");
@@ -507,6 +465,9 @@ test("native settings: legacy language fallback and logout cancel/Escape/confirm
 test("native contacts: empty dataset and a new contact expose every empty detail branch", async ({
   page,
 }) => {
+  const agentSeed = M.seed();
+  agentSeed.spaces = agentSeed.spaces.filter((w) => w.type === "personal");
+  await page.addInitScript((seed) => { if (!localStorage.getItem("eureka:workspaces:v2")) localStorage.setItem("eureka:workspaces:v2", JSON.stringify(seed)); }, agentSeed);
   await page.addInitScript((key) => {
     if (!localStorage.getItem(key))
       localStorage.setItem(
@@ -515,16 +476,16 @@ test("native contacts: empty dataset and a new contact expose every empty detail
       );
   }, contactsKey);
   await page.goto("/workbench/?view=contacts&space=personal");
-  await expect(page.locator(".contacts-empty")).toHaveText("未找到联系人");
+  await expect(page.locator(".contacts-empty")).toHaveText("未找到客户，请调整筛选条件或添加客户。");
   await expect(page.locator(".contacts-toolbar-hint")).toHaveText(
-    "共 0 位联系人",
+    "共 0 个客户",
   );
   await page.locator(".contacts-xiaozhi-entry").click();
   await expect(page.locator(".contacts-xiaozhi-answer")).toHaveText(
     "暂无关系摘要",
   );
   await page
-    .locator('[data-contact-action=ask][data-value="整理开放承诺"]')
+    .locator('[data-contact-action=ask][data-value="整理双方待办"]')
     .click();
   await expect(page.locator(".contacts-xiaozhi-answer")).toHaveText(
     "当前没有可用联系人上下文。",
@@ -536,11 +497,10 @@ test("native contacts: empty dataset and a new contact expose every empty detail
   await submit(page).click();
   await person(page, "全空详情联系人").click();
   for (const [tab, expected] of [
-    ["概览", ["待补充", "暂无承诺", "暂无主题"]],
-    ["时间线", ["暂无时间线记录"]],
-    ["承诺", ["暂无承诺"]],
-    ["主题", ["暂无主题"]],
-    ["记忆", ["暂无关系记忆", "暂无推断"]],
+    ["概览", ["待补充", "暂无会议跟进记录", "暂无会议关键词"]],
+    ["时间线", ["暂无会议跟进记录"]],
+    ["承诺", ["暂无会议提取的待办"]],
+    ["记忆", ["客户画像", "待补充，暂无会议依据"]],
   ] as const) {
     await page.getByRole("tab", { name: tab, exact: true }).click();
     for (const copy of expected) await expect(main(page)).toContainText(copy);
@@ -576,7 +536,7 @@ test("native settings: Pro, expired personal plan and expired team show their ac
   }, state);
   await settings(page);
   await expect(page.locator(".settings-profile small")).toHaveText(
-    "Pro · 个人工作空间",
+    "Pro · 权益已冻结 · 个人工作空间",
   );
   await expect(page.locator(".settings-usage")).toContainText("99,999 分钟");
   await page.evaluate(() => {

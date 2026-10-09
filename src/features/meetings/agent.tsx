@@ -106,6 +106,7 @@ export function MeetingAgent({
     const controller = new AbortController();
     abort.current = controller;
     try {
+      agent.ensureAvailable();
       let text = `这场会议的主要内容：\n${r.summary}\n\n可以继续按负责人、截止时间整理后续行动。\n\n${web ? "联网搜索已选，当前仅模拟，未执行真实检索。" : "模拟回复，尚未调用 AI 服务。"}`;
       if (gateway) {
         const reply = await gateway.send(

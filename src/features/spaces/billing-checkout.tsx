@@ -67,7 +67,7 @@ export function CheckoutDialog({
           <p>
             新增 {o.added} 席位已生效，总席位 {o.targetSeats} 个。
           </p>
-          <strong>{money(o.amount)}</strong>
+          <strong>{money(o.amount, o.currency)}</strong>
           <p>账单 {o.invoiceId}</p>
         </div>
         <p className="ws-muted">
@@ -91,7 +91,7 @@ export function CheckoutDialog({
         <div className="ws-order">
           <p>订单 {o.id}</p>
           <p>
-            实付 {money(o.amount)} · 账单 {o.invoiceId}
+            实付 {money(o.amount, o.currency)} · 账单 {o.invoiceId}
           </p>
         </div>
         <p className="ws-muted">未发生真实扣款。重复查看此结果不会重复到账。</p>
@@ -194,18 +194,18 @@ export function CheckoutDialog({
           <div>
             <span>新增席位</span>
             <strong>
-              {o.added} × {money(o.unitPrice ?? M.price(o.cycle))} /{" "}
+              {o.added} × {money(o.unitPrice ?? M.price(o.cycle), o.currency)} /{" "}
               {o.cycle === "year" ? "年" : "月"}
             </strong>
           </div>
           <div className="ws-seat-total">
             <span>本次应付</span>
-            <strong>{money(o.amount)}</strong>
+            <strong>{money(o.amount, o.currency)}</strong>
           </div>
         </div>
         <p className="ws-muted">
           演示按新增席位的完整{o.cycle === "year" ? "年度" : "月度"}
-          价格计费，不按剩余天数折算；现有账期不变。正式计费规则待确认。
+          原价计费，税费另计；首次开通优惠不重复用于加席，不按剩余天数折算，现有账期不变。
         </p>
         {o.snapshot !==
         JSON.stringify([
@@ -232,7 +232,7 @@ export function CheckoutDialog({
         <p className="ws-muted">
           新增席位当前周期截止：{o.nextDate}
           {w.renew
-            ? ` · ${o.targetSeats} 席位 · ${money(o.nextAmount ?? 0)} / ${o.nextCycle === "year" ? "年" : "月"}`
+            ? ` · ${o.targetSeats} 席位 · ${money(o.nextAmount ?? 0, o.currency)} / ${o.nextCycle === "year" ? "年" : "月"}`
             : "（自动续费已关闭）"}
         </p>
         {o.status === "failed" ? (
@@ -266,7 +266,7 @@ export function CheckoutDialog({
           </div>
           <div>
             <span>本次应付</span>
-            <strong>{money(o.amount)}</strong>
+            <strong>{money(o.amount, o.currency)}</strong>
           </div>
         </div>
         <div className="ws-seat-payment-method">
@@ -319,7 +319,7 @@ export function CheckoutDialog({
         <button type="submit" className="ws-btn primary">
           {personal
             ? "模拟支付 " + dollars(o.amount)
-            : `${o.status === "failed" ? "重试模拟支付" : "模拟支付"} ${money(o.amount)}`}
+            : `${o.status === "failed" ? "重试模拟支付" : "模拟支付"} ${money(o.amount, o.currency)}`}
         </button>
       </>
     );

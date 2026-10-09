@@ -110,20 +110,23 @@ export function ManagementTabs({
   space,
   actor,
   selected,
+  admin = true,
 }: {
   space: string;
   actor: string;
   selected: string;
+  admin?: boolean;
 }) {
   const tabs: [AppView, string, string][] = [
+    ["content-permissions", "permissions", "内容权限"],
     ["subscription", "billing", "订阅与席位"],
     ["credits", "credits", "Credits"],
-    ["space-settings", "settings", "空间设置"],
+    ["space-settings", "settings", "基本设置"],
     ["audit", "audit", "活动记录"],
   ];
   return (
-    <nav className="ws-tabs" aria-label="空间管理">
-      {tabs.map(([view, key, label]) => (
+    <nav className="ws-tabs" aria-label="空间设置">
+      {tabs.filter(([, key]) => admin || key === "permissions").map(([view, key, label]) => (
         <ManagementButton
           key={key}
           action="page"

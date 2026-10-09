@@ -12,8 +12,9 @@ import {
   ManagementIcon as Icon,
   ManagementEmpty,
   ManagementToast,
-  managementMoney as money,
 } from "./management-ui";
+import { dollars as money } from "./billing-ui";
+import "./team-pricing.css";
 import { Workbench } from "@/features/workbench/workbench";
 import { TeamHome } from "./home";
 import { InviteMembersDialog } from "./management-dialogs";
@@ -166,8 +167,6 @@ export function CreateTeamDialog({
         </div>
       </Dialog>
     );
-  if (M.accountTeam(controller.state!))
-    return <><ManagementToast message="你已创建或加入一个团队，不能再创建或加入其他团队" /><Dialog title="无法创建团队" onClose={onClose}><p>一个账号仅可创建或加入一个团队。</p></Dialog></>;
   if (!setup)
     return (
       <Dialog title="EurekaMind Team" onClose={onClose} error={error}>
@@ -198,7 +197,7 @@ export function CreateTeamDialog({
                 [
                   "folder",
                   "独立的团队会议录音",
-                  "团队设备录音自动归集，成员共同查看",
+                  "录音归属当前空间，授权后成员可见",
                 ],
                 [
                   "users",
@@ -243,14 +242,17 @@ export function CreateTeamDialog({
               </Button>
             </div>
             <div className="ws-price">
-              {money(draft.cycle === "year" ? 159 : 199)}
+              {money(M.teamPricing[draft.cycle].monthly)}
+              <s>{money(M.teamPricing[draft.cycle].originalMonthly)}</s>
               <small>/ 席位 / 月</small>
             </div>
             <p>
               {draft.cycle === "year"
-                ? "按年结算，每席位 ¥1,908 / 年"
-                : "按月结算，灵活调整席位"}
+                ? "按年计费，每席位 $240.00 · 税费另计"
+                : "按月计费 · 税费另计"}
             </p>
+            <p className="ws-price-offer">首次订阅 8 折{draft.cycle === "year" && <span>年付比月付节省 29%</span>}</p>
+            <p className="ws-muted">首期后按 {money(M.price(draft.cycle))} / 席位 / {draft.cycle === "year" ? "年" : "月"}续费</p>
             <Button
               action="setup"
               className="primary"
@@ -259,7 +261,7 @@ export function CreateTeamDialog({
               创建团队
             </Button>
             <ul>
-              <li>✓ 每席位独立 Unlimited 转写</li>
+              <li>✓ 工作区统一 Unlimited 转写权益</li>
               <li>✓ 50,000 团队 Credits</li>
               <li>✓ 成员、设备与账单管理</li>
               <li>✓ 2–50 席位，可随时扩容</li>
@@ -348,13 +350,13 @@ export function CreateTeamDialog({
           <label className="ws-field">
             计费周期
             <select name="cycle" defaultValue={draft.cycle}>
-              <option value="year">年付 · ¥159 / 席位 / 月</option>
-              <option value="month">月付 · ¥199 / 席位 / 月</option>
+              <option value="year">年付 · $20 / 席位 / 月（首年 $240）</option>
+              <option value="month">月付 · $28 / 席位 / 月（首月优惠）</option>
             </select>
           </label>
         </div>
         <p className="ws-muted">
-          至少 2 席位。你作为管理员占用 1 席位。个人订阅与文件保持独立。
+          至少 2 席位。你作为管理员占用 1 席位。本工作区独立计费，加入后个人权益冻结、内容保留。
         </p>
       </Dialog>
     );
@@ -425,16 +427,24 @@ export function CreateTeamDialog({
           {draft.cycle === "year" ? "年付" : "月付"}
         </p>
         <div>
+          <span>货币</span><strong>USD</strong>
+        </div>
+        <div>
           <span>
-            {draft.seats} 席位 × {money(M.price(draft.cycle))}
+            {draft.seats} 席位 × {money(M.price(draft.cycle))} / {draft.cycle === "year" ? "年" : "月"}
           </span>
           <strong>{money(draft.seats * M.price(draft.cycle))}</strong>
         </div>
+        <div className="ws-price-discount">
+          <span>首次优惠 · 每席位享 8 折</span>
+          <strong>−{money(draft.seats * (M.price(draft.cycle) - M.teamPricing[draft.cycle].firstAmount))}</strong>
+        </div>
         <div>
           <span>本次模拟支付</span>
-          <strong>{money(draft.seats * M.price(draft.cycle))}</strong>
+          <strong>{money(draft.seats * M.teamPricing[draft.cycle].firstAmount)}</strong>
         </div>
       </div>
+      <p className="ws-muted">税费另计。首次优惠仅用于开通首期；之后按 {money(draft.seats * M.price(draft.cycle))} / {draft.cycle === "year" ? "年" : "月"}续费。</p>
       <div className="ws-info">
         演示订单：无需银行卡，不会真实扣款或发送邮件。信息已保存在此浏览器；关闭后可从“创建团队工作空间”继续。
       </div>
@@ -486,7 +496,7 @@ export function InvitationsDialog({
         <div className="ws-invitation" key={i.id}>
           <h3>{i.teamName}</h3>
           <p>
-            {`${(i as typeof i & { admin?: string }).admin} 邀请你以成员身份加入，团队为你提供 Unlimited 席位。`}
+            {`${(i as typeof i & { admin?: string }).admin} 邀请你以成员身份加入。使用该工作区统一权益，加入后个人权益冻结；其他工作区独立维护。`}
           </p>
           <Button
             action="decline-invite"

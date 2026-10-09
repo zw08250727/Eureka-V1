@@ -50,6 +50,7 @@ for (const plan of demoWeek) {
       JSON.stringify({ version: 1, records: seedThoughts(at("2026-10-07")) }),
     );
     storage.setItem(M.KEY, JSON.stringify(M.seed(at("2026-10-07"))));
+    const storedWorkspace = storage.getItem(M.KEY);
     const snapshot = await createLocalRepository(storage, () => now).load();
     const today = todayRecords(snapshot.actions, snapshot.thoughts, now);
     expect(today.schedules.some((r) => r.title === plan.topic)).toBe(true);
@@ -80,7 +81,7 @@ for (const plan of demoWeek) {
       const w = M.get(spaces, id);
       for (const member of w.members.filter((m) => m.status === "active")) {
         const insight = M.insights(w, member.id, now).items.find(
-          (i) => i.id === `demo-week-insight-${plan.date}`,
+          (i) => i.sources.some((s) => s.fileId === `demo-week-${id}-${plan.date}-0`),
         )!;
         expect(insight.title).toContain(plan.topic);
         expect(insight.sources).toHaveLength(2);
@@ -95,7 +96,7 @@ for (const plan of demoWeek) {
       ).toBe(true);
     }
     // Seeding reads are side-effect-free, so storage failures cannot partly migrate state.
-    expect(JSON.parse(storage.getItem(M.KEY)!).spaces[0].files).toHaveLength(0);
+    expect(storage.getItem(M.KEY)).toBe(storedWorkspace);
   });
 }
 
@@ -169,7 +170,7 @@ test("a persisted browser gains the next day's samples without duplicating the p
   expect(new Set(personal.files.map((f) => f.id)).size).toBe(
     personal.files.length,
   );
-  expect(M.get(first, "personal").files).toHaveLength(1);
+  expect(M.get(first, "personal").files.filter((f) => f.id.startsWith("demo-week-"))).toHaveLength(1);
 });
 
 test("personal sample meeting details and recycle patches keep the same record identity", () => {

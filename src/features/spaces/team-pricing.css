@@ -1,0 +1,5 @@
+.ws-pricing .ws-price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+.ws-pricing .ws-price s { color: #7c8797; font-size: 18px; font-weight: 400; }
+.ws-pricing .ws-price-offer { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 12px; }
+.ws-price-offer span { padding: 3px 7px; border-radius: 6px; background: #e9f4ec; color: #247144; }
+.ws-order .ws-price-discount { color: #7560bb; }

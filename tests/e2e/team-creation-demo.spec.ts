@@ -21,7 +21,7 @@ test("creation demo starts without membership and keeps personal device ownershi
   expect(M.accountTeam(state)).toBeUndefined();
   expect(state.spaces.map((w) => w.id)).toEqual(["personal"]);
   expect(state.orders).toEqual([]);
-  expect(state.devices.every((d) => d.spaceId === "personal")).toBe(true);
+  expect(state.devices.every((d) => d.bound && d.user === state.account.id)).toBe(true);
 });
 
 test("existing team account can demo checkout, recovery, invitation, restart and return without changing original data", async ({ page }) => {
@@ -65,7 +65,8 @@ test("existing team account can demo checkout, recovery, invitation, restart and
   await expect(page.locator("#ws-view")).toContainText("review@example.com");
   await page.locator("#ws-switcher").click();
   await page.getByRole("button", { name: "创建团队工作空间", exact: true }).click();
-  await expect(page.getByRole("status").filter({ hasText: "不能再创建" })).toBeVisible();
+  await expect(page.locator("#ws-dialog")).toContainText("Unlimited");
+  await page.keyboard.press("Escape");
   expect(await page.evaluate((key) => localStorage.getItem(key), M.KEY)).toBe(originalRaw);
   expect(await page.evaluate((key) => localStorage.getItem(key), ORIGINAL_DRAFT)).toBe("original draft must remain untouched");
   await page.getByRole("button", { name: "重新体验", exact: true }).click();

@@ -1,0 +1,61 @@
+/* Compact Team brief; personal schedules and thoughts live in the personal workspace. */
+#ws-view .team-overview { margin-bottom:16px; color:#2b4058; container:team-overview / inline-size; }
+#ws-view .team-overview-head { display:flex; align-items:center; justify-content:space-between; gap:20px; margin:0 0 14px; padding:0 4px; }
+#ws-view .team-overview-title { display:flex; align-items:baseline; gap:16px; }
+#ws-view .team-overview-title h1 { margin:0; font-size:23px; line-height:32px; letter-spacing:-.5px; color:#203249; white-space:nowrap; }
+#ws-view .team-overview-title>span { font-size:12px; color:#7d8da1; white-space:nowrap; }
+#ws-view .team-overview-actions { display:flex; flex-wrap:wrap; gap:8px; }
+#ws-view .team-overview-actions button { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:36px; padding:7px 12px; border:1px solid #dce5f0; border-radius:8px; background:#fff; color:#526b88; font-family:inherit; font-size:12px; line-height:20px; font-weight:600; white-space:nowrap; cursor:pointer; }
+#ws-view .team-overview-actions button.team-primary { color:#fff; background:#397ac6; border-color:#397ac6; }
+#ws-view .team-overview .icon { width:16px; height:16px; flex-shrink:0; }
+#ws-view .team-overview-canvas { border:1px solid #dce5ef; border-radius:16px; background:#fff; overflow:hidden; display:grid; grid-template-columns:minmax(0,1fr); }
+#ws-view .team-overview-main { display:contents; }
+#ws-view .team-brief-column { padding:16px 20px 12px; min-width:0; }
+#ws-view .team-section-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; }
+#ws-view .team-section-heading h2 { display:flex; align-items:center; gap:8px; margin:0; color:#304b6c; font-size:14px; line-height:22px; font-weight:600; }
+#ws-view .team-section-heading h2 .icon { color:#5886ba; }
+#ws-view .team-section-heading>span { color:#8b99aa; font-size:11px; }
+#ws-view .team-overview button:disabled, .ws-sharing-switch:disabled { cursor:not-allowed; opacity:.5; }
+#ws-view .team-overview :is(button,summary,a):focus-visible { outline:2px solid #80a7ed; outline-offset:3px; }
+#ws-view .team-overview button:hover:not(:disabled) { color:#215fa9; background:#edf4fc; }
+#ws-view .team-overview button.team-primary:hover:not(:disabled) { color:#fff; background:#2d68af; }
+#ws-view .team-insights { display:grid; grid-template-columns:minmax(0,1fr); gap:12px; }
+#ws-view .team-insight { display:flex; min-width:0; align-items:flex-start; gap:12px; }
+#ws-view .team-insight+.team-insight { padding-top:12px; border-top:1px solid #edf1f6; }
+#ws-view .team-insight-index { color:#9badc2; font-size:11px; font-variant-numeric:tabular-nums; line-height:24px; }
+#ws-view .team-insight-content { flex:1; min-width:0; }
+#ws-view .team-insight h3 { margin:0 0 3px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; color:#294461; font-size:14px; line-height:23px; font-weight:600; }
+#ws-view .team-insight-body { margin:0; font-size:13px; line-height:26px; color:#647790; overflow-wrap:anywhere; }
+#ws-view .team-insight-foot { display:inline; margin-left:10px; font-size:11px; color:#8b9aae; }
+#ws-view .team-insight-foot>span { white-space:nowrap; }
+#ws-view .team-insight-foot>button { margin-left:10px; white-space:nowrap; vertical-align:baseline; }
+#ws-view .team-overview :is(.team-insight-foot,.team-section-heading) button { display:inline-flex; align-items:center; gap:4px; border:0; background:transparent; padding:3px 0; color:#517eaf; font-family:inherit; font-size:11px; line-height:20px; cursor:pointer; }
+#ws-view .team-insight-evidence { margin-top:8px; font-size:11px; color:#71859d; }
+#ws-view .team-insight-evidence blockquote { margin:8px 0; padding:8px 12px; border-left:2px solid #d9e5f4; background:#f7faff; }
+#ws-view .team-insight-evidence a { color:#3975b7; text-decoration:none; font-size:12px; }
+#ws-view .team-insight-evidence p { margin:5px 0 0; font-size:12px; line-height:21px; }
+#ws-view .team-brief-empty { margin:12px 0 18px; font-size:13px; line-height:24px; color:#7e8fa4; max-width:440px; }
+@media(max-width:1100px) {
+  #ws-view .team-brief-column { padding:14px 16px 10px; }
+  #ws-view .team-overview-title { gap:10px; }
+  #ws-view .team-overview-title h1 { font-size:21px; }
+  #ws-view .team-section-heading { align-items:flex-start; flex-wrap:wrap; gap:4px 10px; }
+}
+@media(max-width:800px) {
+  #ws-view .team-overview-head { align-items:flex-start; flex-wrap:wrap; gap:14px; }
+  #ws-view .team-overview-canvas { grid-template-columns:minmax(0,1fr); }
+  #ws-view .team-brief-column { grid-row:auto; }
+}
+@media(max-width:480px) {
+  #ws-view .team-overview-title { width:100%; justify-content:space-between; }
+  #ws-view .team-overview-actions { gap:6px; }
+  #ws-view .team-overview-actions button { padding:6px 9px; font-size:11px; }
+}
+/* Respond to the available canvas width when the Agent rail is open. */
+@container team-overview (max-width:640px) {
+  #ws-view .team-overview-head { flex-wrap:wrap; gap:14px; }
+  #ws-view .team-overview-title { width:100%; justify-content:space-between; }
+  #ws-view .team-overview-canvas { grid-template-columns:minmax(0,1fr); }
+  #ws-view .team-brief-column { grid-column:1; grid-row:auto; }
+  #ws-view .team-section-heading { flex-wrap:wrap; }
+}

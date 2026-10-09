@@ -1,4 +1,5 @@
 "use client";
+import { appUrl } from "@/lib/routes";
 import { RefIcon } from "@/features/reference/symbols";
 import type { Cycle, Order, Workspace, WorkspaceState } from "./model/types";
 import { M } from "./model/store";
@@ -26,7 +27,8 @@ export function TeamTerm({ w }: { w: Workspace }) {
   return (
     <div className="ws-team-term">
       <strong>当前周期截止：{w.nextDate || "待确认"}</strong>
-      <span>全体成员统一到期，中途加入或新增席位不重新起算。</span>
+      <span>本工作区统一到期，中途加入不另起个人套餐；设置、账单、转写和 Credits 与其他工作区独立。</span>
+      <span>本工作区累计转写：{w.transcriptionUsage?.used || 0} 分钟 · Unlimited</span>
       <small>
         {w.status !== "active"
           ? "当前团队权益已暂停"
@@ -65,8 +67,9 @@ export function PersonalBilling({
         w={w}
         actor={actor}
         title="个人订阅"
-        subtitle="个人空间的转写、摘要与 Agent 权益。"
+        subtitle="一个工作区维护一套权益；仍有有效 Team 时个人权益冻结，历史内容保留。"
       />
+      {sub.frozen && <section className="ws-surface" style={{ padding: 24 }} aria-label="个人权益已冻结"><h2>个人权益已冻结</h2><p>已加入 {M.accountTeams(state, actor).length} 个团队。请进入对应工作区，使用管理员付费开通的该工作区权益。</p><p>个人余额与内容保留，有效期暂停计时{sub.plan === "Pro" ? `，剩余 ${sub.remainingDays} 天` : ""}；所有 Team 到期、取消生效或被管理员移除后恢复。切换视图不会解冻或转移额度。</p><div className="ws-actions">{M.accountTeams(state, actor).map(team => <a key={team.id} className="ws-btn" href={appUrl("subscription", "", team.id, actor)}>{team.name} · 查看权益</a>)}</div></section>}
       <section className="ws-surface ps-account">
         <div>
           <span className="ws-mini-avatar">张</span>
@@ -74,11 +77,11 @@ export function PersonalBilling({
             <h2>
               张伟{" "}
               <Badge kind={sub.plan === "Pro" ? "blue" : "amber"}>
-                {sub.plan}
+                {sub.plan}{sub.frozen ? " · 已冻结" : ""}
               </Badge>
             </h2>
             <p>
-              {sub.plan === "Pro"
+              {sub.frozen ? "已冻结 · 原额度保留，不可用于新任务" : sub.plan === "Pro"
                 ? `${sub.renew ? "下次续费" : "权益保留至"}：${date(sub.endsAt)} · ${sub.cycle === "year" ? "连续包年" : "连续包月"}`
                 : "标准版 · 每月 400 分钟"}
             </p>
@@ -91,7 +94,7 @@ export function PersonalBilling({
           </strong>
           <progress max={sub.minutes} value={sub.minutes} />
           <small>
-            {sub.nextRefresh
+            {sub.frozen ? "冻结期间暂停使用及刷新" : sub.nextRefresh
               ? "下次分钟 / Credits 刷新：" + date(sub.nextRefresh)
               : "个人订阅与团队席位分别计费"}
           </small>
@@ -174,10 +177,10 @@ export function PersonalBilling({
           <Button
             action="personal-buy"
             className="primary"
-            disabled={sub.plan === "Pro" && sub.cycle === cycle}
+            disabled={sub.frozen || (sub.plan === "Pro" && sub.cycle === cycle)}
             onClick={() => act("personal-buy")}
           >
-            {sub.plan === "Pro" && sub.cycle === cycle
+            {sub.frozen ? "个人权益已冻结" : sub.plan === "Pro" && sub.cycle === cycle
               ? "当前套餐"
               : sub.plan === "Pro"
                 ? "切换 Pro 套餐"
@@ -319,11 +322,11 @@ export function TeamBilling({
           w={w}
           actor={actor}
           title="团队权益"
-          subtitle="你的权益由团队管理员统一管理。"
+          subtitle="当前工作区的权益由管理员付费开通和管理。"
         />
         <section className="ws-surface ws-perks">
           <h2>Team Unlimited</h2>
-          <p>你拥有独立的 Unlimited 转写权益，团队设备录音自动汇入团队会议。</p>
+          <p>你在本工作区使用工作区的 Unlimited 转写及共享 Credits；不会消耗其他团队或个人额度。内容仍默认私有。</p>
           <Badge kind={w.status === "active" ? "green" : "amber"}>
             {w.status === "active" ? "权益生效中" : "当前只读"}
           </Badge>
@@ -338,7 +341,7 @@ export function TeamBilling({
         w={w}
         actor={actor}
         title="订阅与席位"
-        subtitle="团队统一付款，每位成员独立获得完整的 Unlimited 权益。"
+        subtitle="管理员为本工作区统一付款；成员在此使用同一套工作区权益，其他团队独立维护。"
       />
       <ManagementTabs w={w} actor={actor} active="billing" />
       {order ? (
@@ -350,7 +353,7 @@ export function TeamBilling({
                 : "有一笔待支付的加席订单"}
             </strong>
             <span>
-              增加 {order.added} 席位 · {money(order.amount)} · 当前席位尚未变更
+              增加 {order.added} 席位 · {money(order.amount, order.currency)} · 当前席位尚未变更
             </span>
           </div>
           <div className="ws-actions">
@@ -385,12 +388,12 @@ export function TeamBilling({
             </Badge>
           </div>
           <div className="ws-plan-amount">
-            {money(M.price(w.cycle) * w.seats)}
+            {dollars(M.price(w.cycle) * w.seats)}
             <small>/ {w.cycle === "year" ? "年" : "月"}</small>
           </div>
           <p>
-            {w.seats} 席位 × {money(M.price(w.cycle))} /{" "}
-            {w.cycle === "year" ? "年" : "月"} · 演示价格
+            {w.seats} 席位 × {dollars(M.price(w.cycle))} /{" "}
+            {w.cycle === "year" ? "年" : "月"} · USD 续费价格，税费另计
           </p>
           <div className="ws-plan-divider" />
           <div className="ws-seat-usage">
@@ -515,7 +518,7 @@ export function TeamBilling({
                     <small>{date(i.date)}</small>
                   </td>
                   <td>{i.label}</td>
-                  <td>{money(i.amount)}</td>
+                  <td>{money(i.amount, i.currency)}</td>
                   <td>
                     <Badge kind="green">{i.status}</Badge>
                   </td>
@@ -605,7 +608,7 @@ export function CreditsBilling({
         w={w}
         actor={actor}
         title="团队 Credits"
-        subtitle="所有成员共用一个 Credits 池。Agent 按输入与输出 token 用量扣减，独立于席位的转写权益。"
+        subtitle="所有成员共用一个 Credits 池。Agent 按输入与输出 token 用量扣减，与本工作区转写权益共同维护，不跨工作区扣减。"
       />
       <ManagementTabs w={w} actor={actor} active="credits" />
       {pending ? (
@@ -669,7 +672,7 @@ export function CreditsBilling({
                 c.logs.map((l) => (
                   <tr key={l.id}>
                     <td>
-                      {l.task}
+                      {l.user === actor ? l.task : "成员 Agent 用量（内容私有）"}
                       <small>
                         {l.inputTokens != null
                           ? "Token 用量模拟"

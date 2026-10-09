@@ -1,3 +1,4 @@
+import M from "../../src/features/spaces/model/core";
 import { expect, test, type Page } from "@playwright/test";
 test.use({
   baseURL: process.env.NATIVE_BASE_URL || "http://127.0.0.1:3100",
@@ -57,6 +58,8 @@ async function confirm(p: Page, name: string) {
 test("native billing: personal purchase failure/resume/success, renew, restore, switching and cancellation", async ({
   page,
 }) => {
+  const initial = M.seed(); initial.spaces = initial.spaces.filter(w => w.type === "personal"); M.reconcileEntitlements(initial);
+  await page.addInitScript(s => { if (!localStorage.getItem("eureka:workspaces:v2")) localStorage.setItem("eureka:workspaces:v2", JSON.stringify(s)); }, initial);
   await go(page, "subscription", "personal");
   await expect(page.locator(".ps-account")).toContainText("400");
   await expect(page.locator(".ps-plan-option")).toHaveCount(2);
@@ -105,10 +108,10 @@ test("native billing: seats preview, failed payment, resume, idempotent fulfillm
   await go(page);
   await action(page, "add-seats").click();
   await expect(dialog(page).locator('[name="seats"]')).toHaveValue("7");
-  await expect(page.locator("#ws-seat-estimate")).toContainText("¥1,908.00");
+  await expect(page.locator("#ws-seat-estimate")).toContainText("$300.00");
   await action(page, "close-dialog").click();
   await seats(page, "8");
-  await expect(page.locator(".ws-seat-total")).toContainText("¥3,816.00");
+  await expect(page.locator(".ws-seat-total")).toContainText("$600.00");
   expect((await state(page)).seats).toBe(6);
   await action(page, "seat-pay-fail").click();
   await expect(page.locator(".ws-seat-payment-error")).toContainText(
@@ -151,7 +154,7 @@ test("native billing: reduction, cycle reversal, billing form, expiry and renewa
   await confirm(page, "advance-cycle");
   expect((await state(page)).cycle).toBe("month");
   await seats(page, "8");
-  await expect(page.locator(".ws-seat-total")).toContainText("¥398.00");
+  await expect(page.locator(".ws-seat-total")).toContainText("$70.00");
   await action(page, "seat-cancel").click();
   await action(page, "billing-info").click();
   await dialog(page).locator('[name="company"]').fill("原生账单测试公司");
@@ -265,6 +268,7 @@ test("native billing: credits and personal payment storage failure do not grant 
     ["credits", "team-eureka", "topup"],
     ["subscription", "personal", "personal-buy"],
   ]) {
+    if (space === "personal") { await page.reload(); await patch(page, "s.spaces.forEach(w=>{if(w.type==='team')w.status='expired'})"); }
     await go(page, view, space);
     await action(page, buy).click();
     if (view === "credits") await submit(page).click();
@@ -290,6 +294,10 @@ test("native team home: original table columns, sorting, filters, calendar, pagi
   page,
 }) => {
   await page.clock.setFixedTime(new Date("2026-10-07T04:00:00Z"));
+  const seed = M.seed(new Date("2026-10-07T04:00:00Z"));
+  const team = M.get(seed, "team-eureka");
+  M.addFile(team, { title: "分页测试会议一" }); M.addFile(team, { title: "分页测试会议二" });
+  await page.addInitScript(s => { if (!localStorage.getItem("eureka:workspaces:v2")) localStorage.setItem("eureka:workspaces:v2", JSON.stringify(s)); }, seed);
   await go(page, "home");
   await expect(page.locator(".ws-team-brief")).toBeVisible();
   await expect(page.locator(".ws-recording-table th")).toHaveCount(10);
@@ -340,7 +348,7 @@ test("native team home: insight Agent sources, message persistence, width, web a
   page,
 }) => {
   await go(page, "home");
-  await action(page, "meeting-prompt").click();
+  await page.getByRole("button", { name: /^问问 Agent：/ }).first().click();
   await expect(page.locator(".ws-agent-insight-context")).toBeVisible();
   const prompt = page.locator(".ws-composer textarea");
   await expect(prompt).not.toHaveValue("");
@@ -375,19 +383,19 @@ test("native team home: insight Agent sources, message persistence, width, web a
     "s.spaces.find(w=>w.id==='team-eureka').credits.used=50000",
   );
   await page.reload();
-  await action(page, "agent").click();
+  await page.getByRole("button", { name: "Ask Agent", exact: true }).click();
   await prompt.fill("整理行动项");
   await prompt.press("Enter");
   await expect(page.locator(".ws-composer .ws-form-error")).not.toBeEmpty();
 });
 
-test("native team home: upload failure validation, shared pending recording and recording naming entry", async ({
+test("native team home: upload failure validation, private pending recording and shared recording permission flow", async ({
   page,
 }) => {
   await go(page, "home");
-  await page.locator("[data-audio-upload]").click();
+  await page.getByRole("button", { name: "上传", exact: true }).click();
   await expect(page.locator("#audio-upload-dialog")).toContainText(
-    "团队成员可查看",
+    "遵循本人内容权限",
   );
   await page
     .locator("#audio-upload-input")
@@ -411,19 +419,16 @@ test("native team home: upload failure validation, shared pending recording and 
   const f = (await state(page)).files.find(
     (f: { title: string }) => f.title === "native-upload",
   );
-  expect(f.visibility).toBe("team");
+  expect(f.owner).toBe("zhang");
+  expect(f.shared).toEqual([]);
   expect(f.status).toBe("待处理");
   expect(f.size).toBe("10 B");
   await go(page, "home", "team-eureka", "kevin");
-  await expect(page.locator(".ws-recording-table")).toContainText(
-    "native-upload",
-  );
-  await action(page, "record").click();
-  await expect(dialog(page)).toContainText("仅自己可见");
-  await dialog(page).locator('[name="title"]').fill("保留输入的会议名");
-  await submit(page).click();
-  await expect(page).toHaveURL(/title=/);
-  await expect(page.locator("#recording-name")).toHaveText("保留输入的会议名");
+  await expect(page.locator(".ws-recording-table")).not.toContainText("native-upload");
+  await page.getByRole("button", { name: "开始录音", exact: true }).last().click();
+  await expect(page.locator("#record-permission-modal")).toBeVisible();
+  await page.locator("#permission-authorize").click();
+  await expect(page.locator("#recording-layout")).toBeVisible();
 });
 
 test("native billing/team home: member privacy, empty states, seat ceiling and closure record", async ({
@@ -442,7 +447,7 @@ test("native billing/team home: member privacy, empty states, seat ceiling and c
     "const w=s.spaces.find(w=>w.id==='team-eureka');w.files=[];w.credits.logs=[];w.creditOrders=[];w.seats=50",
   );
   await go(page, "home");
-  await expect(page.locator(".ws-insight-empty")).toBeVisible();
+  await expect(page.locator(".team-brief-empty")).toBeVisible();
   await expect(page.locator(".ws-empty")).toContainText("没有符合条件的会议");
   await go(page, "credits");
   await expect(page.locator(".ws-credit-usage")).toContainText("暂无使用记录");

@@ -12,8 +12,8 @@ import { RefIcon } from "@/features/reference/symbols";
 import { appUrl, type AppView } from "@/lib/routes";
 import { M } from "./model/store";
 import type { Workspace } from "./model/types";
-export const money = (n: number) =>
-  "¥" +
+export const money = (n: number, currency = "CNY") =>
+  (currency === "USD" ? "$" : "¥") +
   Number(n).toLocaleString("zh-CN", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -94,13 +94,14 @@ export function ManagementTabs({
   active: string;
 }) {
   const tabs: [string, string, AppView][] = [
+    ["permissions", "内容权限", "content-permissions"],
     ["billing", "订阅与席位", "subscription"],
     ["credits", "Credits", "credits"],
-    ["settings", "空间设置", "space-settings"],
+    ["settings", "基本设置", "space-settings"],
     ["audit", "活动记录", "audit"],
   ];
   return (
-    <nav className="ws-tabs" aria-label="空间管理">
+    <nav className="ws-tabs" aria-label="空间设置">
       {tabs.map(([key, label, view]) => (
         <WsButton
           key={key}
@@ -152,7 +153,7 @@ export function WsRoot({
     >
       {w.type === "team" && w.status !== "active" ? (
         <div className="ws-readonly">
-          当前空间已到期，文件可继续查看与导出。
+          团队工作区只读：现有内容仍可检索查看，暂停手动创建、编辑、上传和 AI。设备新录音仍同步为原始音频，绑定状态不变。
           {M.admin(w, actor) ? (
             <WsButton
               className="link"

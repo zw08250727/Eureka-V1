@@ -1,4 +1,6 @@
 "use client";
+import { M, createWorkspaceStore } from "@/features/spaces/model/store";
+import { CREATION_DEMO_KEY } from "@/features/spaces/creation-demo";
 import { useRef } from "react";
 import { agentRoute, SCENES } from "./registry";
 export type AgentScene = keyof typeof SCENES;
@@ -38,17 +40,30 @@ export function appendSession(storage: Storage, context: Omit<AgentSession, "tit
 }
 // All scene UIs use this one session service. Adapters retain scene-specific local data and confirmation flows.
 export function useSceneAgent(scene: AgentScene, sourceId = "", resumeId?: string, initial?: { title: string; messages: AgentSession["messages"] }) {
+  const query = new URLSearchParams(typeof location === "undefined" ? "" : location.search);
+  const space = query.get("space") || "personal", actor = query.get("actor") || "zhang";
+  const storageKey = query.get("demo") === "create-team" ? CREATION_DEMO_KEY : M.KEY;
+  function ensureAvailable() {
+    const w = M.get(createWorkspaceStore(localStorage, () => new Date(), { key: storageKey }).read(), space);
+    M.assertEntitlement(w, actor);
+    if (w.type === "team" && scene === "meeting" && sourceId) M.getFile(w, sourceId, actor);
+  }
   const current = useRef({ id: resumeId || "", sourceId, scene });
   function reset() { current.current = { id: "", sourceId, scene }; }
   function record(prompt: string, answer: string) {
     if (current.current.sourceId !== sourceId || current.current.scene !== scene) reset();
     if (!current.current.id) current.current.id = crypto.randomUUID();
-    const query = new URLSearchParams(location.search);
+    ensureAvailable();
+    createWorkspaceStore(localStorage, () => new Date(), { key: storageKey }).change(s => {
+      const w = M.get(s, space);
+      const usage = M.simulatedTokenUsage(prompt, answer);
+      M.settleCredits(w, crypto.randomUUID(), prompt, usage, actor);
+    });
     const route = agentRoute(scene);
     try {
       appendSession(localStorage, {
         ...route, id: current.current.id, scene, sourceId,
-        space: query.get("space") || "personal", actor: query.get("actor") || "zhang",
+        space, actor,
       }, prompt, answer, current.current.id === resumeId ? initial : undefined);
       window.dispatchEvent(new Event("eureka:agent-history"));
     } catch (error) {
@@ -57,7 +72,8 @@ export function useSceneAgent(scene: AgentScene, sourceId = "", resumeId?: strin
     return answer;
   }
   function run(prompt: string, adapter: (route: ReturnType<typeof agentRoute>) => string) {
-    return record(prompt, adapter(agentRoute(scene)));
+    try { ensureAvailable(); return record(prompt, adapter(agentRoute(scene))); }
+    catch (error) { const message = (error as Error).message; window.dispatchEvent(new CustomEvent("eureka:notice", { detail: message })); return message; }
   }
-  return { record, run, reset };
+  return { record, run, reset, ensureAvailable };
 }

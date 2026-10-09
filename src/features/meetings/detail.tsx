@@ -76,7 +76,7 @@ export function MeetingPage({
       team && w
         ? M.visible(w, actor).find((f) => f.id === selected)
         : undefined,
-    readonly = !!team && (file?.owner !== actor || w?.status !== "active");
+    readonly = !!team && (!w || !M.canEdit(w, file, actor));
   const [previousId, setPreviousId] = useState(id);
   if (previousId !== id) {
     setPreviousId(id);
@@ -202,7 +202,7 @@ export function MeetingPage({
   );
   function save(patch: Partial<MeetingDetail>) {
     if (!record) throw Error("会议尚未加载");
-    if (readonly) throw Error("此录音为只读，仅所有者可在有效订阅内修改");
+    if (readonly) throw Error("此录音为只读，请向所有者申请编辑权限，并确认工作区订阅有效");
     const next = {
       ...record,
       ...patch,
@@ -316,7 +316,7 @@ export function MeetingPage({
     source: string;
     visibility?: string;
   }) =>
-    `${m.created.replace("T", " ").slice(0, 16)} · ${typeof m.duration === "number" ? `${m.duration} 分钟` : m.duration} · ${m.source}${m.visibility === "team" ? " · 团队可见" : ""}`;
+    `${m.created.replace("T", " ").slice(0, 16)} · ${typeof m.duration === "number" ? `${m.duration} 分钟` : m.duration} · ${m.source}${m.visibility === "invited" ? " · 已邀请成员查看" : team ? " · 仅自己可见" : ""}`;
   const r = record;
   return (
     <section
@@ -340,6 +340,8 @@ export function MeetingPage({
         <p role={error ? "alert" : "status"}>{error || "正在读取会议…"}</p>
       ) : (
         <>
+          {team && w?.status !== "active" && <p className="ws-readonly">团队工作区只读，可检索现有录音、转录和笔记；编辑与 AI 功能暂停。设备绑定和同步不受影响。</p>}
+          {file?.rawAudio && <p className="ws-info">{file.processingPaused ? "原始音频已同步保存。工作区订阅暂停，尚未转录或生成摘要，恢复后进入处理队列。" : "原始音频已保留，工作区已恢复，等待转录处理。"}</p>}
           <div className="md-page-head">
             <div>
               <h1>语音笔记</h1>
@@ -484,19 +486,19 @@ export function MeetingPage({
                     <B action="export" onClick={() => action("export")}>
                       <I name="download" /> 导出
                     </B>
-                    {!(team && w && file && M.teamRecording(w, file)) ? (
+                    {(
                       <B
                         action="share"
-                        disabled={readonly}
+                        disabled={readonly || (!!team && file?.owner !== actor)}
                         onClick={() => action("share")}
                       >
                         <I name="share" /> 分享
                       </B>
-                    ) : null}
+                    )}
                     <B
                       action="delete"
                       className="md-btn md-delete-btn"
-                      disabled={readonly}
+                      disabled={readonly || (!!team && file?.owner !== actor)}
                       onClick={() => action("delete")}
                     >
                       <I name="trash" /> 删除
@@ -869,9 +871,9 @@ export function MeetingPage({
               seek={seek}
               workspace={team ? w : undefined}
               actor={actor}
-              onShare={(users) =>
+              onShare={(users, editors) =>
                 spaces.change((s) =>
-                  M.share(M.get(s, space), selected, users, actor),
+                  M.share(M.get(s, space), selected, users, actor, editors),
                 )
               }
               copyText={currentText(r, tab)}

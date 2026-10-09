@@ -10,7 +10,7 @@ import type {
   ActionState,
   ThoughtRecord,
 } from "@/features/workbench/model/types";
-export function usePersonal() {
+export function usePersonal(accountId = "zhang", workspaceId = "personal") {
   const repo = useRef<{
     actions: ReturnType<typeof createActions>;
     thoughts: ReturnType<typeof createThoughts>;
@@ -27,18 +27,18 @@ export function usePersonal() {
     if (r)
       setData({
         actions: r.actions.read(),
-        thoughts: r.thoughts.read().records,
-        contacts: r.contacts.read().personal,
+        thoughts: workspaceId === "personal" ? r.thoughts.read().records : [],
+        contacts: r.contacts.readVisible().personal,
       });
-  }, []);
+  }, [workspaceId]);
   useEffect(() => {
     let active = true;
     Promise.resolve().then(() => {
       try {
         repo.current = {
-          actions: createActions(localStorage),
+          actions: createActions(localStorage, () => new Date(), accountId, workspaceId),
           thoughts: createThoughts(localStorage),
-          contacts: createContacts(localStorage),
+          contacts: createContacts(localStorage, accountId, workspaceId),
         };
         if (active) refresh();
       } catch (e) {
@@ -46,22 +46,26 @@ export function usePersonal() {
       }
     });
     const external = (event: StorageEvent) => {
-      if (event.key !== null && event.key !== "baizhi-v14-contacts") return;
+      if (event.key !== null && !["baizhi-v14-contacts", "eureka:workspaces:v2"].includes(event.key)) return;
       if (!repo.current) return;
       try {
-        repo.current.contacts = createContacts(localStorage);
+        repo.current.contacts = createContacts(localStorage, accountId, workspaceId);
         refresh();
         setError("");
       } catch (error) {
+        setData(null);
         setError((error as Error).message);
       }
     };
+    const local = () => external({ key: null } as StorageEvent);
+    window.addEventListener("eureka:data", local);
     window.addEventListener("storage", external);
     return () => {
       active = false;
       window.removeEventListener("storage", external);
+      window.removeEventListener("eureka:data", local);
     };
-  }, [refresh]);
+  }, [refresh, accountId, workspaceId]);
   return { data, error, repo, refresh };
 }
 export type PersonalController = ReturnType<typeof usePersonal>;

@@ -147,71 +147,15 @@ test("native members: invalid/full invites and failed storage preserve form and 
   expect(await read(page)).toEqual(before);
 });
 
-test("native devices: register textual serial, duplicate rejection, metadata, sync and unbind", async ({
-  page,
-}) => {
-  await seed(page);
+test("team devices are admin metadata only, including expired workspaces", async ({ page }) => {
+  await seed(page, s => { M.get(s, "team-eureka").status = "expired"; });
   await open(page, "devices");
-  await action(page, "register-device").click();
-  await dialog(page).locator("[name=serial]").fill("0000474204126010000027");
-  await dialog(page).locator("[name=model]").fill("W2");
-  await dialog(page).getByRole("button", { name: "保存并绑定" }).click();
-  const row = page
-    .locator(".ws-table tbody tr")
-    .filter({ hasText: "0000474204126010000027" });
-  await expect(row).toBeVisible();
-  await row.getByRole("button", { name: "详情" }).click();
-  await expect(dialog(page).locator(".ws-device-detail")).toContainText(
-    "0000474204126010000027",
-  );
+  await expect(page.getByRole("button", { name: /解绑|绑定已有|模拟同步|录入/ })).toHaveCount(0);
+  await page.getByRole("button", { name: "查看信息", exact: true }).first().click();
+  await expect(dialog(page)).toContainText("序列号");
   await page.keyboard.press("Escape");
-  await action(page, "register-device").click();
-  await dialog(page).locator("[name=serial]").fill("0000474204126010000027");
-  await dialog(page).locator("[name=model]").fill("W2");
-  await dialog(page).getByRole("button", { name: "保存并绑定" }).click();
-  await expect(dialog(page).locator(".ws-form-error")).not.toBeEmpty();
-  await page.keyboard.press("Escape");
-  const before = M.get(await read(page), "team-eureka").files.length;
-  await row.getByRole("button", { name: "模拟同步" }).click();
-  await expect(page.locator("#ws-toast")).toContainText("团队成员可直接查看");
-  expect(M.get(await read(page), "team-eureka").files).toHaveLength(before + 1);
-  await row.getByRole("button", { name: "解绑" }).click();
-  await dialog(page).getByRole("button", { name: "确认", exact: true }).click();
-  await expect(row).toHaveCount(0);
-  expect(M.get(await read(page), "team-eureka").files).toHaveLength(before + 1);
-});
-
-test("native devices: member-only registration, empty state, expired denial, App guide", async ({
-  page,
-}) => {
-  await seed(page, (s) => {
-    s.devices = s.devices.filter((d) => d.spaceId !== "team-eureka");
-  });
   await open(page, "devices", "kevin");
-  await expect(page.locator(".ws-empty h3")).toHaveText("当前空间尚未绑定设备");
-  await action(page, "register-device").click();
-  await expect(dialog(page).locator("[name=user] option")).toHaveCount(1);
-  await page.keyboard.press("Escape");
-  await action(page, "bind").click();
-  await expect(dialog(page).locator(".ws-device-guide-card")).toHaveCount(2);
-  await expect(dialog(page).locator(".ws-device-guide-qr img")).toHaveAttribute(
-    "src",
-    /eurekamind-download-qr.png/,
-  );
-  await expect(
-    dialog(page).getByRole("link", { name: "购买设备" }),
-  ).toHaveAttribute("href", "https://eurekamind.ai/shop");
-  await page.keyboard.press("Escape");
-  await page.evaluate(() => {
-    const s = JSON.parse(localStorage.getItem("eureka:workspaces:v2")!);
-    s.spaces.find((w: { id: string }) => w.id === "team-eureka").status =
-      "expired";
-    localStorage.setItem("eureka:workspaces:v2", JSON.stringify(s));
-  });
-  await page.reload();
-  await action(page, "register-device").click();
-  await expect(page.locator("#ws-toast")).toBeVisible();
-  await expect(dialog(page)).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "仅管理员可查看设备信息" })).toBeVisible();
 });
 
 test("native settings: immutable region, rename persistence, conflict and audit privacy", async ({
@@ -253,7 +197,7 @@ test("native create team: plans, draft recovery, failure, retry, success invite 
   await open(page, "create-team", "zhang", "personal");
   await expect(dialog(page)).toHaveClass(/ws-dialog-wide/);
   await dialog(page).getByRole("button", { name: "月付", exact: true }).click();
-  await expect(dialog(page).locator(".ws-price")).toContainText("199.00");
+  await expect(dialog(page).locator(".ws-price")).toContainText("28.00");
   await dialog(page)
     .getByRole("button", { name: "创建团队", exact: true })
     .click();
@@ -300,8 +244,8 @@ for (const width of [1920, 1440, 1024, 390])
     const invite = await dialog(page).boundingBox();
     expect(invite!.width).toBeLessThanOrEqual(width);
     await page.keyboard.press("Escape");
-    await open(page, "devices");
-    await action(page, "bind").click();
+    await open(page, "devices", "zhang", "personal");
+    await page.getByRole("button", { name: "绑定已有设备" }).click();
     expect((await dialog(page).boundingBox())!.width).toBeLessThanOrEqual(
       width,
     );
@@ -344,58 +288,24 @@ test("native sole-admin demotion is rejected; pending revoke releases capacity",
   expect(M.usedSeats(M.get(await read(page), "team-eureka"))).toBe(before - 1);
 });
 
-test("native device registration: failed write and concurrent write retain exact inputs", async ({
-  page,
-}) => {
-  await seed(page);
-  await open(page, "devices");
-  await action(page, "register-device").click();
-  await dialog(page).locator("[name=serial]").fill("00009999999999999999");
-  await dialog(page).locator("[name=model]").fill("W2");
-  await failStorage(page);
-  await dialog(page).getByRole("button", { name: "保存并绑定" }).click();
-  await expect(dialog(page).locator(".ws-form-error")).toContainText(
-    "保存失败",
-  );
-  await expect(dialog(page).locator("[name=serial]")).toHaveValue(
-    "00009999999999999999",
-  );
-  await page.reload();
-  await action(page, "register-device").click();
-  await dialog(page).locator("[name=serial]").fill("00009999999999999999");
-  await dialog(page).locator("[name=model]").fill("W2");
-  await page.evaluate(() => {
-    const s = JSON.parse(localStorage.getItem("eureka:workspaces:v2")!);
-    s.account.name = "并发修改";
-    localStorage.setItem("eureka:workspaces:v2", JSON.stringify(s));
-  });
-  await dialog(page).getByRole("button", { name: "保存并绑定" }).click();
-  await expect(dialog(page).locator(".ws-form-error")).toContainText(
-    "其他页面",
-  );
-  await expect(dialog(page).locator("[name=serial]")).toHaveValue(
-    "00009999999999999999",
-  );
-});
-
-test("native personal devices: empty App guide, own detail, and no team registration section", async ({
-  page,
-}) => {
+test("personal devices: binding guide, own metadata, failed unbind rollback and successful unbind", async ({ page }) => {
   await seed(page);
   await open(page, "devices", "zhang", "personal");
-  await expect(
-    page.locator("#ws-view [data-ws-action=register-device]"),
-  ).toHaveCount(0);
-  await action(page, "device-detail").click();
-  await expect(dialog(page).locator(".ws-device-detail")).toContainText(
-    "个人工作空间",
-  );
+  await page.getByRole("button", { name: "绑定已有设备" }).click();
+  await expect(dialog(page).locator(".ws-device-guide-card")).toHaveCount(2);
   await page.keyboard.press("Escape");
-  await action(page, "unbind").click();
-  await dialog(page).getByRole("button", { name: "确认", exact: true }).click();
-  await expect(page.locator(".ws-empty")).toContainText(
-    "在手机 App 完成设备绑定",
-  );
+  await page.getByRole("button", { name: "查看信息", exact: true }).click();
+  await expect(dialog(page)).toContainText("绑定成员");
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "解绑", exact: true }).click();
+  await failStorage(page);
+  await page.getByRole("button", { name: "确认解绑", exact: true }).click();
+  await expect(dialog(page).getByRole("alert")).toContainText("保存失败");
+  expect((await read(page)).devices.find(d => d.id === "dev-personal")?.bound).toBe(true);
+  await page.reload();
+  await page.getByRole("button", { name: "解绑", exact: true }).click();
+  await page.getByRole("button", { name: "确认解绑", exact: true }).click();
+  await expect(page.locator("tbody")).toContainText("未绑定工作区");
 });
 
 test("native settings: expired write denied, nonadmin denial, and empty audit", async ({
@@ -477,7 +387,7 @@ test("native incoming invitations: decline to empty and accept into isolated tea
 test("native personal history: exact replies, continuation, sources, new task and resize", async ({
   page,
 }) => {
-  await seed(page);
+  await seed(page, s => { s.spaces = s.spaces.filter(w => w.type === "personal"); M.reconcileEntitlements(s); });
   await page.goto(route("history", "zhang", "personal", "本周会议决策整理"));
   await expect(page.locator("#agent-history-title")).toHaveText(
     "本周会议决策整理",

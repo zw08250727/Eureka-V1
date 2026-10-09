@@ -36,8 +36,8 @@ export function MeetingInfoDialog({
         if (team && w) {
           const f = M.visible(w, actor).find((f) => f.id === id);
           if (!f) throw Error("会议不存在或没有访问权限");
-          if (f.owner !== actor || w.status !== "active")
-            throw Error("此录音为只读，仅所有者可在有效订阅内修改");
+          if (!M.canEdit(w, f, actor))
+            throw Error("此录音为只读，请确认编辑授权与工作区订阅");
           r = {
             id: f.id,
             title: f.title,

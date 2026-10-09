@@ -1,4 +1,5 @@
 "use client";
+import { ContentSharingSettings } from "./sharing-settings";
 import { useState } from "react";
 import { M } from "./model/store";
 import type { SpacesController } from "./use-spaces";
@@ -18,16 +19,18 @@ export function SpaceSettingsPage({
   space,
   actor,
   audit = false,
+  permissions = false,
 }: {
   controller: SpacesController;
   space: string;
   actor: string;
   audit?: boolean;
+  permissions?: boolean;
 }) {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const w = M.get(controller.state!, space);
-  if (!M.admin(w, actor))
+  if (!permissions && !M.admin(w, actor))
     return (
       <ManagementRoot w={w} actor={actor}>
         <ManagementEmpty
@@ -45,7 +48,7 @@ export function SpaceSettingsPage({
         </ManagementEmpty>
       </ManagementRoot>
     );
-  const rows = w.audit.filter((l) => !l.action.match(/文件|私有/));
+  const rows = w.audit.filter((l) => !l.action.match(/文件|私有/)).map(l => ({ ...l, action: l.action.startsWith("上传团队录音：") ? "上传录音" : l.action }));
   return (
     <ManagementRoot w={w} actor={actor}>
       <ManagementHeading
@@ -61,9 +64,10 @@ export function SpaceSettingsPage({
       <ManagementTabs
         space={space}
         actor={actor}
-        selected={audit ? "audit" : "settings"}
+        selected={permissions ? "permissions" : audit ? "audit" : "settings"}
+        admin={M.admin(w, actor)}
       />
-      {audit ? (
+      {permissions ? <ContentSharingSettings key={`${space}:${actor}`} controller={controller} space={space} actor={actor} /> : audit ? (
         <section className="ws-surface">
           <div className="ws-list">
             {rows.map((l, i) => (
@@ -127,7 +131,7 @@ export function SpaceSettingsPage({
             <p className="ws-muted">地区在创建时确定，后续保持不变。</p>
             <div className="ws-info">
               <Icon name="users" />{" "}
-              团队设备录音自动进入团队会议，当前空间成员可查看；个人空间的数据保持隔离。
+              内容默认私有。每位成员在「内容权限」中设置本人新增内容的接收成员；管理员身份不附带内容访问权。
             </div>
             <p className="ws-form-error" role="alert">
               {error}

@@ -27,14 +27,14 @@ export function localDate(value: string) {
   }
   return value.replace("T", " ").slice(0, 16);
 }
-export function useLivePersonal() {
-  const controller = usePersonal();
+export function useLivePersonal(accountId = "zhang", workspaceId = "personal") {
+  const controller = usePersonal(accountId, workspaceId);
   const { repo, refresh } = controller;
   useEffect(() => {
     const reload = () => {
       if (!repo.current) return;
       try {
-        repo.current.actions = createActions(localStorage);
+        repo.current.actions = createActions(localStorage, () => new Date(), accountId, workspaceId);
         repo.current.thoughts = createThoughts(localStorage);
         refresh();
       } catch {
@@ -47,7 +47,7 @@ export function useLivePersonal() {
       window.removeEventListener("storage", reload);
       window.removeEventListener("eureka:data", reload);
     };
-  }, [repo, refresh]);
+  }, [repo, refresh, accountId, workspaceId]);
   return controller;
 }
 export function RefDialog({
@@ -345,7 +345,7 @@ export function ActionEditor({
       }
     };
     const changed = (e: StorageEvent) => {
-      if (e.key === "eureka:personal-actions:v1")
+      if (e.key === "eureka:personal-actions:v1" || e.key?.startsWith("eureka:actions:"))
         setError("另一页面已更新，请保留输入后重新打开记录");
     };
     const nav = (e: MouseEvent) => {
