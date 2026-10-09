@@ -336,12 +336,12 @@ export function ReferenceShell({
                     href="https://wisenote-open-api.vercel.app/#_2"
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label="开放接口"
-                    title="开放接口 · 在新标签页打开 API 文档"
+                    aria-label="开放API调用"
+                    title="开放API调用 · 在新标签页打开 API 文档"
                     style={{ textDecoration: "none" }}
                   >
                     <RefIcon name="link" className="ws-icon" />
-                    开放接口
+                    开放API调用
                   </a>
                 </>
               ) : null}
