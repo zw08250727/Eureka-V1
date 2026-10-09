@@ -26,9 +26,8 @@ function addMonths(iso, n) {
 function current(w, now = new Date().toISOString()) {
   owner(w);
   const s = w.personalSubscription;
-  const freeze = w.entitlementFreeze;
-  const effectiveNow = freeze?.since || now;
-  const status = { frozen: !!freeze, frozenSince: freeze?.since, remainingDays: s?.endsAt ? Math.max(0, Math.ceil((Date.parse(s.endsAt) - Date.parse(effectiveNow)) / 86400000)) : 0 };
+  const effectiveNow = now;
+  const status = { remainingDays: s?.endsAt ? Math.max(0, Math.ceil((Date.parse(s.endsAt) - Date.parse(effectiveNow)) / 86400000)) : 0 };
   if (!s || s.endsAt <= effectiveNow)
     return {
       ...status,
@@ -46,7 +45,6 @@ function current(w, now = new Date().toISOString()) {
 const snapshot = (w) => JSON.stringify(w.personalSubscription || null);
 function create(w, cycle) {
   owner(w);
-  if (w.entitlementFreeze) fail("个人权益已冻结，请在团队工作区由管理员管理权益");
   const p = plans[cycle] || fail("请选择有效的套餐");
   const s = current(w);
   if (s.plan === "Pro" && s.cycle === cycle)
@@ -99,7 +97,6 @@ function pay(
   const o = get(w, orderId);
   if (!["success", "failure"].includes(result)) fail("支付结果无效");
   if (o.status === "paid") return o;
-  if (w.entitlementFreeze) fail("个人权益已冻结，暂不能支付个人订阅");
   if (!["pending", "failed"].includes(o.status)) fail("订单已取消");
   if (o.snapshot !== snapshot(w)) fail("订阅已变化，请重新确认订单");
   const p = plans[o.cycle];
@@ -143,7 +140,6 @@ function renew(w, value) {
 }
 function restore(w, now = new Date().toISOString()) {
   owner(w);
-  if (w.entitlementFreeze) fail("个人权益已冻结，保留原权益，暂不恢复购买");
   const o = (w.personalOrders || []).find(
     (o) => o.status === "paid" && o.subscription?.endsAt > now,
   );

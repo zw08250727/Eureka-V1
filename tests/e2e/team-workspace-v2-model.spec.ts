@@ -69,17 +69,17 @@ test("expired and cancelled teams accept only bound-device raw audio without AI 
   }
 });
 
-test("personal benefits resume only when all memberships lose active entitlements", () => {
+test("personal benefits remain independent of team expiration and renewal", () => {
   const s = M.seed(), a = M.get(s, "team-eureka"), b = M.acceptInvite(s, "invite-growth"), p = M.get(s, "personal");
   const balance = structuredClone(p.credits);
   a.status = "expired"; M.reconcileEntitlements(s);
-  expect(p.entitlementFreeze?.teamIds).toEqual([b.id]);
+  expect(p.entitlementFreeze).toBeUndefined();
   b.status = "cancelled"; M.reconcileEntitlements(s);
   expect(p.entitlementFreeze).toBeUndefined();
   expect(p.credits).toEqual(balance);
   expect(M.accountTeams(s)).toHaveLength(2);
   b.status = "active"; M.reconcileEntitlements(s);
-  expect(p.entitlementFreeze?.teamIds).toEqual([b.id]);
+  expect(p.entitlementFreeze).toBeUndefined();
 });
 
 test("team device metadata is admin-only; member removal does not revive future sharing", () => {
@@ -100,7 +100,7 @@ test("failed persistence does not partially change content sharing", () => {
   expect(repo.read()).toEqual(before);
 });
 
-test("renewing a previously expired team freezes from renewal, not the original join date", () => {
+test("renewing a team does not pause or extend personal subscriptions again", () => {
   const s = M.seed(), w = M.get(s, "team-eureka"), p = M.get(s, "personal");
   p.entitlementFreeze = { since: "2026-10-01T00:00:00.000Z", teamIds: [w.id] };
   p.personalSubscription = { plan: "Pro", cycle: "month", endsAt: "2026-11-01T00:00:00.000Z", nextRefresh: "2026-11-01T00:00:00.000Z", minutes: 99999, credits: 5000, renew: true };
@@ -109,8 +109,8 @@ test("renewing a previously expired team freezes from renewal, not the original 
   expect(p.personalSubscription.endsAt).toBe("2026-11-05T00:00:00.000Z");
   w.status = "active";
   M.reconcileEntitlements(s, new Date("2026-10-10T00:00:00Z"));
-  expect(p.entitlementFreeze?.since).toBe("2026-10-10T00:00:00.000Z");
+  expect(p.entitlementFreeze).toBeUndefined();
   w.status = "cancelled";
   M.reconcileEntitlements(s, new Date("2026-10-12T00:00:00Z"));
-  expect(p.personalSubscription.endsAt).toBe("2026-11-07T00:00:00.000Z");
+  expect(p.personalSubscription.endsAt).toBe("2026-11-05T00:00:00.000Z");
 });

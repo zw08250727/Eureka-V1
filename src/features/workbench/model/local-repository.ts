@@ -192,7 +192,6 @@ export function createLocalRepository(
         String(personal.personalSubscription.endsAt) > now().toISOString()
       )
         personalPlan = "Pro";
-      if (object(personal) && personal.entitlementFreeze) personalPlan += " · 已冻结";
       if (object(personal) && Array.isArray(personal.files)) {
         for (const f of personal.files) {
           if (!object(f) || f.deleted) continue;

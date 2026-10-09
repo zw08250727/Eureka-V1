@@ -405,17 +405,10 @@ function assertCanJoinTeam(s, uid = s.account.id) {
 function reconcileEntitlements(s, now = new Date()) {
   const owners = new Set([s.account.id, ...Object.keys(s.accountSpaces || {}), ...s.spaces.filter(w => w.type === "personal").flatMap(w => w.members.map(m => m.id))]);
   for (const uid of owners) {
-    const personal = accountSpace(s, uid), teams = accountTeams(s, uid).filter(w => w.status === "active");
-    const frozen = personal.entitlementFreeze;
-    if (teams.length) {
-      if (!frozen) {
-        const joined = teams.map(w => Date.parse(member(w, uid).joined)).filter(Number.isFinite);
-        const firstJoin = joined.length ? Math.min(now.getTime(), ...joined) : now.getTime();
-        const since = personal.entitlementResumedAt ? now.toISOString() : new Date(Math.min(now.getTime(), Math.max(firstJoin, Date.parse(personal.personalSubscription?.startsAt) || 0))).toISOString();
-        personal.entitlementFreeze = { since, teamIds: teams.map(w => w.id) };
-      }
-      else frozen.teamIds = teams.map(w => w.id);
-    } else if (frozen) {
+    const personal = accountSpace(s, uid), frozen = personal.entitlementFreeze;
+    // Migrate the previous membership-based pause once, preserving accrued time.
+    // Membership and view changes no longer suspend another workspace's benefits.
+    if (frozen) {
       const delta = Math.max(0, now.getTime() - Date.parse(frozen.since));
       const subscription = personal.personalSubscription;
       if (subscription) {
@@ -431,8 +424,6 @@ function reconcileEntitlements(s, now = new Date()) {
 }
 function assertEntitlement(w, uid = SELF) {
   access(w, uid); writable(w);
-  if (w.type === "personal" && w.entitlementFreeze)
-    fail("个人工作区权益已冻结，请切换到已加入的团队工作区使用该团队权益");
 }
 function consumeMinutes(w, runId, minutes, uid = SELF) {
   assertEntitlement(w, uid);
@@ -1031,7 +1022,7 @@ function sync(s, did, uid = SELF, input = {}) {
     const previous = space.files.find((f) => f.owner === uid && !f.sourceFileId && f.deviceId === did && f.sourceRecordId === sourceId);
     if (previous) { access(space, uid); return { space, file: previous, duplicate: true }; }
   }
-  const paused = (w.type === "team" && w.status !== "active") || !!w.entitlementFreeze;
+  const paused = w.type === "team" && w.status !== "active";
   let f;
   if (paused) {
     // The only read-only ingestion exception is a bound device's raw audio.
@@ -1094,13 +1085,6 @@ function syncThought(s, did, uid = SELF, input = {}) {
   const audio = w.files.find(f => f.owner === uid && f.deviceId === did && f.sourceRecordId === `thought-audio:${sourceId}`);
   const rawResult = raw => ({ space: w, thought: { id: raw.id, title: raw.title, detail: "", type: "other", date: raw.created.slice(0, 10), time: "", owner: uid, shared: [] }, rawAudio: raw });
   if (audio) return { ...rawResult(audio), duplicate: true };
-  if (w.entitlementFreeze) {
-    // Preserve raw captures personally without consuming frozen or Team AI benefits.
-    const raw = file(id("file"), String(input.title || `${d.name} · 闪念原始音频`).slice(0, 150), uid, [], 0);
-    Object.assign(raw, { created: stamp(), updated: stamp(), source: d.model, summary: "", transcript: "", status: "原始音频 · 待处理", processingPaused: true, rawAudio: true, detail: {}, tags: ["闪念原始音频"], deviceId: did, bindingId: binding.id, sourceRecordId: `thought-audio:${sourceId}`, origin: "device", recordedWorkspaceId: w.id, visibility: "private" });
-    w.files.unshift(raw); d.lastSync = stamp();
-    return rawResult(raw);
-  }
   const thought = addThought(w, { title: input.title || `${d.name} · 新闪念`, detail: input.detail || "设备闪念同步演示：记录下次沟通前需要确认的问题。" }, uid);
   Object.assign(thought, { deviceId: did, bindingId: binding.id, sourceRecordId: sourceId, source: "device" });
   d.lastSync = stamp();
@@ -1683,7 +1667,7 @@ function enrich(s, now = new Date()) {
   migrateAccountDevices(s);
   reconcileEntitlements(s, now);
   for (const w of [...s.spaces, ...Object.values(s.accountSpaces || {})]) {
-    if ((w.type === "personal" || w.status === "active") && !w.entitlementFreeze) for (const f of w.files || []) {
+    if (w.type === "personal" || w.status === "active") for (const f of w.files || []) {
       if (f.processingPaused) { f.processingPaused = false; f.status = "待处理"; }
     }
   }

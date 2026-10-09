@@ -12,7 +12,7 @@ const routes = [
   ["contacts", "#contacts-root"],
   ["settings", "#personal-settings"],
   ["meeting&id=meeting-1", "#note-detail-title"],
-  ["recording", ".ws-content h1"],
+  ["recording", "#recording-layout"],
   ["recording&space=team-eureka", "#recording-layout"],
   [
     "history&id=" + encodeURIComponent("本周会议决策整理"),
@@ -76,7 +76,7 @@ const routes = [
         await page.getByRole("button", { name: "新建会话", exact: true }).waitFor();
       }
       if (view.startsWith("tasks")) assert.match(await page.locator(selector).innerText(), /此入口不属于当前工作空间/);
-      if (view === "recording") assert.equal(await page.locator(selector).innerText(), "个人工作区权益已冻结");
+      if (view === "recording") assert.equal(await page.getByRole("heading", { name: "个人工作区权益已冻结" }).count(), 0);
       if (view === "contacts&space=team-eureka") {
         await page.getByRole("heading", { name: "团队客户", exact: true }).waitFor();
         assert.deepEqual(await page.getByLabel("筛选客户来源").locator("option").allTextContents(), ["全部来源", "手动录入", "Agent 创建", "CRM"]);

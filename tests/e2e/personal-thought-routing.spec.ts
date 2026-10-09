@@ -21,14 +21,14 @@ test("device meetings follow binding while thoughts remain personal across teams
   expect(() => M.syncThought(s, "dev-personal", "lin")).toThrow(/自己的设备/);
 });
 
-test("frozen personal benefits preserve raw thought audio personally without charging any workspace", () => {
+test("team membership does not suspend personal thought capture or charge a team", () => {
   const s = M.seed(), a = M.get(s, "team-eureka"), p = M.get(s, "personal");
   rebind(s, a.id); M.reconcileEntitlements(s);
   const before = JSON.stringify([p.credits, a.credits, p.transcriptionUsage, a.transcriptionUsage]);
   const result = M.syncThought(s, "dev-personal", "zhang", { sourceId: "raw-thought" });
-  expect(result.space.id).toBe(p.id); expect(result.rawAudio?.processingPaused).toBe(true);
-  expect(result.rawAudio?.shared).toEqual([]); expect(result.rawAudio?.transcript).toBe("");
-  expect(a.files.some(f => f.id === result.rawAudio?.id)).toBe(false);
+  expect(result.space.id).toBe(p.id); expect(result.rawAudio).toBeUndefined();
+  expect(result.thought.shared).toEqual([]); expect(result.thought.detail).toContain("设备闪念同步演示");
+  expect(a.files.some(f => f.id === result.thought.id)).toBe(false);
   expect(JSON.stringify([p.credits, a.credits, p.transcriptionUsage, a.transcriptionUsage])).toBe(before);
   expect(M.syncThought(s, "dev-personal", "zhang", { sourceId: "raw-thought" }).thought.id).toBe(result.thought.id);
 });

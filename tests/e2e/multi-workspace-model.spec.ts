@@ -33,30 +33,25 @@ test("members consume one workspace's credits and transcription, never a persona
   expect([b.credits, personal.credits]).toEqual(original);
   a.status = "expired";
   expect(() => M.consumeMinutes(a, "expired", 1)).toThrow("只读");
-  expect(() => M.settleCredits(personal, "personal", "冻结", { inputTokens: 1, outputTokens: 1 })).toThrow("冻结");
-  expect(() => M.consumeMinutes(personal, "personal", 1)).toThrow("冻结");
+  M.settleCredits(personal, "personal", "个人任务", { inputTokens: 1, outputTokens: 1 });
+  M.consumeMinutes(personal, "personal", 1);
+  expect(personal.transcriptionUsage?.used).toBe(1);
+  expect(b.transcriptionUsage?.used).toBe(7);
 });
-test("personal subscription clock and balances freeze once, additional memberships do not restart freezing", () => {
-  const s = M.seed(new Date("2026-10-01T00:00:00Z")), p = M.get(s, "personal"), a = M.get(s, "team-eureka");
-  delete p.entitlementFreeze;
+test("legacy paused time is preserved once; memberships no longer block personal subscription or consumption", () => {
+  const s = M.seed(new Date("2026-10-01T00:00:00Z")), p = M.get(s, "personal");
+  p.entitlementFreeze = { since: "2026-10-01T00:00:00.000Z", teamIds: ["team-eureka"] };
   p.personalSubscription = { plan: "Pro", minutes: 99999, credits: 5000, renew: true, cycle: "month", endsAt: "2026-11-01T00:00:00.000Z", nextRefresh: "2026-11-01T00:00:00.000Z" };
-  M.reconcileEntitlements(s, new Date("2026-10-01T00:00:00Z"));
-  const b = M.create(s, draft("second"));
-  expect(M.get(s, "personal").entitlementFreeze?.since).toBe("2026-10-01T00:00:00.000Z");
-  expect(PS.current(p, "2027-01-01T00:00:00Z").plan).toBe("Pro");
-  expect(PS.current(p).remainingDays).toBe(31);
-  expect(() => PS.create(p, "year")).toThrow("冻结");
   const credits = structuredClone(p.credits);
-  a.members.find(m => m.id === "zhang")!.status = "removed";
   M.reconcileEntitlements(s, new Date("2026-10-11T00:00:00Z"));
-  expect(M.get(s, "personal").entitlementFreeze?.teamIds).toEqual([b.id]);
-  b.members.find(m => m.id === "zhang")!.status = "removed";
-  M.reconcileEntitlements(s, new Date("2026-10-21T00:00:00Z"));
   expect(p.entitlementFreeze).toBeUndefined();
-  expect(p.personalSubscription.endsAt).toBe("2026-11-21T00:00:00.000Z");
-  M.reconcileEntitlements(s, new Date("2026-10-22T00:00:00Z"));
-  expect(p.personalSubscription.endsAt).toBe("2026-11-21T00:00:00.000Z");
+  expect(p.personalSubscription.endsAt).toBe("2026-11-11T00:00:00.000Z");
+  M.reconcileEntitlements(s, new Date("2026-10-12T00:00:00Z"));
+  M.create(s, draft("second"));
+  expect(p.personalSubscription.endsAt).toBe("2026-11-11T00:00:00.000Z");
   expect(p.credits).toEqual(credits);
+  expect(PS.create(p, "year").status).toBe("pending");
+  expect(PS.current(p, "2027-01-01T00:00:00Z").plan).toBe("标准版");
 });
 test("removal from one team leaves all other memberships, sharing policies, content and entitlements intact", () => {
   const s = M.seed(), a = M.get(s, "team-eureka"), b = M.acceptInvite(s, "invite-growth");
@@ -71,23 +66,23 @@ test("removal from one team leaves all other memberships, sharing policies, cont
   M.memberAction(s, a, "zhang", "remove", undefined, "lin");
   expect(b).toEqual(before);
   expect(M.accountTeams(s).map(w => w.id)).toEqual([b.id]);
-  expect(M.get(s, "personal").entitlementFreeze).toBeTruthy();
+  expect(M.get(s, "personal").entitlementFreeze).toBeUndefined();
   expect(M.capturePreferences(s).teams[a.id]).toBeUndefined();
   expect(M.capturePreferences(s).teams[b.id].meetings?.enabled).toBe(true);
   expect(s.devices[0].bound).toBe(true);
 });
-test("frozen personal device captures remain raw while selected team captures consume only their own pool", () => {
+test("personal and team device captures consume only their bound workspace pool", () => {
   const s = M.seed(), p = M.get(s, "personal"), a = M.get(s, "team-eureka");
-  expect(M.sync(s, "dev-personal").file.status).toBe("原始音频 · 待处理");
-  expect(p.transcriptionUsage).toBeUndefined();
+  expect(M.sync(s, "dev-personal").file.status).not.toBe("原始音频 · 待处理");
+  expect(p.transcriptionUsage?.used).toBe(12);
   rebind(s, a.id);
   const first = M.sync(s, "dev-personal", "zhang", { sourceId: "once" });
   M.sync(s, "dev-personal", "zhang", { sourceId: "once" });
   expect(first.file.shared).toEqual([]);
   expect(a.transcriptionUsage?.used).toBe(12);
-  expect(p.transcriptionUsage).toBeUndefined();
+  expect(p.transcriptionUsage?.used).toBe(12);
 });
-test("failed writes cannot partially join a workspace or change frozen entitlement snapshots", () => {
+test("failed writes cannot partially join a workspace or change entitlement snapshots", () => {
   const data = new Map<string, string>(); data.set(M.KEY, JSON.stringify(M.seed()));
   const storage = { getItem: (key: string) => data.get(key) || null, setItem: () => { throw Error("quota"); } } as unknown as Storage;
   const repo = createWorkspaceStore(storage), before = repo.read();

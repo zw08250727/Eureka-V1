@@ -202,7 +202,7 @@ export function ReferenceShell({
               <small>
                 {team
                   ? `Team · ${admin ? "管理员" : "成员"} · ${w.members.filter((m) => m.status === "active").length} 位成员`
-                  : "Personal · " + (PS.current(w).frozen ? "权益已冻结" : PS.current(w).plan)}
+                  : "Personal · " + PS.current(w).plan}
               </small>
             </span>
             <RefIcon name="chevron" className="ws-icon" />
@@ -513,7 +513,7 @@ export function ReferenceShell({
                       {s.name}
                       <small>
                         {s.type === "personal"
-                          ? (s.entitlementFreeze ? "个人权益已冻结 · 历史内容保留" : "个人权益独立维护")
+                          ? "个人权益独立维护"
                           : (M.admin(s) ? "管理员" : "成员") +
                             " · " +
                             s.members.filter((m) => m.status === "active")

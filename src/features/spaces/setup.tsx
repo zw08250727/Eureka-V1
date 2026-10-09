@@ -356,7 +356,7 @@ export function CreateTeamDialog({
           </label>
         </div>
         <p className="ws-muted">
-          至少 2 席位。你作为管理员占用 1 席位。本工作区独立计费，加入后个人权益冻结、内容保留。
+          至少 2 席位。你作为管理员占用 1 席位。本工作区独立计费，成员共用团队权益。
         </p>
       </Dialog>
     );
@@ -496,7 +496,7 @@ export function InvitationsDialog({
         <div className="ws-invitation" key={i.id}>
           <h3>{i.teamName}</h3>
           <p>
-            {`${(i as typeof i & { admin?: string }).admin} 邀请你以成员身份加入。使用该工作区统一权益，加入后个人权益冻结；其他工作区独立维护。`}
+            {`${(i as typeof i & { admin?: string }).admin} 邀请你以成员身份加入。进入后使用该工作区权益，各工作区独立计费。`}
           </p>
           <Button
             action="decline-invite"

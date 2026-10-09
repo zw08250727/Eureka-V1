@@ -5,6 +5,7 @@ const go = (page: Page, view: string, space = "personal", actor = "zhang") => pa
 const raw = (page: Page) => page.evaluate(() => JSON.parse(localStorage.getItem("eureka:workspaces:v2")!) as WorkspaceState);
 async function seed(page: Page) {
   const s = M.seed();
+  M.consumeMinutes(M.get(s, "personal"), "previous-personal-recording", 12);
   const second = M.create(s, { orderId: "second-ui", name: "设计项目工作区", country: "中国", cycle: "month", seats: 3 });
   second.members.push({ id: "lin", name: "林晓", email: "lin.xiao@eureka.example", role: "member", status: "active", joined: "2026-10-09" });
   await page.addInitScript(s => { if (!sessionStorage.getItem("multi-seed")) { localStorage.setItem("eureka:workspaces:v2", JSON.stringify(s)); sessionStorage.setItem("multi-seed", "1"); } }, s);
@@ -19,7 +20,7 @@ test("account joins a second team, switches all workspaces and can still create 
   await page.locator("#ws-switcher").click();
   await expect(page.locator("#ws-menu")).toContainText("增长研究小组");
   await expect(page.locator("#ws-menu")).toContainText("EurekaMind 产品团队");
-  await expect(page.locator("#ws-menu")).toContainText("个人权益已冻结");
+  await expect(page.locator("#ws-menu")).not.toContainText("冻结");
   await page.screenshot({ path: "test-results/multi-workspace-menu.png" });
   await page.locator("#ws-menu").getByRole("button", { name: /EurekaMind 产品团队/ }).click();
   await expect(page).toHaveURL(/space=team-eureka/);
@@ -29,23 +30,32 @@ test("account joins a second team, switches all workspaces and can still create 
   await expect(page.locator("#ws-dialog")).toContainText("Unlimited");
   await expect(page.locator("#ws-dialog")).not.toContainText("无法创建团队");
 });
-test("personal freeze is visible, blocks new consumption, keeps historical data and exposes separate team billing", async ({ page }) => {
+test("personal subscription shows the current plan and remains usable across team switches", async ({ page }) => {
   const second = await seed(page);
   await go(page, "subscription");
-  await expect(page.getByRole("region", { name: "个人权益已冻结" })).toContainText("已加入 2 个团队");
-  await expect(page.locator('[data-ws-action="personal-buy"]')).toBeDisabled();
-  await expect(page.getByRole("link", { name: "设计项目工作区 · 查看权益" })).toBeVisible();
-  await page.screenshot({ path: "test-results/personal-frozen-desktop.png", fullPage: true });
+  await expect(page.locator("#ws-view")).not.toContainText("冻结");
+  await expect(page.locator('[data-ws-action="personal-buy"]')).toBeEnabled();
+  for (const [width, height] of [[1440, 900], [1080, 680]]) {
+    await page.setViewportSize({ width, height });
+    await page.screenshot({ path: `test-results/personal-subscription-${width}.png`, animations: "disabled" });
+  }
+  await page.locator('[data-ws-action="personal-buy"]').click();
+  await expect(page.locator("#ws-dialog")).toBeVisible();
   await go(page, "recording");
-  await expect(page.getByRole("heading", { name: "个人工作区权益已冻结" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "结束录音" })).toHaveCount(0);
-  await go(page, "home");
-  await expect(page.locator(".home-meeting-row").first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "结束录音", exact: true })).toBeVisible();
+  const before = await raw(page);
+  await page.getByRole("button", { name: "结束录音", exact: true }).click();
+  await expect(page.getByText("录音已结束，转写内容已保存", { exact: true })).toBeVisible();
+  const after = await raw(page);
+  const used = M.get(after, "personal").transcriptionUsage!.used;
+  expect(used).toBe(12);
+  expect(M.get(after, second).credits).toEqual(M.get(before, second).credits);
+  expect(M.get(after, second).transcriptionUsage).toEqual(M.get(before, second).transcriptionUsage);
   await go(page, "subscription", second);
   await expect(page.locator("#ws-view")).toContainText("管理员为本工作区统一付款");
-  await page.setViewportSize({ width: 390, height: 844 });
   await go(page, "subscription");
-  await page.screenshot({ path: "test-results/personal-frozen-mobile.png", fullPage: true });
+  await expect(page.locator(".ps-account progress")).toHaveAttribute("value", String(400 - used));
+  await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 test("recording and Agent consume only their originating workspace, switch and reload preserve usage", async ({ page }) => {
@@ -84,5 +94,6 @@ test("per-team sharing switches and membership removal remain isolated", async (
   await go(page, "content-permissions", second);
   await expect(page.getByRole("switch", { name: "会议信息共享给团队" })).toBeChecked();
   await go(page, "subscription");
-  await expect(page.getByRole("region", { name: "个人权益已冻结" })).toContainText("已加入 1 个团队");
+  await expect(page.locator("#ws-view")).not.toContainText("冻结");
+  expect(M.accountTeams(await raw(page))).toHaveLength(1);
 });

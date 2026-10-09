@@ -1,5 +1,4 @@
 "use client";
-import { appUrl } from "@/lib/routes";
 import { RefIcon } from "@/features/reference/symbols";
 import type { Cycle, Order, Workspace, WorkspaceState } from "./model/types";
 import { M } from "./model/store";
@@ -53,6 +52,7 @@ export function PersonalBilling({
   act: BillingAction;
 }) {
   const sub = PS.current(w),
+    remainingMinutes = Math.max(0, sub.minutes - (w.transcriptionUsage?.used || 0)),
     orders = w.personalOrders || [],
     pending = orders.find((o) => ["pending", "failed"].includes(o.status));
   const records = state.spaces.filter(
@@ -67,9 +67,8 @@ export function PersonalBilling({
         w={w}
         actor={actor}
         title="个人订阅"
-        subtitle="一个工作区维护一套权益；仍有有效 Team 时个人权益冻结，历史内容保留。"
+        subtitle="查看个人工作区的套餐、用量与账单。"
       />
-      {sub.frozen && <section className="ws-surface" style={{ padding: 24 }} aria-label="个人权益已冻结"><h2>个人权益已冻结</h2><p>已加入 {M.accountTeams(state, actor).length} 个团队。请进入对应工作区，使用管理员付费开通的该工作区权益。</p><p>个人余额与内容保留，有效期暂停计时{sub.plan === "Pro" ? `，剩余 ${sub.remainingDays} 天` : ""}；所有 Team 到期、取消生效或被管理员移除后恢复。切换视图不会解冻或转移额度。</p><div className="ws-actions">{M.accountTeams(state, actor).map(team => <a key={team.id} className="ws-btn" href={appUrl("subscription", "", team.id, actor)}>{team.name} · 查看权益</a>)}</div></section>}
       <section className="ws-surface ps-account">
         <div>
           <span className="ws-mini-avatar">张</span>
@@ -77,11 +76,11 @@ export function PersonalBilling({
             <h2>
               张伟{" "}
               <Badge kind={sub.plan === "Pro" ? "blue" : "amber"}>
-                {sub.plan}{sub.frozen ? " · 已冻结" : ""}
+                {sub.plan}
               </Badge>
             </h2>
             <p>
-              {sub.frozen ? "已冻结 · 原额度保留，不可用于新任务" : sub.plan === "Pro"
+              {sub.plan === "Pro"
                 ? `${sub.renew ? "下次续费" : "权益保留至"}：${date(sub.endsAt)} · ${sub.cycle === "year" ? "连续包年" : "连续包月"}`
                 : "标准版 · 每月 400 分钟"}
             </p>
@@ -89,12 +88,12 @@ export function PersonalBilling({
         </div>
         <div>
           <strong>
-            {sub.minutes.toLocaleString()}{" "}
+            {remainingMinutes.toLocaleString()}{" "}
             <small>/ {sub.minutes.toLocaleString()} 分钟剩余</small>
           </strong>
-          <progress max={sub.minutes} value={sub.minutes} />
+          <progress max={sub.minutes} value={remainingMinutes} />
           <small>
-            {sub.frozen ? "冻结期间暂停使用及刷新" : sub.nextRefresh
+            {sub.nextRefresh
               ? "下次分钟 / Credits 刷新：" + date(sub.nextRefresh)
               : "个人订阅与团队席位分别计费"}
           </small>
@@ -177,10 +176,10 @@ export function PersonalBilling({
           <Button
             action="personal-buy"
             className="primary"
-            disabled={sub.frozen || (sub.plan === "Pro" && sub.cycle === cycle)}
+            disabled={sub.plan === "Pro" && sub.cycle === cycle}
             onClick={() => act("personal-buy")}
           >
-            {sub.frozen ? "个人权益已冻结" : sub.plan === "Pro" && sub.cycle === cycle
+            {sub.plan === "Pro" && sub.cycle === cycle
               ? "当前套餐"
               : sub.plan === "Pro"
                 ? "切换 Pro 套餐"

@@ -101,7 +101,7 @@ export function SettingsPage({
               <strong>{controller.state.account.email}</strong>
               <small>
                 {sub
-                  ? `${sub.plan}${sub.frozen ? " · 权益已冻结" : ""} · ${w.name}`
+                  ? `${sub.plan} · ${w.name}`
                   : `Team Unlimited · ${w.name} · ${member && member.role === "admin" ? "管理员" : "成员"}`}
               </small>
             </span>
@@ -118,12 +118,12 @@ export function SettingsPage({
             {sub ? (
               <>
                 <div className="settings-usage-top">
-                  <strong>{sub.frozen ? "个人权益已冻结" : "每月转写时长"}</strong>
+                  <strong>每月转写时长</strong>
                   <b>{sub.minutes.toLocaleString()} 分钟</b>
                 </div>
                 <div className="settings-usage-meta">
-                  <span>{sub.frozen ? "余额保留，请切换团队使用工作区权益" : `已使用 ${w.transcriptionUsage?.used || 0} 分钟`}</span>
-                  <span>剩余 {sub.minutes.toLocaleString()} 分钟</span>
+                  <span>{`已使用 ${w.transcriptionUsage?.used || 0} 分钟`}</span>
+                  <span>剩余 {Math.max(0, sub.minutes - (w.transcriptionUsage?.used || 0)).toLocaleString()} 分钟</span>
                 </div>
               </>
             ) : (

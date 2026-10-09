@@ -321,7 +321,7 @@ test("native settings: language and summary persist across reload and Personal/T
   await expect(language).toHaveValue("en");
   await expect(notes).toHaveValue("detected");
   await expect(page.locator(".settings-profile small")).toHaveText(
-    "标准版 · 权益已冻结 · 个人工作空间",
+    "标准版 · 个人工作空间",
   );
   await expect(page.locator(".settings-usage")).toContainText("剩余 400 分钟");
   await language.selectOption("zh-Hant");
@@ -536,7 +536,7 @@ test("native settings: Pro, expired personal plan and expired team show their ac
   }, state);
   await settings(page);
   await expect(page.locator(".settings-profile small")).toHaveText(
-    "Pro · 权益已冻结 · 个人工作空间",
+    "Pro · 个人工作空间",
   );
   await expect(page.locator(".settings-usage")).toContainText("99,999 分钟");
   await page.evaluate(() => {

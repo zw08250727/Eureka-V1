@@ -97,20 +97,20 @@ export function RecordingPage({
     log = useRef<HTMLDivElement>(null);
   const w = M.get(controller.state!, space);
   useEffect(() => {
-    if (paused || saved || w.entitlementFreeze || (w.type === "team" && w.status !== "active")) return;
+    if (paused || saved || (w.type === "team" && w.status !== "active")) return;
     const timer = setInterval(() => setSeconds((s) => s + 1), 1000);
     return () => clearInterval(timer);
-  }, [paused, saved, w.entitlementFreeze, w.status, w.type]);
+  }, [paused, saved, w.status, w.type]);
   useEffect(() => {
     const guard = (e: BeforeUnloadEvent) => {
-      if (!saved && !leaving.current && (w.type !== "team" || w.status === "active") && !w.entitlementFreeze) {
+      if (!saved && !leaving.current && (w.type !== "team" || w.status === "active")) {
         e.preventDefault();
         e.returnValue = "";
       }
     };
     window.addEventListener("beforeunload", guard);
     return () => window.removeEventListener("beforeunload", guard);
-  }, [saved, w.status, w.entitlementFreeze, w.type]);
+  }, [saved, w.status, w.type]);
   useEffect(() => {
     if (renaming) {
       name.current?.focus();
@@ -231,7 +231,6 @@ export function RecordingPage({
     }
   }
   if (w.type === "team" && w.status !== "active") return <main className="ws-content"><h1>团队工作区只读</h1><p>暂停手动创建录音、转录和 AI。设备仍可同步原始音频；如需转写，请在录音前切换到个人或其他有效工作区。</p><a href={appUrl("home", "", space, actor)}>返回现有内容</a></main>;
-  if (w.type === "personal" && w.entitlementFreeze) return <main className="ws-content" style={{ padding: 32 }}><h1>个人工作区权益已冻结</h1><p>请切换到目标团队工作区录音及转写，用量只计入该工作区。个人历史内容仍可查看。</p>{M.accountTeams(controller.state!, actor).map(team => <p key={team.id}><a href={appUrl("recording", "", team.id, actor)}>{team.name} · 使用工作区权益</a></p>)}</main>;
   return (
     <section
       className="recording-workbench"
