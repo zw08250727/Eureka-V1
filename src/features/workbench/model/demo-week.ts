@@ -214,7 +214,16 @@ export function fillWeekWorkspaces(state: WorkspaceState, now = new Date()) {
           summary: `${plan.evidence[i]}\n\n下一步：${plan.task}。`,
           transcript: `00:00 ${creator}：今天回顾${plan.topic}。\n02:10 ${creator}：${plan.evidence[i]}\n05:30 ${creator}：下一步，${plan.task}。`,
           deleted: false,
-          detail: {},
+          detail: {
+            briefFacts: [
+              {
+                issueId: `demo-week-${plan.date}`,
+                topic: plan.topic,
+                quote: plan.evidence[i],
+                kind: "fact",
+              },
+            ],
+          },
         });
       }
       completed.add(plan.date);

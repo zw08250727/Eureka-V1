@@ -31,6 +31,7 @@ export interface WorkspaceFile {
   deviceId?: string;
 }
 export interface Thread {
+  recordingId?: string;
   id: string;
   user: string;
   title?: string;

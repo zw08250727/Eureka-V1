@@ -63,7 +63,7 @@ test("native contacts: all five populated tabs, empty tabs and search", async ({
     ["概览", "AI 关系摘要"],
     ["时间线", "Energy Storage Summit"],
     ["承诺", "来自 John Chen 的承诺"],
-    ["主题", "主题动态"],
+    ["主题", "活跃主题仅统计最近 30 天"],
     ["记忆", "以上推断需要后续互动确认。"],
   ]) {
     await page.getByRole("tab", { name: tab, exact: true }).click();
@@ -90,7 +90,7 @@ test("native contacts: all five populated tabs, empty tabs and search", async ({
   await expect(page.locator(".contacts-empty")).toHaveText("未找到联系人");
 });
 
-test("native contacts: add, duplicate, note and followup validation persist after reload", async ({
+test("native contacts: same-name add, note and human-owned followup persist after reload", async ({
   page,
 }) => {
   const errors: string[] = [];
@@ -110,11 +110,10 @@ test("native contacts: add, duplicate, note and followup validation persist afte
   await expect(person(page, "原生核验联系人").locator("img")).toHaveCount(0);
   await openAdd(page, "原生核验联系人");
   await submit(page).click();
-  await expect(formError(page)).toHaveText("联系人已存在");
-  await page.keyboard.press("Escape");
+  await expect(person(page, "原生核验联系人")).toHaveCount(2);
   await expect(page.locator(".contacts-overlay")).toHaveCount(0);
   await expect(page.locator("[data-contact-action=add]")).toBeFocused();
-  await person(page, "原生核验联系人").click();
+  await person(page, "原生核验联系人").first().click();
   await page.locator(".contacts-actions [data-contact-action=note]").click();
   await page.locator("[name=text]").fill("   ");
   await submit(page).click();
@@ -138,12 +137,12 @@ test("native contacts: add, duplicate, note and followup validation persist afte
   await page
     .locator("[data-contact-form=followup] [name=description]")
     .fill("先核对双方的交付范围");
-  await page.locator("[name=owner]").selectOption("Agent · 分析助手");
+  await expect(page.locator("[name=owner]")).toHaveValue("张伟");
   await submit(page).click();
   await expect(main(page)).toContainText("确认验收时间");
   await expect(main(page)).toContainText("先核对双方的交付范围");
   await page.reload();
-  await person(page, "原生核验联系人").click();
+  await person(page, "原生核验联系人").first().click();
   await page.getByRole("tab", { name: "记忆", exact: true }).click();
   await expect(main(page)).toContainText("下次确认交付范围");
   await expect(main(page)).toContainText("确认验收时间");
@@ -161,12 +160,12 @@ test("native contacts: add, duplicate, note and followup validation persist afte
       tasks: data.tasks,
     };
   }, contactsKey);
-  expect(saved.count).toBe(1);
+  expect(saved.count).toBe(2);
   expect(saved.notes).toHaveLength(1);
   expect(saved.tasks).toHaveLength(1);
   expect(saved.tasks[0]).toMatchObject({
     contactId: saved.id,
-    owner: "Agent · 分析助手",
+    owner: "张伟",
   });
   expect(errors).toEqual([]);
 });
@@ -226,11 +225,11 @@ test("native contacts: CAS rejects stale add, note and followup without losing d
   await contacts(page);
   const stale = await context.newPage();
   await contacts(stale);
+  await openAdd(stale, "旧页面新联系人");
   await openAdd(page, "另一标签已保存");
   await submit(page).click();
   await expect(person(page, "另一标签已保存")).toBeVisible();
-  const winner = await rawContacts(page);
-  await openAdd(stale, "旧页面新联系人");
+  let winner = await rawContacts(page);
   await submit(stale).click();
   await expect(formError(stale)).toContainText("另一页面已更新");
   await expect(stale.locator("[name=name]")).toHaveValue("旧页面新联系人");
@@ -244,6 +243,10 @@ test("native contacts: CAS rejects stale add, note and followup without losing d
       .locator(`.contacts-actions [data-contact-action=${kind}]`)
       .click();
     await stale.locator(`[name=${field}]`).fill(copy);
+    await openAdd(page, `并发保存-${kind}`);
+    await submit(page).click();
+    winner = await rawContacts(page);
+    await expect(stale.locator(".contacts-form-error")).toHaveText("");
     await submit(stale).click();
     await expect(formError(stale)).toContainText("另一页面已更新");
     await expect(stale.locator(`[name=${field}]`)).toHaveValue(copy);
@@ -273,7 +276,7 @@ test("native contacts: Agent drafts, new task and replies remain scoped to the s
   await page.locator(".contacts-xiaozhi-entry").click();
   await expect(input).toHaveValue("帮我准备下一次沟通");
   await input.press("Enter");
-  await expect(answer).toContainText("德国经销商名单");
+  await expect(answer).toContainText("经销商名单");
   await expect(input).toHaveValue("");
   await person(page, "John Chen").click();
   await input.fill("未发送的 John 草稿");
@@ -533,11 +536,11 @@ test("native contacts: empty dataset and a new contact expose every empty detail
   await submit(page).click();
   await person(page, "全空详情联系人").click();
   for (const [tab, expected] of [
-    ["概览", ["待补充", "暂无开放承诺", "暂无主题"]],
+    ["概览", ["待补充", "暂无承诺", "暂无主题"]],
     ["时间线", ["暂无时间线记录"]],
     ["承诺", ["暂无承诺"]],
     ["主题", ["暂无主题"]],
-    ["记忆", ["暂无已确认记忆", "暂无推断"]],
+    ["记忆", ["暂无关系记忆", "暂无推断"]],
   ] as const) {
     await page.getByRole("tab", { name: tab, exact: true }).click();
     for (const copy of expected) await expect(main(page)).toContainText(copy);

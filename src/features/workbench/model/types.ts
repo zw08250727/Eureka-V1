@@ -16,11 +16,21 @@ export interface ActionRecord {
   updated: string;
   revision?: number;
   links: string[];
+  status?: "active" | "pending" | "canceled";
+  deleted?: boolean;
 }
 export interface ActionState {
   version: number;
   records: ActionRecord[];
-  meetings: { id: string; title: string; created: string; seconds: number }[];
+  meetings: {
+    id: string;
+    title: string;
+    created: string;
+    seconds: number;
+    transcript?: string;
+    summary?: string;
+    marks?: number[];
+  }[];
   sessions: {
     id: string;
     prompt?: string;
@@ -40,6 +50,11 @@ export interface ThoughtRecord {
   date: string;
   time: string;
   detail: string;
+  occurredOn?: string;
+  currency?: string;
+  entryKind?: "actual" | "planned";
+  status?: "active" | "pending" | "canceled";
+  deleted?: boolean;
   amount?: number;
   direction?: string;
   revision?: number;

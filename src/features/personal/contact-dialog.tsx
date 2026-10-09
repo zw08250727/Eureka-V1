@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import type { Contact } from "./store";
 
-export type ContactDialogKind = "add" | "note" | "followup";
+export type ContactDialogKind = "add" | "edit" | "note" | "followup";
 export function ContactDialog({
   kind,
   person,
   onClose,
   onSave,
+  noteText = "",
 }: {
+  noteText?: string;
   kind: ContactDialogKind;
   person?: Contact;
   onClose: () => void;
@@ -34,8 +36,10 @@ export function ContactDialog({
     kind === "note"
       ? "添加备注"
       : kind === "followup"
-        ? "创建跟进任务"
-        : "添加联系人";
+        ? "创建跟进"
+        : kind === "edit"
+          ? "编辑联系人"
+          : "添加联系人";
   return (
     <div
       ref={ref}
@@ -104,32 +108,81 @@ export function ContactDialog({
                 备注内容
                 <textarea
                   name="text"
+                  defaultValue={noteText}
                   required
                   rows={5}
                   maxLength={2000}
                   placeholder="记录这段关系中需要保留的上下文"
                 />
               </label>
-            ) : kind === "add" ? (
+            ) : ["add", "edit"].includes(kind) ? (
               <>
                 <div className="contacts-form-grid">
                   <label>
                     姓名
-                    <input name="name" required maxLength={100} />
+                    <input
+                      name="name"
+                      required
+                      maxLength={100}
+                      defaultValue={kind === "edit" ? person?.name : ""}
+                    />
                   </label>
                   <label>
                     公司
-                    <input name="company" maxLength={100} />
+                    <input
+                      name="company"
+                      maxLength={100}
+                      defaultValue={kind === "edit" ? person?.company : ""}
+                    />
                   </label>
                   <label>
                     角色
-                    <input name="role" maxLength={100} />
+                    <input
+                      name="role"
+                      maxLength={100}
+                      defaultValue={kind === "edit" ? person?.role : ""}
+                    />
+                  </label>
+                  <label>
+                    邮箱
+                    <input
+                      name="email"
+                      type="email"
+                      defaultValue={
+                        kind === "edit" && person?.email !== "待补充"
+                          ? person?.email
+                          : ""
+                      }
+                    />
+                  </label>
+                  <label>
+                    所在地
+                    <input
+                      name="region"
+                      defaultValue={
+                        kind === "edit" && person?.region !== "待补充"
+                          ? person?.region
+                          : ""
+                      }
+                    />
+                  </label>
+                  <label>
+                    关系类型
+                    <input
+                      name="tag"
+                      placeholder="客户、同事、合作伙伴等"
+                      defaultValue={kind === "edit" ? person?.tag : ""}
+                    />
                   </label>
                 </div>
+                <p className="contacts-muted">
+                  允许同名联系人，请用公司或邮箱区分。保存的资料视为你已确认。
+                </p>
                 <label>
                   关系摘要
                   <textarea
                     name="summary"
+                    defaultValue={kind === "edit" ? person?.summary : ""}
                     maxLength={1000}
                     placeholder="补充这位联系人的背景与当前关系"
                   />
@@ -138,7 +191,7 @@ export function ContactDialog({
             ) : (
               <>
                 <label>
-                  任务标题
+                  跟进标题
                   <input
                     name="title"
                     required
@@ -147,7 +200,7 @@ export function ContactDialog({
                   />
                 </label>
                 <label>
-                  任务描述
+                  跟进说明
                   <textarea
                     name="description"
                     rows={4}
@@ -156,10 +209,7 @@ export function ContactDialog({
                 </label>
                 <label>
                   负责人
-                  <select name="owner">
-                    <option>张伟</option>
-                    <option>Agent · 分析助手</option>
-                  </select>
+                  <input name="owner" value="张伟" readOnly />
                 </label>
               </>
             )}
@@ -181,7 +231,9 @@ export function ContactDialog({
                   ? "保存备注"
                   : kind === "add"
                     ? "添加联系人"
-                    : "创建任务"}
+                    : kind === "edit"
+                      ? "保存修改"
+                      : "创建跟进"}
               </button>
             </div>
           </form>

@@ -179,7 +179,9 @@ export function TeamHome({
               <div className="ws-intelligence-label">
                 {icon("spark")} Agent 团队简报 <span>本地模拟</span>
               </div>
-              <span className="ws-insight-scope">基于你可访问的会议</span>
+              <span className="ws-insight-scope">
+                近 7 天与未闭环事项 · 仅限可访问会议
+              </span>
             </header>
             {report.items.length ? (
               <div className="ws-brief-narrative">
@@ -204,7 +206,7 @@ export function TeamHome({
                               ),
                             ),
                           ].join("、")}
-                          的 {i.sources.length} 场会议
+                          提供的 {i.sources.length} 场会议
                         </span>
                         <Button
                           action="meeting-prompt"
@@ -222,13 +224,31 @@ export function TeamHome({
                         </Button>
                       </span>
                     </p>
+                    <details className="ws-brief-evidence">
+                      <summary>查看会议依据</summary>
+                      {i.sources.map((source) => (
+                        <div key={source.fileId}>
+                          <a
+                            href={appUrl(
+                              "meeting",
+                              source.fileId,
+                              space,
+                              actor,
+                            )}
+                          >
+                            {source.title}
+                          </a>
+                          <p>{source.quote}</p>
+                        </div>
+                      ))}
+                    </details>
                   </article>
                 ))}
               </div>
             ) : (
               <div className="ws-insight-empty">
-                暂时没有形成新的跨会议发现。相关讨论积累后，Agent
-                会在这里串联值得团队关注的信息。
+                暂无可展示的会议要点。完成会议处理后，Agent 会基于近 7
+                天及仍未闭环事项的授权证据整理。
               </div>
             )}
           </section>

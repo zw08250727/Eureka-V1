@@ -38,11 +38,16 @@ export function createMeetingDetails(storage: Storage) {
         title,
         summary:
           device?.summary ||
+          record?.summary ||
           seed?.summary ||
           upload?.note ||
           "本地演示录音，尚未连接真实转写服务。",
         transcript:
-          device?.transcript || seed?.transcript || upload?.note || "",
+          device?.transcript ||
+          record?.transcript ||
+          seed?.transcript ||
+          upload?.note ||
+          "",
         verbatim: "",
         source:
           device?.source || seed?.source || (upload ? "文件上传" : "网页录音"),
@@ -52,7 +57,10 @@ export function createMeetingDetails(storage: Storage) {
           upload?.created ||
           record!.created,
         duration:
-          device?.duration || Number.parseFloat(String(seed?.duration)) || 0,
+          device?.duration ||
+          (record ? Math.max(1, Math.ceil(record.seconds / 60)) : 0) ||
+          Number.parseFloat(String(seed?.duration)) ||
+          0,
         template: "通用",
         language: "中文（中国）",
         detail: "标准",
@@ -64,6 +72,7 @@ export function createMeetingDetails(storage: Storage) {
         project: "",
         location: "",
         updated: "",
+        marks: record?.marks || [],
         generated: {},
         feedback: 0,
         ...patch,

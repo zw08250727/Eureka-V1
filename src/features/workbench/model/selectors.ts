@@ -1,36 +1,76 @@
 import type { ActionRecord, Meeting, ThoughtRecord } from "./types";
-export function localDay(date = new Date()) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-}
+import {
+  actionOnDay,
+  actionTime,
+  assetActive,
+  ledgerCurrency,
+  ledgerDate,
+  localDay,
+  overdue,
+  validLedger,
+} from "@/features/personal/asset-rules";
+export { localDay } from "@/features/personal/asset-rules";
 export function todayRecords(
   actions: ActionRecord[],
   thoughts: ThoughtRecord[],
   now = new Date(),
 ) {
   const day = localDay(now);
-  const todos = actions.filter(
-    (r) => r.type === "todo" && r.start.slice(0, 10) === day,
-  );
+  const todos = actions
+    .filter(
+      (r) =>
+        r.type === "todo" &&
+        assetActive(r) &&
+        (actionOnDay(r, day) || overdue(r, now)),
+    )
+    .sort(
+      (a, b) =>
+        Number(a.done) - Number(b.done) ||
+        actionTime(a.start) - actionTime(b.start),
+    );
   const schedules = actions
-    .filter((r) => r.type === "schedule" && r.start.slice(0, 10) === day)
-    .sort((a, b) => a.start.localeCompare(b.start));
-  const ideas = thoughts.filter(
-    (r) => r.type === "inspiration" && r.date === day,
+    .filter((r) => r.type === "schedule" && actionOnDay(r, day))
+    .sort((a, b) => actionTime(a.start) - actionTime(b.start));
+  const ideas = thoughts
+    .filter((r) => r.type === "inspiration" && assetActive(r) && r.date === day)
+    .sort((a, b) => a.time.localeCompare(b.time));
+  const ledger = thoughts.filter(
+    (r) => validLedger(r) && ledgerDate(r) === day,
   );
-  const ledger = thoughts.filter((r) => r.type === "ledger" && r.date === day);
-  const clock = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-  const upcoming = schedules.find((r) => r.end.slice(11, 16) > clock);
+  const totals = (direction: string) => {
+    const sums = new Map<string, number>();
+    for (const r of ledger.filter(
+      (r) => (r.direction || "expense") === direction,
+    )) {
+      const currency = ledgerCurrency(r);
+      sums.set(
+        currency,
+        (sums.get(currency) || 0) + Math.round(r.amount! * 100),
+      );
+    }
+    return [...sums].map(([currency, cents]) => ({
+      currency,
+      amount: cents / 100,
+    }));
+  };
+  const upcoming =
+    schedules.find(
+      (r) => actionTime(r.start) <= +now && actionTime(r.end) > +now,
+    ) || schedules.find((r) => actionTime(r.start) > +now);
+  const expenses = totals("expense"),
+    income = totals("income");
   return {
     todos,
     schedules,
     ideas,
     ledger,
-    clock,
+    expenses,
+    income,
+    day,
     upcoming,
-    next: upcoming || schedules.at(-1),
-    amount: ledger
-      .filter((r) => r.direction !== "income")
-      .reduce((n, r) => n + (r.amount || 0), 0),
+    next: upcoming,
+    clock: `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`,
+    amount: expenses.find((r) => r.currency === "CNY")?.amount || 0,
   };
 }
 export function filterMeetings(

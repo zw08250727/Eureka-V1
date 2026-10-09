@@ -1,0 +1,20 @@
+.contact-commitment-state {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.contact-commitment-state select {
+  min-height: 36px;
+  padding: 6px 28px 6px 10px;
+  border: 1px solid #d8e3f0;
+  border-radius: 8px;
+  color: #405b7d;
+  background: #fff;
+  font: inherit;
+}
+.contact-commitment-state select:focus-visible {
+  outline: 2px solid #3c7be1;
+  outline-offset: 2px;
+}

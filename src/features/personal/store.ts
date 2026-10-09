@@ -1,3 +1,5 @@
+import type { ContactPromise, ContactInteraction } from "./contact-rules";
+import { ledgerCurrency, ledgerDate, localDay } from "./asset-rules";
 import {
   fillWeekActions,
   fillWeekThoughts,
@@ -27,6 +29,11 @@ export interface Contact {
   email: string;
   timeline?: string[][];
   commitments?: string[][];
+  promises?: ContactPromise[];
+  interactions?: ContactInteraction[];
+  confirmedFields?: string[];
+  memoryConfirmations?: Record<string, string>;
+  updatedAt?: string;
   myCommitments?: string[][];
   themes: string[];
   memories: string[];
@@ -99,7 +106,8 @@ export const reminders = [
 export function validateAction(r: ActionRecord) {
   if (!r.title.trim() || r.title.trim().length > 200)
     throw Error("请填写 1–200 字的标题");
-  if (!validDate(r.start)) throw Error("请选择有效的时间");
+  if ((r.type === "schedule" || r.start) && !validDate(r.start))
+    throw Error("请选择有效的时间");
   if (r.type === "schedule" && (!validDate(r.end) || r.end <= r.start))
     throw Error("结束时间必须晚于开始时间");
   if (r.notes.length > 2000) throw Error("备注不能超过 2000 字");
@@ -155,6 +163,8 @@ export function createActions(storage: Storage, now = () => new Date()) {
       });
     },
     save(input: ActionRecord) {
+      if (input.type === "todo" && !input.start)
+        input = { ...input, reminder: "none" };
       return store.change((s) => {
         const old = s.records.find((x) => x.id === input.id);
         if (
@@ -213,6 +223,14 @@ export function createThoughts(storage: Storage, now = () => new Date()) {
               0.00001)
         )
           throw Error("请输入大于 0、最多两位小数的金额");
+        if (input.type === "ledger") {
+          if (ledgerDate(input) && !validDate(ledgerDate(input) + "T12:00"))
+            throw Error("请选择有效的收支发生日期");
+          if (!/^[A-Z]{3}$/.test(ledgerCurrency(input)))
+            throw Error("请填写三位币种代码，例如 CNY、USD");
+          if (!["income", "expense"].includes(input.direction || "expense"))
+            throw Error("收支方向无效");
+        }
         const old = s.records.find((x) => x.id === input.id);
         if (old && (old.revision || 0) !== (input.revision || 0))
           throw Error("记录已更新，请重新打开");
@@ -262,7 +280,7 @@ export function createContacts(storage: Storage) {
   );
 }
 export function day(value = new Date()) {
-  return new Date(+value + 8 * 3600000).toISOString().slice(0, 10);
+  return localDay(value);
 }
 export function shiftDay(date: string, n: number) {
   return new Date(Date.parse(date + "T12:00:00Z") + n * 86400000)

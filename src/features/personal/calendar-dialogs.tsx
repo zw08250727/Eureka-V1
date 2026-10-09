@@ -17,15 +17,15 @@ export const actionSource = (r: ActionRecord) =>
     r.source
   ] || "闪念提取";
 export function localDate(value: string) {
-  return /(?:Z|[+-]\d{2}:\d{2})$/.test(value) &&
+  if (!value) return "未安排";
+  if (
+    /(?:Z|[+-]\d{2}:\d{2})$/.test(value) &&
     Number.isFinite(Date.parse(value))
-    ? new Date(Date.parse(value) + 8 * 3600000)
-        .toISOString()
-        .replace("T", " ")
-        .slice(0, 16)
-    : String(value || "")
-        .replace("T", " ")
-        .slice(0, 16);
+  ) {
+    const date = new Date(value);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+  }
+  return value.replace("T", " ").slice(0, 16);
 }
 export function useLivePersonal() {
   const controller = usePersonal();
@@ -143,6 +143,7 @@ export function PaButton({
   );
 }
 export function ActionFields({ record }: { record: ActionRecord }) {
+  const [start, setStart] = useState(record.start);
   return (
     <>
       <label className="pa-field">
@@ -163,8 +164,9 @@ export function ActionFields({ record }: { record: ActionRecord }) {
           <input
             name="start"
             type="datetime-local"
-            defaultValue={record.start}
-            required
+            value={start}
+            onChange={(e) => setStart(e.target.value)}
+            required={record.type === "schedule"}
           />
         </label>
         {record.type === "schedule" && (
@@ -180,7 +182,11 @@ export function ActionFields({ record }: { record: ActionRecord }) {
         )}
         <label className="pa-field">
           提醒时间
-          <select name="reminder" defaultValue={record.reminder}>
+          <select
+            name="reminder"
+            defaultValue={record.reminder}
+            disabled={record.type === "todo" && !start}
+          >
             {reminders.map(([v, t]) => (
               <option key={v} value={v}>
                 {t}
@@ -188,7 +194,9 @@ export function ActionFields({ record }: { record: ActionRecord }) {
             ))}
           </select>
         </label>
-        <p className="pa-hint">时间统一按 GMT+8（北京时间）</p>
+        <p className="pa-hint">
+          时间按当前设备时区；待办截止时间可留空，保存到“未安排”
+        </p>
       </div>
       {record.type === "schedule" && (
         <div className="pa-form-grid">
@@ -232,7 +240,9 @@ export function actionValues(
   form: HTMLFormElement,
   base: ActionRecord,
 ): ActionRecord {
-  return { ...base, ...Object.fromEntries(new FormData(form)) };
+  const next = { ...base, ...Object.fromEntries(new FormData(form)) };
+  if (next.type === "todo" && !next.start) next.reminder = "none";
+  return next;
 }
 export function PaModal({
   title,
@@ -385,7 +395,7 @@ export function ActionEditor({
       {page ? (
         <header className="pa-page-head">
           <div>
-            <p className="pa-eyebrow">{actionSource(base)} · GMT+8</p>
+            <p className="pa-eyebrow">{actionSource(base)} · 当前设备时区</p>
             <h1>{title}</h1>
           </div>
         </header>

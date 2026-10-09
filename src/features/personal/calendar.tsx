@@ -1,4 +1,5 @@
 "use client";
+import { actionOnDay, assetActive } from "./asset-rules";
 import { usePageTitle } from "@/features/reference/page-title";
 import { useLayoutEffect, useRef, useState } from "react";
 import { calendarRange, day, shiftDay, reminders } from "./store";
@@ -26,7 +27,7 @@ export function newAction(
     id: "",
     type,
     title: "",
-    start: date + "T09:00",
+    start: type === "schedule" ? date + "T09:00" : "",
     end: type === "schedule" ? date + "T09:30" : "",
     done: false,
     source: "manual",
@@ -39,10 +40,7 @@ export function newAction(
     links: [],
   };
 }
-export const actionOnDay = (r: ActionRecord, d: string) =>
-  r.type === "todo"
-    ? r.start.slice(0, 10) === d
-    : r.start < shiftDay(d, 1) + "T00:00" && r.end > d + "T00:00";
+export { actionOnDay } from "./asset-rules";
 const dayLabel = (d: string) =>
   `${Number(d.slice(5, 7))} 月 ${Number(d.slice(8, 10))} 日`;
 export function CalendarPage({
@@ -113,6 +111,9 @@ export function CalendarPage({
     );
   const records = data.actions.records,
     record = records.find((r) => r.id === selected);
+  const unscheduled = records.filter(
+    (r) => r.type === "todo" && !r.start && assetActive(r),
+  );
   const days = calendarRange(
     date,
     { day: "日", week: "周", month: "月" }[mode] || "日",
@@ -150,7 +151,7 @@ export function CalendarPage({
     navigationGuardRef.current ? navigationGuardRef.current(next) : next();
   const openDirect = (r: ActionRecord) => {
     setSelected(r.id);
-    setDate(r.start.slice(0, 10));
+    if (r.start) setDate(r.start.slice(0, 10));
     setAgent(false);
     setEdit(null);
   };
@@ -211,9 +212,11 @@ export function CalendarPage({
         onClick={() => open(r)}
       >
         <time>
-          {r.start.slice(0, 10) === date || compact
-            ? r.start.slice(11, 16)
-            : localDate(r.start)}
+          {!r.start
+            ? "未安排"
+            : r.start.slice(0, 10) === date || compact
+              ? r.start.slice(11, 16)
+              : localDate(r.start)}
         </time>
         <span>
           <strong>{r.title}</strong>
@@ -256,7 +259,7 @@ export function CalendarPage({
             variant="page"
             onSave={(r) => {
               save(r);
-              setDate(r.start.slice(0, 10));
+              if (r.start) setDate(r.start.slice(0, 10));
               setNotice("已保存");
             }}
             onClose={() => setEdit(null)}
@@ -304,7 +307,7 @@ export function CalendarPage({
                       </dt>
                       <dd>
                         {`${localDate(record.start)}${record.type === "schedule" ? " — " + localDate(record.end) : ""}`}
-                        <small>GMT+8 · 北京时间</small>
+                        <small>当前设备时区</small>
                       </dd>
                     </div>
                     {record.type === "schedule" && (
@@ -577,6 +580,16 @@ export function CalendarPage({
                 </PaButton>
               </div>
             </div>
+            <section className="pa-card pa-day-section" aria-label="未安排待办">
+              <h2>
+                未安排 <small>{unscheduled.length} 项待办</small>
+              </h2>
+              {unscheduled.length ? (
+                unscheduled.map((r) => card(r))
+              ) : (
+                <p className="pa-empty">暂无未安排待办</p>
+              )}
+            </section>
             <section className="pa-card pa-calendar">
               <div id="pa-list">
                 <div className="pa-calendar-heading">
@@ -689,7 +702,8 @@ export function CalendarPage({
           onClose={() => setEdit(null)}
           onSave={(r) => {
             save(r);
-            if (edit.variant === "create") setDate(r.start.slice(0, 10));
+            if (edit.variant === "create" && r.start)
+              setDate(r.start.slice(0, 10));
             setNotice("已保存");
           }}
         />

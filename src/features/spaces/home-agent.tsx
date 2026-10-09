@@ -50,19 +50,22 @@ export function TeamHomeAgent({
   const thread = historyId
     ? M.history(w, actor).find((t) => t.id === historyId)
     : undefined;
-  const messages = thread
-    ? M.conversation(w, thread.id, actor)
-    : fresh
+  const messages =
+    historyId && !thread
       ? []
-      : M.history(w, actor)
-          .filter(
-            (t) =>
-              !(t as Thread & { demo?: boolean }).demo &&
-              t.user === actor &&
-              (!context || t.prompt.includes(context.title)),
-          )
-          .slice(0, 4)
-          .reverse();
+      : thread
+        ? M.conversation(w, thread.id, actor)
+        : fresh
+          ? []
+          : M.history(w, actor)
+              .filter(
+                (t) =>
+                  !(t as Thread & { demo?: boolean }).demo &&
+                  t.user === actor &&
+                  (!context || t.prompt.includes(context.title)),
+              )
+              .slice(0, 4)
+              .reverse();
   function applyWidth(value: number) {
     const host = rail.current?.closest<HTMLElement>(
       ".ws-layout,.md-detail-layout",
@@ -236,7 +239,9 @@ export function TeamHomeAgent({
         </header>
         <div ref={scroll} className="ws-agent-scroll">
           <span className="ws-eyebrow">仅引用当前空间已授权的内容</span>
-          {thread ? (
+          {historyId && !thread ? (
+            <p role="alert">会话已失效或无权访问，请选择其他会话。</p>
+          ) : thread ? (
             <div className="ws-agent-history-context">
               <span className="ws-eyebrow">历史会话</span>
               <h3>{thread.title || thread.prompt}</h3>

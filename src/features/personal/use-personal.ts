@@ -45,8 +45,21 @@ export function usePersonal() {
         if (active) setError((e as Error).message);
       }
     });
+    const external = (event: StorageEvent) => {
+      if (event.key !== null && event.key !== "baizhi-v14-contacts") return;
+      if (!repo.current) return;
+      try {
+        repo.current.contacts = createContacts(localStorage);
+        refresh();
+        setError("");
+      } catch (error) {
+        setError((error as Error).message);
+      }
+    };
+    window.addEventListener("storage", external);
     return () => {
       active = false;
+      window.removeEventListener("storage", external);
     };
   }, [refresh]);
   return { data, error, repo, refresh };
