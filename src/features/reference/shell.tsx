@@ -331,6 +331,18 @@ export function ReferenceShell({
                         ].includes(view),
                       )
                     : null}
+                  <a
+                    className="ws-btn"
+                    href="https://wisenote-open-api.vercel.app/#_2"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="开放接口"
+                    title="开放接口 · 在新标签页打开 API 文档"
+                    style={{ textDecoration: "none" }}
+                  >
+                    <RefIcon name="link" className="ws-icon" />
+                    开放接口
+                  </a>
                 </>
               ) : null}
             </nav>
