@@ -105,3 +105,24 @@
 #ws-view .team-private-agenda{min-height:170px;grid-template-columns:1fr;gap:16px}#ws-view .team-private-list{max-height:130px;overflow:auto;gap:9px}#ws-view .team-private-notes{padding-top:12px;margin-top:14px;opacity:.85}#ws-view .team-private-todo>.team-private-todo-title{flex:1}#ws-view .team-private-todo>.ex-share{width:auto;height:auto;flex:none;border:0;border-radius:0;font-size:11px}#ws-view .ex-daily-row{display:flex;gap:8px;align-items:center}#ws-view .ex-daily-row>a{flex:1;min-width:0}#ws-view .team-insights{max-height:355px;overflow:auto}#ws-view .team-insight-body>span:first-child{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}@container team-overview (max-width:900px){#ws-view .team-overview-canvas{grid-template-columns:1fr}}
 
 #ws-view .ex-daily-row>a{display:flex;align-items:center;gap:12px;font-size:12px;line-height:22px}#ws-view .team-private-todo>.ex-share{white-space:nowrap;min-width:30px;padding:0;line-height:22px}
+
+/* Fixed overview canvas; evidence and daily records scroll within their slots. */
+#ws-view .team-overview-canvas { height:400px; grid-template-rows:minmax(0,1fr); }
+#ws-view :is(.team-brief-column,.team-private-column) { min-height:0; overflow:hidden; display:flex; flex-direction:column; }
+#ws-view .team-section-heading { flex-shrink:0; }
+#ws-view .team-insights { min-height:0; max-height:none; flex:1; overflow-y:auto; align-content:start; }
+#ws-view .team-private-column>p[role=alert] { max-height:40px; flex-shrink:0; overflow-y:auto; }
+#ws-view .team-private-agenda { min-height:0; flex:1; grid-template-rows:repeat(2,minmax(0,1fr)); gap:12px; }
+#ws-view :is(.team-private-agenda,.team-private-notes)>section { min-height:0; overflow:hidden; display:flex; flex-direction:column; }
+#ws-view .team-private-column section>header { flex-shrink:0; }
+#ws-view .team-private-list { min-height:0; max-height:none; flex:1; overflow-y:auto; align-content:start; }
+#ws-view .team-private-notes { height:76px; flex:0 0 76px; grid-template-rows:minmax(0,1fr); gap:16px; }
+#ws-view .team-private-ledger { min-height:0; max-height:none; overflow-y:auto; }
+#ws-view .ex-daily-row>a>span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+#ws-view :is(.team-insights,.team-private-list,.team-private-ledger) { overscroll-behavior:contain; scrollbar-width:thin; }
+@container team-overview (max-width:900px) {
+  #ws-view .team-overview-canvas { height:760px; grid-template-rows:repeat(2,minmax(0,1fr)); }
+}
+@container team-overview (max-width:400px) {
+  #ws-view .team-private-notes { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
