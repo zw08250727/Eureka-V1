@@ -10,6 +10,10 @@ test("detail demo is additive, scoped and idempotent, preserves edits and delete
   Object.defineProperty(globalThis, "window", { configurable: true, value: { dispatchEvent() {} } });
   try {
     const storage = memory(); storage.setItem(M.KEY, JSON.stringify(M.seed()));
+    const legacy = createContacts(storage).read();
+    legacy.personal.contacts = legacy.personal.contacts.filter(c => c.subjectType !== "enterprise");
+    delete legacy.personal.customerDemoVersion;
+    storage.setItem("baizhi-v14-contacts", JSON.stringify(legacy));
     ensureCustomerDetailDemo(storage, "personal", "zhang");
     const solar = createContacts(storage).read().personal.contacts.find(c => c.id === "solarhub-company")!;
     expect(solar.interactions).toHaveLength(3);
@@ -36,6 +40,12 @@ test("detail demo is additive, scoped and idempotent, preserves edits and delete
 
 test("SolarHub has complete followups, two-sided todos, seven profile dimensions and navigable evidence", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
+  const legacy = createContacts(memory()).read();
+  legacy.personal.contacts = legacy.personal.contacts.filter(c => c.subjectType !== "enterprise");
+  delete legacy.personal.customerDemoVersion;
+  await page.addInitScript(value => {
+    if (!localStorage.getItem("baizhi-v14-contacts")) localStorage.setItem("baizhi-v14-contacts", value);
+  }, JSON.stringify(legacy));
   await page.goto("/workbench/?view=contacts&space=personal&id=solarhub-company");
   await expect(page.locator(".customer-meeting")).toHaveCount(3);
   await expect(page.locator(".contacts-profile")).not.toContainText("暂无已核实互动");

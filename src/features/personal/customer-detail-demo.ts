@@ -1,6 +1,6 @@
 import { createWorkspaceStore, M } from "@/features/spaces/model/store";
 import type { WorkspaceFile } from "@/features/spaces/model/types";
-import type { Contact, ContactsState } from "./store";
+import { createContacts, type Contact, type ContactsState } from "./store";
 import seeds from "./contact-seeds.json";
 
 const key = "baizhi-v14-contacts";
@@ -52,6 +52,9 @@ export function ensureCustomerDetailDemo(storage: Storage, workspaceId: string, 
   if ((w.type === "team" && w.status !== "active") || !M.member(w, actor)) return;
   const raw = storage.getItem(key);
   const data: Record<string, ContactsState> = raw ? JSON.parse(raw) : { personal: { contacts: structuredClone(seeds) as Contact[], notes: {}, tasks: [] } };
+  // Include examples added by the existing legacy contact migration before enriching them.
+  if (workspaceId === "personal" && actor === state.account.id)
+    data.personal = createContacts(storage, actor, workspaceId).read().personal;
   const additions: WorkspaceFile[] = [];
   for (const [scopeKey, scope] of Object.entries(data)) {
     const personal = workspaceId === "personal" && actor === state.account.id && scopeKey === "personal";
