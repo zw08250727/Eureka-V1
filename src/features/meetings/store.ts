@@ -61,9 +61,9 @@ export function createMeetingDetails(storage: Storage) {
           (record ? Math.max(1, Math.ceil(record.seconds / 60)) : 0) ||
           Number.parseFloat(String(seed?.duration)) ||
           0,
-        template: "通用",
-        language: "中文（中国）",
-        detail: "标准",
+        template: record?.template || "通用",
+        language: record?.language || "中文（中国）",
+        detail: record?.detail || "标准",
         speakers: ["张伟", "Kevin", "Alice"],
         tags:
           device?.tags ||

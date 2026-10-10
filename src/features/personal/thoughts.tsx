@@ -1,5 +1,6 @@
 "use client";
 import { useLayoutEffect, useRef, useState } from "react";
+import {AssetSharing,assetOwner,canEditAsset} from "./asset-sharing";
 import { CalendarPage } from "./calendar";
 import {
   ActionEditor,
@@ -315,6 +316,7 @@ export function ThoughtsPage({ id, actor = "zhang", space = "personal", controll
                         {order === "desc" ? "倒序" : "正序"}排列
                       </span>
                     </div>
+                    {["inspiration","ledger","other"].includes(type)&&<AssetSharing {...{space,actor}} type={type as ThoughtRecord["type"]} onSaved={refresh}/>}
                   </header>
                   <div className="thought-file-table-scroll">
                     <div className="thought-file-table-head" hidden>
@@ -363,7 +365,7 @@ export function ThoughtsPage({ id, actor = "zhang", space = "personal", controll
                                       type="button"
                                       className="th-complete"
                                       data-th="toggle"
-                                      disabled={readonly}
+                                      disabled={readonly||!canEditAsset(space,actor,r)}
                                       data-id={r.id}
                                       role="checkbox"
                                       aria-checked={r.done}
@@ -390,7 +392,7 @@ export function ThoughtsPage({ id, actor = "zhang", space = "personal", controll
                                     </span>
                                     <span className="th-copy">
                                       <span className="th-line">
-                                        <strong>{r.title}</strong>
+                                        <strong>{r.title}</strong>{space!=="personal"&&<span className="ex-owner">{assetOwner(space,r.ownerId)}</span>}
                                         <span className="th-type">
                                           {thoughtNames[r.type]}
                                         </span>
@@ -426,11 +428,12 @@ export function ThoughtsPage({ id, actor = "zhang", space = "personal", controll
                                     </span>
                                   </button>
                                   <span className="th-row-actions">
+                                    {"action" in r&&<AssetSharing {...{space,actor}} record={r} onSaved={refresh}/>}
                                     <ThButton
                                       action="edit"
                                       id={r.id}
                                       className="th-row-edit"
-                                      disabled={readonly}
+                                      disabled={readonly||!canEditAsset(space,actor,r)}
                                       onClick={() => open(r.id, true)}
                                     >
                                       编辑
@@ -516,7 +519,7 @@ export function ThoughtsPage({ id, actor = "zhang", space = "personal", controll
           />
         ) : (
           <ActionPreview
-            readOnly={readonly}
+            readOnly={readonly||!canEditAsset(space,actor,action)}
             record={action}
             onClose={() => setSelected("")}
             onEdit={() => setEditing(true)}
@@ -529,7 +532,7 @@ export function ThoughtsPage({ id, actor = "zhang", space = "personal", controll
           key={record.id + (editing ? "-edit" : "-preview")}
           record={record}
           editing={editing}
-          readOnly={readonly}
+          readOnly={readonly||!canEditAsset(space,actor,record)}
           onEdit={() => setEditing(true)}
           onClose={() => setSelected("")}
           onSave={(r) => {

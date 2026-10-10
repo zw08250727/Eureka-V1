@@ -178,6 +178,8 @@ export function RecordingPage({
       const summary =
         "本地演示录音，讨论录音入口、采集授权与后续内容沉淀；未连接真实转写服务。";
       const fid = recordingId;
+      const settings = createActions(localStorage,()=>new Date(),actor,space).read().settings;
+      const recordingTemplate = settings.recordingTemplate as {template?:string;language?:string;detail?:string} | undefined;
       if (w.type === "team") {
         controller.change((s) => {
           const target = M.get(s, space);
@@ -195,14 +197,14 @@ export function RecordingPage({
             actor,
           );
           f.id = recordingId;
-          f.detail = { ...f.detail, marks: [...marks] };
+          f.detail = { ...f.detail, ...recordingTemplate, marks: [...marks] };
           for (const thread of target.threads)
             if (thread.recordingId === recordingId && thread.user === actor)
               thread.files = [recordingId];
         });
       } else {
         M.assertEntitlement(M.get(controller.state!, space), actor);
-        const repo = createActions(localStorage);
+        const repo = createActions(localStorage,()=>new Date(),actor,space);
         repo.change((s) => {
           const linked = id ? s.records.find((r) => r.id === id) : undefined;
           if (id && !linked) throw Error("关联日程不存在");
@@ -214,6 +216,7 @@ export function RecordingPage({
               seconds,
               transcript: text,
               summary,
+              ...recordingTemplate,
               marks: [...marks],
             });
           if (linked && !linked.links.includes(fid)) {

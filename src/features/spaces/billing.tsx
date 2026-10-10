@@ -536,7 +536,7 @@ export function BillingPage({
                   <strong>{creditNumber(p.credits)} Credits</strong>
                   <small>一次性购买 · 团队共享</small>
                 </span>
-                <b>{money(p.amount)}</b>
+                <b>{money(p.amount,"USD")}</b>
               </label>
             ))}
           </div>

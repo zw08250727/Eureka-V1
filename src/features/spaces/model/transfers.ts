@@ -51,6 +51,15 @@ export function stageMemberTransfers(storage: Storage, before: WorkspaceState, a
         writes.set(sessionsKey, JSON.stringify(sessions));
       }
       for (const kind of ["actions", "thoughts"] as const) {
+        // Remove departed recipients from every member's existing action grants.
+        if (kind === "actions") for (const member of workspace.members) {
+          const grantKey = `eureka:actions:${workspace.id}:${member.id}:v1`;
+          const value = read(grantKey);
+          if (!value) continue;
+          const scoped = JSON.parse(value) as ActionState;
+          scoped.records.forEach(record => { record.sharedWith = (record.sharedWith || []).filter(id => id !== from); });
+          writes.set(grantKey, JSON.stringify(scoped));
+        }
         const fromKey = `eureka:${kind}:${workspace.id}:${from}:v1`, toKey = `eureka:${kind}:${workspace.id}:${to}:v1`;
         const original = read(fromKey);
         if (!original) continue;

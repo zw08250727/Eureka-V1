@@ -1,4 +1,5 @@
 export interface ActionRecord {
+  sharedWith?: string[];
   ownerId?: string;
   previousOwnerId?: string;
   contactId?: string;
@@ -34,6 +35,9 @@ export interface ActionState {
     transcript?: string;
     summary?: string;
     marks?: number[];
+    template?: string;
+    language?: string;
+    detail?: string;
   }[];
   sessions: {
     id: string;

@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from "react";
+import { ensureTeamDailyDemo } from "./team-daily-demo";
 import { ensureCustomerDetailDemo } from "./customer-detail-demo";
 import { ensureTeamCustomerDemo } from "./team-customer-demo";
 import {
@@ -38,6 +39,7 @@ export function usePersonal(accountId = "zhang", workspaceId = "personal", custo
     Promise.resolve().then(() => {
       try {
         ensureTeamCustomerDemo(localStorage, workspaceId, accountId);
+        ensureTeamDailyDemo(localStorage, workspaceId);
         if (customerDetails) ensureCustomerDetailDemo(localStorage, workspaceId, accountId);
         repo.current = {
           actions: createActions(localStorage, () => new Date(), accountId, workspaceId),
@@ -53,6 +55,8 @@ export function usePersonal(accountId = "zhang", workspaceId = "personal", custo
       if (event.key !== null && !["baizhi-v14-contacts", "eureka:workspaces:v2"].includes(event.key)) return;
       if (!repo.current) return;
       try {
+        repo.current.actions = createActions(localStorage,()=>new Date(),accountId,workspaceId);
+        repo.current.thoughts = createThoughts(localStorage,()=>new Date(),accountId,workspaceId);
         repo.current.contacts = createContacts(localStorage, accountId, workspaceId);
         refresh();
         setError("");

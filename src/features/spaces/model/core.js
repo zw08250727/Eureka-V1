@@ -390,6 +390,11 @@ function departure(s, w, uid, reason, recipient) {
     log(w, `成员资料移交管理员；设备自动解绑与清空（模拟）：${m.name}`, target);
   }
   if (w.customerSharing) delete w.customerSharing[uid];
+  if (w.thoughtSharing) {
+    delete w.thoughtSharing[uid];
+    for (const policy of Object.values(w.thoughtSharing)) for (const type of Object.keys(policy))
+      policy[type] = policy[type].filter(id => id !== uid);
+  }
   if (w.contentSharing) {
     delete w.contentSharing[uid];
     for (const policies of Object.values(w.contentSharing)) for (const policy of Object.values(policies))
@@ -595,7 +600,7 @@ function paySeatOrder(w, orderId, outcome, actor = SELF) {
   };
   w.seats = order.targetSeats;
   w.pendingSeats = null;
-  w.invoices.unshift(invoice);
+  (w.invoices ||= []).unshift(invoice);
   order.status = "paid";
   order.paidAt = invoice.date;
   order.paidBy = actor;
@@ -610,8 +615,9 @@ function paySeatOrder(w, orderId, outcome, actor = SELF) {
 // Demo catalogue and token rates are versioned separately from seat subscriptions.
 const CREDIT_PACKS = Object.freeze(
   [
-    { id: "credits-10k", credits: 10000, amount: 100 },
-    { id: "credits-50k", credits: 50000, amount: 450 },
+    { id: "credits-5k", credits: 5000, amount: 59 },
+    { id: "credits-10k", credits: 10000, amount: 109 },
+    { id: "credits-15k", credits: 15000, amount: 149 },
   ].map(Object.freeze),
 );
 const creditUnits = (value) => Math.round(Number(value) * 1000);
@@ -622,7 +628,6 @@ const creditBalance = (w) =>
 function creditQuote(w, packId, actor = SELF) {
   govern(w, actor);
   writable(w);
-  if (w.type !== "team") fail("请选择团队空间");
   const pack =
     CREDIT_PACKS.find((p) => p.id === packId) || fail("Credits 套餐无效");
   return {
@@ -630,8 +635,8 @@ function creditQuote(w, packId, actor = SELF) {
     packId: pack.id,
     credits: pack.credits,
     amount: pack.amount,
-    currency: "CNY",
-    priceVersion: "credits-pack-demo-v1",
+    currency: "USD",
+    priceVersion: "credits-pack-demo-v2",
   };
 }
 function createCreditOrder(w, packId, actor = SELF) {
@@ -703,12 +708,13 @@ function payCreditOrder(w, orderId, outcome, actor = SELF) {
     orderId: order.id,
     date: stamp(),
     amount: order.amount,
+    currency: order.currency,
     label: `Credits 购买 · ${order.credits.toLocaleString()}`,
     status: "已支付",
   };
   w.credits.total =
     (creditUnits(w.credits.total) + creditUnits(order.credits)) / 1000;
-  w.invoices.unshift(invoice);
+  (w.invoices ||= []).unshift(invoice);
   Object.assign(order, {
     status: "paid",
     paidAt: invoice.date,
@@ -1103,7 +1109,7 @@ function syncThought(s, did, uid = SELF, input = {}) {
 
 function visibleThoughts(w, uid = SELF) {
   access(w, uid);
-  return (w.thoughts || []).filter((t) => !t.deleted && (t.owner === uid || (w.type === "team" && admin(w, uid))));
+  return (w.thoughts || []).filter((t) => !t.deleted && (t.owner === uid || (w.type === "team" && (admin(w, uid) || (!t.previousOwner && !t.previousOwnerId && w.thoughtSharing?.[t.owner]?.[t.type]?.includes(uid))))));
 }
 
 function migrateAccountDevices(s) {
@@ -1690,6 +1696,22 @@ function enrich(s, now = new Date()) {
       };
       for (const [k, v] of Object.entries(defaults)) if (f[k] == null) f[k] = v;
     });
+  }
+  for(const w of s.spaces.filter(w=>["team-eureka","team-growth"].includes(w.id)&&!w.dailyInsightDemoVersion)) {
+    const active=w.members.filter(m=>m.status==="active");
+    if(active.length){
+      const observations=[
+        ["重点客户 · 星海试点进展","客户已确认首批 12 人试点名单，验收聚焦会议检索和权限可追溯。产品本周补齐验收清单，客户成功下周组织复盘。","fact","in_progress"],
+        ["交付预警 · CRM 接入延期","客户期待本周上线 CRM 接入，但接口字段仍有两项待确认，可能影响试点排期。研发与客户 IT 需在下一次评审前锁定字段。","risk","blocked"],
+        ["产品反馈 · 摘要认可与检索改进","用户认可行动项自动提取与原文溯源；负向反馈集中在移动端搜索耗时和历史会议筛选。建议保留摘要体验并优先优化检索响应。","fact","open"]
+      ];
+      observations.forEach(([title,quote,kind,status],i)=>{
+        const fid=`daily-insight-${w.id}-${i}`;
+        if(w.files.some(f=>f.id===fid))return;
+        const owner=active[i%active.length].id, f=file(fid,title,owner,active.filter(m=>m.id!==owner).map(m=>m.id),20+i*5);
+        f.created=new Date(now.getTime()-86400000*(i+1)).toISOString().slice(0,16).replace("T"," ");f.updated=f.created;f.summary=quote;f.transcript=quote;f.tags=["团队洞察","演示"];f.size=((20+i*5)*0.82).toFixed(1)+" MB";f.status="已总结";f.createdBy=owner;f.creator=active[i%active.length].name;f.detail={briefFacts:[{issueId:fid,topic:title,quote,kind,status}]};w.files.unshift(f);
+      });
+    }w.dailyInsightDemoVersion=1;
   }
   migrateAccountDevices(s);
   reconcileEntitlements(s, now);

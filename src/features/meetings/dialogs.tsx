@@ -13,38 +13,8 @@ import { RefIcon } from "@/features/reference/symbols";
 import { linesFor, transcriptText } from "./content";
 import type { MeetingDetail } from "./types";
 import type { Workspace } from "@/features/spaces/model/types";
+import { TemplateContent } from "./template-picker";
 import { assetUrl } from "@/lib/routes";
-const templates: Record<string, string[]> = {
-  白领办公: [
-    "日常工作例会",
-    "项目进度",
-    "工作部署",
-    "月度 / 季度工作总结",
-    "周度工作复盘与规划会",
-  ],
-  知识教育: ["培训学习笔记", "学术或产品分享", "党课学习教育总结", "党会沉淀"],
-  通用: [
-    "智能匹配",
-    "通用",
-    "播客访谈",
-    "党课学习教育总结",
-    "商务洽谈合作",
-    "学术或产品分享",
-    "日常工作例会",
-    "项目进度",
-    "工作部署",
-    "月度 / 季度工作总结",
-    "培训学习笔记",
-    "周度工作复盘与规划会",
-  ],
-  销售管理: ["商务洽谈合作", "客户需求访谈"],
-  法律: ["法律咨询纪要"],
-  投研分析: ["投研会议纪要"],
-  人力资源: ["面试评估"],
-  金融: ["金融业务会议"],
-  媒体: ["播客访谈"],
-  我的模版: [],
-};
 const shareNames: Record<string, string> = {
   audio: "音频",
   transcript: "转译文本",
@@ -85,7 +55,6 @@ export function MeetingDialogs({
     [error, setError] = useState(""),
     [form, setForm] = useState({ ...r, tagsText: r.tags.join("，") }),
     [silent, setSilent] = useState<string[]>([]),
-    [category, setCategory] = useState("通用"),
     [choice, setChoice] = useState("summary"),
     [format, setFormat] = useState("txt"),
     [shareTypes, setShareTypes] = useState(Object.keys(shareNames)),
@@ -371,84 +340,7 @@ export function MeetingDialogs({
     title = "重新总结";
     subtitle = "以下为当前已选配置，可直接修改后重新总结";
     cls = "md-template-dialog";
-    body = (
-      <div className="md-template-layout">
-        <nav className="md-categories" aria-label="模板分类">
-          {Object.keys(templates).map((x) => (
-            <B
-              key={x}
-              action="category"
-              className=""
-              data-value={x}
-              aria-pressed={category === x}
-              onClick={() => setCategory(x)}
-            >
-              {x}
-            </B>
-          ))}
-        </nav>
-        <div>
-          <div className="md-inline">
-            <strong>选择总结模板</strong>
-            <B
-              action="template-help"
-              className="md-link"
-              onClick={() =>
-                setError(
-                  "模板决定总结的组织方式；“详细程度”控制示例内容的篇幅。",
-                )
-              }
-            >
-              查看模板说明 ›
-            </B>
-          </div>
-          <div className="md-template-grid" id="md-template-grid">
-            {templates[category].length ? (
-              templates[category].map((x) => (
-                <B
-                  key={x}
-                  action="choose-template"
-                  className="md-template-card"
-                  data-value={x}
-                  aria-label={x}
-                  aria-pressed={form.template === x}
-                  onClick={() => setForm({ ...form, template: x })}
-                >
-                  <span>▤</span>
-                  {x}
-                </B>
-              ))
-            ) : (
-              <p className="md-notice">还没有自定义模板。请选择系统模板。</p>
-            )}
-          </div>
-          <strong>全局设置</strong>
-          <p style={{ color: "#9da4b1" }}>生成配置</p>
-          <div className="md-settings">
-            {(["language", "detail"] as const).map((key) => (
-              <label className="md-field" key={key}>
-                <span>{key === "language" ? "总结语言" : "详细程度"}</span>
-                <select
-                  id={`md-${key}`}
-                  value={form[key]}
-                  onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                >
-                  {(key === "language"
-                    ? ["中文（中国）", "English"]
-                    : ["精简", "标准", "详细"]
-                  ).map((x) => (
-                    <option key={x}>{x}</option>
-                  ))}
-                </select>
-              </label>
-            ))}
-          </div>
-          <div className="md-notice">
-            演示模式：按所选模板重排本地示例内容，未连接 AI 总结服务。
-          </div>
-        </div>
-      </div>
-    );
+    body = <TemplateContent value={{template:form.template,language:form.language,detail:form.detail}} onChange={patch=>setForm({...form,...patch})}/>;
     footer = (
       <>
         {cancel}

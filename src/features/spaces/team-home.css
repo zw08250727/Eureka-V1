@@ -80,7 +80,7 @@
 #ws-view .team-private-column p { color:#8b9aae; font-size:12px; line-height:22px; }
 #ws-view .team-private-todo { display:flex; align-items:center; gap:7px; min-width:0; }
 #ws-view .team-private-todo>.team-private-todo-title { min-width:0; padding:0; border:0; background:transparent; text-align:left; font-size:12px; color:#435e7d; line-height:22px; cursor:pointer; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-#ws-view .team-private-todo>button:not(.team-private-todo-title) { padding:0; width:15px; height:15px; flex:0 0 15px; border:1px solid #b6c7db; border-radius:50%; background:#fff; color:#397ac6; font-size:10px; cursor:pointer; }
+#ws-view .team-private-todo>button:not(.team-private-todo-title):not(.ex-share) { padding:0; width:15px; height:15px; flex:0 0 15px; border:1px solid #b6c7db; border-radius:50%; background:#fff; color:#397ac6; font-size:10px; cursor:pointer; }
 #ws-view .team-private-todo>button[aria-pressed=true]+.team-private-todo-title { color:#8b9aae; text-decoration:line-through; }
 #ws-view .team-private-todo>button:focus-visible { outline:2px solid #397bd5; outline-offset:3px; }
 #ws-view .team-private-ledger { max-height:62px; overflow:auto; }
@@ -100,3 +100,8 @@
 .ws-recording-table td:last-child .ws-actions { flex-wrap: nowrap; gap: 14px; min-width: 88px; }
 .ws-recording-table td:last-child .ws-btn.link { min-height: 28px; }
 #ws-meeting-member { border: 1px solid #dce5f2; border-radius: 20px; padding: 8px; min-height: 34px; color: #6f84a0; background: white; font: inherit; font-size: 11px; }
+
+#ws-view .team-overview-canvas{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr)}
+#ws-view .team-private-agenda{min-height:170px;grid-template-columns:1fr;gap:16px}#ws-view .team-private-list{max-height:130px;overflow:auto;gap:9px}#ws-view .team-private-notes{padding-top:12px;margin-top:14px;opacity:.85}#ws-view .team-private-todo>.team-private-todo-title{flex:1}#ws-view .team-private-todo>.ex-share{width:auto;height:auto;flex:none;border:0;border-radius:0;font-size:11px}#ws-view .ex-daily-row{display:flex;gap:8px;align-items:center}#ws-view .ex-daily-row>a{flex:1;min-width:0}#ws-view .team-insights{max-height:355px;overflow:auto}#ws-view .team-insight-body>span:first-child{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}@container team-overview (max-width:900px){#ws-view .team-overview-canvas{grid-template-columns:1fr}}
+
+#ws-view .ex-daily-row>a{display:flex;align-items:center;gap:12px;font-size:12px;line-height:22px}#ws-view .team-private-todo>.ex-share{white-space:nowrap;min-width:30px;padding:0;line-height:22px}

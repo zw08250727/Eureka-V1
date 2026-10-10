@@ -3,6 +3,9 @@ export const assetUrl = (path: string) =>
   `${basePath}/prototype/one-to-one-reference/assets/${path}`;
 export const prdUrl = `${basePath}/prototype/prd/index.html`;
 export type AppView =
+  | "connectors"
+  | "updates"
+  | "product"
   | "home"
   | "calendar"
   | "contacts"

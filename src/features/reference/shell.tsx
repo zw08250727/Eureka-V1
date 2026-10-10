@@ -17,6 +17,10 @@ import { PageTitleContext } from "./page-title";
 import { RecordingPermission } from "@/features/meetings/recording-permission";
 import { CreateTeamDialog, InvitationsDialog } from "@/features/spaces/setup";
 import { M } from "@/features/spaces/model/store";
+import dynamic from "next/dynamic";
+import { CreditsPromo, openAccount, type AccountPanel } from "@/features/account/experience";
+const TemplatePreferences=dynamic(()=>import("@/features/meetings/template-picker").then(m=>m.TemplatePreferences));
+const AccountExperience = dynamic(() => import("@/features/account/experience").then(m => m.AccountExperience));
 import PS from "@/features/spaces/model/subscription";
 import type { SpacesController } from "@/features/spaces/use-spaces";
 export function ReferenceShell({
@@ -36,6 +40,10 @@ export function ReferenceShell({
   controller: SpacesController;
   reviewSwitch?: ReactNode;
 }) {
+  const [templatePreferences,setTemplatePreferences]=useState(false);
+  useEffect(()=>{const open=()=>setTemplatePreferences(true);window.addEventListener("eureka:templates",open);return()=>window.removeEventListener("eureka:templates",open)},[]);
+  const [accountPanel,setAccountPanel]=useState<AccountPanel>(null);
+  useEffect(()=>{const open=(e:Event)=>{setAccountPanel((e as CustomEvent<AccountPanel>).detail);setMenu(null)};window.addEventListener("eureka:account-panel",open);return()=>window.removeEventListener("eureka:account-panel",open)},[]);
   const [pageTitle, setPageTitle] = useState(title);
   const [recordRequest, setRecordRequest] = useState<{ id: string } | null>(
     null,
@@ -301,6 +309,7 @@ export function ReferenceShell({
                     </button>
                   </div>
               </>
+              <button type="button" className={"nav-item " + (view === "connectors" ? "active" : "")} onClick={()=>go("connectors")}><span className="nav-left"><span className="nav-icon"><RefIcon name="link"/></span><span className="nav-label">连接器</span></span></button>
             </nav>
             <nav
               id="ws-team-nav"
@@ -329,7 +338,9 @@ export function ReferenceShell({
               ) : null}
             </nav>
           </div>
+
           <div className="user-footer">
+          <button className="ex-top-credits ex-lower-credits" onClick={()=>openAccount(team?"recharge":"tasks")}>{team?"充值 Credits":"✦ 做任务赚 Credits"}<span style={{float:"right"}}>›</span></button>
             <button
               className="user-card"
               id="user-card"
@@ -361,6 +372,8 @@ export function ReferenceShell({
                 {pageTitle}
               </div>
               <div className="topbar-right">
+                <button className="ex-top-credits" onClick={()=>openAccount("credits")}>✦ {M.creditBalance(w).toLocaleString()} Credits</button>
+                <button className="ex-top-credits" aria-label="所有通知" onClick={()=>openAccount("notifications")}><RefIcon name="bell"/></button>
                 {reviewSwitch}
                 <a
                   className="prd-review-entry"
@@ -476,7 +489,7 @@ export function ReferenceShell({
               className="ws-menu"
               role="dialog"
               aria-label={
-                menu === "account" ? "我的账户与工作空间" : "切换工作空间"
+                menu === "account" ? "我的账户" : "切换工作空间"
               }
               data-mode={menu}
               style={position}
@@ -487,10 +500,11 @@ export function ReferenceShell({
                   <RefIcon name={team ? "users" : "user"} className="ws-icon" />
                 </span>
                 <div>
-                  <strong>{w.name}</strong>
+                  <strong>{menu === "account" ? data.account.name : w.name}</strong>
                   <small>{data.account.email}</small>
                 </div>
               </div>
+              {menu === "spaces" && <>
               <div className="ws-menu-caption">工作空间 · 切换不移动内容，也不改变设备绑定</div>
               {data.spaces
                 .filter((s) => M.member(s))
@@ -564,14 +578,17 @@ export function ReferenceShell({
                   邀请空间成员
                 </button>
               ) : null}
+              </>}
               {menu === "account" ? (
                 <>
-                  <div className="ws-menu-divider" />
+                  <CreditsPromo w={w}/>
                   {[
                     ["home", "mic", "会议录音"],
                     ["my-devices", "phone", "我的设备"],
                     ["subscription", "task", team ? "订阅与席位" : "个人订阅"],
                     ["settings", "edit", "个人设置"],
+                    ["updates", "history", "更新日志"],
+                    ["product", "file", "产品介绍"],
                   ].map(([v, icon, label]) => (
                     <button
                       type="button"
@@ -598,6 +615,8 @@ export function ReferenceShell({
             document.body,
           )
         : null}
+      {templatePreferences&&<TemplatePreferences onClose={()=>setTemplatePreferences(false)}/>}
+      {accountPanel&&<AccountExperience key={`${space}:${actor}:${accountPanel}`} controller={controller} space={space} actor={actor} panel={accountPanel} onClose={()=>setAccountPanel(null)}/>}
       <div className={"toast " + (toast ? "show" : "")} role="status">
         {toast}
       </div>

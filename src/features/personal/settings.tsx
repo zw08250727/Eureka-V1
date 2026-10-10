@@ -6,6 +6,7 @@ import { M } from "@/features/spaces/model/store";
 import PS from "@/features/spaces/model/subscription";
 import { RefIcon } from "@/features/reference/symbols";
 import { appUrl } from "@/lib/routes";
+import { AccountSettings } from "@/features/account/settings";
 import { SettingsLogoutDialog } from "./settings-dialog";
 
 export function SettingsPage({
@@ -17,7 +18,8 @@ export function SettingsPage({
   space: string;
   actor: string;
 }) {
-  const { data, error, repo, refresh } = usePersonal();
+  const { data, error, repo, refresh } = usePersonal(actor,space);
+  const [tab,setTab]=useState(()=>typeof window!=="undefined"&&new URLSearchParams(location.search).get("id")==="credits"?"Credits 明细":"个人信息");
   const [toast, setToast] = useState("");
   const [logout, setLogout] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -90,6 +92,9 @@ export function SettingsPage({
             <RefIcon name="x" />
           </button>
         </header>
+        <nav className="ex-settings-tabs" role="tablist">{["个人信息","Credits 明细","录音设置","录音转写时长"].map(t=><button role="tab" aria-selected={tab===t} key={t} onClick={()=>setTab(t)}>{t}</button>)}</nav>
+        <AccountSettings {...{controller,space,actor,tab}}/>
+        <div hidden={tab!=="录音设置"}>
         <section className="settings-float-section">
           <div className="settings-float-head">
             <h4>账户</h4>
@@ -264,6 +269,8 @@ export function SettingsPage({
             </a>
           </div>
         </section>
+        <section className="settings-float-section"><div className="settings-float-row"><div className="settings-row-copy"><strong>获取地理位置</strong><span>为新录音附上位置信息</span></div><button className="settings-switch" role="switch" aria-label="获取地理位置" aria-checked={!!preferences.location} onClick={()=>update({location:!preferences.location})}><i/></button></div><div className="settings-float-row"><div className="settings-row-copy"><strong>声纹识别</strong><span>在 App 录入声纹后，用于识别录音中的发言人。</span></div><button className="settings-switch" role="switch" aria-label="声纹识别" aria-checked={!!preferences.voiceprint} onClick={()=>update({voiceprint:!preferences.voiceprint})}><i/></button></div><div className="settings-float-row"><div className="settings-row-copy"><strong>行业术语</strong><span>请在 App 内维护行业术语，提升识别准确率。</span></div></div><button className="ex-button" onClick={()=>window.dispatchEvent(new CustomEvent("eureka:templates"))}>总结模板、语言及详细程度</button></section>
+        </div>
       </div>
       {toast ? (
         <div id="toast" className="toast show" role="status">

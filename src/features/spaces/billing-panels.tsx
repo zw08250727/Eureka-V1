@@ -1,4 +1,5 @@
 "use client";
+import { openAccount } from "@/features/account/experience";
 import { RefIcon } from "@/features/reference/symbols";
 import type { Cycle, Order, Workspace, WorkspaceState } from "./model/types";
 import { M } from "./model/store";
@@ -63,6 +64,7 @@ export function PersonalBilling({
   );
   return (
     <>
+      <div className="ex-tabs">{(["compare","faq","orders"] as const).map((p,i)=><button className="ex-button" key={p} onClick={()=>openAccount(p)}>{["权益对比","常见问题","我的订单"][i]}</button>)}</div>
       <WsHeading
         w={w}
         actor={actor}
@@ -619,7 +621,7 @@ export function CreditsBilling({
                 : "有一笔待支付的 Credits 订单"}
             </strong>
             <span>
-              {creditNumber(pending.credits)} Credits · {money(pending.amount)}
+              {creditNumber(pending.credits)} Credits · {money(pending.amount,pending.currency)}
             </span>
           </div>
           <div className="ws-actions">
@@ -635,7 +637,7 @@ export function CreditsBilling({
             <Button
               action="topup"
               className="primary"
-              onClick={() => act("topup")}
+              onClick={() => openAccount("recharge")}
             >
               <RefIcon name="plus" className="ws-icon" />
               购买 Credits
@@ -717,7 +719,7 @@ export function CreditsBilling({
                       <small>{date(o.created)}</small>
                     </td>
                     <td>{creditNumber(o.credits)}</td>
-                    <td>{money(o.amount)}</td>
+                    <td>{money(o.amount,o.currency)}</td>
                     <td>
                       <Badge kind={o.status === "paid" ? "green" : ""}>
                         {

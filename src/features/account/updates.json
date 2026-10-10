@@ -1,0 +1,1056 @@
+[
+  {
+    "date": "2026.08.14",
+    "version": "V4.3.0版本",
+    "product": "app",
+    "items": [
+      {
+        "title": "新增模板社区",
+        "description": "Wisenote App 新增模板社区功能，支持将自定义模板发布到社区，让更多人使用；也可以从模板社区下载热门模板，探索更多垂直场景的用法。",
+        "images": [
+          "/integrations/updates/fd606bb1e76440de849fcfde50dfb8f2.webp",
+          "/integrations/updates/06894113d06649ba84cc8d4a75c7ac9e.webp",
+          "/integrations/updates/816f16d27a3a4f238c338133657581d4.webp",
+          "/integrations/updates/41bd80a4d9124b54a602bebb089e92c4.webp",
+          "/integrations/updates/5a37b60d2a8e43b495382cca07a16942.webp"
+        ]
+      },
+      {
+        "title": "智能总结后评分功能",
+        "description": "Wisenote App 新增智能总结后评分功能，我们将搜集更多使用体验反馈，进一步优化我们的能力。",
+        "images": [
+          "/integrations/updates/9d2aa0a0fe354def9ab8b933b38a5e8d.webp",
+          "/integrations/updates/432bbb02cc99475d9b6824c169300290.webp",
+          "/integrations/updates/68950cb17731489288be2c6b07f04d3a.webp"
+        ]
+      },
+      {
+        "title": "空闲关机",
+        "description": "Wisenote App 支持空闲关机设置，用户可以根据习惯调整录音卡空闲自动关机时间（此前默认是 5min 无操作自动关机）",
+        "images": [
+          "/integrations/updates/cfbf73e0852749f5bf3499d46fcb258f.webp",
+          "/integrations/updates/272ad606413a46f4a0b98e2ab494c554.webp"
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026.07.30",
+    "version": "V4.2.0版本",
+    "product": "app",
+    "items": [
+      {
+        "title": "百智 WiseNote_MP3 多文件并行转码，转码完成支持音频播放",
+        "description": "百智WiseNote优化MP3转码逻辑，支持多文件并行启动转码，文件转码完成后即可进入详情页播放音频。",
+        "images": [
+          "/integrations/updates/fba8f19dc8d14e8490c06e44b314bcb4.webp",
+          "/integrations/updates/32e6acea9df740ca81c2df7d5ce16184.webp"
+        ]
+      },
+      {
+        "title": "百智 WiseNote_闪念Agent优化 及会话管理优化",
+        "description": "百智 WiseNote 完成闪念 Agent 相关能力优化，同时优化会话管理相关功能。",
+        "images": [
+          "/integrations/updates/e7cfdd7041d44b4da797a9be173a4675.webp",
+          "/integrations/updates/6898abc3c92c42ce86a4290a3998b72c.webp",
+          "/integrations/updates/3e7a2f1c0cbf4135b202c2acdd64d61c.webp",
+          "/integrations/updates/2d4f1647ff2b4210b7c01a3f459f26e5.webp",
+          "/integrations/updates/6936b2b7d4274bf49a299863af5bff56.webp"
+        ]
+      },
+      {
+        "title": "百智 WiseNote_硬件内存不足提示与功能限制",
+        "description": "百智 WiseNote 新增硬件内存不足检测逻辑，触发时展示对应提示并执行相关功能限制。",
+        "images": [
+          "/integrations/updates/f59b4623333743c69203f0431de1f443.webp",
+          "/integrations/updates/07df5bcefe154e5cb4528acb12fd8ae7.webp",
+          "/integrations/updates/1cf0399ddcf44a5c9c72486827df4694.webp",
+          "/integrations/updates/d054af1de65649e9a1484dac469c5f77.webp",
+          "/integrations/updates/b0b8c13c631a484fa61b83865c36d15c.webp"
+        ]
+      },
+      {
+        "title": "百智 WiseNote_实时翻译的语言选择",
+        "description": "百智 WiseNote_实时翻译的语言选择，解决了输出语言选择后不生效的问题。",
+        "images": []
+      },
+      {
+        "title": "百智 WiseNote_拍照的图片存储",
+        "description": "百智 WiseNote/Eureka_APP 拍照的图片也支持存储在相册中。",
+        "images": []
+      },
+      {
+        "title": "百智 WiseNote_传输体验优化",
+        "description": "百智 WiseNote传输体验优化，快传/蓝牙传输流畅度和成功率优化。",
+        "images": [
+          "/integrations/updates/646548fe54324075954c07b196117874.webp",
+          "/integrations/updates/a2120e38ce834ee6ac810ab09cd5b498.webp"
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026.07.16",
+    "version": "V4.1.0版本",
+    "product": "app",
+    "items": [
+      {
+        "title": "百智 WiseNote_录音文件同步机制优化",
+        "description": "优化百智 WiseNote 录音历史文件未上传提醒、快传模式下支持置顶、取消传输操作。",
+        "images": [
+          "/integrations/updates/e475eedd707440d1b396731f67df45d4.webp",
+          "/integrations/updates/18d5f1dc04fd42efb6b3901936ce36eb.webp",
+          "/integrations/updates/5f802f94bdd74390a1ef29102918137b.webp",
+          "/integrations/updates/e1e5e3c3497c4dec94555d1015ee0a09.webp",
+          "/integrations/updates/fb9538f3e8ca47a892b65bbb2fca7ede.webp"
+        ]
+      },
+      {
+        "title": "百智 WiseNote_语音文件增加位置 / 标签 / 参会人等元信息",
+        "description": "百智 WiseNote 语音文件新增位置、标签、参会人元信息，支持录入展示等，完善语音文件管理。\n个人版 Vs 企业版 ：个人版可编辑地理位置信息、企业版不支持编辑以及额外需补充商机、项目信息。",
+        "images": [
+          "/integrations/updates/19fd2c14d74347c683bd4f482107e94d.webp",
+          "/integrations/updates/d89406c335a347c9a52ae94a64716ed0.webp",
+          "/integrations/updates/8809917b163e4a8b83d6cb0f0ac348b3.webp",
+          "/integrations/updates/7ad4f0601c1c41b591cc115bdb1ac47e.webp",
+          "/integrations/updates/5c94d89a034c461ca57032b8c9009364.webp"
+        ]
+      },
+      {
+        "title": "百智 WiseNote_重点标记",
+        "description": "标记来源：录音过程中-硬件、软件标记，以及会后长按标记划重点，智能总结内容上方增加：重点标记模块。",
+        "images": [
+          "/integrations/updates/446e9a885b1f468b9aaacf9d03e1fccd.webp",
+          "/integrations/updates/0d67277c618e4714a130d2972e15b42a.webp",
+          "/integrations/updates/ea29b6ff1e764e0eaf4d198148a6e94f.webp"
+        ]
+      },
+      {
+        "title": "百智 WiseNote_会后补充客户名称/商机名称等元信息",
+        "description": "百智 WiseNote 支持会后补填客户名称、商机名称等业务元信息，完善会议录音内容。",
+        "images": [
+          "/integrations/updates/f34fb3c6630f4a35b4ff550f27d57226.webp",
+          "/integrations/updates/5014a9421c6d46eb8db80eaa27cfddf2.webp",
+          "/integrations/updates/fd40f3edd9294446950f4867e8be4272.webp"
+        ]
+      },
+      {
+        "title": "百智 WiseNote_自动转译开关支持配置",
+        "description": "百智 WiseNote 新增自动转译开关配置项，支持企业管理员开启 / 关闭录音自动转译功能。",
+        "images": [
+          "/integrations/updates/7146b58a0b9a40ff8b913d9ccdae2188.webp"
+        ]
+      },
+      {
+        "title": "百智 WiseNote_音频同步时不允许OTA升级",
+        "description": "百智 WiseNote 设备音频同步过程中，限制触发 OTA 升级，避免影响传输。",
+        "images": [
+          "/integrations/updates/ded1ce88d8ff4723a1a9aaa2434e34c6.webp"
+        ]
+      },
+      {
+        "title": "百智WiseNote_增加会员入口",
+        "description": "百智 WiseNote 新增会员功能入口，增加用户选购渠道。",
+        "images": [
+          "/integrations/updates/40647493b9174ecfaaded7f134c3d23e.webp",
+          "/integrations/updates/74084c53a87249f78ad48844e80a3cb6.webp"
+        ]
+      },
+      {
+        "title": "百智 WiseNote_会员挽留弹窗&历史滚动条",
+        "description": "百智WiseNote新增会员挽留弹窗，优化历史记录滚动条。",
+        "images": [
+          "/integrations/updates/9393b7fef5634c128ccdf77b426b411e.webp",
+          "/integrations/updates/5f2f682d71214da1b5be35fbd6d8d9ec.webp",
+          "/integrations/updates/d6fe997042a5466090ff9da45afdabe2.webp"
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026.06.18",
+    "version": "V3.9.0版本",
+    "product": "app",
+    "items": [
+      {
+        "title": "百智WiseNote_思维导图",
+        "description": "百智 WiseNote 全新思维导图功能正式上线，AI 一键梳理及可视化搭建完整知识逻辑链路。",
+        "images": [
+          "/integrations/updates/f7135247666c43bca55368d6ca4f4f7a.webp",
+          "/integrations/updates/e9c164e2e5594022b18a7663efe71295.webp",
+          "/integrations/updates/f1be46e92f104da0843c7235a4f77e38.webp",
+          "/integrations/updates/a37baa74dfd544f1a2c633fdbe339cce.webp",
+          "/integrations/updates/f3791bbd58bb413b803f91723bb802dd.webp"
+        ]
+      },
+      {
+        "title": "百智WiseNote_逐字稿",
+        "description": "百智 WiseNote 逐字稿完整留存录音原始对话，完整还原会议、访谈等全部对话细节，实现内容全程可溯源。",
+        "images": [
+          "/integrations/updates/d5957a07bf3849f8849d49c5789b68a8.webp",
+          "/integrations/updates/ca1555a18b874b10b6c31279b288f772.webp",
+          "/integrations/updates/039b00527f9e42259317607e3e3b2edf.webp",
+          "/integrations/updates/99e2e29b14704d3496c1cdba12323225.webp"
+        ]
+      },
+      {
+        "title": "百智WiseNote_图文摘要",
+        "description": "百智 WiseNote 图文摘要，AI 融合图文素材提炼核心要点，一键生成可视化纪要。",
+        "images": [
+          "/integrations/updates/b7678d74adb944b68eea31dbea688a6a.webp",
+          "/integrations/updates/64e9368b49f647b78cd2893ce76cfd92.webp",
+          "/integrations/updates/7341d9d0eb9e43e4ae33c536ed6f2511.webp",
+          "/integrations/updates/b0cff9f8ae534ca69b97cc89a478562a.webp",
+          "/integrations/updates/b360cdbc78a54d5ea48eb6d6b31c6c21.webp"
+        ]
+      },
+      {
+        "title": "百智WiseNote/PC_删除、同步逻辑优化",
+        "description": "本期优化了删除和同步需求中，随知识库 2.0 重构优化了删除和同步逻辑：去掉 PC 向 APP 同步的按钮，默认所有PC 录音均默认同步至 APP； PC 删除录音文件时会将进入回收站，APP 暂无回收站，故暂不支持找回。",
+        "images": [
+          "/integrations/updates/fa2f4b0848fb4e46b26be761cffe421d.webp"
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026.06.04",
+    "version": "V3.7.0版本",
+    "product": "app",
+    "items": [
+      {
+        "title": "百智WiseNote_人人推荐官价格调整",
+        "description": "百智WiseNote_人人推荐官价格由749元/台调整到659元/台。",
+        "images": [
+          "/integrations/updates/d4aafb49e1cb4a0098ee9ea57f946d38.webp",
+          "/integrations/updates/fffdf224000f4ad092aefe604ef2520a.webp"
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026.05.21",
+    "version": "V3.6.0版本",
+    "product": "app",
+    "items": [
+      {
+        "title": "闪念模式",
+        "description": "硬件2.0重磅上线，即将发售：新增闪念采集能力，长按设备右上角闪念按键，即可持续录制即时灵感，生成独立短录音文件，为 APP 端闪念全链路功能提供硬件采集支撑。",
+        "images": [
+          "/integrations/updates/ec2e4261bbf843878757153ba09f60c1.webp",
+          "/integrations/updates/06030a40c12048eab825cc3b1a130b5f.webp",
+          "/integrations/updates/bc31d380aced46b384a88638a1ad0562.webp",
+          "/integrations/updates/6c3ef2b1055a416598a8b3224d0250c0.webp"
+        ]
+      },
+      {
+        "title": "常用语言",
+        "description": "支持用户自定义添加、编辑、管理高频使用的常用语言，可设置唤醒词快速调用，大幅提升对话效率。",
+        "images": [
+          "/integrations/updates/c54dd8582eb6464fb4da8335c6b4b24f.webp",
+          "/integrations/updates/5eacd3c30fb6400a92283fd7c0f3fd96.webp",
+          "/integrations/updates/399136f733234e38a8cfe7bdcdc49cd3.webp"
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026.04.30",
+    "version": "V3.5.0版本",
+    "product": "app",
+    "items": [
+      {
+        "title": "APP 下载页增加硬件参数介绍",
+        "description": "百智 WiseNote APP 下载页面补充硬件相关参数介绍，帮助用户在下载前了解设备和使用条件。",
+        "images": [
+          "/integrations/updates/897b3d034f3848d1a32be5186f767796.webp",
+          "/integrations/updates/08836725d69b45d38548d671dc651a21.webp"
+        ]
+      },
+      {
+        "title": "Ask Agent 支持快速/长思考模式切换",
+        "description": "Ask Agent 默认使用快速模式；开启深度思考模式后，可适配更复杂的会议内容理解与回答场景。",
+        "images": [
+          "/integrations/updates/c3d39655cb2c449d8f544f62e39c3193.webp"
+        ]
+      },
+      {
+        "title": "设备格式化",
+        "description": "补充 WiseNote 设备格式化能力，支持用户在设备管理链路中完成设备状态处理。",
+        "images": [
+          "/integrations/updates/bb98f8ff913040a694da59ea9aba2d5e.webp",
+          "/integrations/updates/7d6b0be7d3554ddb9636d9b54d7fb635.webp",
+          "/integrations/updates/754bd9c0eafc497199f7606890ccff37.webp"
+        ]
+      },
+      {
+        "title": "兼容 W-PEN 录音笔适配",
+        "description": "支持搜索 W-PEN 设备，展示多设备与电量信息，并通过录音笔/录音卡标签区分设备类型。",
+        "images": [
+          "/integrations/updates/469fb57c214644fabb5c6a228c1d1625.webp",
+          "/integrations/updates/e26a77791afe4b59a53a6e4f04380f1d.webp",
+          "/integrations/updates/3891dbdfac02452bb6c915cc446b76d0.webp"
+        ]
+      },
+      {
+        "title": "会议总结偏好配置",
+        "description": "新增个人总结偏好设置页面，将用户总结偏好实时带入；智能匹配开关迁移到总结偏好页，并支持简洁/详细总结程度设置。",
+        "images": [
+          "/integrations/updates/78d3c93662734d53894d8429c62c7d91.webp",
+          "/integrations/updates/27dfc8c78e5946ce9b85cde07020da78.webp",
+          "/integrations/updates/d3e2d46c7e544f06a67304c0a2cc62ae.webp"
+        ]
+      },
+      {
+        "title": "积分和转写时长调整",
+        "description": "免费版转写时长调整为 300 分钟/月；会员月赠积分调整为标准版 6000、专业版 9000、卓越版 20000。",
+        "images": [
+          "/integrations/updates/fd54e71c8c5044899e1a78f2c64c64c0.webp",
+          "/integrations/updates/181e9fa0ef484fae82b7a0134348419c.webp"
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026.04.16",
+    "version": "V3.4.0版本",
+    "product": "app",
+    "items": [
+      {
+        "title": "多角色身份登录支持",
+        "description": "百智WiseNote、百智AI工作台支持个人用户手机号/邮箱登录，以及企业用户组织代码关联、企业微信授权、飞书、钉钉和企业邮箱登录。",
+        "images": [
+          "/integrations/updates/017f46e197bb4183ba067511aadfb200.webp",
+          "/integrations/updates/31aa114a9b26481ba72aace39aebe2f8.webp"
+        ]
+      },
+      {
+        "title": "分享系统重构",
+        "description": "分享系统支持设置分享有效期、分享内容类型，并移除私人分享，补齐分享配置、分享记录和已失效分享管理。",
+        "images": [
+          "/integrations/updates/e7a167289c4449a5ad47301691eccf96.webp",
+          "/integrations/updates/1edb3643aa7d4ac880d2d045d43f9808.webp",
+          "/integrations/updates/5fdd2916d31340ae8a34c55d0ecd4560.webp"
+        ]
+      },
+      {
+        "title": "Agent 相关体验优化",
+        "description": "优化新总结 Tab 顺序、Ask Agent 设为总结高亮，并标准化输出内容格式，让生成结果更美观。",
+        "images": [
+          "/integrations/updates/07b34f40602b49d08acd496baee967dc.webp",
+          "/integrations/updates/23bd18fd06404362b923f937357713ba.webp",
+          "/integrations/updates/717e207092cd4d86b9bf544c1f825937.webp"
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026.04.09",
+    "version": "V3.3.0版本",
+    "product": "app",
+    "items": [
+      {
+        "title": "支持实时翻译",
+        "description": "WiseNote 支持实时翻译过程展示、翻译语言切换，并支持将实时翻译内容沉淀下来。",
+        "images": [
+          "/integrations/updates/024eb000a3144ea09739d6b90edde3ff.webp",
+          "/integrations/updates/ec96da285b274d138e3a0b3473d1eac1.webp",
+          "/integrations/updates/70dd47b062304530b33744dd376e83d3.webp"
+        ]
+      },
+      {
+        "title": "OTA 固件升级推送",
+        "description": "新增 OTA 固件升级推送能力，便于设备端能力持续更新。",
+        "images": [
+          "/integrations/updates/2a6f440183364cfe83c04ce82263fca1.webp",
+          "/integrations/updates/f955bf0800054881aab92280ad45d6fb.webp",
+          "/integrations/updates/fbe91a30a3e8408b8a484baae001eb26.webp"
+        ]
+      },
+      {
+        "title": "人人推荐官",
+        "description": "新增推荐官活动，用户推荐好友购买可享大额现金奖励。",
+        "images": [
+          "/integrations/updates/47ee57f5085a44e79db6e4b2321ab863.webp",
+          "/integrations/updates/87c47c620ec84dcba55933265a23fc6f.webp",
+          "/integrations/updates/8e0d6623aa4b45b39b117079d5a0d2a2.webp"
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026.03.26",
+    "version": "V3.2.0版本",
+    "product": "app",
+    "items": [
+      {
+        "title": "新功能引导",
+        "description": "新增 Ask Agent、多会议合并、会员权益等功能引导，帮助用户更快理解新能力入口。",
+        "images": [
+          "/integrations/updates/e74169e68f2d425a985ecddbf7787177.webp",
+          "/integrations/updates/1d5aebb4a2d44814833bd9138855714f.webp",
+          "/integrations/updates/b0a2165d9bd44c11b928fdc3bfd4da7d.webp"
+        ]
+      },
+      {
+        "title": "新增 ClawBot",
+        "description": "通过配置 MCP 打通钉钉、飞书工作流，提供 ClawBot 介绍、首页入口、人设和工作流联动能力。",
+        "images": [
+          "/integrations/updates/14d4235ac62d4df2a915ab4e6b14f547.webp",
+          "/integrations/updates/b1d869805b20455bacd7d7d4ba636961.webp",
+          "/integrations/updates/5498910d086a41a1a9fe27088cbf1a65.webp",
+          "/integrations/updates/9b2ec45a990e48e0a3dd53dca73fce0e.webp",
+          "/integrations/updates/b6eeb695de1b4352b166d2d3484260b4.webp",
+          "/integrations/updates/a2ee650b06024f53b5bde3b1ec8563ea.webp",
+          "/integrations/updates/8af5827532f9425eb6fa2f6b4800e0a7.webp"
+        ]
+      },
+      {
+        "title": "Ask Agent 支持语音输入",
+        "description": "底部输入框新增语音入口，支持语音输入过程展示和语音转文本。",
+        "images": [
+          "/integrations/updates/a81b3c326ae1484b9c6c21ce67a9633c.webp",
+          "/integrations/updates/5ce76dbbe01f4ea39160cedf3aeb1c3b.webp",
+          "/integrations/updates/aa74375480a745cf9ba8b61f49b75229.webp"
+        ]
+      },
+      {
+        "title": "多会议合并",
+        "description": "支持从首页入口发起多会议合并，按顺序勾选会议并完成合并确认。",
+        "images": [
+          "/integrations/updates/470fe0390fd44f8a9f4a0531fc3accce.webp",
+          "/integrations/updates/b2bec1df0a454020ab4fa38558668efb.webp",
+          "/integrations/updates/52f60344fa814adba278fd10500f3b4a.webp"
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026.03.05",
+    "version": "V3.0.0版本",
+    "product": "app",
+    "items": [
+      {
+        "title": "PC端音频播放和 H5 播放",
+        "description": "新增 PC 端音频播放组件，支持在 PC 端播放录音，并兼容 H5 播放场景。",
+        "images": [
+          "/integrations/updates/4ce583dd1ba0462480bbfc0a2c701560.webp"
+        ]
+      },
+      {
+        "title": "自动识别会议模板",
+        "description": "WiseNote 支持自动识别会议模板，提升会议总结模板匹配效率。",
+        "images": [
+          "/integrations/updates/6a51f7b585a54407ad7c1900c807a2e5.webp",
+          "/integrations/updates/98f30ed1fdb04bc6bf9ae0595ce25581.webp",
+          "/integrations/updates/855c616a4091431bbcfb05904caac4e8.webp"
+        ]
+      },
+      {
+        "title": "报告预览支持分享",
+        "description": "报告预览链路增加分享能力，便于将会议总结结果对外分发。",
+        "images": [
+          "/integrations/updates/69958a44585c44bebbb498c4bea5a264.webp",
+          "/integrations/updates/db11fbbe597540ff9b7fa12cab1e1830.webp"
+        ]
+      },
+      {
+        "title": "支持发言人编辑",
+        "description": "支持对会议转写结果中的发言人进行编辑，提升会议记录可读性和后续沉淀质量。",
+        "images": [
+          "/integrations/updates/8ba7d68ca0214c84838b2324b0db7be3.webp",
+          "/integrations/updates/ed377870369c4ddaac420cdd5ec5bb14.webp"
+        ]
+      },
+      {
+        "title": "音频/转译文本/总结支持下载",
+        "description": "音频、转译文本和总结内容支持在 App 与 PC 端下载，方便用户离线保存和复用。",
+        "images": [
+          "/integrations/updates/5276d1fa6d574de4b5184b2925216b78.webp",
+          "/integrations/updates/8623c2d4b4554be181cb836fa040d892.webp",
+          "/integrations/updates/5ea44399a10e4689af4d157771bf7d34.webp"
+        ]
+      },
+      {
+        "title": "全新升级会员版本",
+        "description": "百智WiseNote会员版本全新升级，会员体系能力归入 WiseNote 端展示。",
+        "images": [
+          "/integrations/updates/84b1d1ed44f54338bb3ae6e6fe8b531d.webp",
+          "/integrations/updates/bd35e2d0dc534cf89e5e93c3e22dcba5.webp",
+          "/integrations/updates/4834b9cb3105419fa5b6894ffe23bfd7.webp"
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026.02.10",
+    "version": "V2.9.0版本",
+    "product": "app",
+    "items": [
+      {
+        "title": "全能 AI 会议助手",
+        "description": "以会议为核心、知识为边界、记忆为引擎，支持行业 skills、历史会议与知识库检索、外部信息联网补充和个性化服务。",
+        "images": [
+          "/integrations/updates/b4e2388565c8477f9ada7f7398be62de.webp",
+          "/integrations/updates/0cf6d58ba2b14abe89272d4a6af830cc.webp",
+          "/integrations/updates/e73024a6b5ce46e592f0d92201c641c4.webp",
+          "/integrations/updates/5afa65ed310f4b7b89c49693eed49f69.webp"
+        ]
+      },
+      {
+        "title": "声纹采集识别",
+        "description": "接入声纹识别能力，支持预先录入常见发言人声纹，在转译过程中自动匹配并标注发言人姓名。",
+        "images": [
+          "/integrations/updates/9e5428dad4dd45d19f65f9a660d69af8.webp",
+          "/integrations/updates/a606d92211434cab9ca024647ad6356c.webp",
+          "/integrations/updates/5a87294ad82e42f6a1fddb1d97c92950.webp"
+        ]
+      },
+      {
+        "title": "支持自动转译",
+        "description": "新增自动转译总结开关，默认关闭以避免意外消耗额度，并提供额度不足兜底提示。",
+        "images": [
+          "/integrations/updates/e79c2de2255d4107b3757e532f24c89e.webp",
+          "/integrations/updates/424f5e1c8d0c4fee96793e78aaa85961.webp",
+          "/integrations/updates/41390ece11234870a04cd0d1f788a4a4.webp"
+        ]
+      },
+      {
+        "title": "WiseNote 体验优化",
+        "description": "修复已知问题，提升 WiseNote 整体使用体验。",
+        "images": []
+      },
+      {
+        "title": "加时包升级",
+        "description": "加时包 1000 分钟价格保持 49 元，加时包 2000 分钟调整为 89 元，提供更高性价比。",
+        "images": [
+          "/integrations/updates/cda853254c344eb0a6bc465c0fd3c1fe.webp",
+          "/integrations/updates/895a370cdbf6470ca7c923928f8ae991.webp"
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026.01.22",
+    "version": "V2.8.0版本",
+    "product": "app",
+    "items": [
+      {
+        "title": "会议纪要上架至 200+ 总结模板",
+        "description": "会议纪要能力接入 200+ 总结模板，满足更多行业和会议场景的结构化总结需求。",
+        "images": [
+          "/integrations/updates/e140f898817c41ddaf7328b15b207def.webp",
+          "/integrations/updates/4616f2a3b3e44753a440e45a0d48ac01.webp"
+        ]
+      },
+      {
+        "title": "支持音频播放",
+        "description": "WiseNote 支持音频播放，方便用户在会议内容回看时对照录音和文本。",
+        "images": [
+          "/integrations/updates/87244e8f7c844089a76fc34eac00e2fb.webp",
+          "/integrations/updates/325cca99417f467e868d27f6bb8ffc7d.webp"
+        ]
+      },
+      {
+        "title": "内置行业词库与手动词库",
+        "description": "内置行业术语入口、个人词库和行业偏好入口，支持选择行业和添加个人词汇，提升 ASR 转写准确率。",
+        "images": [
+          "/integrations/updates/d9a443f668e0422097ccdc766a224ef9.webp",
+          "/integrations/updates/54a61ade380c49ecb751234950ae5fd4.webp",
+          "/integrations/updates/4bd3116b742c4f25bef70d9706471b10.webp",
+          "/integrations/updates/926b49d909934d2bb43f1f11a8ac51b6.webp"
+        ]
+      },
+      {
+        "title": "通知体系建设",
+        "description": "PC端创建深度长文任务后，App 接收关键节点通知并引导用户返回 PC 端完成深度操作。",
+        "images": [
+          "/integrations/updates/5b10fe799e0649c8a80bee1446d97afa.webp",
+          "/integrations/updates/031ea7291f6f4bbca0884b56545e04ca.webp",
+          "/integrations/updates/2ab080f374e64d3aaaad5c44f1d4dfe3.webp",
+          "/integrations/updates/3b85ca72574a4a0b87fca2dc9bd04e4a.webp"
+        ]
+      },
+      {
+        "title": "会员体系与加时包",
+        "description": "上线会员体系和加时包能力，会员商业化内容归入 WiseNote 端展示。",
+        "images": [
+          "/integrations/updates/03a910f00f5e49baaee3728e3e1ac078.webp",
+          "/integrations/updates/fd96fc4b3c1f4f15aeb9cc6320c04777.webp",
+          "/integrations/updates/1784f4bb7ac743e0b9c1ed5416b24bba.webp",
+          "/integrations/updates/f3997a87432c43a9a8df2b48e3e3b960.webp",
+          "/integrations/updates/44d4c9ea243548eb83084f1f357d7a53.webp",
+          "/integrations/updates/5926640fc91449b4aaa380209e02b619.webp",
+          "/integrations/updates/fba7f2374daa46da8679b73f65ee5210.webp",
+          "/integrations/updates/80d99622ede04ea1882a49cbba7af3ee.webp"
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026.08.14",
+    "version": "V4.3.0版本",
+    "product": "pc",
+    "items": [
+      {
+        "title": "企业员工支持手机号登录",
+        "description": "企业版成员在登录的时候，支持选择手机号登录，使用录入成员信息的手机号、验证码即可登录",
+        "images": [
+          "/integrations/updates/a47867f9bfb94d44addffe333ab8f717.webp",
+          "/integrations/updates/f8d1e30f5c494441a916881f7ee6cb44.webp"
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026.07.30",
+    "version": "V4.2.0版本",
+    "product": "pc",
+    "items": [
+      {
+        "title": "百智平台_增加签到领积分弹窗和任务中心入口",
+        "description": "百智平台新增签到领积分弹窗，同时增加任务中心入口，签到、任务奖励积分优化平台现有积分体系。",
+        "images": [
+          "/integrations/updates/294f87a9823e4561bd9df6a0cfd7075e.webp",
+          "/integrations/updates/dc0eac0a7dae497b806f67d3d98c3a05.webp",
+          "/integrations/updates/04126c67e37d48beb64dd7a7598566e3.webp"
+        ]
+      },
+      {
+        "title": "Agent 执行链路事件展示优化",
+        "description": "优化Agent执行链路事件展示，调整调取工具呈现形式，提升内容可读性，便于用户直观查看任务流程和结果。",
+        "images": [
+          "/integrations/updates/29536416fb2f42658418f7ca1d372e77.webp",
+          "/integrations/updates/a867a2773628431c906a56ca19526aa4.webp",
+          "/integrations/updates/0d57de9a3013471c9449cee0be5eb1dd.webp"
+        ]
+      },
+      {
+        "title": "知识库 2.0 语音笔记回收站",
+        "description": "知识库 2.0 上线语音笔记回收站能力，支持已删除语音笔记临时留存与恢复。",
+        "images": [
+          "/integrations/updates/ae84ccd2ec2f44c08b2964ef666bc6aa.webp",
+          "/integrations/updates/bbed79ade6744e67b82a0d251d1aa353.webp",
+          "/integrations/updates/f4515fe1d98941e9a846ca984ae4d468.webp"
+        ]
+      },
+      {
+        "title": "百智平台_智能总结后引导用户打分",
+        "description": "百智平台智能总结生成完成后，增加引导用户打分交互，并支持在用户打分评价后给予奖励。",
+        "images": [
+          "/integrations/updates/71683d2daa8647558f001d50b3defdda.webp",
+          "/integrations/updates/d30a41522d8745c3a427e545d8796d7c.webp",
+          "/integrations/updates/65f1ef32756a4ea498eae3fbb5e6df4b.webp"
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026.07.16",
+    "version": "V4.1.0版本",
+    "product": "pc",
+    "items": [
+      {
+        "title": "百智工作台语音文件增加位置/标签/参会人等元信息",
+        "description": "百智工作台语音文件新增位置、标签、参会人元信息字段，支持录入、展示等，完善语音资料信息管理。\n个人版 Vs 企业版 ：个人版可编辑地理位置信息、企业版不支持编辑以及额外需补充商机、项目信息。",
+        "images": [
+          "/integrations/updates/9f08521cc48f4f5ca5739a52fbc1b4ea.webp",
+          "/integrations/updates/8eb553afdfe84bccbf50037ff8d68d90.webp",
+          "/integrations/updates/d7ed51d67b894067ab04acb0371c2d75.webp",
+          "/integrations/updates/b536092baae3403886b4e56420794b79.webp"
+        ]
+      },
+      {
+        "title": "百智增加录音文件重点标记",
+        "description": "百智录音文件新增重点标记功能，支持标记总结、查看转译文本中的标记，实现录音重点内容快速定位管理。\n标记来源：录音过程中-硬件、软件标记，以及会后长按标记划重点，智能总结内容上方增加：重点标记模块。",
+        "images": [
+          "/integrations/updates/aee5c8a9b0eb4134a1c06438d49efe2a.webp",
+          "/integrations/updates/9ee3cc22b0f34abd9bc106aceaa8dfb5.webp"
+        ]
+      },
+      {
+        "title": "百智支持会后补充客户名称/商机名称等元信息",
+        "description": "百智支持会后补充客户名称、商机名称等业务元信息，完善会议档案关联管理；全景数据表新增客户评级、客户当前阶段、预计金额字段，丰富客户商机数据展示维度。",
+        "images": [
+          "/integrations/updates/37101b3d1f75400c9e83427429a6b9ca.webp",
+          "/integrations/updates/58a0fb2bf1ee4448bb20fbd46efa3a64.webp",
+          "/integrations/updates/4978cea50aa7489eb338d8735c6e0000.webp"
+        ]
+      },
+      {
+        "title": "百智平台增加会员入口",
+        "description": "百智平台新增会员专属入口，实现会员功能快速查看选购。",
+        "images": [
+          "/integrations/updates/230d7b8cbaa04a5abbd456e40dabc54b.webp"
+        ]
+      },
+      {
+        "title": "百智平台任务打分优化",
+        "description": "优化百智平台任务打分功能，完善打分逻辑与交互体验。",
+        "images": [
+          "/integrations/updates/45d43af67c9e43d5859d3d69cd2014ee.webp",
+          "/integrations/updates/a6f957f3ae884050866395a12434ad6d.webp",
+          "/integrations/updates/3592576156444815bb4e7ca9f116b7f7.webp",
+          "/integrations/updates/70417463691743f5bfdcb19fd9b47afb.webp"
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026.07.03",
+    "version": "V4.0.0版本",
+    "product": "pc",
+    "items": [
+      {
+        "title": "知识库2.0已上线",
+        "description": "新版知识库已上线：拆分文件夹与语音笔记，支持多层目录管理；新增 HTML 预览、MD 编辑；任务报告可按需另存入库，知识管理更灵活。",
+        "images": [
+          "/integrations/updates/6ecd0da862054e2da75effb29ab97440.webp",
+          "/integrations/updates/24ed2868073a4b1cb4fdb9a2f41af457.webp",
+          "/integrations/updates/a54562314a6a48b298687dfd72da03db.webp",
+          "/integrations/updates/948ffeebd7784fca893bf7c384836178.webp"
+        ]
+      },
+      {
+        "title": "知识库 2.0 -企业版更新",
+        "description": "企业语音自动归入企业笔记，分管理员分级查看；企业文件夹支持小智检索问答，个人文件可迁移至企业目录，权限随文件夹；权限编辑交互优化，多权限自动生效最高权限。",
+        "images": [
+          "/integrations/updates/80e3a59234de4c3dad2b20fb4bf4343c.webp",
+          "/integrations/updates/c5b1c97900fe42378e8750676cce5443.webp",
+          "/integrations/updates/1e71c84227064e21afc3b82b74157f11.webp",
+          "/integrations/updates/2563cc668ca6460a99988be18b19c9b8.webp",
+          "/integrations/updates/be45d5314d1540d79cf1d3251800d51f.webp"
+        ]
+      },
+      {
+        "title": "百智支持思维导图生成和展示",
+        "description": "百智 PC 上线思维导图，支持一键生成、可视化展示。",
+        "images": [
+          "/integrations/updates/5cb0dfc2314940d7a908e85163c0bda9.webp",
+          "/integrations/updates/c607e947e1174b28817cdf52993af27d.webp"
+        ]
+      },
+      {
+        "title": "百智生成逐字稿",
+        "description": "百智 PC 上线逐字稿，一键生成、在线预览。",
+        "images": [
+          "/integrations/updates/4d837c99f8ee403587a051ab43983cc0.webp"
+        ]
+      },
+      {
+        "title": "百智新增图文摘要",
+        "description": "百智 PC 新增图文摘要，可生成预览、重制总结，支持 PNG/PDF 导出。",
+        "images": [
+          "/integrations/updates/143df8fb0c294f3288dd59f353210595.webp",
+          "/integrations/updates/8b1e16d45a314a659164fc7aa941c057.webp"
+        ]
+      },
+      {
+        "title": "注册&签到&任务反馈积分数值调整",
+        "description": "注册奖励积分从1000调整到2000积分；每日签到积分从300调整到1000积分；任务反馈奖励积分从100调整到500积分。",
+        "images": [
+          "/integrations/updates/7fd262a42fcc40ab976813bcee0a43d7.webp",
+          "/integrations/updates/32df1c1124e540edb56c2fc482319f8d.webp"
+        ]
+      },
+      {
+        "title": "百智Agent业务数据获取+定时任务",
+        "description": "百智平台新增 Agent 业务数据获取与定时任务能力，覆盖销售洞察、门店经营 AI 大表格，同时完善定时任务表单核心字段",
+        "images": [
+          "/integrations/updates/bb7c5bd12d6e400aaddca930cd468a71.webp",
+          "/integrations/updates/4199af37ed9646d481449217511c4d73.webp",
+          "/integrations/updates/c456c4633b154a0c99f255fd52002c2d.webp",
+          "/integrations/updates/cc4ce796aa6d411baf8019970db08630.webp"
+        ]
+      },
+      {
+        "title": "百智skill/mcp广场及Agent融合调度",
+        "description": "百智平台升级技能 / MCP 广场，实现 Agent 融合智能调度",
+        "images": [
+          "/integrations/updates/1cd449fde9a142209e463fd72055303d.webp",
+          "/integrations/updates/2a02c88440e74a88b2911e7264de29ef.webp",
+          "/integrations/updates/abebf96f2976419181edc0148f712bbb.webp",
+          "/integrations/updates/ad3b5e8932ff497884c7928c31c212de.webp"
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026.06.11",
+    "version": "V3.8.0版本",
+    "product": "pc",
+    "items": [
+      {
+        "title": "Agentloop模式消耗2000积分/次",
+        "description": "面向个人&企业用户，Agentloop模式消耗2000积分/次 上线。",
+        "images": [
+          "/integrations/updates/864ee5621d51453f86c2602e5a5789a6.webp"
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026.06.04",
+    "version": "V3.7.0版本",
+    "product": "pc",
+    "items": [
+      {
+        "title": "百智工作台支持录音",
+        "description": "百智工作台现已开放录音功能，便捷留存语音内容，满足多样化收音需求，便捷留存语音内容。",
+        "images": [
+          "/integrations/updates/b27067cacd2a4e13b9d5f1eabb40c46c.webp",
+          "/integrations/updates/08a7a38590f84517963d5a9cbc22f733.webp",
+          "/integrations/updates/5ca363ab50f640b4ae267c5751af6dd9.webp",
+          "/integrations/updates/1e77561e024f4c5fb92eb64b7189d287.webp",
+          "/integrations/updates/ac1f076a785d453ca225807afd5bcadb.webp",
+          "/integrations/updates/55582aa6b5c84615bcdacfd7a9b0d370.webp",
+          "/integrations/updates/0f9ef24a085e42efa9a83e3ac2d4344f.webp",
+          "/integrations/updates/7a9adb3e8fb44bc6856df64dcbdac1c0.webp"
+        ]
+      },
+      {
+        "title": "增加百智工作台会员体系",
+        "description": "PC 端增加会员体系能力，实现与 App 端打通，支持会员、加时包购买及订单查询。",
+        "images": [
+          "/integrations/updates/d1895637bb6d49f6b625e4a47ab86de5.webp",
+          "/integrations/updates/87502cfb52d74bd69aa71f79b5dbaef2.webp",
+          "/integrations/updates/a193528977ad4e92b57ea1004fd4874f.webp",
+          "/integrations/updates/194ac8d4bf1a4440874c619e6a099855.webp",
+          "/integrations/updates/e460b0dd78ee498bbaa7ba65736b4011.webp",
+          "/integrations/updates/5a939e3d5b29416db57caed5afdd76c0.webp"
+        ]
+      },
+      {
+        "title": "AI智绘PPT 智能体_输入增加字符限制",
+        "description": "AI智绘PPT 智能体_输入增加字符限制，最大可输入 5000 字符，满足长文本输入需求。",
+        "images": [
+          "/integrations/updates/03790d93af4c41659671cc5bd84e8cf2.webp"
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026.05.21",
+    "version": "V3.6.0版本",
+    "product": "pc",
+    "items": [
+      {
+        "title": "支持【已入库录音】上传图片",
+        "description": "知识库内录音支持上传图片，单次上限 50 张，满足图文结合的记录需求。",
+        "images": [
+          "/integrations/updates/00184848a80b44e18882f30425066a7e.webp",
+          "/integrations/updates/12d0595b4bd74f6baff89eef6e450cbe.webp"
+        ]
+      },
+      {
+        "title": "生成markdown格式的任务报告支持序号的展示",
+        "description": "支持生成的markdown格式任务报告预览时序号正常展示。",
+        "images": [
+          "/integrations/updates/643d10b2fa554340b8c93f968d2eb463.webp",
+          "/integrations/updates/cfe95d641f524f52b2f7d8df47db9154.webp"
+        ]
+      },
+      {
+        "title": "对话流中生成能力建设",
+        "description": "支持单智能体Work flow-Agent多模态图表输出及增加对话流中导出jpg、pdf文档。",
+        "images": [
+          "/integrations/updates/32a45a6750b24b61b50ff7690d61513e.webp",
+          "/integrations/updates/ec45420fd0794662869297b0d7ebefce.webp"
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026.04.30",
+    "version": "V3.5.0版本",
+    "product": "pc",
+    "items": [
+      {
+        "title": "录音文件支持在线编辑",
+        "description": "PC端录音文件支持在线编辑，知识库内录音总结可编辑，并继承编辑器能力，同步修改总结标题、录音标题和 App 内容。",
+        "images": [
+          "/integrations/updates/b7da9eac81f942b7a64b09d57282b4b0.webp",
+          "/integrations/updates/bf7ab971bbed4267b6c225173b028118.webp"
+        ]
+      },
+      {
+        "title": "企业知识库功能上线",
+        "description": "企业知识库区分个人空间和企业空间，企业空间内支持创建文件夹，并为文件夹内用户配置不同权限。",
+        "images": [
+          "/integrations/updates/5cfb6b58cb68478b8c536db42a6ffb48.webp",
+          "/integrations/updates/ad60152bfe6a4222991cc7fbcfe9d143.webp",
+          "/integrations/updates/57c02098364644c0aa723ea311567516.webp"
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026.04.16",
+    "version": "V3.4.0版本",
+    "product": "pc",
+    "items": [
+      {
+        "title": "多角色身份登录支持",
+        "description": "百智WiseNote、百智AI工作台支持个人用户手机号/邮箱登录，以及企业用户组织代码关联、企业微信授权、飞书、钉钉和企业邮箱登录。",
+        "images": [
+          "/integrations/updates/8aaf1be2709348f9926bacaf4187d542.webp",
+          "/integrations/updates/c6b97d1fb4fd4090a2b3972e7a72f6fe.webp",
+          "/integrations/updates/4bd8c4299e724e2e99d7454eb2375c78.webp",
+          "/integrations/updates/76ca5184987a48f0a6b41e142bf7e82f.webp",
+          "/integrations/updates/80e32a13676c4938aa70f651f887d296.webp"
+        ]
+      },
+      {
+        "title": "AI智绘PPT模板去标注",
+        "description": "AI智绘PPT增加模板“去标注”能力，增强模板适配性，解决报告生成 PPT 时部分模板格式不适配的问题。",
+        "images": [
+          "/integrations/updates/889a4cb7a1aa483db3ec3c23e473df97.webp",
+          "/integrations/updates/803bfd837a2c4498a7d0135c1c4d4427.webp"
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026.04.09",
+    "version": "V3.3.0版本",
+    "product": "pc",
+    "items": [
+      {
+        "title": "Credits 额度体系上线",
+        "description": "新增 Credits 统一额度体系，所有功能共享额度，用户可以根据自身场景自由分配额度使用方向。",
+        "images": [
+          "/integrations/updates/a79cf8fbe582441d88df78ef4e075f8c.webp",
+          "/integrations/updates/724d505a642d46a68dc93f54686a0e04.webp",
+          "/integrations/updates/332889c3640c429594e3c9f50d884ab9.webp",
+          "/integrations/updates/af4ce9c3cbe34080afc9bd045c67d2ac.webp"
+        ]
+      },
+      {
+        "title": "AI智绘PPT创作场景智能体",
+        "description": "新增 AI智绘PPT 创作场景智能体，并在报告文件、PPT文件自动传输至知识库后提供快捷入口。",
+        "images": [
+          "/integrations/updates/9a2b439c4dbf48fc950cbe241d27e613.webp",
+          "/integrations/updates/d7a8eab4ca5042cd946d36c273d42a08.webp",
+          "/integrations/updates/6fac0496f82541469d147bad72837d4b.webp",
+          "/integrations/updates/9be50535e1ae48a1be4e46877499f027.webp",
+          "/integrations/updates/c24036734db04582a325a2b883c21807.webp",
+          "/integrations/updates/d407c6fc32b1441a8e9786a0b6fa1487.webp",
+          "/integrations/updates/91f54379b65a4a09b4af2b5f08cfeff4.webp"
+        ]
+      },
+      {
+        "title": "AI editor Copilot 能力深化",
+        "description": "AI editor 支持选择多源文件、文件上传解析、AI检索推理生成和引用溯源，提升在线编辑时的资料引用效率。",
+        "images": [
+          "/integrations/updates/c28c532b81dc4039aaead608549e8974.webp",
+          "/integrations/updates/e2aeef6b0b124362b83836563f98a19e.webp",
+          "/integrations/updates/56660ce293ac43af94543e2fb885a7dd.webp",
+          "/integrations/updates/3c0997e9442d4802bb1028a51d012532.webp"
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026.03.12",
+    "version": "V3.1.0版本",
+    "product": "pc",
+    "items": [
+      {
+        "title": "百智全面开放注册",
+        "description": "百智全面开放注册，面向更多用户开放 AI Agent 能力入口，共同开启碳硅协同新纪元。",
+        "images": [
+          "/integrations/updates/a485046cd165402aa72080d08e132b60.webp"
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026.03.05",
+    "version": "V3.0.0版本",
+    "product": "pc",
+    "items": [
+      {
+        "title": "检索语言选项",
+        "description": "用户可低成本控制检索语言偏好，LLM根据选择生成对应语言 query，提升海外市场、国际趋势和英文学术场景的研究完整度。",
+        "images": [
+          "/integrations/updates/de6c84ff3f024f4d909addb6fbe0ee21.webp"
+        ]
+      },
+      {
+        "title": "AI editor 引用资料与引用溯源",
+        "description": "AI editor 增强引用资料和引用溯源能力，便于用户在报告编辑过程中确认来源、追踪依据和复核结论。",
+        "images": [
+          "/integrations/updates/80a5570196e04de5b3cff8688877dffb.webp",
+          "/integrations/updates/78b984978ae64b01ac19e120b635b3d6.webp"
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026.02.10",
+    "version": "V2.9.0版本",
+    "product": "pc",
+    "items": [
+      {
+        "title": "任务执行关键环节提醒",
+        "description": "任务执行中涉及补充信息、报告提纲、定时任务表单、用户接管、报告完成等关键节点时，支持站内提醒和浏览器提醒。",
+        "images": [
+          "/integrations/updates/bcc73f0f4bf54e0ca54dc5c72eaa4e96.webp",
+          "/integrations/updates/4d7571cb9e15427887491eec462a6554.webp",
+          "/integrations/updates/5e04f86dc21a46c0a211c5e28f27c51f.webp"
+        ]
+      },
+      {
+        "title": "报告分享卡片增加 meta 信息",
+        "description": "分享报告链接时展示预览信息，提升聊天、消息和内容分享场景下的信息获取效率。",
+        "images": [
+          "/integrations/updates/eb8b228401034b6cbd446fe4df51d823.webp"
+        ]
+      },
+      {
+        "title": "用户账户信息设置与 Agent 创作者主页",
+        "description": "支持账户信息设置和 Agent 创作者主页，帮助创作者打造个人名片并管理账号信息。",
+        "images": [
+          "/integrations/updates/c9a3343a60894e6f818776b5db5bdca5.webp",
+          "/integrations/updates/669af43dbca34e408bea06825ed675b3.webp"
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026.01.22",
+    "version": "V2.8.0版本",
+    "product": "pc",
+    "items": [
+      {
+        "title": "AI editor 智能文档在线编辑器",
+        "description": "AI editor 作为百智全流程后链路核心模块，支持 AI 辅助改写、扩写、专业化表达、版本管理和自然语言交互。",
+        "images": [
+          "/integrations/updates/01e061b57be1446ba6bd35b6068bd4d8.webp",
+          "/integrations/updates/8c7af4e897464920a501c4ec34f8aa74.webp",
+          "/integrations/updates/0893e40725ab4c6fafeaa4e88786a285.webp",
+          "/integrations/updates/bf56e929bdb3466e829e041607fd0647.webp"
+        ]
+      },
+      {
+        "title": "AI-PPT 在线制作",
+        "description": "基于报告内容自动生成演示大纲，支持从大纲到幻灯片的在线编辑、实时保存，以及润色、扩写、总结、翻译等 AI 工具。",
+        "images": [
+          "/integrations/updates/dffc44457d29467e9ee471e20d104fa4.webp",
+          "/integrations/updates/321fa78b795845e58b32f700bda86f4d.webp",
+          "/integrations/updates/e12ea2f19c634b7abd50aaeea3df67db.webp",
+          "/integrations/updates/3de8fb1cae9647b2b606c4ebdd515e9f.webp"
+        ]
+      },
+      {
+        "title": "云浏览器功能",
+        "description": "为用户配置专属沙盒环境，支持按需启动和用户接管，模型可持续协助获取第三方高质量数据或开展网站操作。",
+        "images": [
+          "/integrations/updates/16ecedf45e57472cb3e265ad2fc9d85d.webp",
+          "/integrations/updates/9257aae1657449c3b1bca502dcbabb27.webp",
+          "/integrations/updates/3c56404ded0642cbaf540940d4238cf9.webp"
+        ]
+      }
+    ]
+  }
+]

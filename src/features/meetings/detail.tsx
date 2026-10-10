@@ -106,7 +106,7 @@ export function MeetingPage({
             speakers: w.members
               .filter((m) => m.status === "active")
               .map((m) => m.name),
-            tags: file.tags,
+            tags: file.tags || [],
             customer: "",
             project: "",
             location: "",

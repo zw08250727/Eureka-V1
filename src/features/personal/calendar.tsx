@@ -1,4 +1,5 @@
 "use client";
+import {AssetSharing,assetOwner,canEditAsset} from "./asset-sharing";
 import { M } from "@/features/spaces/model/store";
 import { actionOnDay, assetActive } from "./asset-rules";
 import { usePageTitle } from "@/features/reference/page-title";
@@ -115,6 +116,7 @@ export function CalendarPage({
   const readonly = space !== "personal" && !!controller?.state && M.get(controller.state, space).status !== "active";
   const records = data.actions.records,
     record = records.find((r) => r.id === selected);
+  const recordReadonly=readonly||!!record&&!canEditAsset(space,actor,record);
   const unscheduled = records.filter(
     (r) => r.type === "todo" && !r.start && assetActive(r),
   );
@@ -202,7 +204,7 @@ export function CalendarPage({
           type="button"
           className="pa-complete"
           data-pa="toggle"
-          disabled={readonly}
+          disabled={readonly||!canEditAsset(space,actor,r)}
           data-id={r.id}
           aria-label={`${r.done ? "重新打开" : "完成"} ${r.title}`}
           onClick={() => toggle(r)}
@@ -224,7 +226,7 @@ export function CalendarPage({
               : localDate(r.start)}
         </time>
         <span>
-          <strong>{r.title}</strong>
+          <strong>{r.title}</strong>{space!=="personal"&&<span className="ex-owner">{assetOwner(space,r.ownerId)}</span>}
           {!compact && (
             <small>{`${r.notes || r.location || r.capture || ""}${r.participants ? " · " + r.participants : ""} · ${actionSource(r)}`}</small>
           )}
@@ -235,11 +237,12 @@ export function CalendarPage({
           </span>
         )}
       </button>
+      <AssetSharing {...{space,actor}} record={r} onSaved={refresh}/>
       <button
         type="button"
         className="pa-calendar-edit"
         data-pa="quick-edit"
-        disabled={readonly}
+        disabled={readonly||!canEditAsset(space,actor,r)}
         data-id={r.id}
         aria-label={`编辑 ${r.title}`}
         title="编辑"
@@ -287,7 +290,7 @@ export function CalendarPage({
                 >
                   ← {onBack ? "全部闪念" : "日程与待办"}
                 </PaButton>
-                <h1>{record.title}</h1>
+                <h1>{record.title}</h1><span className="ex-owner">{assetOwner(space,record.ownerId)}</span><AssetSharing {...{space,actor}} record={record} onSaved={refresh}/>
                 <span className="pa-source">{actionSource(record)}</span>
                 {record.type === "todo" && (
                   <span className={`pa-status ${record.done ? "done" : ""}`}>
@@ -296,7 +299,7 @@ export function CalendarPage({
                 )}
               </div>
               <div>
-                <PaButton action="edit" disabled={readonly} onClick={() => startEdit(record)}>
+                <PaButton action="edit" disabled={readonly||!canEditAsset(space,actor,record)} onClick={() => startEdit(record)}>
                   编辑
                 </PaButton>
                 {askButton}
@@ -343,7 +346,7 @@ export function CalendarPage({
                       <dt>提醒时间</dt>
                       <dd>
                         <PaButton
-                          action="edit-reminder" disabled={readonly}
+                          action="edit-reminder" disabled={recordReadonly}
                           className="plain"
                           onClick={() => startEdit(record)}
                         >
@@ -362,7 +365,7 @@ export function CalendarPage({
                   <div className="pa-section-head">
                     <h2>我的备注</h2>
                     <PaButton
-                      action="notes" disabled={readonly}
+                      action="notes" disabled={recordReadonly}
                       onClick={() => {
                         setModalRecord(record);
                         setNote(record.notes);
@@ -383,7 +386,7 @@ export function CalendarPage({
                         关联会议 <small>{record.links.length} 场</small>
                       </h2>
                       <PaButton
-                        action="links" disabled={readonly}
+                        action="links" disabled={recordReadonly}
                         onClick={() => {
                           setModalRecord(record);
                           setModal("links");
@@ -426,7 +429,7 @@ export function CalendarPage({
                 <footer className="pa-detail-footer">
                   {record.type === "todo" ? (
                     <PaButton
-                      action="toggle" disabled={readonly}
+                      action="toggle" disabled={recordReadonly}
                       id={record.id}
                       className="primary"
                       onClick={() => toggle(record)}
@@ -435,7 +438,7 @@ export function CalendarPage({
                     </PaButton>
                   ) : (
                     <PaButton
-                      action="record" disabled={readonly}
+                      action="record" disabled={recordReadonly}
                       className="primary"
                       onClick={() => requestRecording(space === "personal" ? record.id : "")}
                     >
@@ -489,7 +492,7 @@ export function CalendarPage({
                       />
                       <small>演示音频 · 非真实原始录音</small>
                     </details>
-                    <PaButton action="recall" disabled={readonly} onClick={() => ask()}>
+                    <PaButton action="recall" disabled={recordReadonly} onClick={() => ask()}>
                       ✧ 回顾当时的上下文
                     </PaButton>
                   </>

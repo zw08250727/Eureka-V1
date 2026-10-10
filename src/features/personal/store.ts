@@ -138,7 +138,7 @@ export function createActions(storage: Storage, now = () => new Date(), accountI
     if (!M.member(w, accountId)) throw Error("没有此工作空间的访问权限");
     if (w.type === "personal" && ownerId !== accountId) throw Error("不能访问他人个人内容");
     if (ownerId !== accountId && !M.member(w, ownerId)) throw Error("成员已移除，资料已移交，请刷新后重新打开");
-    if (ownerId !== accountId && !M.admin(w, accountId)) throw Error("仅团队管理员可管理其他成员内容");
+    if (write && ownerId !== accountId && !M.admin(w, accountId)) throw Error("共享内容为只读，只有本人或管理员可以编辑");
     if (write) M.writable(w);
   };
   const store = createJsonStore<ActionState>(
@@ -160,12 +160,32 @@ export function createActions(storage: Storage, now = () => new Date(), accountI
       data.records = data.records.map(r => ({ ...r, ownerId }));
       if (workspaceId !== "personal" && ownerId === accountId) {
         const w = M.get(createWorkspaceStore(storage).read(), workspaceId);
-        if (M.admin(w, accountId)) for (const m of w.members.filter(m => m.status === "active" && m.id !== accountId))
+        for (const m of w.members.filter(m => m.status === "active" && m.id !== accountId))
           data.records.push(...createActions(storage, now, accountId, workspaceId, m.id).read().records);
+      }
+      if(workspaceId!=="personal"&&ownerId!==accountId){
+        const w=M.get(createWorkspaceStore(storage).read(),workspaceId);
+        if(!M.admin(w,accountId)){data.records=data.records.filter(r=>r.sharedWith?.includes(accountId));data.settings={};data.sessions=[];data.meetings=[];}
       }
       return data;
     },
-    change<R>(fn: (s: ActionState) => R): R { authorize(true); return store.change(fn); },
+    share(recordId:string, recipients:string[]){
+      authorize(true);
+      if(workspaceId==="personal"||ownerId!==accountId)throw Error("只有本人可以共享自己的团队内容");
+      const w=M.get(createWorkspaceStore(storage).read(),workspaceId);
+      if(recipients.some(id=>id===accountId||!M.member(w,id)))throw Error("请选择当前团队有效成员");
+      return store.change(s=>{const r=s.records.find(r=>r.id===recordId);if(!r||r.previousOwnerId)throw Error("不能替其他成员共享内容");r.sharedWith=[...new Set(recipients)];r.updated=now().toISOString();r.revision=(r.revision||0)+1;});
+    },
+    change<R>(fn: (s: ActionState) => R): R {
+      authorize(true);
+      return store.change(s => {
+        const grants = new Map(s.records.map(r => [r.id, [...(r.sharedWith || [])]]));
+        const origins = new Map(s.records.map(r => [r.id, r.previousOwnerId]));
+        const result = fn(s);
+        for (const record of s.records) { record.sharedWith = grants.get(record.id) || []; record.previousOwnerId = origins.get(record.id); }
+        return result;
+      });
+    },
     session(id: string, prompt: string, draft: ActionRecord) {
       authorize(true);
       return store.change((s) => {
@@ -189,6 +209,7 @@ export function createActions(storage: Storage, now = () => new Date(), accountI
           id: crypto.randomUUID(),
           source: "agent",
           sessionId,
+          sharedWith: [],
           created: new Date().toISOString(),
           updated: new Date().toISOString(),
           revision: 1,
@@ -217,6 +238,8 @@ export function createActions(storage: Storage, now = () => new Date(), accountI
           ...input,
           id: input.id || crypto.randomUUID(),
           title: input.title.trim(),
+          sharedWith: old?.sharedWith || [],
+          previousOwnerId: old?.previousOwnerId,
           source: old?.source || input.source,
           completedAt: input.done ? (old?.done ? old.completedAt : now().toISOString()) : undefined,
           created: old?.created || new Date().toISOString(),
@@ -239,7 +262,7 @@ export function createThoughts(storage: Storage, now = () => new Date(), account
     if (!M.member(w, accountId)) throw Error("没有此工作空间的访问权限");
     if (w.type === "personal" && ownerId !== accountId) throw Error("不能访问他人个人内容");
     if (ownerId !== accountId && !M.member(w, ownerId)) throw Error("成员已移除，资料已移交，请刷新后重新打开");
-    if (ownerId !== accountId && !M.admin(w, accountId)) throw Error("仅团队管理员可管理其他成员内容");
+    if (write && ownerId !== accountId && !M.admin(w, accountId)) throw Error("共享内容为只读，只有本人或管理员可以编辑");
     if (write) M.writable(w);
     return w;
   };
@@ -264,10 +287,11 @@ export function createThoughts(storage: Storage, now = () => new Date(), account
       const data = store.read();
       data.records = data.records.map(r => ({ ...r, ownerId }));
       if (ownerId === accountId) {
-        data.records = [...M.visibleThoughts(personal, accountId), ...data.records];
-        if (M.admin(personal, accountId)) for (const m of personal.members.filter(m => m.status === "active" && m.id !== accountId))
+        data.records = [...M.visibleThoughts(personal, accountId).map(t=>({...t,ownerId:t.owner})), ...data.records];
+        if (personal.type === "team") for (const m of personal.members.filter(m => m.status === "active" && m.id !== accountId))
           data.records.push(...createThoughts(storage, now, accountId, workspaceId, m.id).read().records);
       }
+      if(ownerId!==accountId&&!M.admin(personal,accountId))data.records=data.records.filter(r=>!r.previousOwnerId&&personal.thoughtSharing?.[ownerId]?.[r.type]?.includes(accountId));
       return data;
     },
     save(input: ThoughtRecord): ThoughtRecord {
@@ -321,6 +345,7 @@ export function createThoughts(storage: Storage, now = () => new Date(), account
         const r = {
           ...input,
           title: input.title.trim(),
+          previousOwnerId: old?.previousOwnerId,
           source: old?.source || "manual",
           capture: old?.capture || "",
           id: input.id || crypto.randomUUID(),

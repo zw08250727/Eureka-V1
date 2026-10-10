@@ -102,6 +102,8 @@ export interface DeviceThought extends ThoughtRecord {
   sharedAt?: string;
 }
 export interface Workspace {
+  rewards?: import("@/features/account/rewards").RewardState;
+  thoughtSharing?: Record<string, Partial<Record<"inspiration" | "ledger" | "other", string[]>>>;
   demoArchived?: boolean;
   ownershipTransfers?: { id: string; from: string; to: string; time: string }[];
   customerDemoVersion?: number;
