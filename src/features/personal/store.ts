@@ -424,11 +424,18 @@ export function createContacts(storage: Storage, accountId = "zhang", workspaceI
         const scope = all[key];
         const visible = scope.contacts.filter((p) => p.ownerId === ownerId);
         const hidden = scope.contacts.filter((p) => p.ownerId !== ownerId);
+        const grantsBefore = new Map(visible.map(p => [p.id, JSON.stringify([...(p.sharedWith || [])].sort())]));
         const view = { personal: { ...scope, contacts: visible } };
         const result = fn(view);
         for (const person of view.personal.contacts) {
           if (person.ownerId && person.ownerId !== ownerId) throw Error("不能写入其他成员的客户档案");
           person.ownerId = ownerId;
+          const shared = person.sharedWith || [];
+          const grantsChanged = JSON.stringify([...shared].sort()) !== (grantsBefore.get(person.id) || "[]");
+          if (workspace && grantsChanged) {
+            if (ownerId !== accountId) throw Error("仅所有者本人可以管理共享，管理员不能代为共享");
+            if (shared.some(id => id === ownerId || !M.member(workspace, id))) throw Error("只能共享给当前团队的有效成员");
+          }
         }
         all[key] = { ...view.personal, contacts: [...view.personal.contacts, ...hidden] };
         return result;

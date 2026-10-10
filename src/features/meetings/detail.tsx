@@ -490,13 +490,13 @@ export function MeetingPage({
                     {(
                       <B
                         action="share"
-                        disabled={readonly || (!!team && file?.owner !== actor && !M.admin(w!, actor))}
+                        disabled={readonly || (!!team && file?.owner !== actor)}
                         onClick={() => action("share")}
                       >
                         <I name="share" /> 分享
                       </B>
                     )}
-                    {team && w && file && (file.owner === actor || M.admin(w, actor)) && (
+                    {team && w && file && file.owner === actor && (
                       <B action="team-share" disabled={readonly} onClick={() => action("team-share")}>
                         <RefIcon name="users" className="md-icon" /> 团队共享
                       </B>

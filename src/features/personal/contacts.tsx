@@ -357,7 +357,7 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
                         ＋ 添加联系人
                       </ContactButton>
                     ) : null}
-                    {detail && person && team && workspace && !readonly && <ContactButton action="share-contact" onClick={() => setSharing(customerKey(person))}>团队共享</ContactButton>}
+                    {detail && person && person.ownerId === actor && team && workspace && !readonly && <ContactButton action="share-contact" onClick={() => setSharing(customerKey(person))}>团队共享</ContactButton>}
                     {(!detail || person) && (
                       <ContactAgentEntry
                         expanded={expanded}
@@ -505,7 +505,7 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
                             <span>创建于 {p.createdAt?.slice(0, 10) || "时间未记录"}</span>
                           </span>
                         </button>
-                        {team && (p.ownerId === actor || isAdmin) && <button type="button" className="contact-list-share" data-contact-action="share-contact" disabled={workspaceReadonly} onClick={() => setSharing(customerKey(p))}>团队共享</button>}
+                        {team && p.ownerId === actor && <button type="button" className="contact-list-share" data-contact-action="share-contact" disabled={workspaceReadonly} onClick={() => setSharing(customerKey(p))}>共享</button>}
                         </article>
                       ))}
                     </div>

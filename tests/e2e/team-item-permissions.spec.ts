@@ -18,7 +18,9 @@ test.describe("single-item permissions and team lifecycle", () => {
     expect(() => M.getFile(w, b.id, "kevin")).toThrow();
     expect(() => M.edit(w, a.id, { title: "forbidden" }, "kevin")).toThrow(/编辑/);
     expect(() => M.share(w, a.id, ["kevin"], "lin", ["kevin"])).toThrow(/只读/);
-    M.edit(w, a.id, { title: "admin edit" }); M.share(w, a.id, []);
+    M.edit(w, a.id, { title: "admin edit" });
+    expect(() => M.share(w, a.id, [])).toThrow(/仅所有者本人/);
+    M.share(w, a.id, [], "lin");
     expect(() => M.getFile(w, a.id, "kevin")).toThrow();
     expect(M.getFile(w, a.id).title).toBe("admin edit");
     M.trash(w, a.id); M.trash(w, a.id, true); M.trash(w, a.id); M.purge(w, a.id);
@@ -33,7 +35,13 @@ test.describe("single-item permissions and team lifecycle", () => {
     createContacts(storage, "lin", w.id).change(a => { a.personal.contacts[0].sharedWith = ["kevin"]; });
     expect(viewer.readVisible().personal.contacts.map(c => c.id)).toEqual(["c1"]);
     expect(() => createContacts(storage, "kevin", w.id, "lin").change(a => { a.personal.contacts[0].name = "bad"; })).toThrow(/管理员/);
-    createContacts(storage, "zhang", w.id, "lin").change(a => { a.personal.contacts[0].name = "管理员维护"; a.personal.contacts[0].sharedWith = []; });
+    createContacts(storage, "zhang", w.id, "lin").change(a => { a.personal.contacts[0].name = "管理员维护"; });
+    const before = storage.getItem("baizhi-v14-contacts");
+    expect(() => createContacts(storage, "zhang", w.id, "lin").change(a => { a.personal.contacts[0].sharedWith = []; })).toThrow(/仅所有者本人/);
+    expect(storage.getItem("baizhi-v14-contacts")).toBe(before);
+    expect(() => createContacts(storage, "zhang", w.id, "lin").change(a => { a.personal.contacts[1].sharedWith = ["kevin"]; })).toThrow(/仅所有者本人/);
+    expect(storage.getItem("baizhi-v14-contacts")).toBe(before);
+    createContacts(storage, "lin", w.id).change(a => { a.personal.contacts[0].sharedWith = []; });
     expect(viewer.readVisible().personal.contacts).toHaveLength(0);
     expect(createContacts(storage, "zhang", w.id).readVisible().personal.contacts).toHaveLength(2);
   });

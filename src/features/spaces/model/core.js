@@ -852,7 +852,7 @@ function edit(w, fid, patch, uid = SELF) {
 function share(w, fid, users, uid = SELF, editors = []) {
   writable(w);
   const f = getFile(w, fid, uid);
-  if (f.owner !== uid && !admin(w, uid)) fail("仅所有者或管理员可以管理分享");
+  if (f.owner !== uid) fail("仅所有者本人可以管理共享，管理员不能代为共享");
   if (f.source === "联系人") fail("请在单个通讯录联系人详情中管理共享");
   if (users.some((u) => !member(w, u) || u === f.owner))
     fail("只能邀请当前空间内的有效成员");

@@ -99,3 +99,4 @@
 /* Keep per-record actions compact without increasing the meeting row height. */
 .ws-recording-table td:last-child .ws-actions { flex-wrap: nowrap; gap: 14px; min-width: 88px; }
 .ws-recording-table td:last-child .ws-btn.link { min-height: 28px; }
+#ws-meeting-member { border: 1px solid #dce5f2; border-radius: 20px; padding: 8px; min-height: 34px; color: #6f84a0; background: white; font: inherit; font-size: 11px; }

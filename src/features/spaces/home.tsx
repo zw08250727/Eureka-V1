@@ -38,6 +38,7 @@ export function TeamHome({
     [source, setSource] = useState("all"),
     [dateFilter, setDate] = useState(""),
     [status, setStatus] = useState("all"),
+    [memberFilter, setMemberFilter] = useState("all"),
     [page, setPage] = useState(1),
     [sortKey, setSortKey] = useState<"created" | "updated">("created"),
     [sortAsc, setSortAsc] = useState(false),
@@ -69,6 +70,7 @@ export function TeamHome({
       (f) =>
         [f.title, f.summary, f.transcript].join(" ").toLowerCase().includes(query.toLowerCase()) &&
         (source === "all" || f.source === source) &&
+        (memberFilter === "all" || f.owner === memberFilter) &&
         (!dateFilter || f.created.slice(0, 10) === dateFilter) &&
         (status === "all" || (f.status || "已总结") === status),
     )
@@ -196,6 +198,10 @@ export function TeamHome({
                   setPage(1);
                 }}
               />
+              <select id="ws-meeting-member" aria-label="团队成员" value={memberFilter} onChange={e => { setMemberFilter(e.target.value); setPage(1); }}>
+                <option value="all">全部团队成员</option>
+                {w.members.filter(m => m.status === "active").map(m => <option key={m.id} value={m.id}>{m.name}{m.id === actor ? "（我）" : ""}</option>)}
+              </select>
               <select
                 id="ws-meeting-status"
                 aria-label="会议状态"
@@ -354,7 +360,7 @@ export function TeamHome({
                         <td>{date(f.updated || f.created)}</td>
                         <td>
                           <div className="ws-actions">
-                            {(f.owner === actor || M.admin(w, actor)) && <Button action="team-share" value={f.id} className="link" disabled={readonly} onClick={() => setSharingId(f.id)}>团队共享</Button>}
+                            {f.owner === actor && <Button action="team-share" value={f.id} className="link" disabled={readonly} onClick={() => setSharingId(f.id)}>共享</Button>}
                             {(f.owner === actor || M.admin(w, actor)) && !readonly ? (
                               <Button
                                 action="delete"
