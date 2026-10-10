@@ -28,10 +28,10 @@ export function usePersonal(accountId = "zhang", workspaceId = "personal") {
     if (r)
       setData({
         actions: r.actions.read(),
-        thoughts: workspaceId === "personal" ? r.thoughts.read().records : [],
+        thoughts: r.thoughts.read().records,
         contacts: r.contacts.readVisible().personal,
       });
-  }, [workspaceId]);
+  }, []);
   useEffect(() => {
     let active = true;
     Promise.resolve().then(() => {
@@ -39,7 +39,7 @@ export function usePersonal(accountId = "zhang", workspaceId = "personal") {
         ensureTeamCustomerDemo(localStorage, workspaceId, accountId);
         repo.current = {
           actions: createActions(localStorage, () => new Date(), accountId, workspaceId),
-          thoughts: createThoughts(localStorage),
+          thoughts: createThoughts(localStorage, () => new Date(), accountId, workspaceId),
           contacts: createContacts(localStorage, accountId, workspaceId),
         };
         if (active) refresh();

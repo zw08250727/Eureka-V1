@@ -1,3 +1,4 @@
+import { PrivateOverview } from "./private-overview";
 import { useState } from "react";
 import { RefIcon } from "@/features/reference/symbols";
 import { appUrl, navigateLegacy } from "@/lib/routes";
@@ -45,6 +46,7 @@ export function TeamOverview({ now, workspace, actor, insights, readOnly, agentO
           </div> : <p className="team-brief-empty">暂无可整理的会议进展。完成录音或上传后，Agent 将根据您有权访问的会议提炼重点。</p>}
         </section>
       </div>
+      <PrivateOverview key={`${workspace.id}:${actor}`} space={workspace.id} actor={actor} now={now} readOnly={readOnly} />
     </section>
   </div>;
 }

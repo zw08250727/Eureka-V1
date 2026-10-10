@@ -9,18 +9,25 @@ const draft = (): ActionRecord => ({ id: "", contactId: "client-a", type: "sched
 test.beforeAll(() => Object.defineProperty(globalThis, "window", { configurable: true, value: { dispatchEvent() {} } }));
 test.afterAll(() => Reflect.deleteProperty(globalThis, "window"));
 
-test("schedules are personal only; legacy team data is not exposed or copied and stale team writes fail", () => {
+test("team schedules retain original scope and owner; expiry and removal reject stale writes", () => {
   const storage = memory(), state = M.seed();
   storage.setItem(M.KEY, JSON.stringify(state));
-  const key = "eureka:actions:team-eureka:zhang:v1", legacy = JSON.stringify({ version: 1, records: [{ ...draft(), id: "legacy-team" }], meetings: [], sessions: [], settings: {} });
-  storage.setItem(key, legacy);
+  storage.setItem("eureka:actions:team-eureka:zhang:v1", JSON.stringify({ version: 1, records: [{ ...draft(), id: "legacy-team" }], meetings: [], sessions: [], settings: {} }));
   const team = createActions(storage, () => new Date(), "zhang", "team-eureka");
-  expect(team.read().records).toEqual([]);
-  expect(() => team.save(draft())).toThrow(/个人工作区/);
-  expect(storage.getItem(key)).toBe(legacy);
-  const personal = createActions(storage), saved = personal.save(draft());
-  expect(saved.contactId).toBe("client-a");
-  expect(personal.read().records.some(r => r.id === "legacy-team")).toBe(false);
+  expect(team.read().records[0].id).toBe("legacy-team");
+  const saved = team.save(draft());
+  expect(team.read().records).toHaveLength(2);
+  expect(createActions(storage, () => new Date(), "lin", "team-eureka").read().records).toEqual([]);
+  expect(createActions(storage).read().records.some(r => r.id === saved.id || r.id === "legacy-team")).toBe(false);
+  state.spaces.find(w => w.id === "team-eureka")!.status = "expired";
+  storage.setItem(M.KEY, JSON.stringify(state));
+  expect(team.read().records).toHaveLength(2);
+  expect(() => team.save({ ...saved, done: true })).toThrow(/只读/);
+  state.spaces.find(w => w.id === "team-eureka")!.status = "active";
+  M.memberAction(state, M.get(state, "team-eureka"), "zhang", "remove", undefined, "lin");
+  storage.setItem(M.KEY, JSON.stringify(state));
+  expect(() => team.read()).toThrow(/访问权限/);
+  expect(() => team.save(saved)).toThrow(/访问权限/);
 });
 
 test("customer identity does not merge a company with a person, and keeps original creation date", () => {

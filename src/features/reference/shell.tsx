@@ -267,7 +267,7 @@ export function ReferenceShell({
                 </span>
               </button>
               <>
-                  {space === "personal" && <button
+                  {<button
                     type="button"
                     id="todos-entry"
                     className={

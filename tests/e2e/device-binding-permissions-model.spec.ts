@@ -98,12 +98,12 @@ test("future policy assigns edit grants to meetings only in their workspace, his
   const s = M.seed(), a = M.get(s, "team-eureka"), b = M.acceptInvite(s, "invite-growth");
   const old = M.addFile(a, { title: "旧记录" });
   M.setDeviceSharing(s, a.id, "zhang", "meetings", true, ["lin", "kevin"], "zhang", ["kevin"]);
-  expect(() => M.setDeviceSharing(s, a.id, "zhang", "thoughts", true, ["lin"], "zhang", ["lin"])).toThrow(/个人工作区/);
+  expect(() => M.setDeviceSharing(s, a.id, "zhang", "thoughts", true, ["lin"], "zhang", ["lin"])).toThrow(/不参与团队共享/);
   for (const source of ["网页录音", "文件上传", "笔记"]) expect(M.addFile(a, { title: source, source }).editors).toEqual(["kevin"]);
   expect(old.shared).toEqual([]); expect(M.addFile(b, { title: "另一团队" }).editors || []).toEqual([]);
   const personal = M.get(s, "personal"), t = M.addThought(personal, { title: "个人闪念", detail: "" });
   expect(() => M.shareThought(personal, t.id, ["lin"])).toThrow(/不参与共享/);
-  expect(() => M.editThought(a, t.id, { title: "旧团队页面保存", detail: "" })).toThrow(/个人工作区/);
+  expect(() => M.editThought(a, t.id, { title: "旧团队页面保存", detail: "" })).toThrow(/闪念不存在/);
 
 });
 

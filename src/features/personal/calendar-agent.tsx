@@ -328,7 +328,7 @@ export function CalendarAgent({
           </span>
           <div>
             <h2>Ask Agent</h2>
-            <small>个人日程与待办</small>
+            <small>我的日程与待办</small>
           </div>
         </div>
         <div className="agent-head-actions">
@@ -370,7 +370,7 @@ export function CalendarAgent({
             ? "来源会话 · " + localDate(activeSession.created || "")
             : selected
               ? "已引用：" + selected.title
-              : "仅引用当前个人空间的日程与待办"}
+              : "仅引用当前工作区内本人的日程与待办"}
         </span>
         <div
           className="pa-agent-welcome"

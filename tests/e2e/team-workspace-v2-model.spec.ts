@@ -7,7 +7,7 @@ test("current workspace policy covers web, upload and hardware, never another wo
   const s = M.seed(), a = M.get(s, "team-eureka"), p = M.get(s, "personal");
   const before = M.addFile(a, { title: "历史私有" });
   M.setDeviceSharing(s, a.id, "zhang", "meetings", true, ["lin"]);
-  expect(() => M.setDeviceSharing(s, a.id, "zhang", "thoughts", true, ["lin"])).toThrow(/个人工作区/);
+  expect(() => M.setDeviceSharing(s, a.id, "zhang", "thoughts", true, ["lin"])).toThrow(/不参与团队共享/);
   for (const source of ["网页录音", "文件上传", "笔记"]) {
     const f = M.addFile(a, { title: source, source });
     expect(f.shared).toEqual(["lin"]);
@@ -48,7 +48,7 @@ test("expired and cancelled teams accept only bound-device raw audio without AI 
     expect([w.credits, p.credits]).toEqual(credits);
     expect(w.transcriptionUsage).toBeUndefined();
     expect(() => M.addFile(w, { title: "手动" })).toThrow(/只读/);
-    expect(() => M.addThought(w, { title: "手动", detail: "" })).toThrow(/个人工作区/);
+    expect(() => M.addThought(w, { title: "手动", detail: "" })).toThrow(/只读/);
     expect(() => M.edit(w, original.id, { title: "修改" })).toThrow(/只读/);
     expect(() => M.consumeMinutes(w, "bad", 1)).toThrow(/只读/);
     expect(() => M.settleCredits(w, "bad", "AI", { inputTokens: 1, outputTokens: 1 })).toThrow(/只读/);
@@ -60,7 +60,8 @@ test("expired and cancelled teams accept only bound-device raw audio without AI 
     // A delayed device upload preserves its capture workspace, not the newly selected view.
     expect(M.sync(s, "dev-personal", "zhang", { sourceId: `late-${status}`, workspaceId: w.id, bindingId }).space.id).toBe(w.id);
     const rawThought = M.syncThought(s, "dev-personal", "zhang", { workspaceId: w.id, bindingId, sourceId: "paused-thought" });
-    expect(rawThought.space.id).toBe("personal");
+    expect(rawThought.space.id).toBe(w.id);
+    expect(rawThought.rawAudio?.processingPaused).toBe(true);
     w.status = "active"; M.enrich(s);
     expect(M.syncThought(s, "dev-personal", "zhang", { workspaceId: w.id, bindingId, sourceId: "paused-thought" }).thought.id).toBe(rawThought.thought.id);
     expect(result.file.processingPaused).toBe(false);

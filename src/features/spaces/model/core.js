@@ -986,7 +986,7 @@ function setDeviceSharing(s, wid, owner, kind, enabled, users, uid = SELF, edito
   if (owner !== uid) fail("只能设置本人内容共享，管理员不能代为开启");
   const w = get(s, wid);
   access(w, uid); writable(w);
-  if (kind === "thoughts") fail("闪念仅保存在个人工作区，不参与团队共享");
+  if (kind === "thoughts") fail("闪念仅本人可见，不参与团队共享");
   if (w.type !== "team" || kind !== "meetings") fail("共享设置无效");
   if (!Array.isArray(users) || users.some((user) => user === uid || !member(w, user)))
     fail("请选择当前团队的有效成员");
@@ -1041,7 +1041,6 @@ function sync(s, did, uid = SELF, input = {}) {
 }
 
 function addThought(w, input, uid = SELF) {
-  if (w.type !== "personal") fail("闪念仅在个人工作区使用");
   access(w, uid); writable(w);
   const title = String(input.title || "").trim();
   if (!title || title.length > 200) fail("请填写 1–200 字标题");
@@ -1056,17 +1055,16 @@ function addThought(w, input, uid = SELF) {
   return thought;
 }
 function editThought(w, tid, input, uid = SELF) {
-  if (w.type !== "personal") fail("闪念仅在个人工作区使用");
   access(w, uid); writable(w);
   const thought = (w.thoughts || []).find((t) => t.id === tid) || fail("闪念不存在");
-  if (!canEdit(w, thought, uid)) fail("未获得编辑权限");
+  if (thought.owner !== uid) fail("只能修改本人闪念");
   const title = String(input.title || "").trim(), detail = String(input.detail || "").trim();
   if (!title || title.length > 200 || detail.length > 5000) fail("请填写有效标题和内容");
   Object.assign(thought, { title, detail, updated: stamp(), revision: (thought.revision || 0) + 1 });
   return thought;
 }
 function shareThought(w, tid, users, uid = SELF, editors = []) {
-  if (w.type !== "personal" || users.length) fail("闪念仅保存在个人工作区，不参与共享");
+  if (users.length || editors.length) fail("闪念仅本人可见，不参与共享");
   access(w, uid); writable(w);
   const thought = (w.thoughts || []).find((t) => t.id === tid && t.owner === uid) || fail("只能共享本人闪念");
   if (users.some((user) => user === uid || !member(w, user))) fail("只能邀请当前空间的有效成员");
@@ -1076,26 +1074,39 @@ function shareThought(w, tid, users, uid = SELF, editors = []) {
 function syncThought(s, did, uid = SELF, input = {}) {
   const d = s.devices.find((d) => d.id === did) || fail("设备不存在");
   if (d.user !== uid) fail("只能同步自己的设备");
-  const binding = input.bindingId ? d.bindings?.find(b => b.id === input.bindingId) : d.bindings?.findLast(b => !b.unboundAt);
-  if ((!input.bindingId && !d.bound) || !binding) fail("设备尚未绑定工作区，请本人确认绑定");
-  // Workspace binding routes meetings; thoughts always belong to the device owner.
-  const w = accountSpace(s, uid), sourceId = input.sourceId || id("capture");
-  const previous = (w.thoughts || []).find(t => t.owner === uid && t.deviceId === did && t.sourceRecordId === sourceId);
-  if (previous) return { space: w, thought: previous, duplicate: true };
-  const audio = w.files.find(f => f.owner === uid && f.deviceId === did && f.sourceRecordId === `thought-audio:${sourceId}`);
-  const rawResult = raw => ({ space: w, thought: { id: raw.id, title: raw.title, detail: "", type: "other", date: raw.created.slice(0, 10), time: "", owner: uid, shared: [] }, rawAudio: raw });
-  if (audio) return { ...rawResult(audio), duplicate: true };
-  const thought = addThought(w, { title: input.title || `${d.name} · 新闪念`, detail: input.detail || "设备闪念同步演示：记录下次沟通前需要确认的问题。" }, uid);
-  Object.assign(thought, { deviceId: did, bindingId: binding.id, sourceRecordId: sourceId, source: "device" });
+  const { w, binding } = deviceCaptureSpace(s, d, uid, input);
+  const sourceId = input.sourceId || id("capture");
+  // Stable device/source IDs retain their original workspace across retries and rebinds.
+  for (const space of [...s.spaces, ...Object.values(s.accountSpaces || {})]) {
+    const previous = (space.thoughts || []).find(t => t.owner === uid && t.deviceId === did && t.sourceRecordId === sourceId);
+    if (previous) {
+      access(space, uid);
+      return { space, thought: previous, rawAudio: previous.rawAudio ? previous : undefined, duplicate: true };
+    }
+  }
+  const paused = w.type === "team" && w.status !== "active";
+  let thought;
+  if (paused) {
+    const time = stamp();
+    thought = { ...file(id("thought"), String(input.title || `${d.name} · 新闪念`).slice(0, 200), uid, [], 0),
+      type: "other", date: time.slice(0, 10), time: time.slice(11, 16), created: time, updated: time,
+      detail: "原始音频已保留，工作区恢复后可进行转录与提取。", transcript: "", summary: "",
+      status: "原始音频 · 待处理", rawAudio: true, processingPaused: true, revision: 1 };
+    (w.thoughts ||= []).unshift(thought);
+  } else {
+    thought = addThought(w, { title: input.title || `${d.name} · 新闪念`, detail: input.detail || "设备闪念同步演示：记录下次沟通前需要确认的问题。" }, uid);
+  }
+  Object.assign(thought, { deviceId: did, bindingId: binding.id, sourceRecordId: sourceId, recordedWorkspaceId: w.id,
+    source: "device", shared: [], editors: [], visibility: "private", sharingMode: "private" });
   d.lastSync = stamp();
-  return { space: w, thought, sharedTeams: [] };
+  return { space: w, thought, rawAudio: paused ? thought : undefined, sharedTeams: [] };
 }
 
 function visibleThoughts(w, uid = SELF) {
   access(w, uid);
-  if (w.type !== "personal") return [];
   return (w.thoughts || []).filter((t) => !t.deleted && t.owner === uid);
 }
+
 function migrateAccountDevices(s) {
   for (const d of s.devices) {
     if (typeof d.bound !== "boolean") d.bound = !!d.spaceId;
@@ -1390,23 +1401,19 @@ function enrich(s, now = new Date()) {
         if (prefs.teams?.[w.id] && member(w, uid)) w.contentSharing[uid] = clone(prefs.teams[w.id]);
     }
   }
-  // Move old Team thought records to their owner's personal workspace, preserving IDs
-  // and existing personal edits. Obsolete Team sharing policies cannot reactivate them.
-  for (const w of s.spaces.filter(w => w.type === "team")) {
+  // Preserve each record's existing workspace. Retire obsolete thought sharing grants.
+  // Previously migrated personal records remain there; never infer a new destination.
+  for (const w of [...s.spaces, ...Object.values(s.accountSpaces || {})]) {
     for (const prefs of Object.values(w.contentSharing || {})) delete prefs.thoughts;
     for (const prefs of Object.values(s.captureSettings || {})) if (prefs.teams?.[w.id]) delete prefs.teams[w.id].thoughts;
-    for (const thought of w.thoughts || []) {
-      const personal = accountSpace(s, thought.owner), originalId = thought.sourceThoughtId || thought.id;
-      personal.thoughts ||= [];
-      if (!personal.thoughts.some(t => t.id === originalId || (t.deviceId && t.deviceId === thought.deviceId && t.sourceRecordId === thought.sourceRecordId)))
-        personal.thoughts.push({ ...clone(thought), id: originalId, shared: [], editors: [], visibility: "private", sharingMode: "private" });
-    }
-    w.thoughts = [];
-    const rawThoughts = w.files.filter(f => f.sourceRecordId?.startsWith("thought-audio:"));
-    for (const raw of rawThoughts) {
-      const personal = accountSpace(s, raw.owner);
-      if (!personal.files.some(f => f.id === raw.id || (f.deviceId === raw.deviceId && f.sourceRecordId === raw.sourceRecordId)))
-        personal.files.push({ ...clone(raw), shared: [], editors: [], visibility: "private", sharingMode: "private", recordedWorkspaceId: personal.id });
+    for (const thought of w.thoughts || [])
+      Object.assign(thought, { shared: [], editors: [], visibility: "private", sharingMode: "private" });
+    // Older paused thought audio belongs in the private thought archive, not meeting lists.
+    for (const raw of w.files.filter(f => f.sourceRecordId?.startsWith("thought-audio:"))) {
+      w.thoughts ||= [];
+      if (!w.thoughts.some(t => t.id === raw.id)) w.thoughts.push({ ...clone(raw), type: "other",
+        detail: "原始音频已保留，等待转录与提取。", date: raw.created.slice(0, 10), time: raw.created.slice(11, 16),
+        sourceRecordId: raw.sourceRecordId.slice("thought-audio:".length), shared: [], editors: [], visibility: "private", sharingMode: "private" });
     }
     w.files = w.files.filter(f => !f.sourceRecordId?.startsWith("thought-audio:"));
   }
@@ -1667,7 +1674,7 @@ function enrich(s, now = new Date()) {
   migrateAccountDevices(s);
   reconcileEntitlements(s, now);
   for (const w of [...s.spaces, ...Object.values(s.accountSpaces || {})]) {
-    if (w.type === "personal" || w.status === "active") for (const f of w.files || []) {
+    if (w.type === "personal" || w.status === "active") for (const f of [...(w.files || []), ...(w.thoughts || [])]) {
       if (f.processingPaused) { f.processingPaused = false; f.status = "待处理"; }
     }
   }

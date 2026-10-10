@@ -53,7 +53,7 @@ test("manual entry and CRM import retain CRM precedence without exposing source 
   await expect(page.locator(".contacts-facts")).toContainText("ABC Energy");
 });
 
-test("workspace private notes, personal-only thoughts and customer sharing switches", async ({ page, context }) => {
+test("workspace private notes, private workspace thoughts and customer sharing switches", async ({ page, context }) => {
   const initial = M.seed(); M.get(initial, "team-eureka").customerDemoVersion = 1;
   await page.addInitScript(s => { if (!localStorage.getItem("eureka:workspaces:v2")) localStorage.setItem("eureka:workspaces:v2", JSON.stringify(s)); }, initial);
   await go(page, "home");
@@ -81,7 +81,7 @@ test("workspace private notes, personal-only thoughts and customer sharing switc
   await expect(other.locator(".md-workspace").getByRole("alert")).toBeVisible();
   await expect(other.locator(".md-workspace")).not.toContainText("只允许邀请的人看见");
   await go(page, "thoughts");
-  await expect(page.getByRole("status")).toContainText("仅在个人工作区使用");
+  await expect(page.getByRole("heading", { name: "全部闪念", exact: true })).toBeVisible();
   await go(page, "contacts");
   await expect(page.locator(".contacts-person-card")).toHaveCount(0);
   await add(page, "团队私有客户", "团队客户公司");

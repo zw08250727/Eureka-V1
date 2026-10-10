@@ -130,7 +130,6 @@ export function createActions(storage: Storage, now = () => new Date(), accountI
     if (workspaceId === "personal") return;
     const w = M.get(createWorkspaceStore(storage).read(), workspaceId);
     if (!M.member(w, accountId)) throw Error("没有此工作空间的访问权限");
-    if (write && w.type === "team") throw Error("日程与待办仅在个人工作区使用");
     if (write) M.writable(w);
   };
   const store = createJsonStore<ActionState>(
@@ -147,7 +146,7 @@ export function createActions(storage: Storage, now = () => new Date(), accountI
     (value) => legacy ? fillWeekActions(value, now()) : value,
   );
   return {
-    read() { authorize(); return workspaceId === "personal" ? store.read() : { version: 1, records: [], meetings: [], sessions: [], settings: {} }; },
+    read() { authorize(); return store.read(); },
     change<R>(fn: (s: ActionState) => R): R { authorize(true); return store.change(fn); },
     session(id: string, prompt: string, draft: ActionRecord) {
       authorize(true);
@@ -211,11 +210,19 @@ export function createActions(storage: Storage, now = () => new Date(), accountI
     },
   };
 }
-export function createThoughts(storage: Storage, now = () => new Date()) {
+export function createThoughts(storage: Storage, now = () => new Date(), accountId = "zhang", workspaceId = "personal") {
+  const legacy = accountId === "zhang" && workspaceId === "personal";
+  const authorize = (write = false) => {
+    const state = createWorkspaceStore(storage, now).read();
+    const w = M.get(state, workspaceId);
+    if (!M.member(w, accountId)) throw Error("没有此工作空间的访问权限");
+    if (write) M.writable(w);
+    return w;
+  };
   const store = createJsonStore<WeekThoughtState>(
     storage,
-    "eureka:thoughts:v1",
-    () => ({ version: 1, records: seedThoughts(now()) }),
+    legacy ? "eureka:thoughts:v1" : `eureka:thoughts:${workspaceId}:${accountId}:v1`,
+    () => ({ version: 1, records: legacy ? seedThoughts(now()) : [] }),
     (v) =>
       !!v &&
       typeof v === "object" &&
@@ -223,31 +230,33 @@ export function createThoughts(storage: Storage, now = () => new Date()) {
       v.version === 1 &&
       "records" in v &&
       Array.isArray(v.records),
-    (value) => fillWeekThoughts(value, now()),
+    (value) => legacy ? fillWeekThoughts(value, now()) : value,
   );
   const workspaceStore = createWorkspaceStore(storage, now);
   return {
-    ...store,
+    change<R>(fn: (s: WeekThoughtState) => R): R { authorize(true); return store.change(fn); },
     read() {
+      const personal = authorize();
       const data = store.read();
-      const ws = workspaceStore.read();
-      const personal = M.get(ws, "personal");
-      data.records = [...M.visibleThoughts(personal, ws.account.id), ...data.records];
+      data.records = [...M.visibleThoughts(personal, accountId), ...data.records];
       return data;
     },
     save(input: ThoughtRecord) {
-      const ws = workspaceStore.read();
-      if (M.get(ws, "personal").thoughts?.some((t) => t.id === input.id)) {
+      const workspace = authorize(true);
+      if (workspace.thoughts?.some((t) => t.id === input.id)) {
         if (!input.title.trim() || input.title.length > 200 || input.detail.length > 5000)
           throw Error("请填写有效标题和内容");
         if (!validDate(input.date + "T" + input.time)) throw Error("日期或时间无效");
         return workspaceStore.change((state) => {
-          const thought = M.get(state, "personal").thoughts!.find((t) => t.id === input.id)!;
-          if (thought.owner !== state.account.id) throw Error("只能修改本人闪念");
+          const current = M.get(state, workspaceId);
+          if (!M.member(current, accountId)) throw Error("没有此工作空间的访问权限");
+          M.writable(current);
+          const thought = current.thoughts!.find((t) => t.id === input.id)!;
+          if (thought.owner !== accountId) throw Error("只能修改本人闪念");
           if (thought.revision !== input.revision) throw Error("记录已更新，请重新打开");
           Object.assign(thought, { title: input.title.trim(), detail: input.detail,
             date: input.date, time: input.time, revision: (thought.revision || 0) + 1, updated: now().toISOString() });
-          // Device thoughts remain private personal assets.
+          // Device thoughts remain private within their original workspace.
           return thought;
         });
       }

@@ -84,7 +84,7 @@ test("future content permissions expose view/edit per member; editor can edit bu
 
 test("team cannot expose personal thought creation or sharing", async ({ page }) => {
   await seed(page); await go(page, "thoughts", "kevin");
-  await expect(page.getByRole("status")).toContainText("仅在个人工作区使用");
+  await expect(page.getByRole("heading", { name: "全部闪念", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "新建闪念" })).toHaveCount(0);
   await go(page, "content-permissions", "kevin");
   await expect(page.getByRole("switch")).toHaveCount(2);

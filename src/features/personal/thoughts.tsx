@@ -38,8 +38,11 @@ type ThoughtRow =
       detail: string;
       action: true;
     });
-export function ThoughtsPage({ id }: { id: string }) {
-  const { data, error, repo, refresh } = useLivePersonal();
+export function ThoughtsPage({ id, actor = "zhang", space = "personal", controller }: {
+  id: string; actor?: string; space?: string; controller?: import("@/features/spaces/use-spaces").SpacesController;
+}) {
+  const { data, error, repo, refresh } = useLivePersonal(actor, space);
+  const readonly = space !== "personal" && controller?.state?.spaces.find(w => w.id === space)?.status !== "active";
   const [type, setType] = useState(id in thoughtNames ? id : "schedule"),
     [query, setQuery] = useState(""),
     [from, setFrom] = useState(""),
@@ -132,6 +135,7 @@ export function ThoughtsPage({ id }: { id: string }) {
     return (
       <CalendarPage
         key={detail}
+        actor={actor} space={space} controller={controller}
         id={detail}
         onBack={() => {
           refresh();
@@ -206,12 +210,14 @@ export function ThoughtsPage({ id }: { id: string }) {
                   </ThButton>
                   <ThButton
                     action="ask"
+                    disabled={readonly}
                     className="th-ask"
                     onClick={() => {
                       if (!rows.length) {
                         setNotice("当前没有可引用的记录");
                         return;
                       }
+                      if (readonly) return;
                       setAgent(true);
                       setSequence((s) => s + 1);
                     }}
@@ -357,6 +363,7 @@ export function ThoughtsPage({ id }: { id: string }) {
                                       type="button"
                                       className="th-complete"
                                       data-th="toggle"
+                                      disabled={readonly}
                                       data-id={r.id}
                                       role="checkbox"
                                       aria-checked={r.done}
@@ -423,6 +430,7 @@ export function ThoughtsPage({ id }: { id: string }) {
                                       action="edit"
                                       id={r.id}
                                       className="th-row-edit"
+                                      disabled={readonly}
                                       onClick={() => open(r.id, true)}
                                     >
                                       编辑
@@ -463,7 +471,7 @@ export function ThoughtsPage({ id }: { id: string }) {
           </div>
         </div>
         <AgentPanel
-          open={agent}
+          open={agent && !readonly}
           onClose={() => setAgent(false)}
           host={host}
           files={rows.map((r) => ({ id: r.id, title: r.title }))}
@@ -508,6 +516,7 @@ export function ThoughtsPage({ id }: { id: string }) {
           />
         ) : (
           <ActionPreview
+            readOnly={readonly}
             record={action}
             onClose={() => setSelected("")}
             onEdit={() => setEditing(true)}
@@ -520,6 +529,7 @@ export function ThoughtsPage({ id }: { id: string }) {
           key={record.id + (editing ? "-edit" : "-preview")}
           record={record}
           editing={editing}
+          readOnly={readonly}
           onEdit={() => setEditing(true)}
           onClose={() => setSelected("")}
           onSave={(r) => {

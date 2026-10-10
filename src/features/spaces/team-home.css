@@ -1,4 +1,4 @@
-/* Compact Team brief; personal schedules and thoughts live in the personal workspace. */
+/* One compact canvas: meeting brief and workspace-scoped private assets. */
 #ws-view .team-overview { margin-bottom:16px; color:#2b4058; container:team-overview / inline-size; }
 #ws-view .team-overview-head { display:flex; align-items:center; justify-content:space-between; gap:20px; margin:0 0 14px; padding:0 4px; }
 #ws-view .team-overview-title { display:flex; align-items:baseline; gap:16px; }
@@ -8,7 +8,7 @@
 #ws-view .team-overview-actions button { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:36px; padding:7px 12px; border:1px solid #dce5f0; border-radius:8px; background:#fff; color:#526b88; font-family:inherit; font-size:12px; line-height:20px; font-weight:600; white-space:nowrap; cursor:pointer; }
 #ws-view .team-overview-actions button.team-primary { color:#fff; background:#397ac6; border-color:#397ac6; }
 #ws-view .team-overview .icon { width:16px; height:16px; flex-shrink:0; }
-#ws-view .team-overview-canvas { border:1px solid #dce5ef; border-radius:16px; background:#fff; overflow:hidden; display:grid; grid-template-columns:minmax(0,1fr); }
+#ws-view .team-overview-canvas { border:1px solid #dce5ef; border-radius:16px; background:#fff; overflow:hidden; display:grid; grid-template-columns:minmax(0,1.15fr) minmax(360px,1fr); }
 #ws-view .team-overview-main { display:contents; }
 #ws-view .team-brief-column { padding:16px 20px 12px; min-width:0; }
 #ws-view .team-section-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; }
@@ -58,4 +58,39 @@
   #ws-view .team-overview-canvas { grid-template-columns:minmax(0,1fr); }
   #ws-view .team-brief-column { grid-column:1; grid-row:auto; }
   #ws-view .team-section-heading { flex-wrap:wrap; }
+}
+
+#ws-view .team-private-column { min-width:0; padding:16px 20px 12px; background:#fafcff; border-left:1px solid #e6edf5; }
+#ws-view .team-private-badge { font-size:10px; font-weight:400; color:#8395ac; }
+#ws-view .team-private-column a { color:#517eaf; text-decoration:none; font-size:11px; white-space:nowrap; }
+#ws-view .team-private-column a:hover { color:#215fa9; text-decoration:underline; }
+#ws-view .team-private-column :is(h3,p) { margin:0; }
+#ws-view .team-private-column h3 { font-size:12px; color:#516b8b; font-weight:600; line-height:22px; }
+#ws-view .team-private-column h3 span { font-size:10px; font-weight:400; margin-left:6px; color:#8395ac; }
+#ws-view .team-private-column section { min-width:0; }
+#ws-view .team-private-column section>header { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:7px; }
+#ws-view .team-private-agenda, #ws-view .team-private-notes { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:20px; }
+#ws-view .team-private-agenda { min-height:85px; }
+#ws-view .team-private-notes { margin-top:12px; padding-top:12px; border-top:1px solid #e6edf5; }
+#ws-view .team-private-list { display:grid; gap:5px; }
+#ws-view .team-private-list>a { display:flex; align-items:center; gap:8px; color:#435e7d; font-size:12px; line-height:22px; }
+#ws-view .team-private-list>a>span, #ws-view .team-private-todo>a { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+#ws-view .team-private-list time { font-size:10px; color:#8b9aae; flex-shrink:0; }
+#ws-view .team-private-idea { justify-content:space-between; }
+#ws-view .team-private-column p { color:#8b9aae; font-size:12px; line-height:22px; }
+#ws-view .team-private-todo { display:flex; align-items:center; gap:7px; min-width:0; }
+#ws-view .team-private-todo>a { font-size:12px; color:#435e7d; line-height:22px; }
+#ws-view .team-private-todo>button { padding:0; width:15px; height:15px; flex:0 0 15px; border:1px solid #b6c7db; border-radius:4px; background:#fff; color:#397ac6; font-size:10px; cursor:pointer; }
+#ws-view .team-private-todo>button[aria-pressed=true]+a { color:#8b9aae; text-decoration:line-through; }
+#ws-view .team-private-ledger { max-height:62px; overflow:auto; }
+#ws-view .team-private-ledger p { display:flex; justify-content:space-between; gap:6px; }
+#ws-view .team-private-ledger strong { color:#435e7d; font-weight:500; }
+@container team-overview (max-width:900px) {
+  #ws-view .team-overview-canvas { grid-template-columns:minmax(0,1fr); }
+  #ws-view .team-private-column { border-left:0; border-top:1px solid #e6edf5; }
+  #ws-view .team-private-agenda { min-height:0; }
+}
+@container team-overview (max-width:400px) {
+  #ws-view .team-private-agenda, #ws-view .team-private-notes { grid-template-columns:minmax(0,1fr); gap:12px; }
+  #ws-view .team-private-column { padding:14px 16px; }
 }

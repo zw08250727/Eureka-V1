@@ -28,17 +28,19 @@ export function ThButton({
   children,
   id = "",
   className = "",
-  onClick,
+  onClick, disabled = false,
 }: {
   action: string;
   children: ReactNode;
   id?: string;
   className?: string;
   onClick: () => void;
+  disabled?: boolean;
 }) {
   return (
     <button
       type="button"
+      disabled={disabled}
       className={`th-btn ${className}`}
       data-th={action}
       data-id={id}
@@ -52,12 +54,14 @@ export function ThButton({
 export function ThoughtDialog({
   record,
   editing,
+  readOnly = false,
   onEdit,
   onClose,
   onSave,
 }: {
   record: ThoughtRecord;
   editing: boolean;
+  readOnly?: boolean;
   onEdit: () => void;
   onClose: () => void;
   onSave: (r: ThoughtRecord) => void;
@@ -292,6 +296,7 @@ export function ThoughtDialog({
               </ThButton>
               <ThButton
                 action="edit"
+                disabled={readOnly}
                 id={r.id}
                 className="primary"
                 onClick={onEdit}

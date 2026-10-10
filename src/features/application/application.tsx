@@ -73,9 +73,7 @@ export function Application() {
 
   const props = { controller: spaces, space: w.id, actor };
   const content =
-    team && ["calendar", "thoughts"].includes(route.view) ? (
-      <section className="p-8"><p role="status">闪念、日程与待办仅在个人工作区使用。</p><a href={appUrl("home", "", "personal", "zhang")}>切换到个人工作区</a></section>
-    ) : route.view === "home" ? (
+    route.view === "home" ? (
       team ? (
         <TeamHome {...props} />
       ) : (
@@ -84,7 +82,7 @@ export function Application() {
     ) : route.view === "calendar" ? (
       <Calendar key={`${w.id}:${actor}`} id={route.id} {...props} />
     ) : route.view === "thoughts" ? (
-      <Thoughts id={route.id} />
+      <Thoughts key={`${w.id}:${actor}`} id={route.id} {...props} />
     ) : route.view === "contacts" ? (
       <Contacts key={`${w.id}:${actor}`} id={route.id} actor={actor} space={w.id} controller={spaces} />
     ) : route.view === "settings" ? (

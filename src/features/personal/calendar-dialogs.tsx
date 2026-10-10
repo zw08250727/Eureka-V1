@@ -35,7 +35,7 @@ export function useLivePersonal(accountId = "zhang", workspaceId = "personal") {
       if (!repo.current) return;
       try {
         repo.current.actions = createActions(localStorage, () => new Date(), accountId, workspaceId);
-        repo.current.thoughts = createThoughts(localStorage);
+        repo.current.thoughts = createThoughts(localStorage, () => new Date(), accountId, workspaceId);
         refresh();
       } catch {
         /* Keep the last readable snapshot; mutations retain their explicit error reporting. */
@@ -521,13 +521,14 @@ export function ActionEditor({
   );
 }
 export function ActionPreview({
-  record: r,
+  record: r, readOnly = false,
   onClose,
   onEdit,
   onDetails,
   onToggle,
 }: {
   record: ActionRecord;
+  readOnly?: boolean;
   onClose: () => void;
   onEdit: () => void;
   onDetails: () => void;
@@ -604,6 +605,7 @@ export function ActionPreview({
             type="button"
             className="th-btn "
             data-ap="toggle"
+            disabled={readOnly}
             onClick={() => {
               try {
                 onToggle();
@@ -627,6 +629,7 @@ export function ActionPreview({
           type="button"
           className="th-btn primary"
           data-ap="edit"
+          disabled={readOnly}
           onClick={onEdit}
         >
           编辑

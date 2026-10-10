@@ -38,7 +38,7 @@ test("workspace devices remain bound after removal; owner must rebind before new
   expect(team.files).toEqual(history.map(f => ({ ...f, shared: f.shared.filter(id => id !== "zhang") })));
   expect(team.thoughts).toEqual(thoughts);
   expect(M.get(s, "personal").files.some((f) => f.id === first.file.id)).toBe(false);
-  expect([...M.visibleThoughts(M.get(s, "personal")), ...M.get(s, "personal").files].map((t) => t.id)).toContain(thought.thought.id);
+  expect([...M.visibleThoughts(M.get(s, "personal")), ...M.get(s, "personal").files].map((t) => t.id)).not.toContain(thought.thought.id);
   expect(M.enrich(s).devices.find((d) => d.id === "dev-personal")?.bound).toBe(true);
 });
 
@@ -59,7 +59,7 @@ test("sync retries are idempotent and never back-share pre-join or removed data"
   M.sync(s, "dev-personal", "zhang", { sourceId: "new" });
   M.syncThought(s, "dev-personal", "zhang", { sourceId: "new-thought" });
   expect(newTeam.files).toHaveLength(before + 1);
-  expect(newTeam.thoughts || []).toHaveLength(0);
+  expect(newTeam.thoughts || []).toHaveLength(1);
 });
 
 test("legacy bindings migrate once without resurrecting unbound devices or copying private team data", () => {
@@ -87,7 +87,7 @@ test("failed and stale writes do not partially remove membership or modify devic
   expect(M.accountTeam(repo.read())?.id).toBe("team-eureka");
 });
 
-test("device thoughts remain personally editable across team binding and member removal", () => {
+test("new personal captures remain editable after removal while team thoughts stay inaccessible", () => {
   const storage = memory(), s = M.seed();
   rebind(s, "team-eureka");
   const teamThought = M.syncThought(s, "dev-personal");
@@ -100,8 +100,9 @@ test("device thoughts remain personally editable across team binding and member 
   repo.save({ ...thought, title: "移除后本人修改" });
   const saved = createWorkspaceStore(storage).read();
   expect(M.get(saved, "personal").thoughts?.[0].title).toBe("移除后本人修改");
-  expect(M.get(saved, "team-eureka").thoughts || []).toHaveLength(0);
-  expect([...M.get(saved, "personal").thoughts || [], ...M.get(saved, "personal").files].some(t => t.id === teamThought.thought.id)).toBe(true);
+  expect(M.get(saved, "team-eureka").thoughts || []).toHaveLength(1);
+  expect(() => createThoughts(storage, () => new Date(), "zhang", "team-eureka").read()).toThrow(/访问权限/);
+  expect([...M.get(saved, "personal").thoughts || [], ...M.get(saved, "personal").files].some(t => t.id === teamThought.thought.id)).toBe(false);
 });
 
 const contact = (id: string): Contact => ({ id, name: "客户甲", initials: "客", company: "渠道公司", role: "", region: "", email: "a@example.com", tag: "客户", summary: "", count: 0, recent: "", themes: [], memories: [], inferences: [] });
@@ -196,7 +197,7 @@ test("meeting-only switch, fixed recording destination, no backfill and no futur
   const personal = M.get(s, "personal"), thought = M.addThought(personal, { title: "私有想法", detail: "想法详情" });
   expect(M.visibleThoughts(w, "lin")).toEqual([]);
   expect(() => M.shareThought(personal, thought.id, ["lin"])).toThrow(/不参与共享/);
-  expect(() => M.addThought(w, { title: "旧团队页面", detail: "" })).toThrow(/个人工作区/);
+  expect(M.addThought(w, { title: "团队本人闪念", detail: "" }).owner).toBe("zhang");
 
 });
 test("workspace contacts stay separate even for the same verified CRM identity, including after removal", () => {

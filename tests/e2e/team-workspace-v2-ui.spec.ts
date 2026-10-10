@@ -66,17 +66,15 @@ test("content policies are scoped to owner and current workspace; upload and sof
   expect(M.get(await raw(page), second).files.some(f => f.title === "来自软件的授权上传")).toBe(false);
 });
 
-test("team omits personal features and old deep links cannot open team calendars or thoughts", async ({ page }) => {
+test("team offers private calendar and thought modules without a sharing switch", async ({ page }) => {
   await seed(page); await go(page);
-  await expect(page.locator(".sidebar-quick-nav").getByRole("button", { name: "日程与待办", exact: true })).toHaveCount(0);
-  await expect(page.getByRole("region", { name: "今日闪念概览", exact: true })).toHaveCount(0);
-  await expect(page.getByRole("complementary", { name: "我的今日安排" })).toHaveCount(0);
+  await expect(page.locator(".sidebar-quick-nav").getByRole("button", { name: "日程与待办", exact: true })).toBeVisible();
+  await expect(page.getByRole("complementary", { name: "我的闪念与安排" })).toBeVisible();
   await expect(page.getByRole("region", { name: "团队简报", exact: true })).toBeVisible();
-  for (const view of ["thoughts", "calendar"]) {
-    await go(page, view);
-    await expect(page.getByRole("status")).toContainText("仅在个人工作区使用");
-    await expect(page.getByRole("link", { name: "切换到个人工作区" })).toHaveAttribute("href", /space=personal/);
-  }
+  await go(page, "calendar");
+  await expect(page.locator("#personal-actions h1")).toHaveText("日程与待办");
+  await go(page, "thoughts");
+  await expect(page.getByRole("heading", { name: "全部闪念", exact: true })).toBeVisible();
   await go(page, "content-permissions");
   await expect(page.getByRole("switch")).toHaveCount(2);
   await expect(page.getByRole("switch", { name: "闪念信息共享给团队" })).toHaveCount(0);

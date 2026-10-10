@@ -93,7 +93,7 @@ test("create followup uses schedule form, validates time, persists scoped data a
   await cards(page).filter({ hasText: "团队客户" }).click();
   await expect(page.locator('[data-contact-action="followup"]')).toHaveCount(0);
   await page.goto("/workbench/?view=calendar&space=team-eureka&actor=lin");
-  await expect(page.getByRole("status")).toContainText("仅在个人工作区使用");
+  await expect(page.getByRole("heading", { name: "日程与待办", exact: true })).toBeVisible();
   await page.goto("/workbench/?view=calendar&space=personal");
   await expect(page.getByRole("region", { name: "未安排待办" })).toHaveCount(0);
 });
