@@ -20,7 +20,6 @@ export function ensureTeamCustomerDemo(storage: Storage, workspaceId: string, ac
   }
   // Existing customer collections and their sharing choices must remain untouched.
   if (Object.entries(data).some(([key, scope]) => key.startsWith(prefix) && scope.contacts?.length)) return;
-  const shared = { ...w.customerSharing };
   for (const [index, member] of w.members.filter(m => m.status === "active").entries()) {
     const companies = growth ? ["远帆零售", "青禾生活", "知行教育"] : ["星海智能科技", "云帆制造", "启明数科"];
     const company = companies[index % companies.length];
@@ -32,19 +31,19 @@ export function ensureTeamCustomerDemo(storage: Storage, workspaceId: string, ac
     ];
     const contacts: Contact[] = templates.map((item, i) => ({
       ...item, id: `demo-customer-${member.id}-${i + 1}`, ownerId: member.id,
+      sharedWith: member.id === state.account.id ? [] : w.members.filter(m => m.status === "active" && m.role !== "admin" && m.id !== member.id).map(m => m.id),
       initials: item.name.slice(0, 2), tag: "示例客户", count: 0, recent: "", region: ["上海", "杭州", "深圳"][index % 3],
       email: `customer-${member.id}-${i + 1}@example.com`, createdAt: `2026-10-0${8 - i}T0${9 - index}:30:00+08:00`,
       themes: [], memories: [], inferences: [],
       sources: [{ id: `demo-source-${member.id}-${i + 1}`, channel: item.channel, fields: { name: item.name, company: item.company }, updatedAt: "2026-10-08", ...(item.channel === "crm" ? { crmId: `DEMO-${index + 1}`, crmSystem: "演示 CRM" } : {}) }],
     }));
-    data[prefix + member.id] = { ...(data[prefix + member.id] || {}), contacts, notes: data[prefix + member.id]?.notes || {}, tasks: data[prefix + member.id]?.tasks || [] };
+    data[prefix + member.id] = { ...(data[prefix + member.id] || {}), itemSharingVersion: 1, contacts, notes: data[prefix + member.id]?.notes || {}, tasks: data[prefix + member.id]?.tasks || [] };
     // Only fictional colleagues with no prior choice start with shared demo records.
-    if (member.id !== state.account.id && shared[member.id] === undefined) shared[member.id] = true;
   }
   const updated = JSON.stringify(data);
   try {
     storage.setItem(CONTACTS_KEY, updated);
-    repository.change(s => { const target = M.get(s, workspaceId); target.customerDemoVersion = 1; target.customerSharing = shared; });
+    repository.change(s => { const target = M.get(s, workspaceId); target.customerDemoVersion = 1; });
   } catch (error) {
     if (storage.getItem(CONTACTS_KEY) === updated) {
       if (raw === null) storage.removeItem(CONTACTS_KEY); else storage.setItem(CONTACTS_KEY, raw);

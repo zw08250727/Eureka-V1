@@ -56,7 +56,7 @@ export function TeamHome({
   const files = recycle
     ? w.files.filter(
         (f) =>
-          f.owner === actor &&
+          (f.owner === actor || M.admin(w, actor)) &&
           f.deleted &&
           (!f.deletedAt ||
             now.getTime() - new Date(f.deletedAt).getTime() < 30 * 86400000),
@@ -139,7 +139,7 @@ export function TeamHome({
               <p>
                 {recycle
                   ? "删除的录音可恢复，30 天后过期清理"
-                  : "录音、转录与笔记 · 仅本人或已获邀内容"}
+                  : "录音、转录与笔记 · 按当前身份权限展示"}
               </p>
             </div>
             <div className="ws-meeting-tools">
@@ -278,7 +278,7 @@ export function TeamHome({
                     <td>{f.size || "—"}</td>
                     {recycle ? (
                       <>
-                        <td>{f.source}<small style={{ display: "block" }}>{f.owner !== actor ? (M.canEdit(w, f, actor) ? "共享给我 · 可编辑" : "共享给我 · 仅查看") : f.shared.length ? "已邀请成员" : "仅自己可见"}</small></td>
+                        <td>{f.source}<small style={{ display: "block" }}>{f.owner !== actor ? (M.canEdit(w, f, actor) ? "管理员 · 可管理" : "共享给我 · 仅查看") : f.shared.length ? "已邀请成员" : "本人及管理员可见"}</small></td>
                         <td>{date(f.created)}</td>
                         <td>{date(f.deletedAt)}</td>
                         <td>
@@ -316,7 +316,7 @@ export function TeamHome({
                     ) : (
                       <>
                         <td>{f.creator || userName(f.owner)}</td>
-                        <td>{f.source}<small style={{ display: "block" }}>{f.owner !== actor ? (M.canEdit(w, f, actor) ? "共享给我 · 可编辑" : "共享给我 · 仅查看") : f.shared.length ? "已邀请成员" : "仅自己可见"}</small></td>
+                        <td>{f.source}<small style={{ display: "block" }}>{f.owner !== actor ? (M.canEdit(w, f, actor) ? "管理员 · 可管理" : "共享给我 · 仅查看") : f.shared.length ? "已邀请成员" : "本人及管理员可见"}</small></td>
                         <td>
                           {(f.tags || []).map((t, i) => (
                             <Fragment key={`${t}-${i}`}>
@@ -345,7 +345,7 @@ export function TeamHome({
                         <td>{date(f.updated || f.created)}</td>
                         <td>
                           <div className="ws-actions">
-                            {f.owner === actor && !readonly ? (
+                            {(f.owner === actor || M.admin(w, actor)) && !readonly ? (
                               <Button
                                 action="delete"
                                 value={f.id}
@@ -400,7 +400,7 @@ export function TeamHome({
         </section>
       </WsRoot>
       <WsToast message={toast} onClear={() => setToast("")} />
-      {note && <ManagementDialog title="新建笔记" form="note" onClose={() => setNote(false)} onSubmit={data => { const file = controller.change(s => M.addFile(M.get(s, space), { title: String(data.get("title")), source: "笔记", transcript: "", summary: String(data.get("body")), duration: 0 }, actor)); setNote(false); location.assign(appUrl("meeting", file.id, space, actor)); }} footer={<button className="ws-btn primary" type="submit">保存笔记</button>}><label className="ws-field">标题<input name="title" required maxLength={200} /></label><label className="ws-field">内容<textarea name="body" rows={6} maxLength={10000} /></label><p>遵循当前工作区的本人内容权限设置，可在详情中单独调整接收成员。</p></ManagementDialog>}
+      {note && <ManagementDialog title="新建笔记" form="note" onClose={() => setNote(false)} onSubmit={data => { const file = controller.change(s => M.addFile(M.get(s, space), { title: String(data.get("title")), source: "笔记", transcript: "", summary: String(data.get("body")), duration: 0 }, actor)); setNote(false); location.assign(appUrl("meeting", file.id, space, actor)); }} footer={<button className="ws-btn primary" type="submit">保存笔记</button>}><label className="ws-field">标题<input name="title" required maxLength={200} /></label><label className="ws-field">内容<textarea name="body" rows={6} maxLength={10000} /></label><p>默认本人及团队管理员可见，可在详情中逐条授权其他成员只读访问。</p></ManagementDialog>}
       {upload ? (
         <UploadDialog
           target={w.name}

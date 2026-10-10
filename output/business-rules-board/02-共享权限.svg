@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img"><title>再定权限：同区内，谁能看、谁能改？</title><defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="#777"/></marker></defs><rect width="1600" height="900" fill="#FAFAFA"/><g font-family="PingFang SC, Microsoft YaHei, sans-serif">
+<rect x="52" y="42" width="65" height="34" rx="8" fill="#D7FF00" stroke="#D7FF00" stroke-width="2"/>
+<text x="84" y="67" font-size="22" font-weight="600" fill="#111111" text-anchor="middle">02</text>
+<text x="134" y="68" font-size="21" font-weight="500" fill="#666666" text-anchor="start">EurekaMind · 核心业务规则</text>
+<text x="52" y="132" font-size="46" font-weight="650" fill="#111111" text-anchor="start">再定权限：同区内，谁能看、谁能改？</text>
+<text x="52" y="171" font-size="23" font-weight="400" fill="#666666" text-anchor="start">团队内容默认本人及管理员可管理。普通成员逐条只读共享，撤回只影响该条内容。</text>
+<rect x="1482" y="50" width="54" height="36" rx="9" fill="#111111" stroke="#111111" stroke-width="2"/>
+<circle cx="1497" cy="66" r="3" fill="#D7FF00"/><circle cx="1521" cy="66" r="3" fill="#D7FF00"/>
+<path d="M1509 48 L1509 39" fill="none" stroke="#777" stroke-width="2"/>
+<text x="52" y="878" font-size="17" font-weight="400" fill="#777777" text-anchor="start">按最终确认规则整理 · 2026.10.10</text>
+<text x="1548" y="878" font-size="17" font-weight="400" fill="#777777" text-anchor="end">02 / 03</text>
+<rect x="52" y="206" width="472" height="360" rx="18" fill="#FFFFFF" stroke="#EAEAEA" stroke-width="2"/>
+<rect x="76" y="229" width="6" height="30" rx="2" fill="#D7FF00" stroke="#D7FF00" stroke-width="2"/>
+<text x="96" y="254" font-size="30" font-weight="600" fill="#111111" text-anchor="start">会议共享</text>
+<text x="76" y="304" font-size="24" font-weight="400" fill="#111111" text-anchor="start">会议详情 → 选普通接收成员</text>
+<text x="76" y="352" font-size="24" font-weight="400" fill="#111111" text-anchor="start">每条会议独立，只读授权</text>
+<text x="76" y="400" font-size="24" font-weight="400" fill="#111111" text-anchor="start">撤回 → 该条立即不可访问</text>
+<text x="76" y="448" font-size="24" font-weight="400" fill="#111111" text-anchor="start">新会议不继承旧记录的授权</text>
+<text x="76" y="496" font-size="24" font-weight="400" fill="#111111" text-anchor="start">只读不含编辑、删除、转授权</text>
+<rect x="564" y="206" width="472" height="360" rx="18" fill="#FFFFFF" stroke="#EAEAEA" stroke-width="2"/>
+<rect x="588" y="229" width="6" height="30" rx="2" fill="#D7FF00" stroke="#D7FF00" stroke-width="2"/>
+<text x="608" y="254" font-size="30" font-weight="600" fill="#111111" text-anchor="start">通讯录共享</text>
+<text x="588" y="304" font-size="24" font-weight="400" fill="#111111" text-anchor="start">联系人详情 → 逐条共享</text>
+<text x="588" y="352" font-size="24" font-weight="400" fill="#111111" text-anchor="start">普通成员只能查看所选联系人</text>
+<text x="588" y="400" font-size="24" font-weight="400" fill="#111111" text-anchor="start">撤回 → 该联系人立即不可见</text>
+<text x="588" y="448" font-size="24" font-weight="400" fill="#111111" text-anchor="start">本人及管理员可编辑和管理</text>
+<text x="588" y="496" font-size="24" font-weight="400" fill="#111111" text-anchor="start">列表保留“所属成员”标签</text>
+<rect x="1076" y="206" width="472" height="360" rx="18" fill="#FFFFFF" stroke="#EAEAEA" stroke-width="2"/>
+<rect x="1100" y="229" width="6" height="30" rx="2" fill="#D7FF00" stroke="#D7FF00" stroke-width="2"/>
+<text x="1120" y="254" font-size="30" font-weight="600" fill="#111111" text-anchor="start">闪念及衍生资产</text>
+<text x="1100" y="304" font-size="24" font-weight="400" fill="#111111" text-anchor="start">留在录制 / 创建所属工作区</text>
+<text x="1100" y="352" font-size="24" font-weight="400" fill="#111111" text-anchor="start">本人及管理员可管理</text>
+<text x="1100" y="400" font-size="24" font-weight="400" fill="#111111" text-anchor="start">日程 · 待办 · 灵感 · 记账</text>
+<text x="1100" y="448" font-size="24" font-weight="400" fill="#111111" text-anchor="start">个人区、团队区均提供入口</text>
+<text x="1100" y="496" font-size="24" font-weight="400" fill="#111111" text-anchor="start">团队简报只引用获授权会议</text>
+<rect x="52" y="592" width="1496" height="132" rx="18" fill="#FFFFFF" stroke="#EAEAEA" stroke-width="2"/>
+<text x="78" y="633" font-size="27" font-weight="600" fill="#111111" text-anchor="start">通讯录归一边界</text>
+<text x="330" y="633" font-size="25" font-weight="400" fill="#111111" text-anchor="start">同成员 + 同工作区：跨渠道归一，已匹配 CRM 数据优先</text>
+<text x="330" y="686" font-size="25" font-weight="400" fill="#111111" text-anchor="start">来源：手动创建（含 Agent）、CRM 系统导入、手机通讯录导入；不跨成员合并</text>
+<rect x="52" y="748" width="1496" height="87" rx="18" fill="#FFFFFF" stroke="#EAEAEA" stroke-width="2"/>
+<text x="78" y="784" font-size="27" font-weight="600" fill="#111111" text-anchor="start">管理员默认管理 Team 全部内容</text>
+<text x="650" y="784" font-size="24" font-weight="400" fill="#111111" text-anchor="start">可查看、编辑、删除和管理；个人区独立。</text>
+<text x="78" y="816" font-size="21" font-weight="400" fill="#666666" text-anchor="start">会议新成员不自动获权；通讯录共享也不自动授予其来源会议的访问权。</text>
+</g></svg>

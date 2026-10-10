@@ -1,4 +1,6 @@
 export interface ActionRecord {
+  ownerId?: string;
+  previousOwnerId?: string;
   contactId?: string;
   id: string;
   type: "schedule" | "todo";
@@ -46,6 +48,8 @@ export interface ActionState {
   demoWeekDays?: string[];
 }
 export interface ThoughtRecord {
+  ownerId?: string;
+  previousOwnerId?: string;
   id: string;
   type: "inspiration" | "ledger" | "other";
   title: string;

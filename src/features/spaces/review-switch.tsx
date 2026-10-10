@@ -22,9 +22,8 @@ export function ReviewPerspectiveSwitch({ state, space, actor, view, memberView,
       const sameSpace = destination === space;
       const target = !sameSpace || (next === "member" && ["space-settings", "audit"].includes(view)) ? "home" : view;
       const current = new URLSearchParams(location.search);
-      const url = new URL(appUrl(target as AppView, sameSpace && target === view ? current.get("id") || "" : "", destination, account), location.origin);
-      if (next === "member") url.searchParams.set("perspective", "member");
-      else url.searchParams.delete("perspective");
+      const url = new URL(appUrl(target as AppView, sameSpace && target === view ? current.get("id") || "" : "", destination, next === "member" ? team!.members.find(m => m.status === "active" && m.role === "member")?.id || account : account), location.origin);
+      url.searchParams.delete("perspective");
       location.assign(url.href);
     }}>
       {creationDemo ? <>
@@ -33,7 +32,7 @@ export function ReviewPerspectiveSwitch({ state, space, actor, view, memberView,
       </> : <>
       <option value="personal">个人视角</option>
       <option value="admin" disabled={!team || !M.admin(team, account)}>管理员视角{!team ? "（未加入团队）" : ""}</option>
-      <option value="member" disabled={!team}>成员视角{!team ? "（未加入团队）" : ""}</option>
+      <option value="member" disabled={!team?.members.some(m => m.status === "active" && m.role === "member")}>成员视角{!team ? "（未加入团队）" : ""}</option>
       <option value="creation-demo">创建团队演示（未加入团队）</option>
       </>}
     </select>

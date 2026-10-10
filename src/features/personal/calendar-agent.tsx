@@ -370,7 +370,7 @@ export function CalendarAgent({
             ? "来源会话 · " + localDate(activeSession.created || "")
             : selected
               ? "已引用：" + selected.title
-              : "仅引用当前工作区内本人的日程与待办"}
+              : "仅引用当前工作区内有权访问的日程与待办"}
         </span>
         <div
           className="pa-agent-welcome"

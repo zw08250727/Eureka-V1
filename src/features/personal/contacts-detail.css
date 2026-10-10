@@ -52,3 +52,5 @@
   .contacts-workspace.is-detail .customer-meeting time { grid-row: auto; margin-bottom: 4px; }
   .contacts-workspace.is-detail .customer-todo-hint { margin-inline: 14px; }
 }
+
+.contacts-workspace .contacts-button:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }

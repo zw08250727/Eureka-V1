@@ -3,6 +3,7 @@ import { money, scheduleTime } from "@/features/personal/asset-rules";
 import { todayRecords } from "@/features/workbench/model/selectors";
 import { appUrl } from "@/lib/routes";
 import type { ActionRecord } from "@/features/workbench/model/types";
+import { createWorkspaceStore, M } from "./model/store";
 import { useState } from "react";
 
 /** Same private asset stores and date rules as Personal; never feed the team brief. */
@@ -11,6 +12,7 @@ export function PrivateOverview({ space, actor, now, readOnly }: {
 }) {
   const { data, error, repo, refresh } = useLivePersonal(actor, space);
   const [notice, setNotice] = useState("");
+  const adminView = typeof window !== "undefined" && M.admin(M.get(createWorkspaceStore(localStorage).read(), space), actor);
   const r = todayRecords(data?.actions.records || [], data?.thoughts || [], now);
   const link = (view: "calendar" | "thoughts", id = "") => appUrl(view, id, space, actor);
   function toggle(record: ActionRecord) {
@@ -18,7 +20,7 @@ export function PrivateOverview({ space, actor, now, readOnly }: {
     catch (e) { setNotice((e as Error).message); }
   }
   return <aside className="team-private-column" aria-label="我的闪念与安排">
-    <header className="team-section-heading"><h2>我的今天 <span className="team-private-badge">仅自己可见</span></h2><a href={link("thoughts", "schedule")}>全部闪念 ↗</a></header>
+    <header className="team-section-heading"><h2>{adminView ? "团队日常" : "我的今天"} <span className="team-private-badge">{adminView ? "管理员可管理" : "本人及管理员可见"}</span></h2><a href={link("thoughts", "schedule")}>全部闪念 ↗</a></header>
     {(error || notice) && <p role="alert">{error || notice}</p>}
     <div className="team-private-agenda">
       <section aria-label="今日日程"><header><h3>今日日程 <span>{r.schedules.length}</span></h3><a href={link("calendar")}>日历 ↗</a></header>

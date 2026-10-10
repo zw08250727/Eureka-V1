@@ -292,12 +292,12 @@ export function ReferenceShell({
                       }
                       data-contacts-entry="true"
                       type="button"
-                      aria-label={team ? "团队客户" : "我的客户"}
-                      title={team ? "团队客户" : "我的客户"}
+                      aria-label={"通讯录"}
+                      title={"通讯录"}
                       onClick={() => go("contacts")}
                     >
                       <RefIcon name="user" />
-                      <span className="tree-folder-name">{team ? "团队客户" : "我的客户"}</span>
+                      <span className="tree-folder-name">{"通讯录"}</span>
                     </button>
                   </div>
               </>

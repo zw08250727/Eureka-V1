@@ -1,5 +1,6 @@
 import M from "./core";
 import type { WorkspaceState, Workspace } from "./types";
+import { stageMemberTransfers } from "./transfers";
 export { M };
 export function createWorkspaceStore(storage: Storage, now = () => new Date(), options: { key?: string; seed?: (now: Date) => WorkspaceState } = {}) {
   const key = options.key || M.KEY;
@@ -32,9 +33,17 @@ export function createWorkspaceStore(storage: Storage, now = () => new Date(), o
       const result = fn(next);
       M.reconcileEntitlements(next, now());
       const json = JSON.stringify(next);
+      const writes = stageMemberTransfers(storage, state, next);
+      writes.set(key, json);
+      const backups = new Map([...writes.keys()].map(k => [k, storage.getItem(k)]));
+      const committed: string[] = [];
       try {
-        storage.setItem(key, json);
+        for (const [k, value] of writes) { storage.setItem(k, value); committed.push(k); }
       } catch {
+        for (const k of committed.reverse()) {
+          const value = backups.get(k)!;
+          if (value === null) storage.removeItem(k); else storage.setItem(k, value);
+        }
         throw Error("保存失败，请检查浏览器存储空间。输入已保留");
       }
       state = next;

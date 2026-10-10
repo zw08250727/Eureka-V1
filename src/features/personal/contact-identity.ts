@@ -1,15 +1,16 @@
 import { contactPromises } from "./contact-rules";
 import type { Contact, ContactsState } from "./store";
 
-export const customerFields = ["name", "company", "role", "region", "email", "tag", "summary"] as const;
+export const customerFields = ["name", "company", "role", "region", "email", "phone", "tag", "summary"] as const;
 export type CustomerField = (typeof customerFields)[number];
-export const channelNames = { manual: "手动录入", meeting: "Agent 创建", thought: "Agent 创建", agent: "Agent 创建", crm: "CRM" };
-export const customerSourceFilters = { manual: "手动录入", agent: "Agent 创建", crm: "CRM" };
+export const channelNames = { manual: "手动创建", meeting: "手动创建", thought: "手动创建", agent: "手动创建", crm: "CRM 系统导入", phone: "手机通讯录导入" };
+export const customerSourceFilters = { manual: "手动创建", crm: "CRM 系统导入", phone: "手机通讯录导入" };
 export interface CustomerSource {
   id: string;
   channel: keyof typeof channelNames;
   fields: Partial<Record<CustomerField, string>>;
   verifiedEmail?: string;
+  verifiedPhone?: string;
   crmId?: string;
   crmSystem?: string;
   updatedAt: string;
@@ -52,10 +53,13 @@ export function ingestCustomer(
   if (source.channel === "crm" && (!source.crmId?.trim() || !source.crmSystem?.trim()))
     throw Error("请填写 CRM 系统及客户编号");
   const email = emailKey(source.verifiedEmail);
+  const phone = (source.verifiedPhone || "").replace(/[\s()-]/g, "");
+  if (phone && !/^\+?[0-9]{7,15}$/.test(phone)) throw Error("手机号格式无效");
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw Error("已核实邮箱格式无效");
-  const matches = state.contacts.filter((p) => owned(p, actor) && (p.subjectType || "person") === (incoming.subjectType || "person") && (p.sources || []).some((s) =>
+  const matches = state.contacts.filter((p) => owned(p, actor) && (!p.previousOwnerId || p.previousOwnerId === actor) && (p.subjectType || "person") === (incoming.subjectType || "person") && (p.sources || []).some((s) =>
     sourceKey(s) === sourceKey(source) ||
     (email && emailKey(s.verifiedEmail) === email) ||
+    (phone && (s.verifiedPhone || "").replace(/[\s()-]/g, "") === phone) ||
     (source.crmId && source.crmSystem && s.crmId === source.crmId && s.crmSystem === source.crmSystem),
   ));
   if (matches.length > 1) throw Error("身份匹配存在歧义，请核实客户档案后重试");

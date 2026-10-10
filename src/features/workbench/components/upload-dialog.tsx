@@ -73,7 +73,7 @@ export function UploadDialog({
       <div className="audio-upload-body">
         <div className="audio-upload-target">
           保存到 <strong>{target}</strong>
-          {team ? " · 团队工作区 · 遵循本人内容权限" : " · 仅自己可见"}
+          {team ? " · 团队工作区 · 本人及管理员可管理" : " · 仅自己可见"}
         </div>
         <button
           type="button"

@@ -83,7 +83,7 @@ export function MeetingDialogs({
   copyText: string;
   previewImage?: { name: string; url: string };
 }) {
-  const [editors, setEditors] = useState(workspace?.files.find(f => f.id === r.id)?.editors || []);
+
   const [openedAt] = useState(() => Date.now());
   const [page, setPage] = useState(kind),
     [error, setError] = useState(""),
@@ -627,7 +627,7 @@ export function MeetingDialogs({
           onSubmit={(e) => {
             e.preventDefault();
             try {
-              onShare(users, editors.filter(id => users.includes(id)));
+              onShare(users.filter(id => !workspace.members.some(m => m.id === id && m.role === "admin")), []);
               onClose();
             } catch (e) {
               setError((e as Error).message);
@@ -636,18 +636,19 @@ export function MeetingDialogs({
         >
           <p>{r.title}</p>
           <p className="ws-muted">
-            选择当前工作区的接收成员及查看／编辑权限。编辑不含删除或转授权；取消勾选撤销访问，不向其他工作区开放。
+            仅共享当前会议，普通成员权限为只读；取消勾选立即撤销。管理员默认可编辑和管理。
           </p>
           <div className="ws-share-list">
             {workspace.members
-              .filter((m) => m.status === "active" && m.id !== actor)
+              .filter((m) => m.status === "active" && m.id !== (workspace.files.find(f => f.id === r.id)?.owner || actor))
               .map((m) => (
                 <label key={m.id}>
                   <input
                     type="checkbox"
                     name="users"
                     value={m.id}
-                    checked={users.includes(m.id)}
+                    disabled={m.role === "admin"}
+                    checked={m.role === "admin" || users.includes(m.id)}
                     onChange={(e) =>
                       setUsers(
                         e.target.checked
@@ -660,7 +661,7 @@ export function MeetingDialogs({
                     {m.name}
                     <small>{m.email}</small>
                   </span>
-                  <select aria-label={`${m.name}的内容权限`} disabled={!users.includes(m.id)} value={editors.includes(m.id) ? "edit" : "view"} onChange={e => setEditors(e.target.value === "edit" ? [...editors, m.id] : editors.filter(id => id !== m.id))}><option value="view">查看</option><option value="edit">编辑</option></select>
+                  <span>{m.role === "admin" ? "可编辑 + 管理（默认）" : "只读"}</span>
                 </label>
               ))}
           </div>

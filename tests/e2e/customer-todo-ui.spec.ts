@@ -19,7 +19,7 @@ test("customer completion is scoped, idempotent and rechecks owner, workspace an
     complete(); complete();
     expect(read().interactions![0].todos![0].completed).toBe(true);
     expect(read().interactions![0].todos![1].completed).toBeUndefined();
-    expect(() => complete("lin")).toThrow("仅所属成员");
+    expect(() => complete("kevin")).toThrow("仅所属成员");
     const repo = createWorkspaceStore(storage);
     repo.change(s => { M.get(s, "team-eureka").status = "expired"; });
     expect(() => complete()).toThrow();
@@ -74,7 +74,7 @@ test("overdue home todo stays at its position and struck through after completio
 });
 
 test("shared customers retain readonly completion controls", async ({ page }) => {
-  await page.goto("/workbench/?view=contacts&space=team-eureka&actor=zhang");
+  await page.goto("/workbench/?view=contacts&space=team-eureka&actor=kevin");
   await page.getByLabel("筛选所属成员").selectOption("lin");
   await page.locator(".contacts-person-card").first().click();
   await page.getByRole("tab", { name: "承诺", exact: true }).click();

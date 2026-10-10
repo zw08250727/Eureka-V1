@@ -489,7 +489,7 @@ export function MeetingPage({
                     {(
                       <B
                         action="share"
-                        disabled={readonly || (!!team && file?.owner !== actor)}
+                        disabled={readonly || (!!team && file?.owner !== actor && !M.admin(w!, actor))}
                         onClick={() => action("share")}
                       >
                         <I name="share" /> 分享
@@ -498,7 +498,7 @@ export function MeetingPage({
                     <B
                       action="delete"
                       className="md-btn md-delete-btn"
-                      disabled={readonly || (!!team && file?.owner !== actor)}
+                      disabled={readonly || (!!team && file?.owner !== actor && !M.admin(w!, actor))}
                       onClick={() => action("delete")}
                     >
                       <I name="trash" /> 删除

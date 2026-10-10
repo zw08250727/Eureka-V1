@@ -1,5 +1,8 @@
 "use client";
 import "./contacts-controls.css";
+import { createContacts } from "./store";
+import { RecipientDialog } from "@/features/spaces/sharing-settings";
+import { M } from "@/features/spaces/model/store";
 import "./contacts-detail.css";
 import { setCustomerTodoCompleted } from "./customer-todos";
 import { useCustomerMeetings } from "./contact-insights";
@@ -80,6 +83,7 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
   const [modalPerson, setModalPerson] = useState<import("./store").Contact>();
   const [noteIndex, setNoteIndex] = useState<number | null>(null);
   const [modal, setModal] = useState<ContactDialogKind | null>(null);
+  const [sharing, setSharing] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [answer, setAnswer] = useState("");
   const [draft, setDraft] = useState("");
@@ -136,19 +140,20 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
   }
   const team = space !== "personal", workspace = controller?.state?.spaces.find(w => w.id === space);
   const workspaceReadonly = team && workspace?.status !== "active";
-  const pageTitle = team ? "团队客户" : "我的客户";
+  const pageTitle = "通讯录";
+  const isAdmin = !!workspace && M.admin(workspace, actor);
   const customerKey = (c: import("./store").Contact) => team ? `${c.ownerId}:${c.id}` : c.id;
   const ownerName = (owner?: string) => workspace?.members.find(m => m.id === owner)?.name || owner || "本人";
   const state = data?.contacts;
   const person = state?.contacts.find((c) => customerKey(c) === selected || (c.id === selected && c.ownerId === actor));
-  const readonly = workspaceReadonly || !!(detail && person && person.ownerId !== actor);
+  const readonly = workspaceReadonly || !!(detail && person && person.ownerId !== actor && !isAdmin);
   const readableMeetings = useCustomerMeetings(person, actor, space);
   const agentPerson = person ? { ...person, interactions: readableMeetings } : undefined;
   const contextKey = JSON.stringify([space, actor, selected, agentPerson]);
   const people = (state?.contacts.filter((c) =>
       [c.name, c.company, c.role, c.summary, c.region, ...(c.themes || [])].join(" ").toLowerCase().includes(query.trim().toLowerCase()) &&
       (!subjectFilter || (c.subjectType || "person") === subjectFilter) &&
-      (!sourceFilter || c.sources?.some((source) => sourceFilter === "agent" ? ["agent", "meeting", "thought"].includes(source.channel) : source.channel === sourceFilter)) &&
+      (!sourceFilter || c.sources?.some((source) => sourceFilter === "manual" ? ["manual", "agent", "meeting", "thought"].includes(source.channel) : source.channel === sourceFilter)) &&
       (!ownerFilter || c.ownerId === ownerFilter) &&
       (!createdFrom || !!c.createdAt && c.createdAt.slice(0, 10) >= createdFrom) &&
       (!createdTo || !!c.createdAt && c.createdAt.slice(0, 10) <= createdTo)
@@ -179,9 +184,9 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
     if (localStorage.getItem("baizhi-v14-contacts") !== modalSnapshot.current)
       throw Error("另一页面已更新，请保留输入并重新打开后编辑");
     const kind = modal;
-    if (kind !== "add" && modalPerson?.ownerId !== actor) throw Error("仅所属成员可以维护客户资料");
+    if (kind !== "add" && modalPerson?.ownerId !== actor && !isAdmin) throw Error("仅所属成员可以维护客户资料");
     const contactId = String(values.get("person") || "");
-    const createdId = repo.current!.contacts.change((all) => {
+    const createdId = createContacts(localStorage, actor, space, kind === "add" ? actor : modalPerson?.ownerId || actor).change((all) => {
       const s = all.personal;
       if (kind === "add" || kind === "edit") {
         const name = String(values.get("name") || "").trim();
@@ -205,20 +210,22 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
           recent: "暂无已核实互动",
           region: String(values.get("region") || "").trim(),
           email: String(values.get("email") || "").trim(),
+          phone: String(values.get("phone") || "").trim(),
           themes: [],
           memories: [],
           inferences: [],
         };
         const fields = Object.fromEntries(customerFields.map((key) => [key, record[key]]));
         if (existing) {
-          editCustomer(existing, fields, actor);
+          editCustomer(existing, fields, existing.ownerId || actor);
           return existing.id;
         }
         const channel = String(values.get("channel") || "manual") as CustomerSource["channel"];
-        if (!["manual", "crm"].includes(channel)) throw Error("来源渠道无效");
+        if (!["manual", "crm", "phone"].includes(channel)) throw Error("来源渠道无效");
         const source: CustomerSource = {
           id: String(values.get("sourceId") || "").trim(), channel, fields,
           verifiedEmail: values.get("verifiedEmail") ? record.email : undefined,
+          verifiedPhone: values.get("verifiedPhone") ? record.phone : undefined,
           crmSystem: channel === "crm" ? String(values.get("crmSystem") || "").trim() : undefined,
           crmId: channel === "crm" ? String(values.get("crmId") || "").trim() : undefined,
           updatedAt: new Date().toISOString(),
@@ -262,7 +269,7 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
       className={`contacts-workspace${detail ? " is-detail" : ""}`}
       data-main-view="contacts"
       aria-hidden="false"
-      aria-label="我的客户"
+      aria-label="通讯录"
       onKeyDown={(e) => {
         if (e.key === "Escape" && expanded && !modal) {
           e.preventDefault();
@@ -270,6 +277,13 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
         }
       }}
     >
+      {sharing && person && workspace && <RecipientDialog w={workspace} actor={actor} owner={person.ownerId} initial={person.sharedWith} title={`共享联系人 · ${person.name}`} onClose={() => setSharing(false)} onSave={users => {
+        createContacts(localStorage, actor, space, person.ownerId || actor).change(s => {
+          const current = s.personal.contacts.find(p => p.id === person.id);
+          if (!current) throw Error("联系人已更新或移交，请刷新");
+          current.sharedWith = users;
+        }); refresh(); setSharing(false);
+      }} />}
       <div id="contacts-root">
         {!state ? (
           <div className="contacts-empty" role={error ? "alert" : "status"}>
@@ -292,11 +306,11 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
                       <span>/</span>
                       <span>{pageTitle}</span>
                     </div>
-                    <h1>{detail && person ? "客户详情" : pageTitle}</h1>
+                    <h1>{detail && person ? "联系人详情" : pageTitle}</h1>
                     <p>
                       {detail && person
                         ? "会议跟进、双方待办与客户画像，都可以回到来源会议。"
-                        : team ? "查看我的客户及其他成员已共享的客户，按所属成员分别保留。" : "管理当前工作区的客户资料，默认仅自己可见。"}
+                        : team ? "查看本人及获授权的联系人，管理员可管理全部团队通讯录。" : "管理当前工作区的联系人，跨渠道去重合并。"}
                     </p>
                   </div>
                   <div className="contacts-actions">
@@ -324,7 +338,7 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
                         >
                           ＋ 添加备注
                         </ContactButton>
-                        {space === "personal" && <ContactButton
+                        {<ContactButton
                           action="followup" disabled={readonly}
                           value={person.id}
                           primary
@@ -339,9 +353,10 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
                         primary
                         onClick={() => openModal("add")}
                       >
-                        ＋ 添加客户
+                        ＋ 添加联系人
                       </ContactButton>
                     ) : null}
+                    {detail && person && team && workspace && !readonly && <ContactButton action="share-contact" onClick={() => setSharing(true)}>共享与权限</ContactButton>}
                     {(!detail || person) && (
                       <ContactAgentEntry
                         expanded={expanded}
@@ -370,7 +385,7 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
                       </span>
                       <div>
                         <h1>
-                          {person.name} <ContactTag>{person.tag}</ContactTag>{team && <span className="customer-owner-tag">所属成员：{ownerName(person.ownerId)}</span>}
+                          {person.name} <ContactTag>{person.tag}</ContactTag>{readonly && <ContactTag>只读</ContactTag>}{team && <span className="customer-owner-tag">所属成员：{ownerName(person.ownerId)}</span>}
                         </h1>
                         <p>{`${person.role} · ${person.company}`}</p>
                         <p>{`最近互动：${stats?.recent ? localDate(stats.recent) : "暂无已核实互动"}`}</p>
@@ -418,7 +433,7 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
                       onDeleteNote={(index) => {
                         if (!window.confirm("删除这条备注？")) return;
                         try {
-                          repo.current!.contacts.change((s) => {
+                          createContacts(localStorage, actor, space, person.ownerId || actor).change((s) => {
                             s.personal.notes[person.id]?.splice(index, 1);
                           });
                           refresh();
@@ -521,7 +536,7 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
         {schedule && <ActionEditor record={schedule} variant="create" onClose={() => setSchedule(null)} onSave={(r) => {
           repo.current!.actions.save(r);
           refresh();
-          setToast("跟进日程已创建，默认仅自己可见");
+          setToast("跟进日程已创建，团队管理员可管理");
         }} />}
         {modal ? (
           <ContactDialog

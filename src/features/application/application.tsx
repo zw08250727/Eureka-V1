@@ -4,7 +4,6 @@ import dynamic from "next/dynamic";
 
 import { useAppRoute } from "./route";
 import { useSpaces } from "@/features/spaces/use-spaces";
-import { useReviewPerspective } from "@/features/spaces/review-perspective";
 import { ReviewPerspectiveSwitch } from "@/features/spaces/review-switch";
 import { M } from "@/features/spaces/model/store";
 import { Workbench } from "@/features/workbench/workbench";
@@ -53,7 +52,7 @@ const SpaceSettings = dynamic(() =>
 export function Application() {
   const route = useAppRoute(),
     actualSpaces = useSpaces(route.creationDemo),
-    spaces = useReviewPerspective(actualSpaces, route.space, route.actor, route.memberView);
+    spaces = actualSpaces;
   if (!spaces.state)
     return (
       <main className="p-8" role={spaces.error ? "alert" : "status"}>
@@ -61,7 +60,7 @@ export function Application() {
       </main>
     );
   const w = spaces.state.spaces.find((w) => w.id === route.space),
-    actor = route.actor;
+    actor = route.memberView ? w?.members.find(m => m.status === "active" && m.role === "member")?.id || route.actor : route.actor;
   if (!w || !M.member(w, actor))
     return (
       <main className="p-8">
@@ -123,7 +122,7 @@ export function Application() {
   const titles: Record<string, string> = {
     home: team ? w.name : "我的 AI 工作台",
     calendar: "日程与待办",
-    contacts: team ? "团队客户" : "我的客户",
+    contacts: "通讯录",
     thoughts: "全部闪念",
     settings: "个人设置",
     "my-devices": "我的设备",

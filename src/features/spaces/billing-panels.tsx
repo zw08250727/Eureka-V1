@@ -325,7 +325,7 @@ export function TeamBilling({
         />
         <section className="ws-surface ws-perks">
           <h2>Team Unlimited</h2>
-          <p>你在本工作区使用工作区的 Unlimited 转写及共享 Credits；不会消耗其他团队或个人额度。内容仍默认私有。</p>
+          <p>你在本工作区使用工作区的 Unlimited 转写及共享 Credits；不会消耗其他团队或个人额度。本区内容默认由本人及管理员管理。</p>
           <Badge kind={w.status === "active" ? "green" : "amber"}>
             {w.status === "active" ? "权益生效中" : "当前只读"}
           </Badge>
@@ -671,7 +671,7 @@ export function CreditsBilling({
                 c.logs.map((l) => (
                   <tr key={l.id}>
                     <td>
-                      {l.user === actor ? l.task : "成员 Agent 用量（内容私有）"}
+                      {l.user === actor ? l.task : "成员 Agent 用量"}
                       <small>
                         {l.inputTokens != null
                           ? "Token 用量模拟"

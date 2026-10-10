@@ -232,7 +232,7 @@ const visible = (w, uid = SELF) => {
   return w.files.filter(
     (f) =>
       !f.deleted &&
-      (f.owner === uid || (f.source !== "联系人" && (f.shared || []).includes(uid))),
+      (f.owner === uid || (w.type === "team" && admin(w, uid)) || (f.source !== "联系人" && (f.shared || []).includes(uid))),
   );
 };
 const getFile = (w, fid, uid = SELF) =>
@@ -340,11 +340,12 @@ function memberAction(s, w, mid, action, value, actor = SELF) {
     fail("必须至少保留一位管理员");
   if (action === "remove") {
     if (mid === actor) fail("当前不支持退出团队");
-    departure(s, w, mid, "removed");
+    departure(s, w, mid, "removed", actor);
   } else if (action === "role") m.role = value;
   else if (action === "accept") {
     if (m.status !== "pending") fail("此邀请已处理");
     const existing = s.spaces.flatMap(space => space.members).find(other => other.id !== mid && other.email.toLowerCase() === m.email.toLowerCase());
+    assertCanJoinTeam(s, existing?.id || mid);
     if (existing) m.id = existing.id;
     m.status = "active";
     m.joined = stamp();
@@ -360,14 +361,33 @@ function memberAction(s, w, mid, action, value, actor = SELF) {
     actor,
   );
 }
-function departure(s, w, uid, reason) {
+function departure(s, w, uid, reason, recipient) {
   const m = w.members.find((m) => m.id === uid && m.status !== "removed");
   if (!m) return;
   const wasPending = m.status === "pending";
+  const target = wasPending ? null : recipient || w.members.find(x => x.id !== uid && x.role === "admin" && x.status === "active")?.id;
+  if (!wasPending && (!target || target === uid || !admin(w, target))) fail("请指定有效管理员接收团队资料");
   m.status = "removed";
   m.leftAt = stamp();
   m.exitReason = wasPending ? "invitation-revoked" : reason;
-  // Removing membership never unbinds the account device or reveals private content.
+  if (!wasPending) {
+    for (const record of [...w.files, ...(w.thoughts || [])]) if (record.owner === uid) {
+      record.previousOwner ||= uid; record.owner = target; record.transferredAt = stamp();
+    }
+    for (const thread of w.threads || []) if (thread.user === uid) {
+      thread.previousOwner ||= uid; thread.user = target;
+    }
+    (w.ownershipTransfers ||= []).push({ id: id("transfer"), from: uid, to: target, time: stamp() });
+    for (const device of s.devices.filter(d => d.user === uid)) {
+      for (const binding of device.bindings || []) if (binding.workspaceId === w.id) {
+        binding.unboundAt ||= stamp(); binding.revoked = true;
+      }
+      if (!device.bound || device.spaceId !== w.id) continue;
+      device.bound = false; device.spaceId = null;
+      device.localFiles = []; device.wipeStatus = "completed"; device.wipedAt = stamp();
+    }
+    log(w, `成员资料移交管理员；设备自动解绑与清空（模拟）：${m.name}`, target);
+  }
   if (w.customerSharing) delete w.customerSharing[uid];
   if (w.contentSharing) {
     delete w.contentSharing[uid];
@@ -386,6 +406,7 @@ function departure(s, w, uid, reason) {
     .forEach((t) => {
       t.enabled = false;
       t.pauseReason = reason;
+      if (target) { t.previousOwner ||= uid; t.user = target; }
     });
 }
 function leave() {
@@ -397,12 +418,13 @@ function dissolve() {
 function accountTeams(s, uid = s.account.id) {
   return s.spaces.filter((w) => w.type === "team" && member(w, uid));
 }
-// Compatibility helper for choosing an initial view, never an access restriction.
+// One account may hold at most one current team membership.
 function accountTeam(s, uid = s.account.id) {
   return accountTeams(s, uid)[0];
 }
 function assertCanJoinTeam(s, uid = s.account.id) {
   if (!uid || !s.account) fail("请先登录账号");
+  if (accountTeams(s, uid).length) fail("最多只能加入或创建一个团队，请先由原团队管理员移除成员资格");
 }
 function reconcileEntitlements(s, now = new Date()) {
   const owners = new Set([s.account.id, ...Object.keys(s.accountSpaces || {}), ...s.spaces.filter(w => w.type === "personal").flatMap(w => w.members.map(m => m.id))]);
@@ -806,8 +828,8 @@ function addFile(
   return f;
 }
 function canEdit(w, record, uid = SELF) {
-  return !!record && !record.deleted && !!member(w, uid) && (record.source !== "联系人" || record.owner === uid) && (w.type !== "team" || w.status === "active") &&
-    (record.owner === uid || ((record.shared || []).includes(uid) && (record.editors || []).includes(uid)));
+  return !!record && !record.deleted && !!member(w, uid) && (w.type !== "team" || w.status === "active") &&
+    (record.owner === uid || (w.type === "team" && admin(w, uid)));
 }
 function checkedEditors(users, editors) {
   if (!Array.isArray(editors) || editors.some(user => !users.includes(user))) fail("编辑成员必须同时获得查看权限");
@@ -830,11 +852,12 @@ function edit(w, fid, patch, uid = SELF) {
 function share(w, fid, users, uid = SELF, editors = []) {
   writable(w);
   const f = getFile(w, fid, uid);
-  if (f.owner !== uid) fail("仅文件所有者可以管理分享");
-  if (f.source === "联系人") fail("客户共享请在空间设置的内容权限中管理");
-  if (users.some((u) => !member(w, u) || u === uid))
+  if (f.owner !== uid && !admin(w, uid)) fail("仅所有者或管理员可以管理分享");
+  if (f.source === "联系人") fail("请在单个通讯录联系人详情中管理共享");
+  if (users.some((u) => !member(w, u) || u === f.owner))
     fail("只能邀请当前空间内的有效成员");
-  f.editors = checkedEditors(users, editors);
+  if (editors.length) fail("成员共享仅支持只读权限");
+  f.editors = [];
   f.shared = [...new Set(users)];
   f.sharingMode = "invited";
   f.visibility = f.shared.length ? "invited" : "private";
@@ -844,7 +867,7 @@ function trash(w, fid, restore = false, uid = SELF) {
   access(w, uid);
   writable(w);
   const f =
-    w.files.find((f) => f.id === fid && f.owner === uid) ||
+    w.files.find((f) => f.id === fid && (f.owner === uid || admin(w, uid))) ||
     fail("只有文件所有者可以操作");
   if (
     restore &&
@@ -961,7 +984,7 @@ function unbind(s, did, uid = SELF) {
 }
 function deviceCaptureSpace(s, d, uid, input) {
   const binding = input.bindingId ? d.bindings?.find(b => b.id === input.bindingId) : d.bindings?.findLast(b => !b.unboundAt);
-  if ((!input.bindingId && !d.bound) || !binding) fail("设备尚未绑定工作区，请本人确认绑定");
+  if ((!input.bindingId && !d.bound) || !binding || binding.revoked) fail("设备尚未绑定工作区，请本人确认绑定");
   if (input.workspaceId && input.workspaceId !== binding.workspaceId) fail("设备录音只能进入录制时绑定的工作区，切换团队需先解绑再绑定");
   const w = s.spaces.find(w => w.id === binding.workspaceId) || s.accountSpaces?.[uid];
   if (!w || w.id !== binding.workspaceId) fail("设备绑定的工作区不存在");
@@ -979,41 +1002,10 @@ function setCaptureSpace(s, wid, uid = SELF) {
   preferences.workspaceId = wid;
   (s.captureSettings ||= {})[uid] = preferences;
 }
-function setCustomerSharing(s, wid, enabled, uid = SELF) {
-  const w = get(s, wid); access(w, uid); writable(w);
-  if (w.type !== "team") fail("客户共享仅在团队工作区设置");
-  (w.customerSharing ||= {})[uid] = !!enabled;
-}
-function setDeviceSharing(s, wid, owner, kind, enabled, users, uid = SELF, editors = []) {
-  if (owner !== uid) fail("只能设置本人内容共享，管理员不能代为开启");
-  const w = get(s, wid);
-  access(w, uid); writable(w);
-  if (kind === "thoughts") fail("闪念仅本人可见，不参与团队共享");
-  if (w.type !== "team" || kind !== "meetings") fail("共享设置无效");
-  if (!Array.isArray(users) || users.some((user) => user === uid || !member(w, user)))
-    fail("请选择当前团队的有效成员");
-  if (enabled && !users.length) fail("开启共享前请选择接收成员");
-  const preferences = clone(capturePreferences(s, uid));
-  preferences.teams ||= {};
-  preferences.teams[wid] ||= {};
-  preferences.teams[wid][kind] = { enabled: !!enabled, users: [...new Set(users)], editors: checkedEditors(users, editors) };
-  ((w.contentSharing ||= {})[uid] ||= {})[kind] = clone(preferences.teams[wid][kind]);
-  (s.captureSettings ||= {})[uid] = preferences;
-}
-function contentPreferences(w, uid = SELF) {
-  access(w, uid);
-  const preferences = clone(w.contentSharing?.[uid] || {});
-  delete preferences.thoughts;
-  return preferences;
-}
-function applyContentSharing(w, record, kind, uid = SELF) {
-  if (kind !== "meetings") return;
-  const policy = w.contentSharing?.[uid]?.[kind];
-  if (w.type !== "team" || w.status !== "active" || !member(w, uid) || !policy?.enabled) return;
-  record.shared = [...new Set(policy.users.filter(user => user !== uid && member(w, user)))];
-  record.editors = (policy.editors || []).filter(user => record.shared.includes(user));
-  if (record.shared.length) { record.sharingMode = "invited"; record.visibility = "invited"; record.sharedAt = stamp(); }
-}
+function setCustomerSharing() { fail("请在单个通讯录联系人上设置只读共享"); }
+function setDeviceSharing() { fail("请在单条会议上设置只读共享"); }
+function contentPreferences(w, uid = SELF) { access(w, uid); return {}; }
+function applyContentSharing() { /* New records never inherit type-wide sharing. */ }
 function sync(s, did, uid = SELF, input = {}) {
   const d = s.devices.find((d) => d.id === did) || fail("设备不存在");
   if (d.user !== uid) fail("只能同步自己的设备");
@@ -1021,8 +1013,8 @@ function sync(s, did, uid = SELF, input = {}) {
   const sourceId = input.sourceId || id("capture");
   const locations = [...s.spaces, ...Object.values(s.accountSpaces || {})];
   for (const space of locations) {
-    const previous = space.files.find((f) => f.owner === uid && !f.sourceFileId && f.deviceId === did && f.sourceRecordId === sourceId);
-    if (previous) { access(space, uid); return { space, file: previous, duplicate: true }; }
+    const previous = space.files.find((f) => (f.owner === uid || f.previousOwner === uid) && !f.sourceFileId && f.deviceId === did && f.sourceRecordId === sourceId);
+    if (previous) { return { space, file: getFile(space, previous.id, uid), duplicate: true }; }
   }
   const paused = w.type === "team" && w.status !== "active";
   let f;
@@ -1059,14 +1051,14 @@ function addThought(w, input, uid = SELF) {
 function editThought(w, tid, input, uid = SELF) {
   access(w, uid); writable(w);
   const thought = (w.thoughts || []).find((t) => t.id === tid) || fail("闪念不存在");
-  if (thought.owner !== uid) fail("只能修改本人闪念");
+  if (thought.owner !== uid && !admin(w, uid)) fail("仅本人或团队管理员可以修改闪念");
   const title = String(input.title || "").trim(), detail = String(input.detail || "").trim();
   if (!title || title.length > 200 || detail.length > 5000) fail("请填写有效标题和内容");
   Object.assign(thought, { title, detail, updated: stamp(), revision: (thought.revision || 0) + 1 });
   return thought;
 }
 function shareThought(w, tid, users, uid = SELF, editors = []) {
-  if (users.length || editors.length) fail("闪念仅本人可见，不参与共享");
+  if (users.length || editors.length) fail("闪念由本人及团队管理员管理，不提供成员共享");
   access(w, uid); writable(w);
   const thought = (w.thoughts || []).find((t) => t.id === tid && t.owner === uid) || fail("只能共享本人闪念");
   if (users.some((user) => user === uid || !member(w, user))) fail("只能邀请当前空间的有效成员");
@@ -1106,7 +1098,7 @@ function syncThought(s, did, uid = SELF, input = {}) {
 
 function visibleThoughts(w, uid = SELF) {
   access(w, uid);
-  return (w.thoughts || []).filter((t) => !t.deleted && t.owner === uid);
+  return (w.thoughts || []).filter((t) => !t.deleted && (t.owner === uid || (w.type === "team" && admin(w, uid))));
 }
 
 function migrateAccountDevices(s) {
@@ -1149,7 +1141,7 @@ function history(w, uid = SELF) {
     .filter(
       (t) =>
         !t.contactId &&
-        t.user === uid &&
+        (t.user === uid || admin(w, uid)) &&
         (t.files || []).every((fid) => ids.has(fid)),
     )
     .slice()
@@ -1179,9 +1171,9 @@ function conversation(w, tid, uid = SELF) {
   return list;
 }
 function deleteConversation(w, tid, uid = SELF) {
-  access(w, uid);
-  const owned = (w.threads || []).filter((t) => t.user === uid);
-  let root = owned.find((t) => t.id === tid) || fail("只能删除本人的会话");
+  access(w, uid); writable(w);
+  const owned = (w.threads || []).filter((t) => t.user === uid || admin(w, uid));
+  let root = owned.find((t) => t.id === tid) || fail("仅本人或管理员可以删除会话");
   const seen = new Set();
   while (root.parentThreadId && !seen.has(root.id)) {
     seen.add(root.id);
@@ -1205,7 +1197,7 @@ function deleteConversation(w, tid, uid = SELF) {
 }
 function scheduledTasks(w, uid = SELF) {
   access(w, uid);
-  return (w.automaticTasks || []).filter((t) => t.user === uid);
+  return (w.automaticTasks || []).filter((t) => t.user === uid || admin(w, uid));
 }
 function getTask(w, tid, uid = SELF) {
   return (
@@ -1373,6 +1365,7 @@ function ask(w, prompt, fid, uid = SELF, historyId = null, options = {}) {
 }
 function acceptInvite(s, iid) {
   const i = s.invitations.find(i => i.id === iid && i.status === "pending") || fail("邀请已失效或已处理");
+  assertCanJoinTeam(s);
   let w = i.workspaceId ? get(s, i.workspaceId) : null;
   if (w) {
     writable(w);
@@ -1425,6 +1418,7 @@ function enrich(s, now = new Date()) {
     }
     w.files = w.files.filter(f => !f.sourceRecordId?.startsWith("thought-audio:"));
   }
+  for (const w of s.spaces) if (w.type === "team") for (const f of w.files) f.editors = [];
   fillWeekWorkspaces(s, now);
   for (const w of s.spaces.filter(
     (w) => w.type === "team" && w.status !== "dissolved",
@@ -1718,7 +1712,7 @@ function purge(w, fid, uid = SELF) {
   access(w, uid);
   writable(w);
   const f =
-    w.files.find((f) => f.id === fid && f.owner === uid && f.deleted) ||
+    w.files.find((f) => f.id === fid && (f.owner === uid || admin(w, uid)) && f.deleted) ||
     fail("只能永久删除自己的回收站录音");
   w.files = w.files.filter((x) => x !== f);
   log(w, "永久删除回收站录音", uid);

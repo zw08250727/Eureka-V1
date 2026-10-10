@@ -497,7 +497,7 @@ export function CalendarPage({
                 <p className="pa-hint">
                   创建于 {localDate(record.created)}
                   <br />
-                  仅保存在当前工作区，本人可见
+                  保存在当前工作区；团队管理员可编辑和管理
                 </p>
               </aside>
             </div>

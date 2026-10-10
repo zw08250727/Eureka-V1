@@ -1,7 +1,8 @@
 "use client";
 import { M, createWorkspaceStore } from "@/features/spaces/model/store";
 import { CREATION_DEMO_KEY } from "@/features/spaces/creation-demo";
-import { useRef } from "react";
+import { AgentScope } from "./scope";
+import { useContext, useRef } from "react";
 import { agentRoute, SCENES } from "./registry";
 export type AgentScene = keyof typeof SCENES;
 export interface AgentSession {
@@ -41,7 +42,8 @@ export function appendSession(storage: Storage, context: Omit<AgentSession, "tit
 // All scene UIs use this one session service. Adapters retain scene-specific local data and confirmation flows.
 export function useSceneAgent(scene: AgentScene, sourceId = "", resumeId?: string, initial?: { title: string; messages: AgentSession["messages"] }) {
   const query = new URLSearchParams(typeof location === "undefined" ? "" : location.search);
-  const space = query.get("space") || "personal", actor = query.get("actor") || "zhang";
+  const scope = useContext(AgentScope);
+  const space = scope?.space || query.get("space") || "personal", actor = scope?.actor || query.get("actor") || "zhang";
   const storageKey = query.get("demo") === "create-team" ? CREATION_DEMO_KEY : M.KEY;
   function ensureAvailable() {
     const w = M.get(createWorkspaceStore(localStorage, () => new Date(), { key: storageKey }).read(), space);

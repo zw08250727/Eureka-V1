@@ -1,18 +1,14 @@
 "use client";
 import "./history.css";
-import { createContext, useContext, useState } from "react";
+import { useContext, useState } from "react";
 import { RefIcon } from "@/features/reference/symbols";
 import { ReferenceDialog } from "@/features/reference/dialog";
-import type { SpacesController } from "@/features/spaces/use-spaces";
 import { M } from "@/features/spaces/model/store";
 import { appUrl } from "@/lib/routes";
 import { readSessions, SESSION_KEY } from "./session";
 
-export const AgentScope = createContext<{
-  controller: SpacesController;
-  space: string;
-  actor: string;
-} | null>(null);
+import { AgentScope } from "./scope";
+export { AgentScope } from "./scope";
 const seeds = [
   "本周会议决策整理", "研发周报自动整理", "客户访谈高频问题", "周报与行动项",
 ];
@@ -95,7 +91,7 @@ export function AgentHistoryButton() {
           onClose={() => setRows(null)}
         >
           <header>
-            <div><h2>历史会话</h2><p>Ask Agent · 当前空间 · 仅本人可见</p></div>
+            <div><h2>历史会话</h2><p>Ask Agent · 当前空间 · 按角色权限显示</p></div>
             <button type="button" aria-label="关闭历史会话" onClick={() => setRows(null)}>
               <RefIcon name="x" />
             </button>

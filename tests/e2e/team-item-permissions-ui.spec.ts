@@ -1,0 +1,47 @@
+import { test, expect } from "@playwright/test";
+import M from "../../src/features/spaces/model/core";
+test.use({ viewport: { width: 1440, height: 900 } });
+test("settings expose per-item rules, contacts import and share; member view respects actual identity", async ({ page }) => {
+  await page.goto("/workbench/?view=content-permissions&space=team-eureka");
+  const content = page.getByRole("region", { name: "内容权限", exact: true });
+  await expect(content).toBeVisible(); await expect(content.getByRole("switch")).toHaveCount(0);
+  await content.getByRole("button", { name: "内容权限说明" }).click();
+  await expect(content.getByRole("dialog")).toContainText("闪念、日程、待办、灵感和记账");
+  await page.keyboard.press("Escape");
+  await page.screenshot({ path: "test-results/new-content-permissions.png" });
+  await content.getByRole("link", { name: /打开通讯录/ }).click();
+  await page.getByRole("button", { name: /添加联系人/ }).click();
+  await page.getByRole("button", { name: "手机通讯录导入", exact: true }).click();
+  await expect(page.getByRole("dialog")).toContainText("尚未读取真实手机通讯录");
+  await page.screenshot({ path: "test-results/phone-contact-import.png" });
+  await page.getByRole("button", { name: "确认导入", exact: true }).click();
+  await page.locator(".contacts-person-card").filter({ hasText: "手机通讯录导入" }).click();
+  await expect(page.getByRole("heading", { name: "联系人详情", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "共享与权限", exact: true }).click();
+  const share = page.getByRole("dialog");
+  await expect(share).toContainText("可编辑 + 管理（默认）");
+  await share.getByLabel("Kevin", { exact: true }).check();
+  await share.getByRole("button", { name: "保存授权", exact: true }).click();
+  await page.getByRole("combobox", { name: "评审视角" }).selectOption("member");
+  await expect(page).toHaveURL(/actor=kevin/);
+  await page.getByRole("button", { name: "通讯录", exact: true }).first().click();
+  await expect(page.locator('.contacts-person-card').filter({ hasText: "手机通讯录导入" })).toHaveCount(1);
+  await page.locator('.contacts-person-card').filter({ hasText: "手机通讯录导入" }).click();
+  await expect(page.getByRole("button", { name: "编辑资料", exact: true })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "共享与权限", exact: true })).toHaveCount(0);
+  await page.screenshot({ path: "test-results/contact-shared-readonly.png" });
+});
+
+test("admin can edit a colleague's unshared meeting and remove member with explicit handover", async ({ page }) => {
+  await page.goto("/workbench/?view=meeting&space=team-eureka&id=team-private");
+  await expect(page.locator('body')).toContainText("林晓的个人绩效沟通");
+  await page.goto("/workbench/?view=members&space=team-eureka");
+  await page.getByRole("row").filter({ hasText: "lin.xiao@eureka.example" }).getByRole("button", { name: "移除", exact: true }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toContainText("全部资料移交"); await expect(dialog).toContainText("清空硬件文件");
+  await page.screenshot({ path: "test-results/member-removal-handover.png" });
+  await dialog.getByRole("button", { name: "确认", exact: true }).click();
+  const state = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), M.KEY);
+  expect(state.devices.find((d: { id: string }) => d.id === "dev-team").bound).toBe(false);
+  expect(state.spaces.find((w: { id: string }) => w.id === "team-eureka").files.find((f: { id: string }) => f.id === "team-private").owner).toBe("zhang");
+});

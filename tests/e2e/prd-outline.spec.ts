@@ -6,7 +6,7 @@ const url='/prototype/prd/index.html';
 
 test('hierarchical numbering stays stable through search, editing and Markdown export',async({page})=>{
   await page.goto(url);
-  await expect(page.locator('.nav-intro .version')).toHaveText('V1.2');
+  await expect(page.locator('.nav-intro .version')).toHaveText('V1.3');
   await expect(page.locator('.nav-group')).toHaveText(['一：产品定义','二：业务模型','三：个人工作台','四：团队版','五：交付约束','六：评审与验收']);
   await expect(page.locator('#navigation a[href="#overview"]')).toHaveText('1.1文档说明与决策摘要');
   await expect(page.locator('#navigation a[href="#objects"]')).toHaveText('2.1业务对象');
@@ -34,7 +34,7 @@ test('hierarchical numbering stays stable through search, editing and Markdown e
   expect(markdown).not.toContain('2.1.2 2.1.2');
 });
 
-test('scope defines one Agent and multiple workspaces while excluding real service implementation',async({page})=>{
+test('scope defines one Agent and personal plus one team workspace while excluding real service implementation',async({page})=>{
   await page.goto(url);
   await expect(page.locator('#journeys .flow-svg')).toHaveCount(3);
   for(const text of ['F-01','F-02','F-07','个人日程与待办闭环'])await expect(page.locator('#journeys')).not.toContainText(text);

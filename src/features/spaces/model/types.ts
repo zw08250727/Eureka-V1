@@ -99,6 +99,7 @@ export interface DeviceThought extends ThoughtRecord {
   sharedAt?: string;
 }
 export interface Workspace {
+  ownershipTransfers?: { id: string; from: string; to: string; time: string }[];
   customerDemoVersion?: number;
   customerSharing?: Record<string, boolean>;
   contentSharing?: Record<string, Partial<Record<"meetings" | "thoughts", { enabled: boolean; users: string[]; editors?: string[] }>>>;
@@ -177,7 +178,10 @@ export interface Device {
   bound: boolean;
   /** Fixed workspace binding; missing legacy values require owner confirmation. */
   spaceId?: string | null;
-  bindings?: { id: string; workspaceId: string; boundAt: string; unboundAt?: string }[];
+  bindings?: { id: string; workspaceId: string; boundAt: string; unboundAt?: string; revoked?: boolean }[];
+  localFiles?: unknown[];
+  wipeStatus?: "pending" | "completed";
+  wipedAt?: string;
   lastSync?: string;
 }
 export interface CapturePreferences {

@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img"><title>最后看状态：移除、到期、任务完成时怎么处理？</title><defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="#777"/></marker></defs><rect width="1600" height="900" fill="#FAFAFA"/><g font-family="PingFang SC, Microsoft YaHei, sans-serif">
+<rect x="52" y="42" width="65" height="34" rx="8" fill="#D7FF00" stroke="#D7FF00" stroke-width="2"/>
+<text x="84" y="67" font-size="22" font-weight="600" fill="#111111" text-anchor="middle">03</text>
+<text x="134" y="68" font-size="21" font-weight="500" fill="#666666" text-anchor="start">EurekaMind · 核心业务规则</text>
+<text x="52" y="132" font-size="46" font-weight="650" fill="#111111" text-anchor="start">最后看状态：移除、到期、任务完成时怎么处理？</text>
+<text x="52" y="171" font-size="23" font-weight="400" fill="#666666" text-anchor="start">用内容 / 任务所属区的权益。个人与 Team 独立；Team 由管理员付费，不跨区借用或回退扣费。</text>
+<rect x="1482" y="50" width="54" height="36" rx="9" fill="#111111" stroke="#111111" stroke-width="2"/>
+<circle cx="1497" cy="66" r="3" fill="#D7FF00"/><circle cx="1521" cy="66" r="3" fill="#D7FF00"/>
+<path d="M1509 48 L1509 39" fill="none" stroke="#777" stroke-width="2"/>
+<text x="52" y="878" font-size="17" font-weight="400" fill="#777777" text-anchor="start">按最终确认规则整理 · 2026.10.10</text>
+<text x="1548" y="878" font-size="17" font-weight="400" fill="#777777" text-anchor="end">03 / 03</text>
+<rect x="52" y="206" width="728" height="360" rx="18" fill="#FFFFFF" stroke="#EAEAEA" stroke-width="2"/>
+<rect x="76" y="229" width="6" height="30" rx="2" fill="#D7FF00" stroke="#D7FF00" stroke-width="2"/>
+<text x="96" y="254" font-size="30" font-weight="600" fill="#111111" text-anchor="start">被管理员移除</text>
+<text x="76" y="304" font-size="25" font-weight="400" fill="#111111" text-anchor="start">撤销团队访问，拒绝原绑定的新同步</text>
+<text x="76" y="352" font-size="25" font-weight="400" fill="#111111" text-anchor="start">全部团队资料 → 移交执行移除的管理员</text>
+<text x="76" y="400" font-size="25" font-weight="400" fill="#111111" text-anchor="start">当前团队设备 → 系统自动解绑并清空</text>
+<text x="76" y="448" font-size="25" font-weight="400" fill="#111111" text-anchor="start">原型为模拟，真实清空须设备确认</text>
+<text x="76" y="496" font-size="25" font-weight="400" fill="#111111" text-anchor="start">个人区资料与设备不受影响</text>
+<rect x="820" y="206" width="728" height="360" rx="18" fill="#FFFFFF" stroke="#EAEAEA" stroke-width="2"/>
+<rect x="844" y="229" width="6" height="30" rx="2" fill="#D7FF00" stroke="#D7FF00" stroke-width="2"/>
+<text x="864" y="254" font-size="30" font-weight="600" fill="#111111" text-anchor="start">团队订阅到期 / 取消生效</text>
+<text x="844" y="304" font-size="25" font-weight="400" fill="#111111" text-anchor="start">该区转只读，历史内容按原权限查看</text>
+<text x="844" y="352" font-size="25" font-weight="400" fill="#111111" text-anchor="start">禁止手动创建、编辑、上传、转录与 AI</text>
+<text x="844" y="400" font-size="25" font-weight="400" fill="#111111" text-anchor="start">绑定设备仍同步原始音频，处理暂停</text>
+<text x="844" y="448" font-size="25" font-weight="400" fill="#111111" text-anchor="start">设备绑定不变，恢复后再处理</text>
+<text x="844" y="496" font-size="25" font-weight="400" fill="#111111" text-anchor="start">仅关闭自动续费，当期权益仍有效</text>
+<rect x="52" y="592" width="1496" height="156" rx="18" fill="#FFFFFF" stroke="#EAEAEA" stroke-width="2"/>
+<text x="78" y="633" font-size="28" font-weight="600" fill="#111111" text-anchor="start">异步任务</text>
+<rect x="280" y="608" width="340" height="55" rx="10" fill="#FFFFFF" stroke="#EAEAEA" stroke-width="2"/>
+<text x="450" y="644" font-size="24" font-weight="500" fill="#111111" text-anchor="middle">发起时锁定工作区</text>
+<rect x="707" y="608" width="340" height="55" rx="10" fill="#FFFFFF" stroke="#EAEAEA" stroke-width="2"/>
+<text x="877" y="644" font-size="24" font-weight="500" fill="#111111" text-anchor="middle">执行 / 保存重检权限</text>
+<rect x="1158" y="608" width="360" height="55" rx="10" fill="#FFFFFF" stroke="#EAEAEA" stroke-width="2"/>
+<text x="1338" y="644" font-size="24" font-weight="500" fill="#111111" text-anchor="middle">结果写回原区</text>
+<path d="M630 637 L694 637" fill="none" stroke="#777" stroke-width="2"/>
+<polygon points="694,637 682.0,643.0 682.0,631.0" fill="#777"/>
+<path d="M1057 637 L1145 637" fill="none" stroke="#777" stroke-width="2"/>
+<polygon points="1145,637 1133.0,643.0 1133.0,631.0" fill="#777"/>
+<text x="280" y="713" font-size="23" font-weight="400" fill="#111111" text-anchor="start">重试不重复建内容、不重复扣额度、不重复开通订阅。切换视图不改变任务归属。</text>
+<rect x="52" y="772" width="1496" height="63" rx="18" fill="#FFFFFF" stroke="#EAEAEA" stroke-width="2"/>
+<text x="78" y="812" font-size="25" font-weight="500" fill="#111111" text-anchor="start">要把硬件新录音转到个人区处理，必须本人换绑设备；只切换 App 工作区不够。</text>
+</g></svg>

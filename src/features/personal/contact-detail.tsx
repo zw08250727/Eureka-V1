@@ -35,7 +35,7 @@ export function ContactDetail({ person, tab, notes, space, actor, readonly = fal
       <dt>主体类型</dt><dd>{person.subjectType === "enterprise" ? "企业" : "自然人"}</dd>
       <dt>{person.subjectType === "enterprise" ? "企业" : "所属公司"}</dt><dd>{person.company || "待补充"}</dd>
       <dt>{person.subjectType === "enterprise" ? "行业" : "职务"}</dt><dd>{person.role || "待补充"}</dd>
-      <dt>地区</dt><dd>{person.region || "待补充"}</dd><dt>邮箱</dt><dd>{person.email || "待补充"}</dd>
+      <dt>手机</dt><dd>{person.phone || "待补充"}</dd><dt>地区</dt><dd>{person.region || "待补充"}</dd><dt>邮箱</dt><dd>{person.email || "待补充"}</dd>
     </dl></ContactCard>
     <ContactCard title="关键主题"><div className="customer-keywords">{keywords.length ? keywords.map((k) => <span key={k.word} className="contacts-tag">{k.word}<small>{k.count} 场会议</small></span>) : <p className="contacts-muted">暂无会议关键词</p>}</div><details className="customer-rule"><summary>关键词如何生成</summary><p>{keywordRule}</p></details></ContactCard>
     <div className="contacts-wide"><ContactCard title="跟进记录"><Followups meetings={meetings} space={space} actor={actor} /></ContactCard></div>

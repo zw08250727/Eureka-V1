@@ -8,8 +8,8 @@ export type CustomerTodo = NonNullable<ContactInteraction["todos"]>[number];
 export function setCustomerTodoCompleted(storage: Storage, actor: string, space: string,
   owner: string, customerId: string, meetingId: string, index: number,
   expected: CustomerTodo, completed: boolean) {
-  if (owner !== actor) throw Error("仅所属成员可以维护客户待办");
-  createContacts(storage, actor, space).change(s => {
+  if (owner !== actor && (space === "personal" || !M.admin(M.get(createWorkspaceStore(storage).read(), space), actor))) throw Error("仅所属成员或管理员可以维护联系人待办");
+  createContacts(storage, actor, space, owner).change(s => {
     const person = s.personal.contacts.find(p => p.id === customerId);
     const event = person?.interactions?.find(m => m.id === meetingId);
     const todo = event?.todos?.[index];

@@ -74,7 +74,7 @@ export function ensureCustomerDetailDemo(storage: Storage, workspaceId: string, 
       person.interactions = rounds.map((round, index) => {
         const id = `customer-demo-${owner}-${person.id}-${index + 1}`;
         const summary = `${Object.values(round.profile).map(text => text.replace(/。$/, "")).join("；")}。我方将${round.mine}，客户将${round.theirs}。双方约定于 ${round.due} 前同步进展。`;
-        const shared = team && w.customerSharing?.[owner] ? w.members.filter(m => m.status === "active" && m.id !== owner).map(m => m.id) : [];
+        const shared = team ? (person.sharedWith || []) : [];
         if (!w.files.some(f => f.id === id)) additions.push({
           id, title: `${person.name} · ${round.title}（演示）`, owner, shared, editors: [], duration: 30,
           created: `${round.date}T09:00:00+08:00`, updated: `${round.date}T09:30:00+08:00`,

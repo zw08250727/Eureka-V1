@@ -30,7 +30,7 @@ test("detail demo is additive, scoped and idempotent, preserves edits and delete
     expect(team.files.some(f => f.id === fileId)).toBe(false);
     const own = createContacts(storage, "zhang", team.id).read().personal.contacts[0];
     expect(M.getFile(team, own.interactions![0].id, "zhang").shared).toEqual([]);
-    expect(() => M.getFile(team, own.interactions![0].id, "lin")).toThrow();
+    expect(() => M.getFile(team, own.interactions![0].id, "kevin")).toThrow();
     const broken = memory(); broken.setItem(M.KEY, JSON.stringify(M.seed()));
     const write = broken.setItem; broken.setItem = (k, v) => { if (k === M.KEY) throw Error("quota"); write(k, v); };
     expect(() => ensureCustomerDetailDemo(broken, "personal", "zhang")).toThrow();
@@ -64,7 +64,7 @@ test("SolarHub has complete followups, two-sided todos, seven profile dimensions
   await expect(page.locator(".customer-meeting")).toHaveCount(3);
 });
 
-test("shared example team customer has readable meeting-backed profile without importing personal records", async ({ page }) => {
+test("admin can manage example team customer with meeting-backed profile without importing personal records", async ({ page }) => {
   await page.goto("/workbench/?view=contacts&space=team-eureka&actor=zhang");
   await page.getByLabel("筛选所属成员").selectOption("lin");
   await page.locator(".contacts-person-card").first().click();
@@ -74,5 +74,5 @@ test("shared example team customer has readable meeting-backed profile without i
   await expect(page.locator(".customer-profile-grid .customer-source")).toHaveCount(7);
   await page.locator(".customer-profile-grid .customer-source").first().click();
   await expect(page).toHaveURL(/space=team-eureka/);
-  await expect(page.locator('[data-md-action="edit"]')).toBeDisabled();
+  await expect(page.locator('[data-md-action="edit"]')).toBeEnabled();
 });

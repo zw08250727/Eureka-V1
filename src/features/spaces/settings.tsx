@@ -57,7 +57,7 @@ export function SpaceSettingsPage({
         title={audit ? "活动记录" : "空间设置"}
         subtitle={
           audit
-            ? "只记录空间管理操作，不向管理员暴露成员私有文件内容。"
+            ? "记录空间管理操作，正文内容请在对应详情查看。"
             : "名称、成员权限与隐私设置仅作用于当前工作空间。"
         }
       />
@@ -131,7 +131,7 @@ export function SpaceSettingsPage({
             <p className="ws-muted">地区在创建时确定，后续保持不变。</p>
             <div className="ws-info">
               <Icon name="users" />{" "}
-              内容默认私有。每位成员在「内容权限」中设置本人新增内容的接收成员；管理员身份不附带内容访问权。
+              成员逐条共享会议与联系人，只读授权；团队管理员默认可编辑和管理本区全部内容。
             </div>
             <p className="ws-form-error" role="alert">
               {error}
