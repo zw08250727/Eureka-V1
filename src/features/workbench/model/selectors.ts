@@ -21,11 +21,11 @@ export function todayRecords(
       (r) =>
         r.type === "todo" &&
         assetActive(r) &&
-        (actionOnDay(r, day) || overdue(r, now)),
+        (actionOnDay(r, day) || overdue(r, now) ||
+          (r.done && !!r.completedAt && localDay(new Date(r.completedAt)) === day)),
     )
     .sort(
       (a, b) =>
-        Number(a.done) - Number(b.done) ||
         actionTime(a.start) - actionTime(b.start),
     );
   const schedules = actions

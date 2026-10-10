@@ -1,0 +1,54 @@
+/* Keep detail density consistent across overview, meeting history and customer memory. */
+.contacts-workspace.is-detail .contacts-head { min-height: 0; padding: 16px 22px; gap: 16px; align-items: center; }
+.contacts-workspace.is-detail .contacts-head h1 { font-size: 20px; line-height: 28px; margin: 3px 0 0; }
+.contacts-workspace.is-detail .contacts-head p { font-size: 12px; line-height: 18px; margin-top: 3px; }
+.contacts-workspace.is-detail .contacts-actions { gap: 6px; }
+.contacts-workspace.is-detail .contacts-button { font-size: 12px; height: 32px; min-height: 32px; padding: 0 10px; }
+.contacts-workspace.is-detail .contacts-profile { padding: 16px 22px; gap: 12px; align-items: center; }
+.contacts-workspace.is-detail .contacts-avatar.large { width: 44px; height: 44px; flex-basis: 44px; border-radius: 12px; font-size: 17px; }
+.contacts-workspace.is-detail .contacts-profile h1 { margin: 0 0 4px; font-size: 20px; line-height: 28px; }
+.contacts-workspace.is-detail .contacts-profile p { margin: 2px 0 0; font-size: 12px; line-height: 18px; }
+.contacts-workspace.is-detail .contacts-tabs.detail { margin: 12px 22px; padding: 3px; }
+.contacts-workspace.is-detail .contacts-tabs.detail button { min-height: 30px; font-size: 12px; padding: 0 16px; }
+.contacts-workspace.is-detail .contacts-detail-grid { gap: 12px; padding-bottom: 16px; align-items: start; }
+.contacts-workspace.is-detail .contacts-card { padding: 14px 16px; border-radius: 10px; }
+.contacts-workspace.is-detail .contacts-main > .contacts-card { margin-bottom: 16px; }
+.contacts-workspace.is-detail .contacts-card h2 { margin: 0 0 10px; font-size: 14px; line-height: 20px; }
+.contacts-workspace.is-detail .contacts-card p { margin: 6px 0 10px; font-size: 13px; line-height: 1.65; }
+.contacts-workspace.is-detail .contacts-card .contacts-muted { font-size: 12px; color: #718299; line-height: 18px; }
+.contacts-workspace.is-detail .contacts-facts { margin: 0; font-size: 13px; line-height: 22px; row-gap: 6px; }
+.contacts-workspace.is-detail .customer-profile-grid { gap: 0 24px; }
+.contacts-workspace.is-detail .customer-profile-grid section { padding: 12px 0; min-width: 0; }
+.contacts-workspace.is-detail .customer-profile-grid h3 { font-size: 13px; line-height: 20px; margin: 0; }
+.contacts-workspace.is-detail .customer-profile-grid p { margin: 5px 0 6px; font-size: 13px; line-height: 1.65; }
+.contacts-workspace.is-detail .customer-source { font-size: 11px; line-height: 18px; }
+.contacts-workspace.is-detail .customer-meeting { padding: 12px 0; column-gap: 12px; grid-template-columns: 86px minmax(0, 1fr); }
+.contacts-workspace.is-detail .customer-meeting strong { font-size: 13px; line-height: 20px; }
+.contacts-workspace.is-detail .customer-meeting p { margin: 5px 0; }
+.contacts-workspace.is-detail .customer-meeting small { font-size: 11px; }
+.contacts-workspace.is-detail .contacts-line { padding: 12px 0; }
+.contacts-workspace.is-detail .contacts-line strong { font-size: 13px; line-height: 20px; }
+.contacts-workspace.is-detail .contacts-line small { margin-top: 5px; font-size: 11px; line-height: 18px; }
+.contacts-workspace.is-detail .customer-todo-hint { margin: 0 22px 12px; font-size: 12px; line-height: 18px; }
+.customer-todo-toggle { display: flex; align-items: flex-start; gap: 9px; width: 100%; padding: 0; border: 0; background: transparent; color: #354d6a; text-align: left; font: inherit; cursor: pointer; }
+.customer-todo-title { font-size: 13px; font-weight: 500; line-height: 22px; overflow-wrap: anywhere; }
+.customer-todo-check { flex: 0 0 16px; width: 16px; height: 16px; margin-top: 3px; border: 1px solid #b6c9e1; border-radius: 50%; background: #fff; color: #fff; font-size: 11px; line-height: 14px; text-align: center; }
+.customer-todo-toggle:hover:not(:disabled) .customer-todo-check { border-color: #397ac6; }
+.customer-todo-toggle:focus-visible { outline: 2px solid #397bd5; outline-offset: 4px; border-radius: 4px; }
+.customer-todo-toggle:disabled { cursor: default; }
+.customer-todo.is-done .customer-todo-title { text-decoration: line-through; color: #8a9ab0; }
+.customer-todo.is-done .customer-todo-check { border-color: #709bce; background: #709bce; }
+.contacts-workspace.is-detail .customer-todo > small { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; margin-left: 25px; }
+.customer-todo time { flex-shrink: 0; color: #7a8da5; }
+@container (max-width: 860px) {
+  .contacts-workspace.is-detail .contacts-head { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .contacts-workspace.is-detail .contacts-actions { justify-content: flex-start; flex-wrap: wrap; }
+}
+@container (max-width: 580px) {
+  .contacts-workspace.is-detail .customer-profile-grid, .contacts-workspace.is-detail .contacts-detail-grid { grid-template-columns: minmax(0, 1fr); }
+  .contacts-workspace.is-detail .contacts-head, .contacts-workspace.is-detail .contacts-profile { padding: 14px; }
+  .contacts-workspace.is-detail .contacts-main > .contacts-card { margin: 0 14px 14px; }
+  .contacts-workspace.is-detail .customer-meeting { grid-template-columns: minmax(0, 1fr); }
+  .contacts-workspace.is-detail .customer-meeting time { grid-row: auto; margin-bottom: 4px; }
+  .contacts-workspace.is-detail .customer-todo-hint { margin-inline: 14px; }
+}

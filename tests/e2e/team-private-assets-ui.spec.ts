@@ -32,6 +32,10 @@ test("compact team overview integrates private assets; navigation and edits rema
   await expect(page.locator(".ws-team-brief")).not.toContainText("团队内私有灵感");
   await privateArea.getByRole("button", { name: "完成状态：准备本人访谈提纲" }).click();
   await expect(privateArea.getByRole("button", { name: "完成状态：准备本人访谈提纲" })).toHaveAttribute("aria-pressed", "true");
+  const todoTitle = privateArea.locator(".team-private-todo-title");
+  await expect(todoTitle).toHaveCSS("text-decoration-line", "line-through");
+  await todoTitle.click();
+  await expect(todoTitle).toHaveAttribute("aria-pressed", "false");
   expect((await page.locator(".team-overview-canvas").boundingBox())!.height).toBeLessThan(360);
   await page.screenshot({ path: "test-results/team-private-assets-desktop.png" });
   await privateArea.getByRole("link", { name: /团队内私有灵感 3/ }).click();

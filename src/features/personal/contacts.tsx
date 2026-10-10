@@ -1,5 +1,7 @@
 "use client";
 import "./contacts-controls.css";
+import "./contacts-detail.css";
+import { setCustomerTodoCompleted } from "./customer-todos";
 import { useCustomerMeetings } from "./contact-insights";
 import type { SpacesController } from "@/features/spaces/use-spaces";
 import { customerFields, channelNames, customerSourceFilters, editCustomer, ingestCustomer, type CustomerSource } from "./contact-identity";
@@ -98,7 +100,6 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
     tab,
     query,
     answer,
-    data?.contacts,
   ]);
   useEffect(() => {
     const view = viewRef.current!;
@@ -258,7 +259,7 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
   return (
     <section
       ref={viewRef}
-      className="contacts-workspace"
+      className={`contacts-workspace${detail ? " is-detail" : ""}`}
       data-main-view="contacts"
       aria-hidden="false"
       aria-label="我的客户"
@@ -406,6 +407,13 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
                       space={space}
                       actor={actor}
                       readonly={readonly}
+                      onToggleTodo={(meetingId, index, todo) => {
+                        try {
+                          setCustomerTodoCompleted(localStorage, actor, space, person.ownerId || actor,
+                            person.id, meetingId, index, todo, !todo.completed);
+                          refresh();
+                        } catch (e) { setToast((e as Error).message); refresh(); }
+                      }}
                       onEditNote={(index) => openModal("note", index)}
                       onDeleteNote={(index) => {
                         if (!window.confirm("删除这条备注？")) return;

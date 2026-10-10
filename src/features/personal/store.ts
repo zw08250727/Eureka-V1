@@ -199,6 +199,7 @@ export function createActions(storage: Storage, now = () => new Date(), accountI
           id: input.id || crypto.randomUUID(),
           title: input.title.trim(),
           source: old?.source || input.source,
+          completedAt: input.done ? (old?.done ? old.completedAt : now().toISOString()) : undefined,
           created: old?.created || new Date().toISOString(),
           updated: new Date().toISOString(),
           revision: (old?.revision || 0) + 1,

@@ -16,7 +16,7 @@ export interface ContactInteraction {
   sourceAvailable: boolean;
   themes: string[];
   extractedSummary?: string;
-  todos?: { side: "mine" | "theirs"; title: string; due: string }[];
+  todos?: { side: "mine" | "theirs"; title: string; due: string; completed?: boolean }[];
   profile?: Record<string, string>;
 }
 export function contactPromises(person: Contact): ContactPromise[] {

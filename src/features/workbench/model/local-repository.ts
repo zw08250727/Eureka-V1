@@ -326,6 +326,7 @@ export function createLocalRepository(
         r = next.records.find((r) => r.id === id && r.type === "todo");
       if (!r) throw Error("待办不存在，请刷新后重试。");
       r.done = !r.done;
+      r.completedAt = r.done ? now().toISOString() : undefined;
       r.updated = now().toISOString();
       r.revision = (r.revision || 0) + 1;
       rawActions = persist(ACTION_KEY, rawActions, next);

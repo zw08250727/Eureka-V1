@@ -6,6 +6,7 @@ export interface ActionRecord {
   start: string;
   end: string;
   done: boolean;
+  completedAt?: string;
   source: string;
   notes: string;
   reminder: string;

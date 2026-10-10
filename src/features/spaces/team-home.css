@@ -79,9 +79,10 @@
 #ws-view .team-private-idea { justify-content:space-between; }
 #ws-view .team-private-column p { color:#8b9aae; font-size:12px; line-height:22px; }
 #ws-view .team-private-todo { display:flex; align-items:center; gap:7px; min-width:0; }
-#ws-view .team-private-todo>a { font-size:12px; color:#435e7d; line-height:22px; }
-#ws-view .team-private-todo>button { padding:0; width:15px; height:15px; flex:0 0 15px; border:1px solid #b6c7db; border-radius:4px; background:#fff; color:#397ac6; font-size:10px; cursor:pointer; }
-#ws-view .team-private-todo>button[aria-pressed=true]+a { color:#8b9aae; text-decoration:line-through; }
+#ws-view .team-private-todo>.team-private-todo-title { min-width:0; padding:0; border:0; background:transparent; text-align:left; font-size:12px; color:#435e7d; line-height:22px; cursor:pointer; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+#ws-view .team-private-todo>button:not(.team-private-todo-title) { padding:0; width:15px; height:15px; flex:0 0 15px; border:1px solid #b6c7db; border-radius:50%; background:#fff; color:#397ac6; font-size:10px; cursor:pointer; }
+#ws-view .team-private-todo>button[aria-pressed=true]+.team-private-todo-title { color:#8b9aae; text-decoration:line-through; }
+#ws-view .team-private-todo>button:focus-visible { outline:2px solid #397bd5; outline-offset:3px; }
 #ws-view .team-private-ledger { max-height:62px; overflow:auto; }
 #ws-view .team-private-ledger p { display:flex; justify-content:space-between; gap:6px; }
 #ws-view .team-private-ledger strong { color:#435e7d; font-weight:500; }

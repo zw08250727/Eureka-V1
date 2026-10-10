@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { Contact, ContactsState } from "./store";
+import type { CustomerTodo } from "./customer-todos";
 import { appUrl } from "@/lib/routes";
 import { keywordRule, meetingKeywords, profileDimensions, useCustomerMeetings, type CustomerMeeting } from "./contact-insights";
 
@@ -20,10 +21,11 @@ function Followups({ meetings, space, actor }: { meetings: CustomerMeeting[]; sp
     <small>查看会议详情</small>
   </a>)}</div>;
 }
-export function ContactDetail({ person, tab, notes, space, actor, readonly = false, onEditNote, onDeleteNote }: {
+export function ContactDetail({ person, tab, notes, space, actor, readonly = false, onEditNote, onDeleteNote, onToggleTodo }: {
   person: Contact; tab: string; notes: ContactsState["notes"][string]; space: string; actor: string;
   readonly?: boolean;
   onEditNote: (index: number) => void; onDeleteNote: (index: number) => void;
+  onToggleTodo: (meetingId: string, index: number, todo: CustomerTodo) => void;
 }) {
   const meetings = useCustomerMeetings(person, actor, space);
   const keywords = meetingKeywords(meetings);
@@ -40,11 +42,16 @@ export function ContactDetail({ person, tab, notes, space, actor, readonly = fal
   </div>;
   if (tab === "时间线") return <ContactCard title="跟进记录"><p className="contacts-muted">按会议时间倒序排列，点击记录回到会议详情。</p><Followups meetings={meetings} space={space} actor={actor} /></ContactCard>;
   if (tab === "承诺") return <>
-    <p className="contacts-muted">Agent 根据每次会议提取双方待办，仅展示行动、约定时间与来源。</p>
+    <p className="contacts-muted customer-todo-hint">Agent 从会议中提取双方待办，点击勾选完成，再次点击可恢复。</p>
     <div className="contacts-detail-grid">{(["theirs", "mine"] as const).map((side) => <ContactCard key={side} title={side === "mine" ? "我的待办" : "客户的待办"}>
-      {meetings.some((m) => m.todos?.some((t) => t.side === side)) ? meetings.flatMap((m) => (m.todos || []).filter((t) => t.side === side).map((t, i) => <ContactLine key={`${m.id}:${i}`} title={t.title}>
-        {t.due || "时间未约定"}<br /><a className="customer-source" href={appUrl("meeting", m.id, space, actor)}>来源：{m.title} ↗</a>
-      </ContactLine>)) : <p className="contacts-muted">暂无会议提取的待办</p>}
+      {meetings.some((m) => m.todos?.some((t) => t.side === side)) ? meetings.flatMap((m) => (m.todos || []).map((t, i) => t.side !== side ? null : <div className={`contacts-line customer-todo${t.completed ? " is-done" : ""}`} key={`${m.id}:${i}`}>
+        <button type="button" className="customer-todo-toggle" aria-pressed={!!t.completed} disabled={readonly}
+          aria-label={`完成状态：${t.title}`} onClick={() => onToggleTodo(m.id, i, t)}>
+          <span className="customer-todo-check" aria-hidden="true">{t.completed ? "✓" : ""}</span>
+          <span className="customer-todo-title">{t.title}</span>
+        </button>
+        <small><time>{t.due || "时间未约定"}</time><a className="customer-source" href={appUrl("meeting", m.id, space, actor)}>来源：{m.title} ↗</a></small>
+      </div>)) : <p className="contacts-muted">暂无会议提取的待办</p>}
     </ContactCard>)}</div>
   </>;
   return <>

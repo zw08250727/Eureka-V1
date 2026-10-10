@@ -25,7 +25,7 @@ export function PrivateOverview({ space, actor, now, readOnly }: {
         <div className="team-private-list">{!r.schedules.length && <p>今天暂无日程</p>}{r.schedules.slice(0, 2).map(s => <a key={s.id} href={link("calendar", s.id)} title={s.title}><time>{scheduleTime(s)}</time><span>{s.title}</span></a>)}</div>
       </section>
       <section aria-label="我的待办"><header><h3>待办 <span>{r.todos.filter(t => !t.done).length} 项未完成</span></h3><a href={link("calendar")}>全部 ↗</a></header>
-        <div className="team-private-list">{!r.todos.length && <p>暂无待办</p>}{r.todos.slice(0, 2).map(t => <div className="team-private-todo" key={t.id}><button aria-label={`完成状态：${t.title}`} aria-pressed={t.done} disabled={readOnly} onClick={() => toggle(t)}>{t.done ? "✓" : ""}</button><a href={link("calendar", t.id)} title={t.title}>{t.title}</a></div>)}</div>
+        <div className="team-private-list">{!r.todos.length && <p>暂无待办</p>}{r.todos.slice(0, 2).map(t => <div className="team-private-todo" key={t.id}><button aria-label={`完成状态：${t.title}`} aria-pressed={t.done} disabled={readOnly} onClick={() => toggle(t)}>{t.done ? "✓" : ""}</button><button className="team-private-todo-title" aria-pressed={t.done} disabled={readOnly} onClick={() => toggle(t)} title={t.title}>{t.title}</button></div>)}</div>
       </section>
     </div>
     <div className="team-private-notes">
