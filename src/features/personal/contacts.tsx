@@ -60,7 +60,7 @@ function ContactButton({
   );
 }
 export function ContactsPage({ id, actor = "zhang", space = "personal", controller }: { id: string; actor?: string; space?: string; controller?: SpacesController }) {
-  const { data, error, repo, refresh } = usePersonal(actor, space);
+  const { data, error, repo, refresh } = usePersonal(actor, space, true);
   const [selected, setSelected] = useState(id || "john");
   const agent = useSceneAgent("contacts", selected);
   const [detail, setDetail] = useState(Boolean(id));
@@ -372,7 +372,7 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
                           {person.name} <ContactTag>{person.tag}</ContactTag>{team && <span className="customer-owner-tag">所属成员：{ownerName(person.ownerId)}</span>}
                         </h1>
                         <p>{`${person.role} · ${person.company}`}</p>
-                        <p>{`最近互动：${stats?.recent}`}</p>
+                        <p>{`最近互动：${stats?.recent ? localDate(stats.recent) : "暂无已核实互动"}`}</p>
                       </div>
                     </div>
                     <div

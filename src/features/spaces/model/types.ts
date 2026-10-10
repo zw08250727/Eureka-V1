@@ -7,6 +7,8 @@ export interface Member {
   role: "admin" | "member";
   status: "active" | "pending" | "removed";
   joined: string;
+  leftAt?: string;
+  exitReason?: string;
 }
 export interface WorkspaceFile {
   id: string;

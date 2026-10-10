@@ -69,7 +69,7 @@ test("homepage shows latest two inspirations and keeps modules compact with many
     await expect(page.locator(".daily-idea")).toHaveCount(2);
     await expect(page.locator(".daily-idea").first()).toContainText("灵感示例 7");
     await expect(page.locator(".daily-inspiration header button")).toContainText("8 条");
-    expect((await page.locator("#today-assets-grid").boundingBox())!.height).toBeLessThanOrEqual(244);
+    expect((await page.locator("#today-assets-grid").boundingBox())!.height).toBeLessThanOrEqual(200);
     await page.screenshot({ path: `test-results/compact-home-${width}.png`, fullPage: true, animations: "disabled" });
   }
   await page.locator(".daily-inspiration header button").click();

@@ -15,6 +15,13 @@ import {
 import {
   InviteMembersDialog,
 } from "./management-dialogs";
+function memberTime(value?: string) {
+  if (!value) return "时间未记录";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  const date = new Date(value);
+  if (!Number.isFinite(+date)) return "时间未记录";
+  return new Intl.DateTimeFormat("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(date).replaceAll("/", "-");
+}
 export function MembersPage({
   controller,
   space,
@@ -94,12 +101,14 @@ export function MembersPage({
                 <th>角色</th>
                 <th>权益</th>
                 <th>状态</th>
+                <th>加入时间</th>
+                <th>退出时间</th>
                 <th>操作</th>
               </tr>
             </thead>
             <tbody>
               {w.members
-                .filter((m) => m.status !== "removed")
+                .filter((m) => m.status !== "removed" || m.exitReason !== "invitation-revoked")
                 .map((m) => (
                   <tr key={m.id}>
                     <td>
@@ -122,27 +131,29 @@ export function MembersPage({
                             : "amber"
                         }
                       >
-                        {m.status === "pending"
+                        {m.status === "removed" ? "已终止" : m.status === "pending"
                           ? "待加入生效"
                           : w.status === "active"
                             ? "Unlimited"
                             : "权益已暂停"}
                       </Badge>
-                      <small>
+                      {m.status !== "removed" && <small>
                         {m.status === "pending"
                           ? "加入后随团队到期"
                           : "当前周期截止"}
                         ：{w.nextDate || "待确认"}
-                      </small>
+                      </small>}
                     </td>
                     <td>
-                      <Badge kind={m.status === "pending" ? "amber" : "green"}>
-                        {m.status === "pending" ? "待接受" : "已加入"}
+                      <Badge kind={m.status === "active" ? "green" : "amber"}>
+                        {m.status === "removed" ? "已移除" : m.status === "pending" ? "待接受" : "已加入"}
                       </Badge>
                     </td>
+                    <td style={{ whiteSpace: "nowrap" }} data-member-time="joined">{m.status === "pending" ? "—" : memberTime(m.joined)}</td>
+                    <td style={{ whiteSpace: "nowrap" }} data-member-time="left">{m.status === "removed" ? memberTime(m.leftAt) : "—"}</td>
                     <td>
                       <div className="ws-actions">
-                        {admin ? (
+                        {admin && m.status !== "removed" ? (
                           <>
                             {m.status === "pending" ? (
                               <>

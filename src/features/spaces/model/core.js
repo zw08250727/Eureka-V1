@@ -26,7 +26,7 @@ const person = (uid, name, email, role = "member", status = "active") => ({
   email,
   role,
   status,
-  joined: "2026-10-01",
+  joined: status === "pending" ? "" : "2026-10-01",
 });
 const file = (uid, title, owner, shared = [], duration = 32) => ({
   id: uid,
@@ -348,6 +348,7 @@ function memberAction(s, w, mid, action, value, actor = SELF) {
     if (existing) m.id = existing.id;
     m.status = "active";
     m.joined = stamp();
+    delete m.leftAt; delete m.exitReason;
   } else if (action === "resend") {
     if (m.status !== "pending") fail("仅待接受的邀请可以重发");
     m.sentAt = stamp();
@@ -362,9 +363,10 @@ function memberAction(s, w, mid, action, value, actor = SELF) {
 function departure(s, w, uid, reason) {
   const m = w.members.find((m) => m.id === uid && m.status !== "removed");
   if (!m) return;
+  const wasPending = m.status === "pending";
   m.status = "removed";
   m.leftAt = stamp();
-  m.exitReason = reason;
+  m.exitReason = wasPending ? "invitation-revoked" : reason;
   // Removing membership never unbinds the account device or reveals private content.
   if (w.customerSharing) delete w.customerSharing[uid];
   if (w.contentSharing) {
@@ -1378,7 +1380,11 @@ function acceptInvite(s, iid) {
     const pending = w.members.find(m => m.email.toLowerCase() === s.account.email.toLowerCase() && m.status === "pending");
     if (!pending && usedSeats(w) >= w.seats) fail("该工作区席位不足，请联系管理员");
     if (pending) Object.assign(pending, { id: s.account.id, status: "active", joined: stamp() });
-    else w.members.push(person(s.account.id, s.account.name, s.account.email, i.role === "admin" ? "admin" : "member"));
+    else {
+      const previous = w.members.find(m => m.id === s.account.id && m.status === "removed");
+      if (previous) Object.assign(previous, { status: "active", role: i.role === "admin" ? "admin" : "member" });
+      else w.members.push(person(s.account.id, s.account.name, s.account.email, i.role === "admin" ? "admin" : "member"));
+    }
   } else {
     w = baseTeam(id("team"), i.teamName, [person("wang", "王晨", "wang.chen@eureka.example", "admin"), person(s.account.id, s.account.name, s.account.email)], 3);
     w.files = [file(id("file"), "欢迎加入 · 研究项目说明", "wang", [s.account.id])];
@@ -1386,7 +1392,9 @@ function acceptInvite(s, iid) {
     s.spaces.push(w);
     i.workspaceId = w.id;
   }
-  w.members.find(m => m.id === s.account.id && m.status === "active").joined = stamp();
+  const joinedMember = w.members.find(m => m.id === s.account.id && m.status === "active");
+  joinedMember.joined = stamp();
+  delete joinedMember.leftAt; delete joinedMember.exitReason;
   i.status = "accepted";
   s.activeId = w.id;
   reconcileEntitlements(s);

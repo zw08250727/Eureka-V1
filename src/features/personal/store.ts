@@ -18,6 +18,7 @@ import type {
 } from "@/features/workbench/model/types";
 import contactSeeds from "./contact-seeds.json";
 export interface Contact {
+  detailDemoVersion?: number;
   subjectType?: "enterprise" | "person";
   createdAt?: string;
   ownerId?: string;

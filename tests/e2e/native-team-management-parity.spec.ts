@@ -77,10 +77,14 @@ test("native members: pending invite, accept, roles, resend, removal and refresh
     .locator(".ws-table tbody tr")
     .filter({ hasText: "parity@example.com" });
   await expect(row).toContainText("待加入生效");
+  await expect(row.locator("[data-member-time=joined]")).toHaveText("—");
+  await expect(row.locator("[data-member-time=left]")).toHaveText("—");
   await row.getByRole("button", { name: "重发", exact: true }).click();
   await expect(page.locator("#ws-toast")).toContainText("模拟邀请已重发");
   await row.getByRole("button", { name: "模拟接受" }).click();
   await expect(row).toContainText("Unlimited");
+  await expect(row.locator("[data-member-time=joined]")).toHaveText(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}/);
+  const joined = await row.locator("[data-member-time=joined]").innerText();
   await row.getByRole("button", { name: "调整角色" }).click();
   await dialog(page).locator("[name=role]").selectOption("admin");
   await dialog(page).getByRole("button", { name: "保存角色" }).click();
@@ -94,10 +98,24 @@ test("native members: pending invite, accept, roles, resend, removal and refresh
   )!.seats;
   await row.getByRole("button", { name: "移除", exact: true }).click();
   await dialog(page).getByRole("button", { name: "确认", exact: true }).click();
-  await expect(row).toHaveCount(0);
+  await expect(row).toContainText("已移除");
+  await expect(row).toContainText("已终止");
+  await expect(row.locator("[data-member-time=joined]")).toHaveText(joined);
+  await expect(row.locator("[data-member-time=left]")).toHaveText(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}/);
+  const left = await row.locator("[data-member-time=left]").innerText();
+  await expect(row.getByRole("button")).toHaveCount(0);
+  await page.reload();
+  await expect(row.locator("[data-member-time=left]")).toHaveText(left);
   expect(
     (await read(page)).spaces.find((s) => s.id === "team-eureka")!.seats,
   ).toBe(before);
+  await action(page, "invite").click();
+  await dialog(page).locator("[name=emails]").fill("parity@example.com");
+  await dialog(page).getByRole("button", { name: "发送模拟邀请" }).click();
+  await expect(row.locator("[data-member-time=joined]")).toHaveText("—");
+  await row.getByRole("button", { name: "模拟接受" }).click();
+  await expect(row).toHaveCount(1);
+  await expect(row.locator("[data-member-time=left]")).toHaveText("—");
 });
 
 test("native members: member permissions and no exit for any role", async ({

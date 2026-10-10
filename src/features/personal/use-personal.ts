@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from "react";
+import { ensureCustomerDetailDemo } from "./customer-detail-demo";
 import { ensureTeamCustomerDemo } from "./team-customer-demo";
 import {
   createActions,
@@ -11,7 +12,7 @@ import type {
   ActionState,
   ThoughtRecord,
 } from "@/features/workbench/model/types";
-export function usePersonal(accountId = "zhang", workspaceId = "personal") {
+export function usePersonal(accountId = "zhang", workspaceId = "personal", customerDetails = false) {
   const repo = useRef<{
     actions: ReturnType<typeof createActions>;
     thoughts: ReturnType<typeof createThoughts>;
@@ -37,6 +38,7 @@ export function usePersonal(accountId = "zhang", workspaceId = "personal") {
     Promise.resolve().then(() => {
       try {
         ensureTeamCustomerDemo(localStorage, workspaceId, accountId);
+        if (customerDetails) ensureCustomerDetailDemo(localStorage, workspaceId, accountId);
         repo.current = {
           actions: createActions(localStorage, () => new Date(), accountId, workspaceId),
           thoughts: createThoughts(localStorage, () => new Date(), accountId, workspaceId),
@@ -67,7 +69,7 @@ export function usePersonal(accountId = "zhang", workspaceId = "personal") {
       window.removeEventListener("storage", external);
       window.removeEventListener("eureka:data", local);
     };
-  }, [refresh, accountId, workspaceId]);
+  }, [refresh, accountId, workspaceId, customerDetails]);
   return { data, error, repo, refresh };
 }
 export type PersonalController = ReturnType<typeof usePersonal>;
