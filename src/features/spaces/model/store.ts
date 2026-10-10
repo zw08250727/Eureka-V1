@@ -15,7 +15,13 @@ export function createWorkspaceStore(storage: Storage, now = () => new Date(), o
       !state.spaces.some((s: Workspace) => s.id === "personal")
     )
       throw Error("工作空间数据无法读取，请保留浏览器数据后重试");
-    return M.enrich(state, now());
+    const cleaned = M.enrich(state, now());
+    if (!JSON.parse(raw).demoWorkspaceCleanupVersion) {
+      const json = JSON.stringify(cleaned);
+      storage.setItem(key, json);
+      raw = json;
+    }
+    return cleaned;
   }
   let state = parse();
   return {

@@ -11,6 +11,9 @@ export interface Member {
   exitReason?: string;
 }
 export interface WorkspaceFile {
+  createdBy?: string;
+  previousOwner?: string;
+  transferredAt?: string;
   id: string;
   title: string;
   owner: string;
@@ -99,6 +102,7 @@ export interface DeviceThought extends ThoughtRecord {
   sharedAt?: string;
 }
 export interface Workspace {
+  demoArchived?: boolean;
   ownershipTransfers?: { id: string; from: string; to: string; time: string }[];
   customerDemoVersion?: number;
   customerSharing?: Record<string, boolean>;
@@ -189,6 +193,7 @@ export interface CapturePreferences {
   teams: Record<string, Partial<Record<"meetings" | "thoughts", { enabled: boolean; users: string[]; editors?: string[] }>>>;
 }
 export interface WorkspaceState {
+  demoWorkspaceCleanupVersion?: number;
   privateContentVersion?: number;
   captureSettings?: Record<string, CapturePreferences>;
   accountDevicesVersion?: number;
@@ -301,6 +306,7 @@ export interface WorkspaceAPI {
     patch: Record<string, unknown>,
     actor?: string,
   ): WorkspaceFile;
+  canShare(w: Workspace, record: WorkspaceFile | undefined, actor?: string): boolean;
   canEdit(w: Workspace, record: WorkspaceFile | DeviceThought | undefined, actor?: string): boolean;
   share(w: Workspace, id: string, users: string[], actor?: string, editors?: string[]): void;
   trash(w: Workspace, id: string, restore?: boolean, actor?: string): void;

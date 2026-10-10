@@ -191,7 +191,7 @@ function seed() {
 const get = (s, uid = s.activeId) =>
   s.spaces.find((w) => w.id === uid) || fail("工作空间不存在");
 const member = (w, uid = SELF) =>
-  w.status !== "dissolved" &&
+  !w.demoArchived && w.status !== "dissolved" &&
   w.members.find((m) => m.id === uid && m.status === "active");
 const admin = (w, uid = SELF) => member(w, uid)?.role === "admin";
 // A member consumes an existing seat; joining never starts a separate billing period.
@@ -372,6 +372,7 @@ function departure(s, w, uid, reason, recipient) {
   m.exitReason = wasPending ? "invitation-revoked" : reason;
   if (!wasPending) {
     for (const record of [...w.files, ...(w.thoughts || [])]) if (record.owner === uid) {
+      record.createdBy ||= record.previousOwner || uid;
       record.previousOwner ||= uid; record.owner = target; record.transferredAt = stamp();
     }
     for (const thread of w.threads || []) if (thread.user === uid) {
@@ -849,10 +850,14 @@ function edit(w, fid, patch, uid = SELF) {
   log(w, "编辑文件", uid);
   return f;
 }
+function canShare(w, record, uid = SELF) {
+  return !!record && !!member(w, uid) && record.owner === uid &&
+    (record.createdBy || record.previousOwner || record.owner) === uid;
+}
 function share(w, fid, users, uid = SELF, editors = []) {
   writable(w);
   const f = getFile(w, fid, uid);
-  if (f.owner !== uid) fail("仅所有者本人可以管理共享，管理员不能代为共享");
+  if (!canShare(w, f, uid)) fail("仅创建者本人可以管理共享；管理员接管资料不获得代共享权限");
   if (f.source === "联系人") fail("请在单个通讯录联系人详情中管理共享");
   if (users.some((u) => !member(w, u) || u === f.owner))
     fail("只能邀请当前空间内的有效成员");
@@ -1395,6 +1400,15 @@ function acceptInvite(s, iid) {
 }
 // Versioned, additive migration: never replace user recordings or edited contacts.
 function enrich(s, now = new Date()) {
+  // Retire only the two named prototype workspaces; keep their data recoverable.
+  if (!s.demoWorkspaceCleanupVersion) {
+    for (const w of s.spaces) if (w.type === "team" && ["百智百销产品组", "测试"].includes(w.name) && w.members.some(m => m.id === s.account.id)) {
+      w.demoArchived = true;
+      if (s.activeId === w.id) s.activeId = "personal";
+    }
+    s.demoWorkspaceCleanupVersion = 1;
+  }
+
   for (const w of s.spaces) {
     if (!w.contentSharing) {
       w.contentSharing = {};
@@ -1662,6 +1676,10 @@ function enrich(s, now = new Date()) {
       w.ownTaskVersion = 1;
     }
     w.files.forEach((f) => {
+      // Old demo imports/transfers may retain the creator label but have changed owner.
+      const demo = f.id.startsWith("demo-week-") || f.id.startsWith("customer-demo-");
+      const namedCreators = demo ? w.members.filter(m => m.name === f.creator) : [];
+      f.createdBy ||= f.previousOwner || (namedCreators.length === 1 ? namedCreators[0].id : f.owner);
       const defaults = {
         size: (f.duration * 0.82).toFixed(1) + " MB",
         creator: w.members.find((m) => m.id === f.owner)?.name || "已移除成员",
@@ -1819,6 +1837,7 @@ const workspaceModel = {
   addFile,
   edit,
   canEdit,
+  canShare,
   share,
   trash,
   exportFile,

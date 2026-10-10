@@ -360,7 +360,7 @@ export function TeamHome({
                         <td>{date(f.updated || f.created)}</td>
                         <td>
                           <div className="ws-actions">
-                            {f.owner === actor && <Button action="team-share" value={f.id} className="link" disabled={readonly} onClick={() => setSharingId(f.id)}>共享</Button>}
+                            {M.canShare(w, f, actor) && <Button action="team-share" value={f.id} className="link" disabled={readonly} onClick={() => setSharingId(f.id)}>共享</Button>}
                             {(f.owner === actor || M.admin(w, actor)) && !readonly ? (
                               <Button
                                 action="delete"

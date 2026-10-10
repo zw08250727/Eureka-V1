@@ -156,3 +156,28 @@ test("device lists show SN only and have no sync or workspace switch entry", asy
     await page.screenshot({ path: `test-results/${view}-sn-list.png` });
   }
 });
+
+
+test("legacy transferred samples cannot be shared and the two retired demo teams disappear", async ({ page }) => {
+  const state = M.seed();
+  const w = M.get(state, "team-eureka");
+  M.memberAction(state, w, "lin", "remove");
+  const legacy = w.files.find(f => f.id.startsWith("demo-week-") && f.creator === "林晓")!;
+  delete legacy.createdBy; delete legacy.previousOwner;
+  for (const [id, name] of [["legacy-sales", "百智百销产品组"], ["legacy-test", "测试"]]) state.spaces.push({ ...structuredClone(w), id, name });
+  delete state.demoWorkspaceCleanupVersion;
+  await page.addInitScript(({ key, state }) => {
+    if (!localStorage.getItem("owner-regression-seeded")) {
+      localStorage.setItem(key, JSON.stringify(state)); localStorage.setItem("owner-regression-seeded", "1");
+    }
+  }, { key: M.KEY, state });
+  await page.goto("/workbench/?space=team-eureka");
+  const rows = page.locator(".ws-recording-table tbody tr");
+  await expect(rows.filter({ hasText: "知识整理 · 设计共创" }).getByRole("button", { name: "共享", exact: true })).toHaveCount(0);
+  await expect(rows.filter({ hasText: "知识整理 · 产品讨论" }).getByRole("button", { name: "共享", exact: true })).toBeVisible();
+  await page.screenshot({ path: "test-results/transferred-owner-sharing.png" });
+  await page.getByTitle("切换工作空间：EurekaMind 产品团队", { exact: true }).click();
+  await expect(page.getByRole("button", { name: /百智百销产品组|测试.*管理员/ })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /个人工作空间.*个人权益/ })).toBeVisible();
+  await page.screenshot({ path: "test-results/clean-workspace-menu.png" });
+});

@@ -334,6 +334,9 @@ export function createThoughts(storage: Storage, now = () => new Date(), account
     },
   };
 }
+export function canShareContact(person: Contact, actor: string) {
+  return person.ownerId === actor && (person.previousOwnerId || person.ownerId) === actor;
+}
 export function createContacts(storage: Storage, accountId = "zhang", workspaceId = "personal", ownerId = accountId) {
   const empty = (): ContactsState => ({ contacts: [], notes: {}, tasks: [] });
   const key = workspaceId !== "personal" ? `workspace:${workspaceId}:account:${ownerId}` : ownerId === "zhang" ? "personal" : `account:${ownerId}`;
@@ -424,16 +427,18 @@ export function createContacts(storage: Storage, accountId = "zhang", workspaceI
         const scope = all[key];
         const visible = scope.contacts.filter((p) => p.ownerId === ownerId);
         const hidden = scope.contacts.filter((p) => p.ownerId !== ownerId);
+        const originsBefore = new Map(visible.map(p => [p.id, p.previousOwnerId]));
         const grantsBefore = new Map(visible.map(p => [p.id, JSON.stringify([...(p.sharedWith || [])].sort())]));
         const view = { personal: { ...scope, contacts: visible } };
         const result = fn(view);
         for (const person of view.personal.contacts) {
           if (person.ownerId && person.ownerId !== ownerId) throw Error("不能写入其他成员的客户档案");
           person.ownerId = ownerId;
+          if (originsBefore.has(person.id)) person.previousOwnerId = originsBefore.get(person.id);
           const shared = person.sharedWith || [];
           const grantsChanged = JSON.stringify([...shared].sort()) !== (grantsBefore.get(person.id) || "[]");
           if (workspace && grantsChanged) {
-            if (ownerId !== accountId) throw Error("仅所有者本人可以管理共享，管理员不能代为共享");
+            if (ownerId !== accountId || (originsBefore.get(person.id) || ownerId) !== accountId) throw Error("仅创建者本人可以管理共享；管理员接管资料不获得代共享权限");
             if (shared.some(id => id === ownerId || !M.member(workspace, id))) throw Error("只能共享给当前团队的有效成员");
           }
         }

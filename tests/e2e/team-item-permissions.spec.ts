@@ -7,9 +7,9 @@ const memory = () => { const values = new Map<string, string>(); return { getIte
 const contact = (ownerId: string): Contact => ({ id: "c1", ownerId, name: "周宁", phone: "+8613800001001", company: "示例公司", role: "采购", summary: "示例", initials: "周", email: "", tag: "", count: 0, recent: "", region: "上海", subjectType: "person", createdAt: "2026-10-10", themes: [], memories: [], inferences: [], sharedWith: [] });
 const init = () => { const storage = memory(), s = M.enrich(M.seed()), w = M.get(s, "team-eureka"); w.members.find(m => m.id === "lin")!.role = "member"; storage.setItem(M.KEY, JSON.stringify(s)); return { storage, s, w }; };
 const now = () => new Date("2026-10-10T10:00:00+08:00");
+test.beforeEach(() => Object.defineProperty(globalThis, "window", { configurable: true, value: { dispatchEvent() {} } }));
+test.afterEach(() => Reflect.deleteProperty(globalThis, "window"));
 test.describe("single-item permissions and team lifecycle", () => {
-  test.beforeEach(() => Object.defineProperty(globalThis, "window", { configurable: true, value: { dispatchEvent() {} } }));
-  test.afterEach(() => Reflect.deleteProperty(globalThis, "window"));
   test("members receive only item-level read access; admins manage all content", () => {
     const { s, w } = init(), a = M.addFile(w, { title: "A" }, "lin"), b = M.addFile(w, { title: "B" }, "lin");
     expect(M.getFile(w, a.id).id).toBe(a.id);
@@ -19,7 +19,7 @@ test.describe("single-item permissions and team lifecycle", () => {
     expect(() => M.edit(w, a.id, { title: "forbidden" }, "kevin")).toThrow(/编辑/);
     expect(() => M.share(w, a.id, ["kevin"], "lin", ["kevin"])).toThrow(/只读/);
     M.edit(w, a.id, { title: "admin edit" });
-    expect(() => M.share(w, a.id, [])).toThrow(/仅所有者本人/);
+    expect(() => M.share(w, a.id, [])).toThrow(/仅创建者本人/);
     M.share(w, a.id, [], "lin");
     expect(() => M.getFile(w, a.id, "kevin")).toThrow();
     expect(M.getFile(w, a.id).title).toBe("admin edit");
@@ -37,9 +37,9 @@ test.describe("single-item permissions and team lifecycle", () => {
     expect(() => createContacts(storage, "kevin", w.id, "lin").change(a => { a.personal.contacts[0].name = "bad"; })).toThrow(/管理员/);
     createContacts(storage, "zhang", w.id, "lin").change(a => { a.personal.contacts[0].name = "管理员维护"; });
     const before = storage.getItem("baizhi-v14-contacts");
-    expect(() => createContacts(storage, "zhang", w.id, "lin").change(a => { a.personal.contacts[0].sharedWith = []; })).toThrow(/仅所有者本人/);
+    expect(() => createContacts(storage, "zhang", w.id, "lin").change(a => { a.personal.contacts[0].sharedWith = []; })).toThrow(/仅创建者本人/);
     expect(storage.getItem("baizhi-v14-contacts")).toBe(before);
-    expect(() => createContacts(storage, "zhang", w.id, "lin").change(a => { a.personal.contacts[1].sharedWith = ["kevin"]; })).toThrow(/仅所有者本人/);
+    expect(() => createContacts(storage, "zhang", w.id, "lin").change(a => { a.personal.contacts[1].sharedWith = ["kevin"]; })).toThrow(/仅创建者本人/);
     expect(storage.getItem("baizhi-v14-contacts")).toBe(before);
     createContacts(storage, "lin", w.id).change(a => { a.personal.contacts[0].sharedWith = []; });
     expect(viewer.readVisible().personal.contacts).toHaveLength(0);
@@ -126,4 +126,43 @@ test.describe("single-item permissions and team lifecycle", () => {
     ingestCustomer(state, contact("zhang"), { id: "manual", channel: "manual", verifiedPhone: "+8613800001001", fields: { name: "本人周宁" }, updatedAt: "2026-10-10" }, "zhang");
     expect(state.contacts).toHaveLength(2);
   });
+});
+
+
+test("transferred and legacy demo recordings never grant administrator reshare rights", () => {
+  const { storage, s, w } = init();
+  const mine = M.addFile(w, { title: "自己的会议" }, "zhang");
+  const colleague = M.addFile(w, { title: "原成员会议" }, "lin");
+  M.memberAction(s, w, "lin", "remove");
+  expect(colleague.owner).toBe("zhang");
+  expect(M.canEdit(w, colleague, "zhang")).toBe(true);
+  expect(M.canShare(w, colleague, "zhang")).toBe(false);
+  expect(() => M.share(w, colleague.id, ["kevin"], "zhang")).toThrow(/接管资料/);
+  expect(M.canShare(w, mine, "zhang")).toBe(true);
+  const legacy = w.files.find(f => f.id.startsWith("demo-week-") && f.creator === "林晓")!;
+  legacy.owner = "zhang"; delete legacy.createdBy; delete legacy.previousOwner;
+  M.enrich(s, now());
+  expect(legacy.createdBy).toBe("lin");
+  expect(M.canShare(w, legacy, "zhang")).toBe(false);
+  storage.setItem(M.KEY, JSON.stringify(s));
+  createContacts(storage, "zhang", w.id).change(a => a.personal.contacts.push({ ...contact("zhang"), previousOwnerId: "lin" }));
+  expect(() => createContacts(storage, "zhang", w.id).change(a => { a.personal.contacts[0].previousOwnerId = undefined; a.personal.contacts[0].sharedWith = ["kevin"]; })).toThrow(/接管资料/);
+});
+
+test("named legacy demo workspaces are retired once without erasing their records", () => {
+  const { storage, s, w } = init();
+  delete s.demoWorkspaceCleanupVersion;
+  for (const [id, name] of [["legacy-sales", "百智百销产品组"], ["legacy-test", "测试"]]) s.spaces.push({ ...structuredClone(w), id, name });
+  s.activeId = "legacy-test";
+  storage.setItem(M.KEY, JSON.stringify(s));
+  const clean = createWorkspaceStore(storage).read();
+  expect(clean.activeId).toBe("personal");
+  expect(M.accountTeams(clean).map(t => t.name)).not.toContain("测试");
+  expect(M.accountTeams(clean).map(t => t.name)).not.toContain("百智百销产品组");
+  expect(M.get(clean, "legacy-test").files).toHaveLength(w.files.length);
+  expect(M.member(M.get(clean, "legacy-test"), "zhang")).toBeFalsy();
+  expect(JSON.parse(storage.getItem(M.KEY)!).demoWorkspaceCleanupVersion).toBe(1);
+  const once = storage.getItem(M.KEY);
+  createWorkspaceStore(storage).read();
+  expect(storage.getItem(M.KEY)).toBe(once);
 });

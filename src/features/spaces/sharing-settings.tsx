@@ -8,7 +8,7 @@ export function RecipientDialog({ w, actor, owner = actor, initial = [], title =
   const [users, setUsers] = useState(initial.filter(id => M.member(w, id) && id !== owner && !M.admin(w, id)));
   return <Dialog title={title} form="recipients" onClose={onClose} onSubmit={() => onSave(users, [])} footer={<><Button onClick={onClose}>取消</Button><button type="submit" className="ws-btn primary">保存授权</button></>}>
     <p>仅共享这一条内容。选中的普通成员只有只读权限，取消勾选立即撤回访问。</p>
-    <p className="ws-muted">仅所属成员本人可设置共享。团队管理员默认可编辑和管理内容，但不能代为共享。</p>
+    <p className="ws-muted">仅创建者本人可设置共享。管理员可编辑和管理内容，但不能代他人共享，接管资料后也不能。</p>
     {w.members.filter(m => m.status === "active" && m.id !== owner).map(m => <div key={m.id} className="ws-recipient-row"><label className="ws-recipient-option"><input type="checkbox" disabled={m.role === "admin"} checked={m.role === "admin" || users.includes(m.id)} onChange={e => setUsers(e.target.checked ? [...users, m.id] : users.filter(id => id !== m.id))} />{m.name}</label><span>{m.role === "admin" ? "可编辑 + 管理（默认）" : "只读"}</span></div>)}
   </Dialog>;
 }
