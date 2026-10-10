@@ -70,3 +70,11 @@
 
 .customer-owner-tag { display:inline-flex; align-items:center; border:1px solid #dce6f1; border-radius:5px; padding:2px 7px; color:#526f92; background:#f5f8fd; font-size:11px; font-weight:400; white-space:nowrap; }
 .contacts-profile .customer-owner-tag { margin-left:8px; vertical-align:middle; }
+
+.contact-list-item { position: relative; min-width: 0; }
+.contact-list-item .contacts-person-card { width: 100%; height: 100%; }
+.contact-list-item:has(.contact-list-share) .contacts-person-foot { padding-right: 88px; }
+.contact-list-share { position: absolute; right: 16px; bottom: 16px; padding: 5px 9px; border: 1px solid var(--border, #dbe5f2); border-radius: 7px; background: var(--bg-surface, #fff); color: var(--primary-700, #346bb0); font: inherit; font-size: 12px; cursor: pointer; }
+.contact-list-share:hover:not(:disabled) { background: var(--primary-50, #edf4ff); }
+.contact-list-share:focus-visible { outline: 2px solid #397ccc; outline-offset: 3px; }
+.contact-list-share:disabled { opacity: .5; cursor: not-allowed; }

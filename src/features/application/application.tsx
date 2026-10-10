@@ -103,7 +103,7 @@ export function Application() {
     ) : route.view === "invitations" ? (
       <Invitations controller={spaces} />
     ) : ["space-settings", "audit", "content-permissions"].includes(route.view) && team ? (
-      <SpaceSettings {...props} audit={route.view === "audit"} permissions={route.view === "content-permissions"} />
+      <SpaceSettings {...props} audit={route.view === "audit"} />
     ) : route.view === "history" ? (
       team ? (
         <TeamHome {...props} historyId={route.id} />

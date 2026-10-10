@@ -312,7 +312,7 @@ export function ReferenceShell({
                   <div className="ws-nav-label">团队工作区</div>
                   {nav("团队成员", "users", "members", view === "members")}
                   {admin && nav("设备查看", "phone", "devices", view === "devices")}
-                  {nav("空间设置", "task", "content-permissions", ["subscription", "space-settings", "content-permissions", "credits", "audit"].includes(view))}
+                  {nav("空间设置", "task", "space-settings", ["subscription", "space-settings", "content-permissions", "credits", "audit"].includes(view))}
                   <a
                     className="ws-btn"
                     href="https://wisenote-open-api.vercel.app/#_2"

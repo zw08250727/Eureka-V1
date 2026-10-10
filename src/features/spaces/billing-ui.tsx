@@ -94,7 +94,6 @@ export function ManagementTabs({
   active: string;
 }) {
   const tabs: [string, string, AppView][] = [
-    ["permissions", "内容权限", "content-permissions"],
     ["billing", "订阅与席位", "subscription"],
     ["credits", "Credits", "credits"],
     ["settings", "基本设置", "space-settings"],

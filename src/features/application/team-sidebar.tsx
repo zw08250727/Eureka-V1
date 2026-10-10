@@ -28,7 +28,7 @@ export function TeamSidebar({
     admin = M.admin(w, actor);
   const nav: [AppView, string][] = [
     ["home", "首页"], ["recording", "开始录音"], ["contacts", "通讯录"],
-    ["members", "团队成员"], ...(admin ? [["devices", "设备查看"] as [AppView, string]] : []), ["content-permissions", "空间设置"],
+    ["members", "团队成员"], ...(admin ? [["devices", "设备查看"] as [AppView, string]] : []), ["space-settings", "空间设置"],
   ];
   return (
     <aside

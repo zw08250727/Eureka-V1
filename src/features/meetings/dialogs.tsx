@@ -66,8 +66,6 @@ export function MeetingDialogs({
   onRemove,
   seek,
   workspace,
-  actor,
-  onShare,
   copyText,
   previewImage,
 }: {
@@ -78,8 +76,6 @@ export function MeetingDialogs({
   onRemove: () => Promise<void>;
   seek: (n: number) => void;
   workspace?: Workspace;
-  actor: string;
-  onShare: (users: string[], editors: string[]) => void;
   copyText: string;
   previewImage?: { name: string; url: string };
 }) {
@@ -94,9 +90,6 @@ export function MeetingDialogs({
     [format, setFormat] = useState("txt"),
     [shareTypes, setShareTypes] = useState(Object.keys(shareNames)),
     [days, setDays] = useState(7),
-    [users, setUsers] = useState(
-      workspace?.files.find((f) => f.id === r.id)?.shared || [],
-    ),
     [busy, setBusy] = useState(false);
   const field = (
     key: "title" | "customer" | "project" | "location" | "tagsText",
@@ -601,84 +594,6 @@ export function MeetingDialogs({
           下载
         </B>
       </>
-    );
-  }
-  if (page === "share" && workspace) {
-    return (
-      <NativeDialog
-        className="ws-dialog"
-        id="ws-dialog"
-        label="ws-share-title"
-        onClose={onClose}
-      >
-        <div className="ws-dialog-head">
-          <h2 id="ws-share-title">分享给空间成员</h2>
-          <button
-            className="ws-btn ws-icon-button"
-            aria-label="关闭"
-            onClick={onClose}
-          >
-            <RefIcon name="x" className="ws-icon" />
-          </button>
-        </div>
-        <form
-          className="ws-dialog-content"
-          data-ws-form="share"
-          onSubmit={(e) => {
-            e.preventDefault();
-            try {
-              onShare(users.filter(id => !workspace.members.some(m => m.id === id && m.role === "admin")), []);
-              onClose();
-            } catch (e) {
-              setError((e as Error).message);
-            }
-          }}
-        >
-          <p>{r.title}</p>
-          <p className="ws-muted">
-            仅共享当前会议，普通成员权限为只读；取消勾选立即撤销。管理员默认可编辑和管理。
-          </p>
-          <div className="ws-share-list">
-            {workspace.members
-              .filter((m) => m.status === "active" && m.id !== (workspace.files.find(f => f.id === r.id)?.owner || actor))
-              .map((m) => (
-                <label key={m.id}>
-                  <input
-                    type="checkbox"
-                    name="users"
-                    value={m.id}
-                    disabled={m.role === "admin"}
-                    checked={m.role === "admin" || users.includes(m.id)}
-                    onChange={(e) =>
-                      setUsers(
-                        e.target.checked
-                          ? [...users, m.id]
-                          : users.filter((x) => x !== m.id),
-                      )
-                    }
-                  />
-                  <span>
-                    {m.name}
-                    <small>{m.email}</small>
-                  </span>
-                  <span>{m.role === "admin" ? "可编辑 + 管理（默认）" : "只读"}</span>
-                </label>
-              ))}
-          </div>
-          <input type="hidden" name="fileId" value={r.id} />
-          <p className="ws-form-error" role="alert">
-            {error}
-          </p>
-          <footer className="ws-dialog-footer">
-            <button type="button" className="ws-btn" onClick={onClose}>
-              取消
-            </button>
-            <button type="submit" className="ws-btn primary">
-              保存访问权限
-            </button>
-          </footer>
-        </form>
-      </NativeDialog>
     );
   }
   if (page === "share") {

@@ -25,6 +25,7 @@ import {
   currentText,
   type MeetingTab,
 } from "./content";
+import { RecipientDialog } from "@/features/spaces/sharing-settings";
 import { MeetingDialogs } from "./dialogs";
 export function MeetingPage({
   id,
@@ -495,6 +496,11 @@ export function MeetingPage({
                         <I name="share" /> 分享
                       </B>
                     )}
+                    {team && w && file && (file.owner === actor || M.admin(w, actor)) && (
+                      <B action="team-share" disabled={readonly} onClick={() => action("team-share")}>
+                        <RefIcon name="users" className="md-icon" /> 团队共享
+                      </B>
+                    )}
                     <B
                       action="delete"
                       className="md-btn md-delete-btn"
@@ -845,7 +851,13 @@ export function MeetingPage({
               setToast("图片已添加，仅在本次会话保留");
             }}
           />
-          {modal ? (
+          {modal === "team-share" && team && w && file ? (
+            <RecipientDialog key={`${space}:${selected}`} w={w} actor={actor} owner={file.owner} initial={file.shared}
+              title={`团队共享 · ${file.title}`} onClose={() => setModal("")} onSave={users => {
+                spaces.change(s => M.share(M.get(s, space), selected, users, actor, []));
+                setModal("");
+              }} />
+          ) : modal ? (
             <MeetingDialogs
               key={`${selected}/${modal}`}
               kind={modal}
@@ -870,12 +882,6 @@ export function MeetingPage({
               }}
               seek={seek}
               workspace={team ? w : undefined}
-              actor={actor}
-              onShare={(users, editors) =>
-                spaces.change((s) =>
-                  M.share(M.get(s, space), selected, users, actor, editors),
-                )
-              }
               copyText={currentText(r, tab)}
               previewImage={images[selected]?.[preview]}
             />

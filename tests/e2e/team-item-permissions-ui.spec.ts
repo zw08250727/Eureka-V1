@@ -1,34 +1,39 @@
 import { test, expect } from "@playwright/test";
 import M from "../../src/features/spaces/model/core";
 test.use({ viewport: { width: 1440, height: 900 } });
-test("settings expose per-item rules, contacts import and share; member view respects actual identity", async ({ page }) => {
+test("sharing lives on contact cards and details; settings have no content sharing tab", async ({ page }) => {
   await page.goto("/workbench/?view=content-permissions&space=team-eureka");
-  const content = page.getByRole("region", { name: "内容权限", exact: true });
-  await expect(content).toBeVisible(); await expect(content.getByRole("switch")).toHaveCount(0);
-  await content.getByRole("button", { name: "内容权限说明" }).click();
-  await expect(content.getByRole("dialog")).toContainText("闪念、日程、待办、灵感和记账");
-  await page.keyboard.press("Escape");
-  await page.screenshot({ path: "test-results/new-content-permissions.png" });
-  await content.getByRole("link", { name: /打开通讯录/ }).click();
+  await expect(page.getByRole("navigation", { name: "空间设置" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "内容权限", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("region", { name: "内容权限", exact: true })).toHaveCount(0);
+  await page.screenshot({ path: "test-results/team-basic-settings.png" });
+  await page.getByRole("button", { name: "通讯录", exact: true }).first().click();
   await page.getByRole("button", { name: /添加联系人/ }).click();
   await page.getByRole("button", { name: "手机通讯录导入", exact: true }).click();
   await expect(page.getByRole("dialog")).toContainText("尚未读取真实手机通讯录");
   await page.screenshot({ path: "test-results/phone-contact-import.png" });
   await page.getByRole("button", { name: "确认导入", exact: true }).click();
-  await page.locator(".contacts-person-card").filter({ hasText: "手机通讯录导入" }).click();
-  await expect(page.getByRole("heading", { name: "联系人详情", exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "共享与权限", exact: true }).click();
+  const card = page.locator(".contact-list-item").filter({ hasText: "手机通讯录导入" });
+  await expect(card).toHaveCount(1);
+  await expect(page.locator(".contacts-toast")).toHaveCount(0);
+  await page.screenshot({ path: "test-results/contact-list-team-share.png" });
+  await card.getByRole("button", { name: "团队共享", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "联系人详情", exact: true })).toHaveCount(0);
   const share = page.getByRole("dialog");
   await expect(share).toContainText("可编辑 + 管理（默认）");
   await share.getByLabel("Kevin", { exact: true }).check();
   await share.getByRole("button", { name: "保存授权", exact: true }).click();
+  await card.locator(".contacts-person-card").click();
+  await page.getByRole("button", { name: "团队共享", exact: true }).click();
+  await expect(page.getByRole("dialog").getByLabel("Kevin", { exact: true })).toBeChecked();
+  await page.getByRole("dialog").getByRole("button", { name: "取消", exact: true }).click();
   await page.getByRole("combobox", { name: "评审视角" }).selectOption("member");
   await expect(page).toHaveURL(/actor=kevin/);
   await page.getByRole("button", { name: "通讯录", exact: true }).first().click();
   await expect(page.locator('.contacts-person-card').filter({ hasText: "手机通讯录导入" })).toHaveCount(1);
   await page.locator('.contacts-person-card').filter({ hasText: "手机通讯录导入" }).click();
   await expect(page.getByRole("button", { name: "编辑资料", exact: true })).toBeDisabled();
-  await expect(page.getByRole("button", { name: "共享与权限", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "团队共享", exact: true })).toHaveCount(0);
   await page.screenshot({ path: "test-results/contact-shared-readonly.png" });
 });
 
@@ -44,4 +49,70 @@ test("admin can edit a colleague's unshared meeting and remove member with expli
   const state = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), M.KEY);
   expect(state.devices.find((d: { id: string }) => d.id === "dev-team").bound).toBe(false);
   expect(state.spaces.find((w: { id: string }) => w.id === "team-eureka").files.find((f: { id: string }) => f.id === "team-private").owner).toBe("zhang");
+});
+
+
+test("meeting list and detail share team readers independently of external sharing", async ({ page }) => {
+  await page.goto("/workbench/?space=team-eureka");
+  const row = page.getByRole("row").filter({ hasText: "团队产品周会 · 十月路线图" });
+  await expect(row).toBeVisible();
+  await page.getByRole("heading", { name: "团队会议", exact: true }).scrollIntoViewIfNeeded();
+  await page.screenshot({ path: "test-results/meeting-list-team-share.png" });
+  await row.getByRole("button", { name: "团队共享", exact: true }).click();
+  await expect(page).not.toHaveURL(/view=meeting/);
+  let dialog = page.getByRole("dialog");
+  await expect(dialog).toContainText("只读");
+  await expect(dialog.getByLabel("林晓", { exact: true })).toBeDisabled();
+  await dialog.getByLabel("Kevin", { exact: true }).check();
+  await dialog.getByRole("button", { name: "保存授权", exact: true }).click();
+  await row.getByRole("button", { name: "团队产品周会 · 十月路线图", exact: true }).click();
+  await page.getByRole("button", { name: "团队共享", exact: true }).click();
+  dialog = page.getByRole("dialog");
+  await expect(dialog.getByLabel("Kevin", { exact: true })).toBeChecked();
+  await dialog.getByRole("button", { name: "取消", exact: true }).click();
+  await page.getByRole("button", { name: "分享", exact: true }).click();
+  dialog = page.getByRole("dialog");
+  await expect(dialog).toContainText("分享配置");
+  await expect(dialog.getByLabel("分享类型")).toContainText("公开链接");
+  await expect(dialog.getByRole("button", { name: "查看分享记录", exact: true })).toBeVisible();
+  await page.screenshot({ path: "test-results/meeting-external-share.png" });
+  await dialog.getByRole("button", { name: "3天", exact: true }).click();
+  await dialog.getByRole("button", { name: "预览分享内容", exact: true }).click();
+  await expect(page.getByRole("dialog")).toContainText("分享内容预览");
+  let state = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), M.KEY);
+  expect(state.spaces.find((w: { id: string }) => w.id === "team-eureka").files.find((f: { id: string }) => f.id === "team-review").shared).toEqual(["kevin"]);
+  await page.goto("/workbench/?view=meeting&space=team-eureka&id=team-review&actor=kevin");
+  await expect(page.getByRole("button", { name: "分享", exact: true })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "团队共享", exact: true })).toHaveCount(0);
+  await page.goto("/workbench/?space=team-eureka&actor=zhang");
+  await row.getByRole("button", { name: "团队共享", exact: true }).click();
+  await page.getByRole("dialog").getByLabel("Kevin", { exact: true }).uncheck();
+  await page.getByRole("dialog").getByRole("button", { name: "保存授权", exact: true }).click();
+  state = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), M.KEY);
+  expect(state.spaces.find((w: { id: string }) => w.id === "team-eureka").files.find((f: { id: string }) => f.id === "team-review").shared).toEqual([]);
+  await page.reload();
+  await row.getByRole("button", { name: "团队共享", exact: true }).click();
+  await expect(page.getByRole("dialog").getByLabel("Kevin", { exact: true })).not.toBeChecked();
+});
+
+
+test("personal external sharing stays intact and expired teams cannot change grants", async ({ page }) => {
+  await page.goto("/workbench/?space=personal");
+  await expect(page.getByRole("button", { name: "团队共享", exact: true })).toHaveCount(0);
+  await page.locator("#meeting-list .meeting-row").first().click();
+  await page.getByRole("button", { name: "分享", exact: true }).click();
+  await expect(page.getByRole("dialog").getByLabel("分享类型")).toContainText("公开链接");
+  await expect(page.getByRole("button", { name: "团队共享", exact: true })).toHaveCount(0);
+  await page.goto("/workbench/?space=team-eureka");
+  await expect(page.getByRole("heading", { name: "团队会议", exact: true })).toBeVisible();
+  await page.evaluate(key => {
+    const s = JSON.parse(localStorage.getItem(key)!);
+    s.spaces.find((w: { id: string }) => w.id === "team-eureka").status = "expired";
+    localStorage.setItem(key, JSON.stringify(s));
+  }, M.KEY);
+  await page.reload();
+  await expect(page.getByRole("row").filter({ hasText: "团队产品周会 · 十月路线图" }).getByRole("button", { name: "团队共享", exact: true })).toBeDisabled();
+  await page.goto("/workbench/?view=space-settings&space=team-eureka&actor=kevin");
+  await expect(page.getByRole("textbox", { name: "工作空间名称", exact: true })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "内容权限", exact: true })).toHaveCount(0);
 });

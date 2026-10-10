@@ -85,7 +85,6 @@ export function MeetingInfoDialog({
     <MeetingDialogs
       kind="info"
       r={record}
-      actor={actor}
       onClose={onClose}
       onSave={(patch) => {
         const next = {
@@ -100,7 +99,6 @@ export function MeetingInfoDialog({
         onSaved?.(next);
       }}
       onRemove={async () => {}}
-      onShare={() => {}}
       seek={() => {}}
       copyText=""
     />

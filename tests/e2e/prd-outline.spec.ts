@@ -46,7 +46,9 @@ test('scope defines one Agent and personal plus one team workspace while excludi
   await expect(page.locator('#acceptance tbody tr').filter({hasText:'登录注册界面'})).toHaveCount(1);
   await expect(page.locator('#agent .prose table')).toHaveCount(1);
   await expect(page.locator('#agent')).toContainText('对应数据 MCP 范围');
-  await expect(page.locator('#meeting-detail .prose li')).toHaveText(['参考 WiseNote PC 的会议详情页和核心功能。']);
+  await expect(page.locator('#meeting-detail .prose li').first()).toHaveText('参考 WiseNote PC 的会议详情页和核心功能。');
+  await expect(page.locator('#meeting-detail')).toContainText('原有“分享”用于对外用户的链接分享配置');
+  await expect(page.locator('#meeting-detail')).toContainText('另设“团队共享”按钮');
   await expect(page.locator('#meeting-detail .prose table,#meeting-detail .prose figure')).toHaveCount(0);
   await expect(page.locator('#agent-process')).toContainText('300–760px');
   await expect(page.locator('#agent-process')).toContainText('24px');

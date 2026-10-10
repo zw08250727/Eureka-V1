@@ -1,5 +1,4 @@
 "use client";
-import { ContentSharingSettings } from "./sharing-settings";
 import { useState } from "react";
 import { M } from "./model/store";
 import type { SpacesController } from "./use-spaces";
@@ -19,18 +18,16 @@ export function SpaceSettingsPage({
   space,
   actor,
   audit = false,
-  permissions = false,
 }: {
   controller: SpacesController;
   space: string;
   actor: string;
   audit?: boolean;
-  permissions?: boolean;
 }) {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const w = M.get(controller.state!, space);
-  if (!permissions && !M.admin(w, actor))
+  if (audit && !M.admin(w, actor))
     return (
       <ManagementRoot w={w} actor={actor}>
         <ManagementEmpty
@@ -58,16 +55,16 @@ export function SpaceSettingsPage({
         subtitle={
           audit
             ? "记录空间管理操作，正文内容请在对应详情查看。"
-            : "名称、成员权限与隐私设置仅作用于当前工作空间。"
+            : "查看当前工作区信息，管理员可修改基本设置。"
         }
       />
       <ManagementTabs
         space={space}
         actor={actor}
-        selected={permissions ? "permissions" : audit ? "audit" : "settings"}
+        selected={audit ? "audit" : "settings"}
         admin={M.admin(w, actor)}
       />
-      {permissions ? <ContentSharingSettings key={`${space}:${actor}`} controller={controller} space={space} actor={actor} /> : audit ? (
+      {audit ? (
         <section className="ws-surface">
           <div className="ws-list">
             {rows.map((l, i) => (
@@ -116,6 +113,7 @@ export function SpaceSettingsPage({
               <label className="ws-field">
                 工作空间名称
                 <input
+                  disabled={!M.admin(w, actor) || w.status !== "active"}
                   name="name"
                   type="text"
                   defaultValue={w.name}
@@ -136,7 +134,7 @@ export function SpaceSettingsPage({
             <p className="ws-form-error" role="alert">
               {error}
             </p>
-            <button className="ws-btn primary" type="submit">
+            <button className="ws-btn primary" type="submit" disabled={!M.admin(w, actor) || w.status !== "active"}>
               保存设置
             </button>
           </form>

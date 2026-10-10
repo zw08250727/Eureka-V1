@@ -1,5 +1,6 @@
 "use client";
 import "./team-home.css";
+import { RecipientDialog } from "./sharing-settings";
 import { TeamOverview } from "./team-overview";
 import { ManagementDialog } from "./management-ui";
 import { Fragment, useState } from "react";
@@ -43,6 +44,7 @@ export function TeamHome({
     [recycle, setRecycle] = useState(trash),
     [upload, setUpload] = useState(false),
     [note, setNote] = useState(false),
+    [sharingId, setSharingId] = useState<string | null>(null),
     [deleting, setDeleting] = useState<WorkspaceFile | null>(null),
     [error, setError] = useState(""),
     [toast, setToast] = useState(""),
@@ -94,6 +96,7 @@ export function TeamHome({
           "更新时间",
           "操作",
         ];
+  const sharingFile = w.files.find(f => f.id === sharingId && !f.deleted);
   const userName = (id: string) => w.members.find(m => m.id === id)?.name || "已移除成员";
   function guard(fn: () => void) {
     try {
@@ -108,6 +111,12 @@ export function TeamHome({
   const icon = (name: string) => <RefIcon name={name} className="ws-icon" />;
   return (
     <>
+      {sharingFile && <RecipientDialog key={sharingFile.id} w={w} actor={actor} owner={sharingFile.owner} initial={sharingFile.shared}
+        title={`团队共享 · ${sharingFile.title}`} onClose={() => setSharingId(null)} onSave={users => {
+          controller.change(s => M.share(M.get(s, space), sharingFile.id, users, actor, []));
+          setSharingId(null);
+          setToast("团队共享权限已保存");
+        }} />}
       <WsRoot
         w={w}
         actor={actor}
@@ -345,6 +354,7 @@ export function TeamHome({
                         <td>{date(f.updated || f.created)}</td>
                         <td>
                           <div className="ws-actions">
+                            {(f.owner === actor || M.admin(w, actor)) && <Button action="team-share" value={f.id} className="link" disabled={readonly} onClick={() => setSharingId(f.id)}>团队共享</Button>}
                             {(f.owner === actor || M.admin(w, actor)) && !readonly ? (
                               <Button
                                 action="delete"

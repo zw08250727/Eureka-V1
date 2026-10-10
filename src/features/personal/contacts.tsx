@@ -83,7 +83,7 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
   const [modalPerson, setModalPerson] = useState<import("./store").Contact>();
   const [noteIndex, setNoteIndex] = useState<number | null>(null);
   const [modal, setModal] = useState<ContactDialogKind | null>(null);
-  const [sharing, setSharing] = useState(false);
+  const [sharing, setSharing] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [answer, setAnswer] = useState("");
   const [draft, setDraft] = useState("");
@@ -146,6 +146,7 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
   const ownerName = (owner?: string) => workspace?.members.find(m => m.id === owner)?.name || owner || "本人";
   const state = data?.contacts;
   const person = state?.contacts.find((c) => customerKey(c) === selected || (c.id === selected && c.ownerId === actor));
+  const sharingPerson = state?.contacts.find(c => customerKey(c) === sharing);
   const readonly = workspaceReadonly || !!(detail && person && person.ownerId !== actor && !isAdmin);
   const readableMeetings = useCustomerMeetings(person, actor, space);
   const agentPerson = person ? { ...person, interactions: readableMeetings } : undefined;
@@ -277,12 +278,12 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
         }
       }}
     >
-      {sharing && person && workspace && <RecipientDialog w={workspace} actor={actor} owner={person.ownerId} initial={person.sharedWith} title={`共享联系人 · ${person.name}`} onClose={() => setSharing(false)} onSave={users => {
-        createContacts(localStorage, actor, space, person.ownerId || actor).change(s => {
-          const current = s.personal.contacts.find(p => p.id === person.id);
+      {sharingPerson && workspace && <RecipientDialog key={customerKey(sharingPerson)} w={workspace} actor={actor} owner={sharingPerson.ownerId} initial={sharingPerson.sharedWith} title={`团队共享 · ${sharingPerson.name}`} onClose={() => setSharing(null)} onSave={users => {
+        createContacts(localStorage, actor, space, sharingPerson.ownerId || actor).change(s => {
+          const current = s.personal.contacts.find(p => p.id === sharingPerson.id);
           if (!current) throw Error("联系人已更新或移交，请刷新");
           current.sharedWith = users;
-        }); refresh(); setSharing(false);
+        }); refresh(); setSharing(null); setToast("团队共享权限已保存");
       }} />}
       <div id="contacts-root">
         {!state ? (
@@ -356,7 +357,7 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
                         ＋ 添加联系人
                       </ContactButton>
                     ) : null}
-                    {detail && person && team && workspace && !readonly && <ContactButton action="share-contact" onClick={() => setSharing(true)}>共享与权限</ContactButton>}
+                    {detail && person && team && workspace && !readonly && <ContactButton action="share-contact" onClick={() => setSharing(customerKey(person))}>团队共享</ContactButton>}
                     {(!detail || person) && (
                       <ContactAgentEntry
                         expanded={expanded}
@@ -474,8 +475,8 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
                     {createdFrom && createdTo && createdFrom > createdTo && <p role="alert">开始日期不能晚于结束日期</p>}
                     <div className="contacts-grid">
                       {people.map((p) => (
+                        <article className="contact-list-item" key={customerKey(p)}>
                         <button
-                          key={customerKey(p)}
                           type="button"
                           className="contacts-person-card"
                           data-contact-action="person"
@@ -504,6 +505,8 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
                             <span>创建于 {p.createdAt?.slice(0, 10) || "时间未记录"}</span>
                           </span>
                         </button>
+                        {team && (p.ownerId === actor || isAdmin) && <button type="button" className="contact-list-share" data-contact-action="share-contact" disabled={workspaceReadonly} onClick={() => setSharing(customerKey(p))}>团队共享</button>}
+                        </article>
                       ))}
                     </div>
                     {people.length ? null : (
