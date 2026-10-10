@@ -1,0 +1,33 @@
+.ws-device-purchase {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: #f0f3f7;
+  color: #354a65;
+}
+.ws-device-purchase p { flex: 1; margin: 0; font-size: 14px; line-height: 22px; }
+.ws-device-purchase > a { flex-shrink: 0; min-height: 36px; padding: 7px 18px; font-size: 13px; text-decoration: none; }
+.ws-device-purchase-close {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #596b80;
+  cursor: pointer;
+}
+.ws-device-purchase-close:hover { background: #e3e9f1; }
+.ws-device-purchase a:focus-visible, .ws-device-purchase-close:focus-visible { outline: 2px solid #3c75bd; outline-offset: 3px; }
+@media (max-width: 600px) {
+  .ws-device-purchase { gap: 8px; padding: 10px 12px; flex-wrap: wrap; }
+  .ws-device-purchase p { flex-basis: calc(100% - 44px); }
+  .ws-device-purchase-close { order: 1; }
+  .ws-device-purchase > a { order: 2; }
+}

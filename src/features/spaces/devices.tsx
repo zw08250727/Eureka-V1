@@ -4,6 +4,7 @@ import { useState } from "react";
 import { M } from "./model/store";
 import type { SpacesController } from "./use-spaces";
 import { assetUrl } from "@/lib/routes";
+import "./devices.css";
 import {
   ManagementRoot,
   ManagementHeading,
@@ -13,6 +14,16 @@ import {
   ManagementDialog as Dialog,
   managementDate,
 } from "./management-ui";
+
+function TeamDevicePurchaseGuide() {
+  const [dismissed, setDismissed] = useState(false);
+  if (dismissed) return null;
+  return <aside className="ws-device-purchase" aria-label="团队设备购买引导">
+    <p>需要为团队成员购买设备？</p>
+    <a className="ws-btn" href="https://eurekamind.ai/shop" target="_blank" rel="noopener noreferrer">立即订购 <svg className="ws-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17 17 7M7 7h10v10" /></svg></a>
+    <button type="button" className="ws-device-purchase-close" aria-label="关闭设备购买引导" onClick={() => setDismissed(true)}><Icon name="x" /></button>
+  </aside>;
+}
 export function DeviceBindingDialog({
   onClose,
 }: {
@@ -93,6 +104,7 @@ export function DevicesPage({ controller, space, actor, own = false }: { control
   const open = (id: string, kind: string) => { setSelected(id); setError(""); setModal(kind); };
   return <ManagementRoot w={w} actor={actor}>
     <ManagementHeading w={w} actor={actor} title={team ? "设备查看" : "我的设备"} subtitle={team ? "仅展示绑定在当前团队工作区的设备。管理员只能查看信息，不能替成员解绑或读取私有内容。" : "设备由本人管理，绑定到一个 Personal 或 Team 工作区。App 切换只改变视图，硬件会议录音仍进入设备绑定区；闪念仅保存在个人区。"} actions={!team && <Button className="primary" onClick={() => setModal("guide")}>绑定已有设备</Button>} />
+    {team && M.admin(w, actor) && <TeamDevicePurchaseGuide key={`${w.id}:${actor}`} />}
     <section className="ws-surface"><div className="ws-table-scroll"><table className="ws-table"><thead><tr><th>设备 / SN</th><th>设备型号</th><th>设备所有者</th><th>绑定工作区</th><th>最近同步</th><th>操作</th></tr></thead><tbody>
       {devices.map(d => <tr key={d.id}><td><strong>{d.name}</strong><small style={{ display: "block" }}>SN {d.serial}</small></td><td>{d.model}</td><td>{name(d.user)}</td><td>{d.bound ? spaceName(d.spaceId) : "未绑定工作区"}</td><td>{d.lastSync ? managementDate(d.lastSync) : "尚未同步"}</td><td><Button className="link" onClick={() => open(d.id, "detail")}>查看信息</Button>{!team && <><Button className="link" onClick={() => open(d.id, "binding")}>{d.bound && d.spaceId ? "更换绑定工作区" : "绑定工作区"}</Button>{d.bound && <Button className="link" onClick={() => open(d.id, "unbind")}>解绑</Button>}</>}</td></tr>)}
     </tbody></table></div>{!devices.length && <Empty title="暂无绑定设备">设备经本人绑定当前工作区后显示在这里。</Empty>}</section>
