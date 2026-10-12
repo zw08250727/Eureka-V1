@@ -1,0 +1,83 @@
+"use client";
+import { useState } from "react";
+import { M } from "@/features/spaces/model/store";
+import PS from "@/features/spaces/model/subscription";
+import type { SpacesController } from "@/features/spaces/use-spaces";
+import { CheckoutDialog } from "@/features/spaces/billing-checkout";
+import { downloadText } from "@/features/spaces/billing-ui";
+import { ReferenceDialog } from "@/features/reference/dialog";
+import { AccountTabs, AccountStatus } from "./ui";
+import { accountOrders, orderReceipt, assertOrderAccess, type AccountOrder } from "./orders";
+
+const statuses = { pending: "待支付", paid: "已支付", failed: "支付失败", cancelled: "已取消" };
+const filters = ["全部", ...Object.values(statuses)];
+export function OrdersPanel({controller, space, actor, resumeCredit}: {
+  controller: SpacesController; space: string; actor: string; resumeCredit: (id: string) => void;
+}) {
+  const [filter, setFilter] = useState("全部"), [kind, setKind] = useState("all");
+  const [invoice, setInvoice] = useState(false), [cancel, setCancel] = useState<AccountOrder | null>(null);
+  const [checkout, setCheckout] = useState(""), [method, setMethod] = useState("Visa ···· 4242");
+  const [message, setMessage] = useState(""), [error, setError] = useState("");
+  const w = M.get(controller.state!, space);
+  const allowed = !!M.member(w, actor) && (w.type === "personal" || M.admin(w, actor));
+  const orders = allowed ? accountOrders(w, actor) : [];
+  const visible = orders.filter(o => (filter === "全部" || statuses[o.status] === filter) && (kind === "all" || kind === o.kind));
+  const personal = orders.find(o => o.id === checkout && o.kind === "personal");
+  function run(action: () => void) {
+    try { setError(""); setMessage(""); assertOrderAccess(M.get(controller.state!, space), actor); action(); }
+    catch (cause) { setError((cause as Error).message); }
+  }
+  function receipt(o: AccountOrder) {
+    run(() => { const r = orderReceipt(M.get(controller.state!, space), actor, o.kind, o.id); downloadText(r.filename, r.text); });
+  }
+  function pay(outcome: "success" | "failure") {
+    run(() => controller.change(st => { const current=M.get(st,space); assertOrderAccess(current,actor); PS.pay(current,checkout,outcome,method); }));
+  }
+  if (!allowed) return <div className="ex-empty">账单由团队管理员管理<span>请联系管理员查看和处理团队订单。</span></div>;
+  return <>
+    {!personal && !cancel && <AccountStatus message={error || message} error={!!error}/>}
+    <div className="ex-order-scope">{w.name} · {w.type === "personal" ? "个人订阅与 Credits 充值统一记账" : "团队 Credits 充值"}</div>
+    <div className="ex-order-tools">
+      <AccountTabs items={filters} value={filter} onChange={setFilter} label="订单状态" panelId="account-orders"/>
+      <button disabled={!orders.some(o => o.status === "paid")} onClick={() => setInvoice(!invoice)}>开发票</button>
+    </div>
+    {w.type === "personal" && <label className="ex-order-kind">订单类型<select value={kind} onChange={e=>setKind(e.target.value)}><option value="all">全部类型</option><option value="personal">个人订阅</option><option value="credit">Credits 充值</option></select></label>}
+    {invoice && <form className="ex-summary" onSubmit={event=>{
+      event.preventDefault(); const values=Object.fromEntries(new FormData(event.currentTarget));
+      run(()=>{
+        values.title = String(values.title || '').trim();
+        values.email = String(values.email || '').trim();
+        if (!values.title || !values.email) throw Error('请填写发票抬头和接收邮箱');
+        const paid=accountOrders(M.get(controller.state!,space),actor).find(o=>`${o.kind}:${o.id}`===values.order && o.status==='paid');
+        if(!paid)throw Error("订单状态已变化，请重新选择已支付订单");
+        localStorage.setItem(`eureka:invoice-request:${space}:${actor}:${paid.kind}:${paid.id}`,JSON.stringify({...values,workspaceId:space,orderId:paid.id,kind:paid.kind,createdAt:new Date().toISOString()}));
+        setInvoice(false);setMessage("演示发票申请已保存");
+      });
+    }}>
+      <label>选择已支付订单<select name="order" required>{orders.filter(o=>o.status==='paid').map(o=><option key={`${o.kind}:${o.id}`} value={`${o.kind}:${o.id}`}>{o.kind==='personal'?'Pro 订阅':'Credits 充值'} · {o.id}</option>)}</select></label>
+      <label>发票抬头<input name="title" required/></label><label>接收邮箱<input name="email" type="email" required/></label>
+      <div className="ex-footer"><button type="button" onClick={()=>setInvoice(false)}>取消</button><button className="primary">保存申请</button></div>
+    </form>}
+    <div id="account-orders" role="tabpanel" aria-labelledby={`account-orders-tab-${filters.indexOf(filter)}`} tabIndex={0}>
+      {visible.map(o=><article className="ex-order" key={`${o.kind}:${o.id}`} data-order-id={o.id}>
+        <header><strong>{o.kind==='personal'?`Pro 个人订阅 · ${o.cycle==='year'?'年付':'月付'}`:`${o.credits?.toLocaleString()} Credits`}</strong><span className={`ex-order-state ${o.status}`}>{statuses[o.status]}</span></header>
+        <div className="ex-order-meta"><span>订单 {o.id}<small>{o.created.replace('T',' ').slice(0,16)}</small></span><strong>{o.currency==='USD'?'$':''}{o.amount.toFixed(2)} <small>{o.currency || 'USD'}</small></strong></div>
+        <footer className="ex-order-actions">
+          {o.status==='paid' && <button className="ex-link" onClick={()=>receipt(o)}>下载账单</button>}
+          {['pending','failed'].includes(o.status) && <><button className="ex-link" onClick={()=>run(()=>{ if(o.kind==='credit')resumeCredit(o.id);else setCheckout(o.id); })}>继续支付</button><button className="ex-link" onClick={()=>{setError('');setCancel(o)}}>取消订单</button></>}
+          {o.status==='cancelled' && <small className="ex-muted">已关闭 · 未扣款，未发放权益</small>}
+        </footer>
+      </article>)}
+      {!visible.length && <div className="ex-empty">暂无{filter==='全部'?'':filter}订单<span>订阅和充值的订单记录会保留在这里。</span></div>}
+    </div>
+    {personal && <CheckoutDialog w={w} email={controller.state!.account.email} kind="personal" order={personal} error={error} method={method} setMethod={setMethod} onClose={()=>{setCheckout('');setError('')}} onSubmit={event=>{event.preventDefault();pay('success')}} act={action=>{
+      if(action==='personal-fail')pay('failure');
+      if(action==='personal-cancel'){setError('');setCancel(personal)}
+      if(action==='personal-receipt')receipt(personal);
+    }}/>}
+    {cancel && <ReferenceDialog className="ex-dialog ex-order-confirm" label="取消订单？" onClose={()=>{setCancel(null);setError('')}}><header className="ex-head"><h2>取消订单？</h2><button className="ex-close" aria-label="关闭" onClick={()=>setCancel(null)}>×</button></header><div className="ex-body"><p>此订单取消后不会扣款或发放权益，已有订阅和余额不受影响。</p><AccountStatus message={error} error/><div className="ex-footer"><button onClick={()=>setCancel(null)}>保留订单</button><button className="primary" onClick={()=>run(()=>{
+      controller.change(st=>{const current=M.get(st,space);assertOrderAccess(current,actor);if(cancel.kind==='personal')PS.cancel(current,cancel.id);else M.cancelCreditOrder(current,cancel.id,actor)});
+      setCancel(null);setCheckout('');setMessage('订单已取消');
+    })}>确认取消</button></div></div></ReferenceDialog>}
+  </>;
+}

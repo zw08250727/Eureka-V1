@@ -26,12 +26,11 @@ export function AccountStatus({ message, error = false }: { message: string; err
     <span aria-hidden="true">{error ? "!" : "✓"}</span><span>{message}</span>
   </div> : null;
 }
-export function CreditsHero({ eyebrow, title, description, progress }: {
-  eyebrow: string; title: string; description: string; progress?: number;
+export function CreditsHero({ eyebrow, title, description }: {
+  eyebrow: string; title: string; description: string;
 }) {
   return <section className="ex-hero">
     <div className="ex-hero-copy"><span className="ex-eyebrow">{eyebrow}</span><h3>{title}</h3><p>{description}</p>
-      {progress !== undefined && <div className="ex-reward-progress"><progress aria-label="本月签到进度" max={15} value={progress}/><span>{progress} / 15 天</span></div>}
     </div><div className="ex-credit-art" aria-hidden="true"><span>✦</span><i>+</i><b>✧</b></div>
   </section>;
 }

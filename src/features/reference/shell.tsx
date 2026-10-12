@@ -589,7 +589,7 @@ export function ReferenceShell({
                     ["my-devices", "phone", "我的设备"],
                     ["subscription", "task", team ? "订阅与席位" : "个人订阅"],
                     ["settings", "edit", "个人设置"],
-                    ["updates", "history", "更新日志"],
+                    ["updates", "clock", "更新日志"],
                     ["product", "file", "产品介绍"],
                   ].map(([v, icon, label]) => (
                     <button

@@ -126,3 +126,21 @@
 @container team-overview (max-width:400px) {
   #ws-view .team-private-notes { grid-template-columns:repeat(2,minmax(0,1fr)); }
 }
+
+/* Match Personal's fixed overview footprint. Long content scrolls inside each slot. */
+#ws-view .team-overview-canvas{height:200px;min-height:200px;max-height:200px;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);grid-template-rows:minmax(0,1fr);overflow:hidden}
+#ws-view .team-brief-column,#ws-view .team-private-column{padding:10px 16px;min-width:0;min-height:0;box-sizing:border-box}
+#ws-view .team-private-column{border-left:1px solid #e6edf5;border-top:0}
+#ws-view .team-section-heading{margin-bottom:6px;min-height:22px;flex-wrap:nowrap}
+#ws-view .team-insight{padding:8px 0}#ws-view .team-insight-content h3{font-size:13px;line-height:20px}#ws-view .team-insight-body{font-size:12px;line-height:20px}#ws-view .team-insight-body>span:first-child{-webkit-line-clamp:2}
+#ws-view .team-private-agenda{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,1fr);gap:14px;min-height:0;flex:1}
+#ws-view .team-private-column section>header{margin-bottom:3px;gap:4px}
+#ws-view .team-private-notes{height:54px;flex:0 0 54px;grid-template-columns:repeat(2,minmax(0,1fr));padding-top:6px;margin-top:6px;gap:14px;box-sizing:border-box}
+#ws-view .team-private-list{gap:5px}#ws-view .ex-daily-row{gap:5px;flex-wrap:nowrap}#ws-view .ex-daily-row>a{flex-basis:0;gap:6px}#ws-view .ex-owner{max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#ws-view .team-private-todo{flex-wrap:nowrap;gap:5px}#ws-view .team-private-todo-title{flex-basis:0!important}#ws-view .team-private-todo>.ex-owner{margin-left:0}
+@media(max-width:760px){
+  #ws-view .team-overview-canvas{height:520px;min-height:520px;max-height:520px;grid-template-columns:minmax(0,1fr);grid-template-rows:210px minmax(0,1fr)}
+  #ws-view .team-private-column{border-left:0;border-top:1px solid #e6edf5;padding:12px 16px}
+  #ws-view .team-private-agenda{grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr));gap:8px}
+  #ws-view .ex-daily-row{flex-wrap:nowrap}#ws-view .ex-daily-row>a{flex-basis:0}#ws-view .team-private-todo{flex-wrap:nowrap}#ws-view .team-private-todo-title{flex-basis:0!important}#ws-view .team-private-todo>.ex-owner{margin-left:0}
+}

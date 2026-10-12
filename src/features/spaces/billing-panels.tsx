@@ -56,12 +56,6 @@ export function PersonalBilling({
     remainingMinutes = Math.max(0, sub.minutes - (w.transcriptionUsage?.used || 0)),
     orders = w.personalOrders || [],
     pending = orders.find((o) => ["pending", "failed"].includes(o.status));
-  const records = state.spaces.filter(
-    (s) =>
-      s.status === "dissolved" &&
-      (s.closure as Workspace["closure"] & { actor?: string })?.actor ===
-        M.SELF,
-  );
   return (
     <>
       <div className="ps-page-header">
@@ -196,111 +190,7 @@ export function PersonalBilling({
           </Button>
         </div>
       </section>
-      <section className="ws-surface">
-        <div className="ws-section-head">
-          <h2>个人订阅订单</h2>
-        </div>
-        <div className="ws-table-scroll">
-          <table className="ws-table">
-            <thead>
-              <tr>
-                {["订单", "套餐", "金额", "状态", "操作"].map((t) => (
-                  <th key={t}>{t}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {orders.length ? (
-                orders.map((o) => (
-                  <tr key={o.id}>
-                    <td>
-                      {o.id}
-                      <small>{date(o.created)}</small>
-                    </td>
-                    <td>Pro · {o.cycle === "year" ? "年付" : "月付"}</td>
-                    <td>{dollars(o.amount)}</td>
-                    <td>
-                      <Badge>
-                        {
-                          {
-                            pending: "待支付",
-                            failed: "支付失败",
-                            paid: "已支付",
-                            cancelled: "已取消",
-                          }[o.status]
-                        }
-                      </Badge>
-                    </td>
-                    <td>
-                      {o.status === "paid" ? (
-                        <Button
-                          className="link"
-                          action="personal-receipt"
-                          value={o.id}
-                          onClick={() => act("personal-receipt", o.id)}
-                        >
-                          下载账单
-                        </Button>
-                      ) : o.status === "cancelled" ? (
-                        "—"
-                      ) : (
-                        <>
-                          <Button
-                            className="link"
-                            action="personal-checkout"
-                            value={o.id}
-                            onClick={() => act("personal-checkout", o.id)}
-                          >
-                            继续支付
-                          </Button>
-                          <Button
-                            className="link"
-                            action="personal-cancel"
-                            value={o.id}
-                            onClick={() => act("personal-cancel", o.id)}
-                          >
-                            取消
-                          </Button>
-                        </>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={5}>暂无个人订阅订单</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </section>
-      {records.length ? (
-        <section className="ws-surface">
-          <h2>团队解散结算记录</h2>
-          <p className="ws-muted">
-            仅保留你操作解散的团队结算信息，不计入个人套餐。真实退款规则待确认。
-          </p>
-          {records.map((s) => (
-            <div className="ws-settings-leave" key={s.id}>
-              <div>
-                <strong>{s.name}</strong>
-                <p>
-                  {date(s.closure!.endedAt)} · 冻结{" "}
-                  {creditNumber(s.closure!.frozenCredits)} Credits · 未自动退款
-                </p>
-              </div>
-              <Button
-                action="closure-receipt"
-                value={s.id}
-                onClick={() => act("closure-receipt", s.id)}
-              >
-                下载结算记录
-              </Button>
-            </div>
-          ))}
-        </section>
-      ) : null}
+
     </>
   );
 }

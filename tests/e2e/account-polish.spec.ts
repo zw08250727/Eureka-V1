@@ -52,8 +52,7 @@ for (const width of [390,768,1440]) test(`account surfaces fit ${width}px and pr
   for (const view of ['settings','subscription']) {
     await page.goto(url(view));
     await expect(page.locator('.review-dock')).toBeVisible();
-    const overflow=await page.locator('.main').evaluate(e => e.scrollWidth-e.clientWidth);
-    expect(overflow).toBeLessThanOrEqual(2);
+    await expect.poll(() => page.locator('.main').evaluate(e => e.scrollWidth-e.clientWidth)).toBeLessThanOrEqual(2);
     if(view==='settings') {
       const field=page.getByLabel('我的昵称');await expect(field).toBeVisible();
       if(width>1000) expect((await page.locator('.ex-settings-body').boundingBox())!.width).toBeGreaterThan(700);

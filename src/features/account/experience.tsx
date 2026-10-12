@@ -6,6 +6,7 @@ import type { Workspace } from "@/features/spaces/model/types";
 import type { SpacesController } from "@/features/spaces/use-spaces";
 import { appUrl } from "@/lib/routes";
 import { claimReward, rewardState } from "./rewards";
+import { OrdersPanel } from "./orders-panel";
 import { AccountTabs, AccountStatus, CreditsHero } from "./ui";
 import "./experience.css";
 export type AccountPanel =
@@ -97,9 +98,7 @@ export function AccountExperience({
     [feedback, setFeedback] = useState(""),
     [channel, setChannel] = useState("Card"),
     [onlyDiff, setOnlyDiff] = useState(false),
-    [orderFilter, setOrderFilter] = useState("全部"),
-    [readIds, setReadIds] = useState<string[]>([]),
-    [invoice, setInvoice] = useState(false);
+    [readIds, setReadIds] = useState<string[]>([]);
   useEffect(() => {
     let active = true;
     Promise.resolve().then(() => {
@@ -182,13 +181,11 @@ export function AccountExperience({
   }
   if (!page) return null;
   if (team && ["tasks", "feedback", "download"].includes(page)) return null;
-  const orders = [...(w.creditOrders || []), ...(w.personalOrders || [])];
-  const filteredOrders = orders.filter(o => orderFilter === "全部" || o.status === ({"已支付":"paid", "待支付":"pending", "支付失败":"failed", "已取消":"cancelled"}[orderFilter]));
   const signins = s.entries.filter((e) => e.id.startsWith("signin:" + month));
   return (
     <ReferenceDialog
       className={
-        "ex-dialog" + (page === "notifications" ? " ex-notifications" : "")
+        "ex-dialog" + (["credits", "tasks", "recharge"].includes(page) ? " ex-credits-dialog" : "") + (page === "notifications" ? " ex-notifications" : "")
       }
       label={titles[page]}
       onClose={onClose}
@@ -210,7 +207,8 @@ export function AccountExperience({
           <>
             <CreditsHero eyebrow={`${w.name} · 可用余额`} title={`${format(M.creditBalance(w))} Credits`} description={team ? "为团队的下一个洞察，补充一点能量。" : "把每一次好奇，变成更深入的探索。"}/>
             <div className="ex-credit-uses"><span>✦ Agent 分析</span><span>⌕ 深入检索</span><span>↗ 更多 AI 能力</span></div>
-            <div className="ex-footer">
+            <div className="ex-footer ex-balance-actions">
+              <button className="ex-link" onClick={() => location.assign(appUrl("settings", "credits", space, actor))}>Credits 明细 →</button>
               {!team && (
                 <button onClick={() => setPage("tasks")}>
                   做任务赚 Credits
@@ -220,19 +218,11 @@ export function AccountExperience({
                 充值 Credits
               </button>
             </div>
-            <button
-              className="ex-link"
-              onClick={() =>
-                location.assign(appUrl("settings", "credits", space, actor))
-              }
-            >
-              查看 Credits 明细 →
-            </button>
           </>
         )}
         {page === "tasks" && (
           <>
-            <CreditsHero eyebrow="GROW WITH EUREKAMIND" title="记录好习惯，收获新灵感" description="完成任务获得 Credits，让每一天的积累都有回响。" progress={signins.length}/>
+            <CreditsHero eyebrow="GROW WITH EUREKAMIND" title="记录好习惯，收获新灵感" description="完成任务获得 Credits，让每一天的积累都有回响。"/>
             <AccountTabs items={["新手成长", "活跃互动", "会员升级"]} value={tab} onChange={setTab} label="奖励任务" panelId="reward-tasks"/>
             <div id="reward-tasks" role="tabpanel" aria-labelledby={`reward-tasks-tab-${["新手成长", "活跃互动", "会员升级"].indexOf(tab)}`} tabIndex={0}>
             {tab === "新手成长" ? (
@@ -689,94 +679,7 @@ export function AccountExperience({
             ))}
           </>
         )}
-        {page === "orders" && (
-          <>
-            <div className="ex-order-tools"><AccountTabs items={["全部", "待支付", "已支付", "支付失败", "已取消"]} value={orderFilter} onChange={setOrderFilter} label="订单状态" panelId="account-orders"/>
-              <button disabled={!orders.some(o => o.status === "paid")} onClick={() => setInvoice(!invoice)}>开发票</button>
-            </div>
-            <div id="account-orders" role="tabpanel" aria-labelledby={`account-orders-tab-${["全部", "待支付", "已支付", "支付失败", "已取消"].indexOf(orderFilter)}`} tabIndex={0}>
-            {invoice && (
-              <form
-                className="ex-summary"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  const values = Object.fromEntries(new FormData(e.currentTarget));
-                  perform(() => {
-                    localStorage.setItem(`eureka:invoice-request:${space}`, JSON.stringify(values));
-                    setNotice("演示发票申请已保存"); setInvoice(false);
-                  });
-                }}
-              >
-                <label>
-                  选择已支付订单
-                  <select name="order" required>
-                    {orders
-                      .filter((o) => o.status === "paid")
-                      .map((o) => (
-                        <option key={o.id}>{o.id}</option>
-                      ))}
-                  </select>
-                </label>
-                <label>
-                  发票抬头
-                  <input name="title" required />
-                </label>
-                <label>
-                  接收邮箱
-                  <input name="email" type="email" required />
-                </label>
-                <button
-                  className="primary"
-                  disabled={!orders.some((o) => o.status === "paid")}
-                >
-                  保存申请
-                </button>
-              </form>
-            )}
-            {filteredOrders
-              .map((o) => (
-                <article className="ex-order" key={o.id}>
-                  <header>
-                    <strong>
-                      {"credits" in o
-                        ? `${format(o.credits || 0)} Credits`
-                        : "Pro 个人订阅"}
-                    </strong>
-                    <span>
-                      {
-                        {
-                          paid: "已支付",
-                          cancelled: "已取消",
-                          pending: "待支付",
-                          failed: "支付失败",
-                        }[o.status]
-                      }
-                    </span>
-                  </header>
-                  <p className="ex-muted">
-                    订单编号：{o.id}
-                    <br />
-                    订单时间：{o.created}
-                    <br />
-                    支付金额：${o.amount} USD
-                  </p>
-                  {["pending", "failed"].includes(o.status) && (
-                      <button
-                        className="ex-link"
-                        onClick={() => {
-                          if ("credits" in o) { setOrderId(o.id); setPage("recharge"); }
-                          else location.assign(appUrl("subscription", "", space, actor));
-                        }}
-                      >
-                        继续支付
-                      </button>
-                    )}
-                </article>
-              ))}
-            {filteredOrders.length === 0 && <div className="ex-empty">暂无{orderFilter === "全部" ? "" : orderFilter}订单<span>完成充值或购买订阅后，订单会保留在这里。</span></div>}
-            </div>
-          </>
-        )}
+        {page === "orders" && <OrdersPanel {...{controller,space,actor}} resumeCredit={id=>{setOrderId(id);setPage("recharge")}}/>}
 
       </div>
     </ReferenceDialog>

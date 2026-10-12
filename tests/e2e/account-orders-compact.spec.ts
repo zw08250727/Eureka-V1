@@ -1,0 +1,56 @@
+import {expect,test,type Page} from '@playwright/test';
+const home=(space='personal')=>`/workbench/?space=${space}&actor=zhang`;
+const ws=(page:Page)=>page.evaluate(()=>JSON.parse(localStorage.getItem('eureka:workspaces:v2')!).spaces.find((w:{id:string})=>w.id==='personal'));
+const orders=(page:Page)=>page.getByRole('dialog',{name:'我的订单',exact:true});
+async function openOrders(page:Page){await page.goto(home()+'&view=subscription');await page.getByRole('button',{name:'我的订单',exact:true}).click()}
+test('unified orders retry existing subscription, receipt, invoice and cancel pending credits',async({page})=>{
+  await page.goto(home()+'&view=subscription');
+  await expect(page.getByText('团队解散结算记录',{exact:true})).toHaveCount(0);
+  await expect(page.getByText('个人订阅订单',{exact:true})).toHaveCount(0);
+  await page.locator('[data-ws-action="personal-buy"]').click();
+  await page.locator('[data-ws-action="personal-fail"]').click();
+  const failed=await ws(page);const id=failed.personalOrders[0].id;
+  await openOrders(page);
+  await orders(page).getByRole('tab',{name:'支付失败',exact:true}).click();
+  await orders(page).getByRole('button',{name:'继续支付'}).click();
+  await page.locator('#ws-dialog button[type=submit]').click();
+  await expect(page.locator('#ws-dialog')).toContainText('Pro 已生效');
+  const paid=await ws(page);expect(paid.personalOrders).toHaveLength(1);expect(paid.personalOrders[0].id).toBe(id);
+  await page.locator('#ws-dialog').getByRole('button',{name:'完成',exact:true}).click();
+  await orders(page).getByRole('tab',{name:'已支付',exact:true}).click();
+  const download=page.waitForEvent('download');await orders(page).getByRole('button',{name:'下载账单'}).click();expect((await download).suggestedFilename()).toMatch(/\.txt$/);
+  await orders(page).getByRole('button',{name:'开发票'}).click();
+  await orders(page).getByLabel('发票抬头').fill('张伟');await orders(page).getByLabel('接收邮箱').fill('demo@example.com');
+  await orders(page).getByRole('button',{name:'保存申请'}).click();await expect(orders(page)).toContainText('演示发票申请已保存');
+  await orders(page).getByRole('button',{name:'关闭',exact:true}).click();
+  await page.locator('.topbar').getByRole('button',{name:/Credits/}).click();await page.getByRole('button',{name:'充值 Credits',exact:true}).click();
+  await page.getByRole('button',{name:'确认充值',exact:true}).click();await page.getByRole('button',{name:'关闭',exact:true}).click();
+  await openOrders(page);await expect(orders(page).locator('.ex-order')).toHaveCount(2);
+  await orders(page).getByLabel('订单类型').selectOption('credit');await expect(orders(page).locator('.ex-order')).toHaveCount(1);
+  await orders(page).getByRole('button',{name:'取消订单',exact:true}).click();
+  await page.getByRole('button',{name:'确认取消',exact:true}).click();await expect(orders(page).locator('.ex-order')).toContainText('已取消');
+  const end=await ws(page);expect(end.credits.total).toBe(paid.credits.total);expect(end.personalOrders[0].status).toBe('paid');expect(end.creditOrders[0].status).toBe('cancelled');
+  await page.reload();await page.getByRole('button',{name:'我的订单',exact:true}).click();await expect(orders(page).locator('.ex-order')).toHaveCount(2);
+  await page.screenshot({path:'test-results/unified-orders.png'});
+});
+for(const width of [390,768,1440])test(`home overview stays fixed with expanded evidence and more rows at ${width}`,async({page})=>{
+  await page.setViewportSize({width,height:960});await page.goto(home());
+  const personal=await page.locator('#today-assets-grid').boundingBox();
+  await page.goto(home('team-eureka'));const canvas=page.locator('.team-overview-canvas');await expect(canvas).toBeVisible();
+  const before=await canvas.boundingBox();expect(before!.height).toBeCloseTo(personal!.height,1);
+  await canvas.getByRole('button',{name:'查看会议依据',exact:false}).first().click();
+  await page.locator('.team-private-list').first().evaluate(el=>{const item=el.firstElementChild; if(item)for(let i=0;i<25;i++)el.append(item.cloneNode(true))});
+  expect((await canvas.boundingBox())!.height).toBe(before!.height);
+  const scroll=await page.locator('.team-private-list').first().evaluate(el=>({client:el.clientHeight,scroll:el.scrollHeight,overflow:getComputedStyle(el).overflowY}));
+  expect(scroll.scroll).toBeGreaterThan(scroll.client);expect(scroll.overflow).toBe('auto');
+  const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth);expect(overflow).toBe(false);
+  await page.screenshot({path:`test-results/team-fixed-${width}.png`});
+});
+test('compact Credits has no progress timeline and changelog has a defined icon',async({page})=>{
+  await page.goto(home());await page.locator('#user-card').click();
+  const update=page.getByRole('dialog',{name:'我的账户',exact:true}).getByRole('button',{name:'更新日志',exact:true});
+  const href=await update.locator('use').getAttribute('href');expect(href).toBe('#ico-clock');await expect(page.locator('symbol#ico-clock')).toHaveCount(1);
+  await update.click();await expect(page.locator('.ex-log')).toBeVisible();
+  await page.locator('.topbar').getByRole('button',{name:/Credits/}).click();await page.getByRole('button',{name:'做任务赚 Credits',exact:true}).click();
+  await expect(page.locator('.ex-reward-progress')).toHaveCount(0);await page.screenshot({path:'test-results/compact-rewards.png'});
+});

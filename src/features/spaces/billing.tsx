@@ -5,6 +5,7 @@ import PS from "./model/subscription";
 import type { Cycle, Workspace } from "./model/types";
 import type { SpacesController } from "./use-spaces";
 import { RefIcon } from "@/features/reference/symbols";
+import { orderReceipt } from "@/features/account/orders";
 import { appUrl } from "@/lib/routes";
 import {
   creditNumber,
@@ -159,26 +160,8 @@ export function BillingPage({
         return;
       }
       if (action === "personal-receipt") {
-        const o = PS.get(w, value) as BillingOrder;
-        if (o.status !== "paid") throw Error("订单尚未支付");
-        downloadText(
-          o.invoiceId + ".txt",
-          `EurekaMind 个人订阅账单（本地模拟）\n订单：${o.id}\n账单：${o.invoiceId}\nPro ${o.cycle === "year" ? "年付" : "月付"}\n金额：${dollars(o.amount)} USD\n支付时间：${o.paidAt}\n未发生真实扣款。`,
-        );
-        return;
-      }
-      if (action === "closure-receipt") {
-        const c = M.get(controller.state!, value)
-          .closure as Workspace["closure"] & { actor?: string };
-        if (!c || c.actor !== M.SELF) throw Error("无权下载此记录");
-        downloadText(
-          c.name + "-解散结算记录.json",
-          JSON.stringify(
-            { notice: "本地模拟；未发生退款。真实结算规则待确认。", ...c },
-            null,
-            2,
-          ),
-        );
+        const receipt = orderReceipt(w, actor, "personal", value);
+        downloadText(receipt.filename, receipt.text);
         return;
       }
       M.govern(w, actor);

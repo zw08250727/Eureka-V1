@@ -96,7 +96,8 @@ test("native billing: personal purchase failure/resume/success, renew, restore, 
   await expect(dialog(page)).toContainText("$17.99 USD");
   await action(page, "personal-cancel").click();
   await action(page, "confirm").click();
-  await expect(page.locator(".ws-table")).toContainText("已取消");
+  await page.getByRole("button", { name: "我的订单", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "我的订单", exact: true })).toContainText("已取消");
   expect((await state(page, "personal")).personalSubscription.cycle).toBe(
     "year",
   );
