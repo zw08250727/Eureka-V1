@@ -1,15 +1,22 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { AuthShowcase } from "./auth-showcase";
 import Image from "next/image";
 import { appUrl, assetUrl } from "@/lib/routes";
 import "./auth.css";
-export function Auth() {
+import { marketConfig, marketUrl, type Market } from "@/features/markets/config";
+import { signIn } from "@/features/markets/storage";
+import { DomesticAuth } from "./domestic-auth";
+type AuthProps = { market?: Market; onSuccess?: () => void };
+export function Auth({ market, onSuccess }: AuthProps) {
+  return market === "cn" ? <DomesticAuth onSuccess={onSuccess} /> : <InternationalAuth market={market} onSuccess={onSuccess} />;
+}
+function InternationalAuth({ market, onSuccess }: AuthProps) {
+  const config = marketConfig(market);
   const [mode, setMode] = useState("login"),
-    [email, setEmail] = useState("demo@eurekamind.com"),
-    [code, setCode] = useState("123456"),
-    [terms, setTerms] = useState(true),
+    [email, setEmail] = useState(""),
+    [code, setCode] = useState(""),
+    [terms, setTerms] = useState(false),
     [status, setStatus] = useState(""),
     [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
@@ -26,7 +33,7 @@ export function Auth() {
     timer.current = setTimeout(() => setStatus(""), 2600);
   }
   const login = mode === "login";
-  function enter(provider = false) {
+  function enter(provider: boolean | string = false) {
     if (!terms) {
       setStatus("请先同意服务条款与隐私政策");
       return;
@@ -39,11 +46,15 @@ export function Auth() {
       setStatus("请输入邮箱验证码（6 位数字）");
       return;
     }
-    setBusy(true);
-    location.replace(appUrl("home", "", "personal"));
+    try {
+      if (market) signIn(market, provider ? `demo@${market}.eurekamind` : email.trim().toLowerCase(), typeof provider === "string" ? provider : "email");
+      setBusy(true);
+      if (onSuccess) { onSuccess(); return; }
+      location.replace(market ? marketUrl(market, "workbench/?view=home&space=personal") : appUrl("home", "", "personal"));
+    } catch { setStatus("登录信息保存失败，请检查浏览器存储后重试。"); }
   }
   return (
-    <main className="auth">
+    <main className="auth auth-centered">
       <section className="auth-form">
         <div className="brand">
           <Image
@@ -80,9 +91,9 @@ export function Auth() {
               id="google"
               type="button"
               disabled={busy}
-              onClick={() => enter(true)}
+              onClick={() => enter(config.providers[0])}
             >
-              <svg
+              {market === "cn" ? <span className="oauth-mark" aria-hidden="true">微</span> : (<svg
                 className="oauth-mark"
                 viewBox="0 0 24 24"
                 aria-hidden="true"
@@ -103,24 +114,24 @@ export function Auth() {
                   fill="#EA4335"
                   d="M12 5.95c1.47 0 2.79.51 3.82 1.51l2.87-2.87A9.61 9.61 0 0 0 12 2a10 10 0 0 0-8.93 5.49l3.34 2.59C7.2 7.71 9.4 5.95 12 5.95Z"
                 />
-              </svg>
-              {login ? "使用 Google 登录" : "使用 Google 注册"}
+              </svg>)}
+              {login ? `使用 ${config.providers[0]} 登录` : `使用 ${config.providers[0]} 注册`}
             </Button>
             <Button
               id="apple"
               type="button"
               disabled={busy}
-              onClick={() => enter(true)}
+              onClick={() => enter(config.providers[1])}
             >
-              <svg
+              {market === "cn" ? <span className="oauth-mark" aria-hidden="true">手</span> : (<svg
                 className="oauth-mark"
                 viewBox="0 0 24 24"
                 fill="currentColor"
                 aria-hidden="true"
               >
                 <path d="M16.7 1.4c.1 1.3-.4 2.6-1.2 3.5-.8.9-2 1.5-3.2 1.4-.2-1.2.4-2.5 1.1-3.3.8-.9 2.1-1.6 3.3-1.6ZM20.9 17.6c-.5 1.2-.8 1.8-1.5 2.8-.9 1.3-2.2 2.9-3.7 2.9-1.3 0-1.7-.8-3.5-.8s-2.2.8-3.5.8c-1.5 0-2.8-1.5-3.7-2.8C2.5 16.9 1.8 12 3.4 9.3a5.3 5.3 0 0 1 4.3-2.6c1.4 0 2.3.8 3.5.8 1.1 0 1.9-.8 3.5-.8 1.4 0 2.8.8 3.6 1.8-3.2 1.8-2.7 6.5.6 7.8l2 1.3Z" />
-              </svg>
-              {login ? "使用 Apple 登录" : "使用 Apple 注册"}
+              </svg>)}
+              {login ? `使用 ${config.providers[1]} 登录` : `使用 ${config.providers[1]} 注册`}
             </Button>
           </div>
           <div className="divider">
@@ -166,7 +177,7 @@ export function Auth() {
                   return;
                 }
                 setSent(true);
-                message("演示验证码：123456");
+                message("验证码已发送");
               }}
             >
               {sent ? "已发送" : "获取验证码"}
@@ -174,12 +185,11 @@ export function Auth() {
           </div>
           <Button id="submit" className="primary" type="submit" disabled={busy}>
             {busy
-              ? "正在进入首页…"
+              ? "正在登录…"
               : login
-                ? "登录并进入首页"
-                : "注册并进入首页"}
+                ? "登录"
+                : "注册"}
           </Button>
-          <p className="auth-entry-note">登录后可创建或加入 Team 工作空间。</p>
           <label className="check">
             <input
               id="terms"
@@ -194,7 +204,7 @@ export function Auth() {
                 data-policy="terms"
                 onClick={(e) => {
                   e.preventDefault();
-                  message("服务条款预览");
+                  message("服务条款");
                 }}
               >
                 服务条款
@@ -205,7 +215,7 @@ export function Auth() {
                 data-policy="privacy"
                 onClick={(e) => {
                   e.preventDefault();
-                  message("隐私政策预览");
+                  message("隐私政策");
                 }}
               >
                 隐私政策
@@ -226,9 +236,9 @@ export function Auth() {
               type="button"
               onClick={() => {
                 setMode(login ? "register" : "login");
-                setEmail("demo@eurekamind.com");
-                setCode("123456");
-                setTerms(true);
+                setEmail("");
+                setCode("");
+                setTerms(false);
                 setSent(false);
                 setStatus("");
               }}
@@ -238,7 +248,6 @@ export function Auth() {
           </div>
         </form>
       </section>
-      <AuthShowcase />
     </main>
   );
 }

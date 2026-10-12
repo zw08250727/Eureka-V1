@@ -8,9 +8,9 @@ test("review tools are separate from product actions and preserve perspective co
   await expect(page.getByRole('combobox',{name:'评审视角'})).not.toBeVisible();
   await expect(page.locator('.main .review-dock')).toHaveCount(0);
   await page.locator('#user-card').click();
-  await page.getByRole('button',{name:/评审演示/}).click();
+  await page.getByRole('button',{name:/评审工具/}).click();
   await expect(page.getByRole('combobox',{name:'评审视角'})).toBeVisible();
-  await expect(page.getByRole('dialog',{name:'评审演示',exact:true}).getByRole('link',{name:/需求评审/})).toHaveAttribute('href',/prd\/index.html/);
+  await expect(page.getByRole('dialog',{name:'评审工具',exact:true}).getByRole('link',{name:/需求评审/})).toHaveAttribute('href',/prd\/index.html/);
 });
 
 test("settings support keyboard tabs, independent filters, draft retention and validation", async ({page}) => {
@@ -42,7 +42,7 @@ test("payment feedback distinguishes failure, recovery, and Escape focus restora
   await page.getByRole('button',{name:'确认充值',exact:true}).click();
   await page.getByRole('button',{name:'模拟支付失败',exact:true}).click();
   await expect(page.locator('.ex-status[role=alert]')).toContainText('支付未完成');
-  await page.getByRole('button',{name:'重试模拟支付',exact:true}).click();
+  await page.getByRole('button',{name:'重试支付',exact:true}).click();
   await expect(page.locator('.ex-status[role=status]')).toContainText('支付成功');
   await expect(page.locator('.ex-status[role=alert]')).toHaveCount(0);
   await page.keyboard.press('Escape');

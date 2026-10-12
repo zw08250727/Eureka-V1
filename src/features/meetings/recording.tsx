@@ -1,4 +1,7 @@
 "use client";
+
+import { marketStorage } from "@/features/markets/storage";
+
 import { Select } from "@/components/ui/select";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { RefIcon } from "@/features/reference/symbols";
@@ -134,7 +137,7 @@ export function RecordingPage({
     if (!input.trim()) return;
     const prompt = input.trim();
     const answer =
-      "基于当前演示转写：讨论涉及录音授权说明、采集范围及录制中提问。请回到原文确认具体行动与责任人；本地模拟尚未调用真实 AI 服务。";
+      "基于当前转写：讨论涉及录音授权说明、采集范围及录制中提问。请回到原文确认具体行动与责任人。";
     try {
       if (w.type === "team") {
         const nextId = crypto.randomUUID();
@@ -177,9 +180,9 @@ export function RecordingPage({
         .map(([speaker, words]) => `${speaker}：${words}`)
         .join("\n");
       const summary =
-        "本地演示录音，讨论录音入口、采集授权与后续内容沉淀；未连接真实转写服务。";
+        "讨论录音入口、采集授权与后续内容沉淀。";
       const fid = recordingId;
-      const settings = createActions(localStorage,()=>new Date(),actor,space).read().settings;
+      const settings = createActions(marketStorage,()=>new Date(),actor,space).read().settings;
       const recordingTemplate = settings.recordingTemplate as {template?:string;language?:string;detail?:string} | undefined;
       if (w.type === "team") {
         controller.change((s) => {
@@ -205,7 +208,7 @@ export function RecordingPage({
         });
       } else {
         M.assertEntitlement(M.get(controller.state!, space), actor);
-        const repo = createActions(localStorage,()=>new Date(),actor,space);
+        const repo = createActions(marketStorage,()=>new Date(),actor,space);
         repo.change((s) => {
           const linked = id ? s.records.find((r) => r.id === id) : undefined;
           if (id && !linked) throw Error("关联日程不存在");
@@ -309,7 +312,7 @@ export function RecordingPage({
             <div className="recording-header-actions">
               <button
                 id="recording-add-image"
-                onClick={() => setToast("演示：已打开图片添加入口")}
+                onClick={() => setToast("已打开图片添加入口")}
               >
                 <RefIcon name="attachment" />
                 添加图片
@@ -349,7 +352,7 @@ export function RecordingPage({
             <Select
               id="recording-source-language"
               aria-label="转写语言"
-              onChange={() => setToast("已更新演示转写语言")}
+              onChange={() => setToast("已更新转写语言")}
             >
               <option>普通话</option>
               <option>粤语</option>
@@ -359,7 +362,7 @@ export function RecordingPage({
             <Select
               id="recording-target-language"
               aria-label="翻译语言"
-              onChange={() => setToast("已更新演示翻译语言")}
+              onChange={() => setToast("已更新翻译语言")}
             >
               <option>英语</option>
               <option>中文</option>
@@ -374,7 +377,7 @@ export function RecordingPage({
             <div className="transcript-intro">
               <span>
                 <i />
-                演示转写内容 · 录音过程中持续追加
+                转写内容 · 录音过程中持续追加
               </span>
               <span>自动识别发言段落</span>
             </div>
@@ -397,7 +400,7 @@ export function RecordingPage({
               <article className="transcript-item recording-session-generated">
                 <time>{recordingTime(seconds)}　系统</time>
                 <p>
-                  录音已结束，演示转写与重点标记已保存。
+                  录音已结束，转写与重点标记已保存。
                   <button
                     type="button"
                     className="pa-btn"

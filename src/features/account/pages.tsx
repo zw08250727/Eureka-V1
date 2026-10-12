@@ -1,11 +1,14 @@
-/* eslint-disable @next/next/no-img-element -- Reuse the captured product changelog assets. */
 "use client";
+import { productName } from "@/features/markets/brand";
+/* eslint-disable @next/next/no-img-element -- Reuse the captured product changelog assets. */
+
 import { Select } from "@/components/ui/select";
 import { useState } from "react";
 import { basePath, appUrl } from "@/lib/routes";
 import { ReferenceDialog } from "@/features/reference/dialog";
 import type { SpacesController } from "@/features/spaces/use-spaces";
 import updates from "./updates.json";
+import { ConnectorsPage } from "@/features/connectors/page";
 export function CompanionPage({
   view,
   space,
@@ -21,35 +24,11 @@ export function CompanionPage({
     [version, setVersion] = useState("全部版本"),
     [gallery, setGallery] = useState<string[]>([]),
     [index, setIndex] = useState(0);
-  const w = controller.state!.spaces.find((s) => s.id === space)!;
-  if (view === "connectors")
-    return (
-      <section className="main-inner">
-        <header style={{ padding: "12px 0 18px" }}>
-          <h1 style={{ fontSize: 24, margin: 0 }}>连接器</h1>
-          <p className="ex-muted">
-            连接常用工具，让 Agent 在你的工作流中完成任务。
-          </p>
-        </header>
-        <iframe
-          title="连接器"
-          src={`${basePath}/integrations/connectors.html?${new URLSearchParams({ space, actor, readonly: String(w.type === "team" && w.status !== "active") })}`}
-          style={{
-            width: "100%",
-            height: "calc(100vh - 220px)",
-            minHeight: 560,
-            border: "1px solid #dce6f2",
-            borderRadius: 16,
-            background: "white",
-          }}
-          sandbox="allow-scripts allow-same-origin"
-        />
-      </section>
-    );
+  if (view === "connectors") return <ConnectorsPage key={`${space}:${actor}`} space={space} actor={actor} controller={controller} />;
   if (view === "product")
     return (
       <section className="ex-product">
-        <span className="ex-owner">EurekaMind · Record. Understand. Act.</span>
+        <span className="ex-owner">{productName()} · Record. Understand. Act.</span>
         <h1>让每一次记录，成为下一步行动。</h1>
         <p>
           从随身录音、会议纪要到个人闪念和团队洞察，把零散信息整理为可以追溯、可以协作的工作资产。
@@ -109,8 +88,8 @@ export function CompanionPage({
       </header>
       <nav className="ex-tabs" style={{ marginTop: 20 }}>
         {[
-          ["pc", "EurekaMind 工作台"],
-          ["app", "EurekaMind App"],
+          ["pc", `${productName()} 工作台`],
+          ["app", `${productName()} App`],
         ].map(([v, n]) => (
           <button
             role="tab"
@@ -142,9 +121,9 @@ export function CompanionPage({
                   </h3>
                   <p>
                     {c.description
-                      .replaceAll("Wisenote", "EurekaMind")
-                      .replaceAll("WiseNote", "EurekaMind")
-                      .replaceAll("百智", "EurekaMind")}
+                      .replaceAll("Wisenote", productName())
+                      .replaceAll("WiseNote", productName())
+                      .replaceAll("百智", productName())}
                   </p>
                 </div>
                 <div className="ex-log-images">

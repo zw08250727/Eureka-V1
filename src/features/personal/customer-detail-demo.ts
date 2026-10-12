@@ -76,9 +76,9 @@ export function ensureCustomerDetailDemo(storage: Storage, workspaceId: string, 
         const summary = `${Object.values(round.profile).map(text => text.replace(/。$/, "")).join("；")}。我方将${round.mine}，客户将${round.theirs}。双方约定于 ${round.due} 前同步进展。`;
         const shared = team ? (person.sharedWith || []) : [];
         if (!w.files.some(f => f.id === id)) additions.push({
-          id, title: `${person.name} · ${round.title}（演示）`, owner, shared, editors: [], duration: 30,
+          id, title: `${person.name} · ${round.title}`, owner, shared, editors: [], duration: 30,
           created: `${round.date}T09:00:00+08:00`, updated: `${round.date}T09:30:00+08:00`,
-          source: "网页录音", summary, transcript: `以下为虚构的客户会议演示内容。\n\n00:00 客户：${Object.values(round.profile).join("\n\n05:00 客户：")}\n\n20:00 我方：我们会${round.mine}。\n\n25:00 客户：我会${round.theirs}，在 ${round.due} 前同步。`,
+          source: "网页录音", summary, transcript: `00:00 客户：${Object.values(round.profile).join("\n\n05:00 客户：")}\n\n20:00 我方：我们会${round.mine}。\n\n25:00 客户：我会${round.theirs}，在 ${round.due} 前同步。`,
           deleted: false, size: "24.6 MB", creator: w.members.find(m => m.id === owner)!.name,
           status: "已总结", tags: ["客户演示", story.themes[index]], detail: {}, recordedWorkspaceId: w.id,
           visibility: shared.length ? "invited" : "private",
@@ -89,7 +89,7 @@ export function ensureCustomerDetailDemo(storage: Storage, workspaceId: string, 
       });
       person.detailDemoVersion = 1;
       scope.notes ||= {};
-      if (!scope.notes[person.id]?.length) scope.notes[person.id] = [{ text: "演示备注：下次沟通先确认试点范围，再逐项核对双方待办；不将未确认事项写成客户承诺。", time: "2026-10-09 10:00" }];
+      if (!scope.notes[person.id]?.length) scope.notes[person.id] = [{ text: "下次沟通先确认试点范围，再逐项核对双方待办；不将未确认事项写成客户承诺。", time: "2026-10-09 10:00" }];
     }
   }
   if (!additions.length) return;

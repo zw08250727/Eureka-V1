@@ -1,0 +1,63 @@
+/* Source: 100wiser index-DEbbywsx.js and index-C44QxGAr.css, 2026-10-12.
+   DOM structure remains the existing workbench detail/library layout. */
+.cn-meeting-detail{color:#262626}
+.cn-meeting-detail .md-topbar{background:#fff}
+.cn-meeting-detail .md-tabs{gap:24px;min-height:56px}
+.cn-meeting-detail .md-tabs button{font-size:14px;font-weight:400;color:#8c8c8c;padding-left:0;padding-right:0}
+.cn-meeting-detail .md-tabs button[aria-selected=true]{color:#262626;font-weight:600;border-bottom-color:#262626}
+.cn-meeting-detail .md-panel-tools{margin-bottom:24px;gap:16px}
+.cn-meeting-detail .md-panel-tools small{color:#bfbfbf;font-size:12px}
+.cn-meeting-detail .md-panel-tools>div{gap:16px}
+.cn-meeting-detail .md-panel-tools>div>span{display:none}
+.cn-meeting-detail .md-template-button{background:#f3f7ff;color:#262626;padding:8px 14px;border:0;border-radius:6px}
+.cn-meeting-detail .md-panel-tools .md-btn{background:transparent;border-color:transparent;color:#262626}
+.cn-meeting-detail .md-prose{font-size:14px;line-height:1.8;color:#262626;padding:0;white-space:pre-wrap}
+.cn-meeting-detail .md-prose.cn-markdown{white-space:normal}
+.cn-meeting-detail .md-prose h1,.cn-meeting-detail .md-prose h2,.cn-meeting-detail .md-prose h3{display:flex;align-items:center;font-size:16px;line-height:24px;font-weight:600;margin:24px 0 10px;color:#262626}
+.cn-meeting-detail .md-prose h1:before,.cn-meeting-detail .md-prose h2:before,.cn-meeting-detail .md-prose h3:before{content:"";width:2px;height:8px;margin-right:4px;flex-shrink:0;background:#262626}
+.cn-meeting-detail .md-prose p{margin:0 0 16px}
+.cn-meeting-detail .md-prose ul,.cn-meeting-detail .md-prose ol{padding-left:24px;margin:0 0 16px}
+.cn-meeting-detail .md-prose strong{color:#111827;font-weight:600}
+.cn-meeting-detail .md-prose table{width:100%;border-collapse:collapse;font-size:14px}
+.cn-meeting-detail .md-prose :is(td,th){border:1px solid #e5e7eb;padding:8px;text-align:left}
+.cn-meeting-detail .md-prose pre{overflow:auto;background:#f9fafb;border:1px solid #e5e7eb;padding:12px;border-radius:8px}
+.cn-meeting-detail .md-library-item{background:white;border:1px solid #f0f0f0;border-radius:12px;margin:0 0 12px;padding:16px}
+.cn-meeting-detail .md-library-item.active,.cn-meeting-detail .md-library-item[aria-current=true]{background:#f3f7ff;border-color:#e6efff}
+.cn-meeting-detail .md-library-item strong{font-size:14px;line-height:24px;color:#262626}
+.cn-meeting-detail .md-library-item em{display:inline-block;background:#e5faf1;border-radius:3px;padding:2px 8px;margin-top:10px;color:#00c566}
+.cn-meeting-detail .md-edited{font-size:12px;color:#bfbfbf;margin-top:24px}
+.cn-meeting-feedback{border:1px solid #f0f0f0;border-radius:12px;padding:24px;margin-top:24px}
+.cn-meeting-feedback .md-feedback-head h3{font-size:16px;font-weight:500;color:#262626;line-height:28px}
+.cn-meeting-feedback .md-feedback-head p{font-size:14px;margin:0;line-height:28px}
+.cn-meeting-feedback .md-feedback-bottom{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.cn-score-options{display:flex;gap:8px;flex-wrap:wrap}
+.cn-meeting-feedback .md-score{width:32px;height:32px;border-radius:8px;border:1px solid #ebebeb;background:white;color:#262626}
+.cn-meeting-feedback .md-score[aria-pressed=true]{background:#165dff;border-color:#165dff;color:white}
+.cn-meeting-feedback .md-primary{background:#165dff;color:white;border-color:#165dff}
+.cn-meeting-feedback .md-primary:disabled{background:#adc6ff;border-color:#adc6ff;color:white}
+.cn-feedback-reasons{border-top:1px solid #f0f0f0;margin-top:16px;padding-top:16px}
+.cn-feedback-reasons>div{display:flex;flex-wrap:wrap;gap:8px}
+.cn-feedback-reasons button{border:1px solid #ebebeb;border-radius:6px;background:#fff;padding:5px 11px;font-size:14px}
+.cn-feedback-reasons button[aria-pressed=true]{border-color:#165dff;background:#f3f7ff;color:#165dff}
+.cn-feedback-reasons textarea{box-sizing:border-box;display:block;background:#f2f3f5;border:0;border-radius:8px;padding:8px 12px;min-height:64px;width:100%;margin-top:16px;font:inherit;resize:vertical}
+.cn-feedback-reasons>small{display:block;text-align:right;color:#8c8c8c}
+.cn-transcript .md-speech{border-bottom:1px solid #f0f0f0;margin-bottom:16px;padding:0 0 16px;background:transparent}
+.cn-transcript .md-speech-head{display:flex;gap:12px;justify-content:flex-start;align-items:center}
+.cn-transcript .md-speech-head button{border:0;background:transparent;padding:4px;color:#8c8c8c;font:inherit;cursor:pointer}
+.cn-transcript .md-speech-head .md-speaker{font-weight:500;color:#262626;font-size:14px;border-radius:8px}
+.cn-transcript .md-speaker:hover{background:#0000000d}
+.cn-transcript .md-speech p{color:#262626;font-size:14px;line-height:24px;padding:8px;border-radius:12px;margin:4px 0;cursor:pointer}
+.cn-transcript .cn-speech-active p{background:#f3f7ff}
+.cn-transcript mark{background:#fff2ac;color:inherit}
+.cn-mark-filter{display:flex;justify-content:flex-end;align-items:center;gap:8px;font-size:14px;padding:0 0 16px}
+.cn-transcript-actions{display:flex;justify-content:flex-end;gap:12px;opacity:0}
+.cn-transcript article:hover .cn-transcript-actions,.cn-transcript article:focus-within .cn-transcript-actions{opacity:1}
+.cn-transcript-actions button{border:0;background:transparent;color:#595959;cursor:pointer;font-size:12px;padding:4px}
+.cn-transcript-empty{text-align:center;padding:60px 0;color:#8c8c8c}
+@media(max-width:700px){.cn-meeting-detail .md-tabs{gap:18px}.cn-meeting-detail .md-panel-tools{align-items:flex-start;flex-wrap:wrap}.cn-meeting-feedback{padding:16px}.cn-score-options{gap:6px}.cn-transcript-actions{opacity:1}}
+
+/* Frozen reference sets these two declarations !important; scope the source correction to CN. */
+.cn-meeting-detail .md-template-button{background:#f3f7ff!important;color:#262626!important}
+.cn-meeting-detail .md-library-item{padding:16px!important}
+
+.cn-summary-selector{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 20px}.cn-summary-selector label{display:flex;align-items:center;gap:12px;color:#8c8c8c}.cn-summary-selector select{max-width:240px}

@@ -1,4 +1,5 @@
 "use client";
+
 import { useRef, useState, type ReactNode } from "react";
 import { AgentPanel } from "@/features/workbench/components/agent-panel";
 import type { AgentGateway } from "@/features/workbench/model/types";

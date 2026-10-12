@@ -12,4 +12,4 @@ export const SCENES: Record<
 >;
 export function agentRoute(
   scene: keyof typeof SCENES,
-): SceneConfig & { agentId: typeof AGENT_ID; scene: keyof typeof SCENES };
+): SceneConfig & { agentId: string; scene: keyof typeof SCENES };

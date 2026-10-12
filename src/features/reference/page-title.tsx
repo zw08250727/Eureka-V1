@@ -1,4 +1,5 @@
 "use client";
+
 import { createContext, useContext, useLayoutEffect } from "react";
 export const PageTitleContext = createContext<{
   baseTitle: string;

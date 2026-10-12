@@ -1,4 +1,9 @@
 "use client";
+import { creditText, teamMoney } from "@/features/markets/config";
+import { productName } from "@/features/markets/brand";
+
+
+import { marketConfig } from "@/features/markets/config";
 import { Select } from "@/components/ui/select";
 import { useState } from "react";
 import { M } from "./model/store";
@@ -11,7 +16,6 @@ import { appUrl } from "@/lib/routes";
 import {
   creditNumber,
   date,
-  dollars,
   downloadText,
   money,
   WsButton as Button,
@@ -25,9 +29,13 @@ import {
   TeamBilling,
   type BillingOrder,
 } from "./billing-panels";
+import { DomesticMembership } from "./domestic-membership";
+import { TimeCheckout } from "./time-checkout";
+import { createTimeOrder, payTimeOrder, cancelTimeOrder } from "./model/time-packs";
 import { CheckoutDialog, type OrderKind } from "./billing-checkout";
 type Dialog =
   | { type: "checkout"; kind: OrderKind; id: string }
+  | { type: "time"; id: string }
   | { type: "seats"; increaseOnly: boolean }
   | { type: "pack" }
   | { type: "billing" }
@@ -48,7 +56,7 @@ export function BillingPage({
     [modal, setModal] = useState<Dialog>(null),
     [count, setCount] = useState(""),
     [pack, setPack] = useState(M.CREDIT_PACKS[0].id),
-    [method, setMethod] = useState("Visa ···· 4242"),
+    [method, setMethod] = useState(marketConfig().payments.subscription[0]),
     [error, setError] = useState(""),
     [toast, setToast] = useState("");
   const w = M.get(controller.state!, space),
@@ -83,7 +91,7 @@ export function BillingPage({
     )?.find((o) => o.id === id);
     if (!order) throw Error("订单不存在");
     if (order.status === "cancelled") throw Error("订单已取消");
-    setMethod("Visa ···· 4242");
+    setMethod(kind === "credit" ? marketConfig().payments.credits[0] : marketConfig().payments.subscription[0]);
     setModal({ type: "checkout", kind, id });
   }
   function seats(value: number, increaseOnly = false) {
@@ -98,7 +106,7 @@ export function BillingPage({
         ? PS.pay(current, id, result, method)
         : kind === "seat"
           ? M.paySeatOrder(current, id, result, actor)
-          : M.payCreditOrder(current, id, result, actor),
+          : M.payCreditOrder(current, id, result, actor, method),
     );
   }
   function act(action: string, value = "") {
@@ -107,8 +115,14 @@ export function BillingPage({
         setCycle(value as Cycle);
         return;
       }
+      if (action === "time-buy") {
+        const order = mutate(current => createTimeOrder(current, value));
+        setMethod(marketConfig().payments.subscription[0]);
+        setModal({ type: "time", id: order.id });
+        return;
+      }
       if (action === "personal-buy") {
-        const order = mutate((current) => PS.create(current, cycle));
+        const order = mutate((current) => PS.create(current, cycle, value || "professional"));
         setModal({ type: "checkout", kind: "personal", id: order.id });
         return;
       }
@@ -126,7 +140,7 @@ export function BillingPage({
         action === "credit-pay-fail"
       ) {
         pay("failure", action.split("-")[0] as OrderKind, value);
-        if (action === "personal-fail") setMethod("Visa ···· 4242");
+        if (action === "personal-fail") setMethod(marketConfig().payments.subscription[0]);
         return;
       }
       if (action === "personal-cancel") {
@@ -147,7 +161,7 @@ export function BillingPage({
           sub.renew ? "取消自动续费？" : "恢复自动续费？",
           sub.renew
             ? "当前已购权益将保留至到期，不再自动续费。"
-            : "到期按当前套餐价格续费（本地模拟）。",
+            : "到期按当前套餐价格续费。",
           () => {
             mutate((current) => PS.renew(current, !sub.renew));
             close();
@@ -157,7 +171,7 @@ export function BillingPage({
       }
       if (action === "personal-restore") {
         mutate((current) => PS.restore(current));
-        setToast("已恢复本浏览器的有效个人订阅，没有再次扣款或发放 Credits");
+        setToast("已恢复有效个人订阅");
         return;
       }
       if (action === "personal-receipt") {
@@ -198,7 +212,7 @@ export function BillingPage({
       if (action === "cycle") {
         confirm(
           "切换计费周期？",
-          `改为${w.cycle === "year" ? "月付" : "年付"}后，下一周期费用为 ${dollars((w.pendingSeats ?? w.seats) * M.price(w.cycle === "year" ? "month" : "year"))}。本次为演示，不产生真实扣款。`,
+          `改为${w.cycle === "year" ? "月付" : "年付"}后，下一周期费用为 ${teamMoney((w.pendingSeats ?? w.seats) * M.price(w.cycle === "year" ? "month" : "year"))}。`,
           () => {
             mutate((current) => {
               M.govern(current, actor);
@@ -239,7 +253,7 @@ export function BillingPage({
           w.renew && w.status === "active" ? "取消自动续费？" : "恢复订阅？",
           w.renew && w.status === "active"
             ? `当前权益保留至 ${w.nextDate}，到期后进入只读模式。`
-            : "将模拟完成团队续费，所有有效成员的权益统一延长一个计费周期，再恢复录音、转写和 Agent 分析。不会真实扣款。",
+            : "完成团队续费，所有有效成员的权益统一延长一个计费周期，再恢复录音、转写和 Agent 分析。",
           () => {
             mutate((current) => {
               M.govern(current, actor);
@@ -274,7 +288,7 @@ export function BillingPage({
         if (!i) throw Error("账单不存在");
         downloadText(
           i.id + ".txt",
-          `EurekaMind 模拟账单\n${i.id}\n${w.billing.company}\n${i.label}\n${money(i.amount, i.currency)}\n${date(i.date)}\n仅供演示，不作为真实支付或报销凭证。`,
+          `${productName()} 模拟账单\n${i.id}\n${w.billing.company}\n${i.label}\n${money(i.amount, i.currency)}\n${date(i.date)}\n仅供演示，不作为真实支付或报销凭证。`,
         );
         return;
       }
@@ -293,7 +307,7 @@ export function BillingPage({
         return;
       }
       if (action === "credit-cancel") {
-        confirm("取消 Credits 订单？", "取消后不会扣款或增加 Credits。", () => {
+        confirm(creditText("取消 Credits 订单？"), creditText("取消后不会扣款或增加 Credits。"), () => {
           mutate((current) => M.cancelCreditOrder(current, value, actor));
           close();
           setToast("订单已取消");
@@ -328,7 +342,7 @@ export function BillingPage({
     <>
       <WsRoot w={w} actor={actor} view={credits ? "credits" : "subscription"}>
         {personal ? (
-          <PersonalBilling
+          marketConfig().id === "cn" ? <DomesticMembership w={w} account={controller.state!.account} cycle={cycle} act={act}/> : <PersonalBilling
             w={w}
             state={controller.state!}
             actor={actor}
@@ -353,6 +367,7 @@ export function BillingPage({
           <TeamBilling w={w} actor={actor} act={act} />
         )}
       </WsRoot>
+      {modal?.type === "time" && w.timeOrders?.find(o => o.id === modal.id) && <TimeCheckout order={w.timeOrders.find(o => o.id === modal.id)!} error={error} method={method} setMethod={setMethod} onClose={close} onPay={() => guard(() => { mutate(current => payTimeOrder(current, modal.id, "success", method)); })} onCancel={() => guard(() => { mutate(current => cancelTimeOrder(current, modal.id)); close(); })} onReceipt={() => guard(() => { const receipt = orderReceipt(w, actor, "time", modal.id); downloadText(receipt.filename, receipt.text); })}/>}
       <WsToast message={toast} onClear={() => setToast("")} />
       {modal?.type === "checkout" && order ? (
         <CheckoutDialog
@@ -459,8 +474,8 @@ export function BillingPage({
                   新增 {n - w.seats} 席位 ·{" "}
                   {w.cycle === "year" ? "年付" : "月付"}
                 </span>
-                <strong>{dollars((n - w.seats) * M.price(w.cycle))}</strong>
-                <small>本次应付 · 演示按完整周期计价</small>
+                <strong>{teamMoney((n - w.seats) * M.price(w.cycle))}</strong>
+                <small>本次应付 · 按完整周期计价</small>
               </>
             ) : n < w.seats ? (
               `将于 ${w.nextDate} 调整为 ${n} 席位，本次无需支付。`
@@ -477,7 +492,7 @@ export function BillingPage({
       ) : null}
       {modal?.type === "pack" ? (
         <WsDialog
-          title="购买 Credits"
+          title={creditText("购买 Credits")}
           form="credit-pack"
           error={error}
           onClose={close}
@@ -517,18 +532,15 @@ export function BillingPage({
                   required
                 />
                 <span>
-                  <strong>{creditNumber(p.credits)} Credits</strong>
+                  <strong>{creditNumber(p.credits)}{creditText(" Credits")}</strong>
                   <small>一次性购买 · 团队共享</small>
                 </span>
-                <b>{money(p.amount,"USD")}</b>
+                <b>{money(p.amount,marketConfig().currency)}</b>
               </label>
             ))}
           </div>
           <input type="hidden" name="workspaceId" value={w.id} />
-          <p className="ws-muted">
-            演示价格，不会真实扣款。购买 Credits
-            不改变席位数、个人空间余额或转写权益。
-          </p>
+          <p className="ws-muted">{creditText("购买 Credits 不改变席位数、个人空间余额或转写权益。")}</p>
         </WsDialog>
       ) : null}
       {modal?.type === "billing" ? (
@@ -581,10 +593,9 @@ export function BillingPage({
             </label>
           ))}
           <label className="ws-field">
-            模拟支付方式
+            支付方式
             <Select name="method" defaultValue={w.billing.method}>
-              <option>Visa ···· 4242</option>
-              <option>Mastercard ···· 5555</option>
+              {(marketConfig().id === "cn" ? marketConfig().payments.subscription : ["Visa ···· 4242", "Mastercard ···· 5555"]).map(value => <option key={value}>{value}</option>)}
             </Select>
           </label>
         </WsDialog>

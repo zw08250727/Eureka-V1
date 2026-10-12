@@ -1,9 +1,10 @@
 import { test, expect } from "@playwright/test";
 import M from "../../src/features/spaces/model/core";
+import { accountWithoutTeam } from "./fixtures/workspace-state";
 
 for (const cycle of ["month", "year"] as const) {
   test(`${cycle}: first subscription discount, regular renewal and USD seat invoices`, () => {
-    const state = M.seed();
+    const state = accountWithoutTeam();
     const w = M.create(state, { name: "价格验证", country: "中国", cycle, seats: 2, orderId: `pricing-${cycle}` });
     expect(w.invoices[0]).toMatchObject({ currency: "USD", amount: cycle === "month" ? 56 : 480 });
     expect(M.create(state, { name: "价格验证", country: "中国", cycle, seats: 2, orderId: `pricing-${cycle}` }).id).toBe(w.id);
@@ -17,6 +18,7 @@ for (const cycle of ["month", "year"] as const) {
   });
 
   test(`${cycle}: plan, two-seat checkout and successful invoice match supplied prices`, async ({ page }) => {
+    await page.addInitScript(s => { if (!localStorage.getItem("eureka:workspaces:v2")) localStorage.setItem("eureka:workspaces:v2", JSON.stringify(s)); }, accountWithoutTeam());
     await page.goto("/workbench/?view=create-team&space=personal");
     const dialog = page.locator("#ws-dialog");
     await dialog.getByRole("button", { name: cycle === "month" ? "月付" : "年付", exact: true }).click();
@@ -35,7 +37,7 @@ for (const cycle of ["month", "year"] as const) {
     await page.setViewportSize({ width: 390, height: 844 });
     expect(await dialog.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
     await page.screenshot({ path: `test-results/team-checkout-${cycle}-390.png` });
-    await dialog.getByRole("button", { name: "模拟支付并开通", exact: true }).click();
+    await dialog.getByRole("button", { name: "支付并开通", exact: true }).click();
     await expect(dialog.getByRole("heading", { name: "团队已准备好" })).toBeVisible();
     const invoice = await page.evaluate(() => { const s = JSON.parse(localStorage.getItem("eureka:workspaces:v2")!); return s.spaces.find((w: { id: string }) => w.id === s.activeId).invoices[0]; });
     expect(invoice).toMatchObject({ currency: "USD", amount: cycle === "month" ? 56 : 480 });

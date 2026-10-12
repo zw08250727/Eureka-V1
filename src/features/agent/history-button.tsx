@@ -1,4 +1,7 @@
 "use client";
+
+import { marketStorage } from "@/features/markets/storage";
+
 import "./history.css";
 import { useContext, useState } from "react";
 import { RefIcon } from "@/features/reference/symbols";
@@ -35,7 +38,7 @@ export function AgentHistoryButton() {
           id: t.id, title: t.title || t.prompt, time: t.time, kind: "team",
         })));
       } else {
-        const sessions = readSessions(localStorage).filter(
+        const sessions = readSessions(marketStorage).filter(
           (s) => s.space === space && s.actor === actor,
         );
         setRows([
@@ -45,7 +48,7 @@ export function AgentHistoryButton() {
           ...(actor === M.SELF ? seeds
             .filter((title) => !sessions.some((s) => s.id === "seed:" + title))
             .map((title): HistoryRow => ({
-              id: title, title, time: "示例会话", kind: "seed",
+              id: title, title, time: "历史会话", kind: "seed",
             })) : []),
         ]);
       }
@@ -61,8 +64,8 @@ export function AgentHistoryButton() {
       if (kind === "team") {
         controller.change((s) => M.deleteConversation(M.get(s, space), id, actor));
       } else {
-        localStorage.setItem(SESSION_KEY, JSON.stringify(
-          readSessions(localStorage).filter(
+        marketStorage.setItem(SESSION_KEY, JSON.stringify(
+          readSessions(marketStorage).filter(
             (s) => !(s.id === id && s.space === space && s.actor === actor),
           ),
         ));
@@ -105,7 +108,7 @@ export function AgentHistoryButton() {
               <div className="agent-history-item" key={row.id}>
                 <a href={appUrl("history", row.id, space, actor)}>
                   <span>{row.title}</span>
-                  <small>{row.time === "示例会话" ? row.time : new Date(row.time).toLocaleString("zh-CN")}</small>
+                  <small>{row.time === "历史会话" ? row.time : new Date(row.time).toLocaleString("zh-CN")}</small>
                 </a>
                 {row.kind !== "seed" && (
                   <button type="button" aria-label={"删除会话：" + row.title} onClick={() => remove(row.id, row.kind)}>

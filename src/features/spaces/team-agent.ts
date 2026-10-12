@@ -18,7 +18,7 @@ export function teamGateway(
           appData: options.apps,
         }),
       );
-      return { title: "Ask Agent · 本地模拟", text: reply.answer, items: [] };
+      return { title: "Ask Agent", text: reply.answer, items: [] };
     },
   };
 }

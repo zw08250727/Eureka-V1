@@ -70,18 +70,27 @@ test("expired and cancelled teams accept only bound-device raw audio without AI 
   }
 });
 
-test("personal benefits remain independent of team expiration and renewal", () => {
-  const s = M.seed(), a = M.get(s, "team-eureka"), b = M.acceptInvite(s, "invite-growth"), p = M.get(s, "personal");
-  const balance = structuredClone(p.credits);
-  a.status = "expired"; M.reconcileEntitlements(s);
-  expect(p.entitlementFreeze).toBeUndefined();
-  b.status = "cancelled"; M.reconcileEntitlements(s);
-  expect(p.entitlementFreeze).toBeUndefined();
-  expect(p.credits).toEqual(balance);
-  expect(M.accountTeams(s)).toHaveLength(2);
-  b.status = "active"; M.reconcileEntitlements(s);
-  expect(p.entitlementFreeze).toBeUndefined();
-});
+for (const status of ["active", "expired", "cancelled"] as const) {
+  test(`ACCOUNT-01 / RIGHTS-01: ${status} team retains membership and independent personal benefits`, () => {
+    const s = M.seed(), team = M.get(s, "team-eureka"), personal = M.get(s, "personal");
+    const benefits = structuredClone([personal.credits, personal.personalSubscription, personal.transcriptionUsage]);
+    team.status = status;
+    M.reconcileEntitlements(s);
+    const before = structuredClone(s);
+    expect(() => M.acceptInvite(s, "invite-growth")).toThrow("最多只能");
+    expect(() => M.create(s, { name: "第二团队", country: "中国", cycle: "month", seats: 2, orderId: "blocked" })).toThrow("最多只能");
+    expect(s).toEqual(before);
+    expect(M.accountTeams(s).map(w => w.id)).toEqual([team.id]);
+    expect(personal.entitlementFreeze).toBeUndefined();
+    expect([personal.credits, personal.personalSubscription, personal.transcriptionUsage]).toEqual(benefits);
+    team.status = "active";
+    M.reconcileEntitlements(s);
+    expect([personal.credits, personal.personalSubscription, personal.transcriptionUsage]).toEqual(benefits);
+    M.consumeMinutes(personal, "personal-recording", 1);
+    expect(personal.transcriptionUsage?.used).toBe(1);
+    expect(team.transcriptionUsage).toBeUndefined();
+  });
+}
 
 test("team device metadata is admin-only; member removal does not revive future sharing", () => {
   const s = M.seed(), w = M.get(s, "team-eureka");

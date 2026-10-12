@@ -14,8 +14,8 @@ for(const width of [390,768,1440])test(`dropdown stays in viewport and above dia
  const field=page.getByLabel('所在领域');await field.scrollIntoViewIfNeeded();await field.click();const list=page.locator('.ui-select-popup:popover-open');await expect(list).toBeVisible();
  const box=(await list.boundingBox())!;expect(box.x).toBeGreaterThanOrEqual(0);expect(box.x+box.width).toBeLessThanOrEqual(width);expect(box.y).toBeGreaterThanOrEqual(0);expect(box.y+box.height).toBeLessThanOrEqual(700);
  await list.getByRole('option',{name:'媒体',exact:true}).click();await expect(field).toHaveValue('媒体');
- await page.goto(url('subscription'));await page.locator('[data-ws-action="personal-buy"]').click();const pay=page.getByRole('dialog',{name:'确认个人订阅'});await pay.getByLabel('模拟支付方式').click();await expect(list).toBeVisible();await list.getByRole('option',{name:'Apple Pay（模拟）'}).click();await expect(pay.getByLabel('模拟支付方式')).toHaveValue('Apple Pay（模拟）');
- await pay.getByLabel('模拟支付方式').click();await page.keyboard.press('Escape');await expect(pay).toBeVisible();await expect(list).toHaveCount(0);await page.keyboard.press('Escape');await expect(pay).toHaveCount(0);
+ await page.goto(url('subscription'));await page.locator('[data-ws-action="personal-buy"]').click();const pay=page.getByRole('dialog',{name:'确认个人订阅'});await pay.getByLabel('支付方式').click();await expect(list).toBeVisible();await list.getByRole('option',{name:'Apple Pay'}).click();await expect(pay.getByLabel('支付方式')).toHaveValue('Apple Pay');
+ await pay.getByLabel('支付方式').click();await page.keyboard.press('Escape');await expect(pay).toBeVisible();await expect(list).toHaveCount(0);await page.keyboard.press('Escape');await expect(pay).toHaveCount(0);
 });
 test('avatar preview validates images, saves, reloads and removes without a visible native input',async({page})=>{
  await page.goto(url());const input=page.getByLabel('选择头像文件');await expect(input).toBeHidden();

@@ -1,4 +1,6 @@
 "use client";
+import { marketStorage, scopedKey } from "@/features/markets/storage";
+
 import { useEffect, useRef, useState, useCallback } from "react";
 import { createWorkspaceStore, M } from "./model/store";
 import type { WorkspaceState } from "./model/types";
@@ -10,7 +12,7 @@ export function useSpaces(creationDemo = false) {
     [error, setError] = useState("");
   useEffect(() => {
     let active = true;
-    const open = () => createWorkspaceStore(localStorage, () => new Date(), creationDemo ? { key, seed: creationDemoSeed } : {});
+    const open = () => createWorkspaceStore(marketStorage, () => new Date(), creationDemo ? { key, seed: creationDemoSeed } : {});
     Promise.resolve().then(() => {
       if (!active) return;
       try {
@@ -21,7 +23,7 @@ export function useSpaces(creationDemo = false) {
       }
     });
     const external = (e: StorageEvent) => {
-      if (e.key !== null && e.key !== key) return;
+      if (e.key !== null && e.key !== scopedKey(key)) return;
       try {
         repo.current = open();
         setState(repo.current.read());
@@ -30,7 +32,7 @@ export function useSpaces(creationDemo = false) {
         setError((e as Error).message);
       }
     };
-    const local = () => external({ key } as StorageEvent);
+    const local = () => external({ key: scopedKey(key) } as StorageEvent);
     window.addEventListener("storage", external);
     window.addEventListener("eureka:data", local);
     return () => {

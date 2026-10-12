@@ -1,4 +1,6 @@
 "use client";
+import { marketStorage } from "@/features/markets/storage";
+
 import { M, createWorkspaceStore } from "@/features/spaces/model/store";
 import { CREATION_DEMO_KEY } from "@/features/spaces/creation-demo";
 import { AgentScope } from "./scope";
@@ -46,7 +48,7 @@ export function useSceneAgent(scene: AgentScene, sourceId = "", resumeId?: strin
   const space = scope?.space || query.get("space") || "personal", actor = scope?.actor || query.get("actor") || "zhang";
   const storageKey = query.get("demo") === "create-team" ? CREATION_DEMO_KEY : M.KEY;
   function ensureAvailable() {
-    const w = M.get(createWorkspaceStore(localStorage, () => new Date(), { key: storageKey }).read(), space);
+    const w = M.get(createWorkspaceStore(marketStorage, () => new Date(), { key: storageKey }).read(), space);
     M.assertEntitlement(w, actor);
     if (w.type === "team" && scene === "meeting" && sourceId) M.getFile(w, sourceId, actor);
   }
@@ -56,14 +58,14 @@ export function useSceneAgent(scene: AgentScene, sourceId = "", resumeId?: strin
     if (current.current.sourceId !== sourceId || current.current.scene !== scene) reset();
     if (!current.current.id) current.current.id = crypto.randomUUID();
     ensureAvailable();
-    createWorkspaceStore(localStorage, () => new Date(), { key: storageKey }).change(s => {
+    createWorkspaceStore(marketStorage, () => new Date(), { key: storageKey }).change(s => {
       const w = M.get(s, space);
       const usage = M.simulatedTokenUsage(prompt, answer);
       M.settleCredits(w, crypto.randomUUID(), prompt, usage, actor);
     });
     const route = agentRoute(scene);
     try {
-      appendSession(localStorage, {
+      appendSession(marketStorage, {
         ...route, id: current.current.id, scene, sourceId,
         space, actor,
       }, prompt, answer, current.current.id === resumeId ? initial : undefined);

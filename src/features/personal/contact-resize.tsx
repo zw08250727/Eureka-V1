@@ -1,3 +1,4 @@
+import { marketStorage } from "@/features/markets/storage";
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 
 const key = "eureka:agent-panel-width:v1";
@@ -29,14 +30,14 @@ export function ContactResizeHandle() {
   function save(value: number) {
     preferred.current = value;
     try {
-      localStorage.setItem(key, String(value));
+      marketStorage.setItem(key, String(value));
     } catch {
       /* Session sizing remains available without storage. */
     }
   }
   useEffect(() => {
     try {
-      preferred.current = Number(localStorage.getItem(key)) || 390;
+      preferred.current = Number(marketStorage.getItem(key)) || 390;
     } catch {
       /* Use the original default width. */
     }

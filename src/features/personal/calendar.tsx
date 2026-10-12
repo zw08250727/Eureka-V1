@@ -1,4 +1,7 @@
 "use client";
+
+import { marketStorage } from "@/features/markets/storage";
+
 import {AssetSharing,assetOwner,canEditAsset} from "./asset-sharing";
 import { M } from "@/features/spaces/model/store";
 import { actionOnDay, assetActive } from "./asset-rules";
@@ -357,9 +360,7 @@ export function CalendarPage({
                       </dd>
                     </div>
                   </dl>
-                  <div className="pa-notice">
-                    提醒偏好随记录保存；当前原型不会发送系统或手机通知。
-                  </div>
+
                 </section>
                 <section className="pa-card">
                   <div className="pa-section-head">
@@ -488,9 +489,9 @@ export function CalendarPage({
                         controls
                         preload="metadata"
                         src={assetUrl("meeting-demo.wav")}
-                        aria-label="原始捕获演示音频"
+                        aria-label="原始捕获音频"
                       />
-                      <small>演示音频 · 非真实原始录音</small>
+
                     </details>
                     <PaButton action="recall" disabled={recordReadonly} onClick={() => ask()}>
                       ✧ 回顾当时的上下文
@@ -787,7 +788,7 @@ export function CalendarPage({
                       <p>
                         {(() => {
                           try {
-                            return space !== "personal" ? ("summary" in m ? String(m.summary || "暂无总结") : "暂无总结") : createMeetingDetails(localStorage).read(m.id)
+                            return space !== "personal" ? ("summary" in m ? String(m.summary || "暂无总结") : "暂无总结") : createMeetingDetails(marketStorage).read(m.id)
                               .summary;
                           } catch {
                             return "暂无总结";

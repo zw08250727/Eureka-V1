@@ -41,7 +41,7 @@ export function createMeetingDetails(storage: Storage) {
           record?.summary ||
           seed?.summary ||
           upload?.note ||
-          "本地演示录音，尚未连接真实转写服务。",
+          "录音已保存，等待转写处理。",
         transcript:
           device?.transcript ||
           record?.transcript ||
@@ -76,6 +76,8 @@ export function createMeetingDetails(storage: Storage) {
         generated: {},
         feedback: 0,
         ...patch,
+        ...(patch.summaries ? {summaries:patch.summaries.map(s=>({...s,feedback:workspace?.spaces.find(w=>w.type==="personal")?.meetingFeedback?.[`${id}/${s.id}`] || s.feedback}))} : {}),
+        ...(workspace?.spaces.find(w => w.type === "personal")?.meetingFeedback?.[id] ? {feedback: workspace.spaces.find(w => w.type === "personal")!.meetingFeedback![id].score, feedbackDetail: workspace.spaces.find(w => w.type === "personal")!.meetingFeedback![id]} : {}),
       };
     },
     save(record: MeetingDetail) {
@@ -89,43 +91,56 @@ export function sanitizeRichText(html: string) {
   const template = document.createElement("template");
   template.innerHTML = html;
   const allowed = new Set([
-    "B",
-    "STRONG",
-    "I",
-    "EM",
-    "U",
-    "BR",
-    "P",
-    "DIV",
-    "FONT",
-    "H2",
-    "H3",
-    "UL",
-    "OL",
-    "LI",
+    "B", "STRONG", "I", "EM", "U", "S", "STRIKE", "DEL", "SPAN", "FONT",
+    "BR", "P", "DIV", "H1", "H2", "H3", "H4", "H5", "H6",
+    "UL", "OL", "LI", "TABLE", "THEAD", "TBODY", "TR", "TD", "TH",
+    "BLOCKQUOTE", "PRE", "CODE", "HR",
   ]);
+  const blocked = new Set(["SCRIPT", "STYLE", "IFRAME", "OBJECT", "EMBED", "TEMPLATE"]);
+  const fonts = new Set([
+    "sans-serif", "serif", "monospace", "Arial", "Arial Black", "Georgia",
+    "Impact", "Tahoma", "Times New Roman", "Verdana", "Courier New",
+    "Lucida Console", "Monaco",
+  ]);
+  const sizes = new Set([10, 11, 12, 13, 14, 16, 18, 20, 22, 24, 26, 28, 32, 36, 48, 72]);
+  const legacySizes = [10, 13, 16, 18, 24, 32, 48];
   function walk(root: ParentNode) {
     for (const n of [...root.childNodes]) {
       if (n.nodeType === 3) continue;
-      if (!(n instanceof HTMLElement)) {
-        n.remove();
-        continue;
-      }
-      if (["SCRIPT", "STYLE", "IFRAME", "OBJECT"].includes(n.tagName)) {
+      if (!(n instanceof HTMLElement) || blocked.has(n.tagName)) {
         n.remove();
         continue;
       }
       walk(n);
-      if (!allowed.has(n.tagName)) n.replaceWith(...n.childNodes);
-      else
-        for (const a of [...n.attributes]) {
-          const keep =
-            n.tagName === "FONT" &&
-            ((a.name === "size" && /^[1-7]$/.test(a.value)) ||
-              (a.name === "face" &&
-                ["sans-serif", "serif", "monospace"].includes(a.value)));
-          if (!keep) n.removeAttribute(a.name);
-        }
+      if (!allowed.has(n.tagName)) {
+        n.replaceWith(...n.childNodes);
+        continue;
+      }
+      // Rebuild only editor formatting. Never retain arbitrary CSS, URLs or events.
+      const style = document.createElement("span").style;
+      const family = n.style.fontFamily.replace(/["']/g, "");
+      if (fonts.has(family)) style.fontFamily = family;
+      if (/^\d+px$/.test(n.style.fontSize) && sizes.has(Number.parseInt(n.style.fontSize)))
+        style.fontSize = n.style.fontSize;
+      if (["normal", "bold", "400", "700"].includes(n.style.fontWeight))
+        style.fontWeight = n.style.fontWeight;
+      if (["normal", "italic"].includes(n.style.fontStyle))
+        style.fontStyle = n.style.fontStyle;
+      const decoration = n.style.textDecorationLine;
+      if (["none", "underline", "line-through", "underline line-through", "line-through underline"].includes(decoration))
+        style.textDecorationLine = decoration;
+      const alignment = n.style.textAlign || n.getAttribute("align") || "";
+      if (["left", "center", "right", "justify"].includes(alignment))
+        style.textAlign = alignment;
+      if (n.tagName === "FONT") {
+        const face = n.getAttribute("face") || "";
+        const size = n.getAttribute("size") || "";
+        if (!style.fontFamily && fonts.has(face)) style.fontFamily = face;
+        if (!style.fontSize && /^[1-7]$/.test(size))
+          style.fontSize = `${legacySizes[Number(size) - 1]}px`;
+      }
+      for (const a of [...n.attributes]) n.removeAttribute(a.name);
+      if (style.cssText) n.setAttribute("style", style.cssText);
     }
   }
   walk(template.content);

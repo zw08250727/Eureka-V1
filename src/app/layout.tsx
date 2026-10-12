@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "@/features/markets/theme.css";
 
-const title = "EurekaMind · 个人与团队 AI 工作台";
-const description = "个人与团队 AI 工作台 产品交互原型";
+const title = "百智 / EurekaMind";
+const description = "记录会议、捕捉灵感，与团队协作。";
 
 export const metadata: Metadata = {
   title,

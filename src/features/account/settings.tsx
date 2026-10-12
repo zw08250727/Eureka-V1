@@ -1,8 +1,14 @@
 "use client";
+import { creditText, routeMarket } from "@/features/markets/config";
+
+import { marketStorage } from "@/features/markets/storage";
+
+import { creditSummary, creditGrants } from "@/features/spaces/model/credit-ledger";
 import { Select } from "@/components/ui/select";
 import { useEffect, useState } from "react";
 import type { SpacesController } from "@/features/spaces/use-spaces";
 import { M } from "@/features/spaces/model/store";
+import { timeBalance } from "@/features/spaces/model/time-packs";
 import PS from "@/features/spaces/model/subscription";
 import { openAccount } from "./experience";
 import { AvatarUpload } from "./avatar-upload";
@@ -50,7 +56,7 @@ export function AccountSettings({
       if (!active) return;
       try {
         const value = JSON.parse(
-          localStorage.getItem(`eureka:profile:${actor}`) || "null",
+          marketStorage.getItem(`eureka:profile:${actor}`) || "null",
         );
         if (value) { setProfile(value); setSavedProfile(value); }
       } catch {}
@@ -59,7 +65,9 @@ export function AccountSettings({
       active = false;
     };
   }, [actor]);
+  const cn = routeMarket() === "cn", summary = creditSummary(w);
   const entries = [
+    ...(cn && w.credits.grants ? creditGrants(w).filter(g => g.category === "membership" || (g.category === "gift" && g.id !== "opening")).map(g => ({ id: g.id, label: g.label, amount: g.amount, time: g.time })) : []),
     ...(w.rewards?.entries || []).map((e) => ({
       id: e.id,
       label: e.label,
@@ -70,7 +78,7 @@ export function AccountSettings({
       .filter((o) => o.status === "paid")
       .map((o) => ({
         id: o.id,
-        label: "充值 Credits",
+        label: creditText("充值 Credits"),
         amount: o.credits || 0,
         time: o.created,
       })),
@@ -97,14 +105,14 @@ export function AccountSettings({
             if (!next.name || !next.occupation) { setStatusError(true); setStatus("请填写昵称和职业类型"); return; }
             try {
               const key = `eureka:profile:${actor}`;
-              const previous = localStorage.getItem(key);
-              localStorage.setItem(key, JSON.stringify(next));
+              const previous = marketStorage.getItem(key);
+              marketStorage.setItem(key, JSON.stringify(next));
               try { controller.change((st) => {
                 if (actor === st.account.id) st.account.name = next.name;
                 const personal = st.spaces.find((w) => w.type === "personal");
                 if (personal) (personal.rewards ||= { entries: [] }).profileComplete = !!(next.avatar && next.name && next.occupation);
               }); } catch (error) {
-                if (previous === null) localStorage.removeItem(key); else localStorage.setItem(key, previous);
+                if (previous === null) marketStorage.removeItem(key); else marketStorage.setItem(key, previous);
                 throw error;
               }
               setProfile(next); setSavedProfile(next); setStatusError(false); setStatus("个人信息已保存");
@@ -125,7 +133,7 @@ export function AccountSettings({
           </label>
           <label>
             手机号
-            <input disabled value="演示账号未绑定" />
+            <input disabled value="未绑定" />
           </label>
           <label>
             邮箱
@@ -209,15 +217,16 @@ export function AccountSettings({
         <AccountStatus message={status} error={statusError}/>
       </div>
     );
-  if (tab === "Credits 明细")
+  if (tab === creditText("Credits 明细"))
     return (
       <div className="ex-settings-body">
         <div className="ex-summary">
           <span>{w.name} · 当前可用</span>
           <br />
-          <strong>{M.creditBalance(w).toLocaleString()}</strong> Credits{" "}
+          <strong>{M.creditBalance(w).toLocaleString()}</strong>{creditText(" Credits")}{" "}
           <button
-            className="ex-button"
+            className="ex-button credit-recharge-cta"
+            disabled={w.type === "team" && !M.admin(w, actor)}
             style={{ float: "right" }}
             onClick={() => openAccount("recharge")}
           >
@@ -225,7 +234,13 @@ export function AccountSettings({
           </button>
         </div>
         <div className="ex-grid">
-          {[
+          {(cn ? [
+            ["会员积分", summary.categories.membership],
+            ["任务积分", summary.categories.task],
+            ["充值积分", summary.categories.recharge],
+            ["赠送积分", summary.categories.gift],
+            ...(summary.categories.legacy ? [["原有积分余额", summary.categories.legacy]] : []),
+          ] : [
             [
               "任务奖励",
               (w.rewards?.entries || []).reduce((n, e) => n + e.amount, 0),
@@ -237,21 +252,22 @@ export function AccountSettings({
                 .reduce((n, o) => n + (o.credits || 0), 0),
             ],
             ["累计消耗", w.credits.used],
-          ].map(([label, n]) => (
+          ]).map(([label, n]) => (
             <div className="ex-rule" key={label}>
               {label}
               <br />
-              <strong>{Number(n).toLocaleString()} Credits</strong>
+              <strong>{Number(n).toLocaleString()}{creditText(" Credits")}</strong>
             </div>
           ))}
         </div>
-        <AccountTabs label="Credits 筛选" items={["全部", "获得", "消费"]} value={creditFilter} onChange={setCreditFilter} panelId="credits-history"/>
+        {cn && <p className="ex-muted">本月将过期积分 {summary.expiring.toLocaleString()} · 已过期 {summary.expired.toLocaleString()} · 累计消耗 {w.credits.used.toLocaleString()}</p>}
+        <AccountTabs label={creditText("Credits 筛选")} items={["全部", "获得", "消费"]} value={creditFilter} onChange={setCreditFilter} panelId="credits-history"/>
         <div className="ex-table-scroll" id="credits-history" role="tabpanel" aria-labelledby={`credits-history-tab-${["全部", "获得", "消费"].indexOf(creditFilter)}`} tabIndex={0}>
         <table className="ex-table">
           <thead>
             <tr>
               <th>明细</th>
-              <th>Credits 变动</th>
+              <th>{creditText("Credits 变动")}</th>
               <th>时间</th>
             </tr>
           </thead>
@@ -268,11 +284,14 @@ export function AccountSettings({
             ))}
           </tbody>
         </table>
-        {!visible.length && <div className="ex-empty">暂无此类明细<span>获得或使用 Credits 后，记录会显示在这里。</span></div>}
+        {!visible.length && <div className="ex-empty">暂无此类明细<span>{creditText("获得或使用 Credits 后，记录会显示在这里。")}</span></div>}
         </div>
       </div>
     );
-  if (tab === "录音转写时长")
+  if (tab === "录音转写时长") {
+    const balance = cn && sub ? timeBalance(w) : null;
+    const available = balance ? balance.quota + balance.packs : sub ? Math.max(0, sub.minutes - (w.transcriptionUsage?.used || 0)) : Infinity;
+    const additions = cn && ["全部", "获得"].includes(timeFilter) ? (w.timeOrders || []).filter(o => o.status === "paid") : [];
     return (
       <div className="ex-settings-body">
         <div className="ex-summary">
@@ -280,7 +299,7 @@ export function AccountSettings({
           <strong>
             {!sub
               ? w.status === "active" && Boolean(M.member(w, actor)) ? "Unlimited" : "转写权益已暂停"
-              : `${Math.max(0, sub.minutes - (w.transcriptionUsage?.used || 0)).toLocaleString()} 分钟`}
+              : (Number.isFinite(available) ? `${available.toLocaleString()} 分钟` : "无限录音转写时长")}
           </strong>
           <p>
             {w.name} · {sub?.plan || "Team"} ·{" "}
@@ -306,6 +325,7 @@ export function AccountSettings({
             </tr>
           </thead>
           <tbody>
+            {additions.map(o => <tr key={o.id}><td>{o.minutes} 分钟加时包</td><td>+{o.minutes} 分钟</td><td>{o.paidAt?.slice(0, 10)} · 有效期至 {o.validUntil?.slice(0, 10)}</td></tr>)}
             {(timeFilter === "全部" || timeFilter === "消费") &&
               (w.transcriptionUsage?.logs || []).map((l) => (
                 <tr key={l.id}>
@@ -316,10 +336,11 @@ export function AccountSettings({
               ))}
           </tbody>
         </table>
-        {(!["全部", "消费"].includes(timeFilter) || !w.transcriptionUsage?.logs?.length) && <div className="ex-empty">暂无此类记录<span>转写时长的变动将在这里保留。</span></div>}
+        {(!["全部", "消费"].includes(timeFilter) || !w.transcriptionUsage?.logs?.length) && !additions.length && <div className="ex-empty">暂无此类记录<span>转写时长的变动将在这里保留。</span></div>}
         </div>
         <p className="ex-muted">使用任务所属工作区的额度，工作区之间不合并。</p>
       </div>
     );
+  }
   return null;
 }

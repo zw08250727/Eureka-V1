@@ -1,4 +1,6 @@
 "use client";
+import { marketStorage } from "@/features/markets/storage";
+
 import { useEffect, useState } from "react";
 import type { Contact } from "./store";
 import type { ContactInteraction } from "./contact-rules";
@@ -24,8 +26,8 @@ export function useCustomerMeetings(person: Contact | undefined, actor: string, 
     const reload = () => {
       const meetings: CustomerMeeting[] = [];
       try {
-        const read = space === "personal" && actor === "zhang" ? createMeetingDetails(localStorage) : null;
-        const workspace = space !== "personal" ? M.get(createWorkspaceStore(localStorage).read(), space) : null;
+        const read = space === "personal" && actor === "zhang" ? createMeetingDetails(marketStorage) : null;
+        const workspace = space !== "personal" ? M.get(createWorkspaceStore(marketStorage).read(), space) : null;
         for (const event of new Map((person?.interactions || []).map((e) => [e.id, e])).values()) {
           if (!event.verifiedParticipation || !event.sourceAvailable) continue;
           try {

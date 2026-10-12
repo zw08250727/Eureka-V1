@@ -1,4 +1,7 @@
 "use client";
+
+import { marketStorage } from "@/features/markets/storage";
+
 import { Select } from "@/components/ui/select";
 import "./contacts-controls.css";
 import { CrmImportGuide } from "./crm-import-guide";
@@ -179,18 +182,18 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
     if (person) setSchedule({ ...newAction("schedule"), title: `跟进 ${person.name}`, participants: person.name, contactId: person.id });
   }
   function openModal(kind: ContactDialogKind, index: number | null = null) {
-    modalSnapshot.current = localStorage.getItem("baizhi-v14-contacts");
+    modalSnapshot.current = marketStorage.getItem("baizhi-v14-contacts");
     setModalPerson(person ? structuredClone(person) : undefined);
     setNoteIndex(index);
     setModal(kind);
   }
   function save(values: FormData) {
-    if (localStorage.getItem("baizhi-v14-contacts") !== modalSnapshot.current)
+    if (marketStorage.getItem("baizhi-v14-contacts") !== modalSnapshot.current)
       throw Error("另一页面已更新，请保留输入并重新打开后编辑");
     const kind = modal;
     if (kind !== "add" && modalPerson?.ownerId !== actor && !isAdmin) throw Error("仅所属成员可以维护客户资料");
     const contactId = String(values.get("person") || "");
-    const createdId = createContacts(localStorage, actor, space, kind === "add" ? actor : modalPerson?.ownerId || actor).change((all) => {
+    const createdId = createContacts(marketStorage, actor, space, kind === "add" ? actor : modalPerson?.ownerId || actor).change((all) => {
       const s = all.personal;
       if (kind === "add" || kind === "edit") {
         const name = String(values.get("name") || "").trim();
@@ -283,7 +286,7 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
     >
       {crmGuide && <CrmImportGuide onClose={()=>setCrmGuide(false)}/>}
       {sharingPerson && workspace && <RecipientDialog key={customerKey(sharingPerson)} w={workspace} actor={actor} owner={sharingPerson.ownerId} initial={sharingPerson.sharedWith} title={`团队共享 · ${sharingPerson.name}`} onClose={() => setSharing(null)} onSave={users => {
-        createContacts(localStorage, actor, space, sharingPerson.ownerId || actor).change(s => {
+        createContacts(marketStorage, actor, space, sharingPerson.ownerId || actor).change(s => {
           const current = s.personal.contacts.find(p => p.id === sharingPerson.id);
           if (!current) throw Error("联系人已更新或移交，请刷新");
           current.sharedWith = users;
@@ -430,7 +433,7 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
                       readonly={readonly}
                       onToggleTodo={(meetingId, index, todo) => {
                         try {
-                          setCustomerTodoCompleted(localStorage, actor, space, person.ownerId || actor,
+                          setCustomerTodoCompleted(marketStorage, actor, space, person.ownerId || actor,
                             person.id, meetingId, index, todo, !todo.completed);
                           refresh();
                         } catch (e) { setToast((e as Error).message); refresh(); }
@@ -439,7 +442,7 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
                       onDeleteNote={(index) => {
                         if (!window.confirm("删除这条备注？")) return;
                         try {
-                          createContacts(localStorage, actor, space, person.ownerId || actor).change((s) => {
+                          createContacts(marketStorage, actor, space, person.ownerId || actor).change((s) => {
                             s.personal.notes[person.id]?.splice(index, 1);
                           });
                           refresh();

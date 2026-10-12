@@ -1,3 +1,4 @@
+import { marketStorage } from "@/features/markets/storage";
 import { useLivePersonal } from "@/features/personal/calendar-dialogs";
 import { money, scheduleTime } from "@/features/personal/asset-rules";
 import { todayRecords } from "@/features/workbench/model/selectors";
@@ -13,7 +14,7 @@ export function PrivateOverview({ space, actor, now, readOnly }: {
 }) {
   const { data, error, repo, refresh } = useLivePersonal(actor, space);
   const [notice, setNotice] = useState("");
-  const adminView = typeof window !== "undefined" && M.admin(M.get(createWorkspaceStore(localStorage).read(), space), actor);
+  const adminView = typeof window !== "undefined" && M.admin(M.get(createWorkspaceStore(marketStorage).read(), space), actor);
   const r = todayRecords(data?.actions.records || [], data?.thoughts || [], now);
   const link = (view: "calendar" | "thoughts", id = "") => appUrl(view, id, space, actor);
   function toggle(record: ActionRecord) {

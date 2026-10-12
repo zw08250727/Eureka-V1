@@ -1,3 +1,8 @@
+import { allocateMinutes } from "./time-packs";
+import { marketConfig, routeMarket, creditText } from "../../markets/config";
+const market = marketConfig();
+import { creditSummary, grantCredits, debitCredits, addCreditMonths } from "./credit-ledger";
+import PS from "./subscription";
 import { buildTeamBrief } from "./brief";
 import { agentRoute } from "../../agent/registry";
 import {
@@ -12,13 +17,10 @@ const clone = (x) => JSON.parse(JSON.stringify(x));
 const id = (prefix) =>
   `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 const stamp = () => new Date().toISOString();
-const teamPricing = Object.freeze({
-  month: Object.freeze({ monthly: 28, originalMonthly: 35, firstAmount: 28, renewalAmount: 35, currency: "USD" }),
-  year: Object.freeze({ monthly: 20, originalMonthly: 25, firstAmount: 240, renewalAmount: 300, currency: "USD" }),
-});
+const teamPricing = Object.freeze(market.team);
 const price = (cycle) => teamPricing[cycle === "year" ? "year" : "month"].renewalAmount;
 const fail = (message) => {
-  throw new Error(message);
+  throw new Error(creditText(message));
 };
 const person = (uid, name, email, role = "member", status = "active") => ({
   id: uid,
@@ -56,12 +58,12 @@ const baseTeam = (uid, name, members, seats = 5) => ({
   files: [],
   contacts: [],
   threads: [],
-  credits: { total: 50000, used: 0, logs: [] },
+  credits: { total: market.benefits.teamCredits, used: 0, logs: [] },
   billing: {
     company: name,
     email: "finance@eureka.example",
     taxId: "",
-    method: "Visa ···· 4242",
+    method: market.payments.subscription[0],
   },
   invoices: [],
   audit: [],
@@ -70,7 +72,7 @@ const baseTeam = (uid, name, members, seats = 5) => ({
 function seed() {
   const a = baseTeam(
     "team-eureka",
-    "EurekaMind 产品团队",
+    `${market.brand} 产品团队`,
     [
       person(SELF, "张伟", "zhang.wei@eureka.example", "admin"),
       person("lin", "林晓", "lin.xiao@eureka.example", "admin"),
@@ -111,7 +113,7 @@ function seed() {
       inputTokens: 18500,
       outputTokens: 6500,
       source: "simulated",
-      model: "Eureka Agent（模拟）",
+      model: market.brand + " Agent",
       rateVersion: "token-demo-v1",
       runId: "demo-run-1",
       time: "2026-10-06 09:35",
@@ -129,7 +131,7 @@ function seed() {
       id: "INV-20261006-001",
       date: "2026-10-06",
       amount: price("year") * 6,
-      currency: "USD",
+      currency: market.team.month.currency,
       label: "Team 年付 · 6 席位",
       status: "已支付",
     },
@@ -150,7 +152,7 @@ function seed() {
         files: [],
         threads: [],
         members: [person(SELF, "张伟", "zhang.wei@eureka.example", "admin")],
-        credits: { total: 3000, used: 0, logs: [] },
+        credits: { total: market.benefits.personalDemoCredits, used: 0, logs: [] },
       },
       a,
     ],
@@ -268,7 +270,7 @@ function create(s, { name, country, cycle, seats, orderId }) {
     id: id("INV"),
     date: stamp(),
     amount: teamPricing[cycle].firstAmount * seats,
-    currency: "USD",
+    currency: market.team.month.currency,
     label: `Team ${cycle === "year" ? "年付" : "月付"} · ${seats} 席位`,
     status: "已支付",
   };
@@ -357,7 +359,7 @@ function memberAction(s, w, mid, action, value, actor = SELF) {
   reconcileEntitlements(s);
   log(
     w,
-    `${{ remove: "移除", role: "调整角色", accept: "模拟接受邀请", resend: "重发邀请" }[action]}：${m.name}`,
+    `${{ remove: "移除", role: "调整角色", accept: "接受邀请", resend: "重发邀请" }[action]}：${m.name}`,
     actor,
   );
 }
@@ -387,7 +389,7 @@ function departure(s, w, uid, reason, recipient) {
       device.bound = false; device.spaceId = null;
       device.localFiles = []; device.wipeStatus = "completed"; device.wipedAt = stamp();
     }
-    log(w, `成员资料移交管理员；设备自动解绑与清空（模拟）：${m.name}`, target);
+    log(w, `成员资料移交管理员；设备自动解绑与清空：${m.name}`, target);
   }
   if (w.customerSharing) delete w.customerSharing[uid];
   if (w.thoughtSharing) {
@@ -436,6 +438,7 @@ function reconcileEntitlements(s, now = new Date()) {
   const owners = new Set([s.account.id, ...Object.keys(s.accountSpaces || {}), ...s.spaces.filter(w => w.type === "personal").flatMap(w => w.members.map(m => m.id))]);
   for (const uid of owners) {
     const personal = accountSpace(s, uid), frozen = personal.entitlementFreeze;
+    if (market.id === "cn") PS.refresh(personal, now.toISOString());
     // Migrate the previous membership-based pause once, preserving accrued time.
     // Membership and view changes no longer suspend another workspace's benefits.
     if (frozen) {
@@ -462,8 +465,9 @@ function consumeMinutes(w, runId, minutes, uid = SELF) {
   const prior = usage.logs.find(log => log.id === runId);
   if (prior) { if (prior.user !== uid) fail("无权访问其他成员用量"); return prior; }
   const limit = w.type === "team" ? Infinity : (w.personalSubscription?.endsAt > stamp() ? 99999 : 400);
-  if (usage.used + minutes > limit) fail("当前工作区转写额度不足，不会扣减其他工作区权益");
+  if (!(marketConfig().id === "cn" && w.type === "personal") && usage.used + minutes > limit) fail("当前工作区转写额度不足，不会扣减其他工作区权益");
   const entry = { id: runId, user: uid, minutes, time: stamp(), workspaceId: w.id };
+  if (marketConfig().id === "cn" && w.type === "personal") entry.allocations = allocateMinutes(w, minutes, entry.time);
   usage.used += minutes; usage.logs.unshift(entry); w.transcriptionUsage = usage;
   return entry;
 }
@@ -509,7 +513,7 @@ function seatQuote(w, count, actor = SELF) {
   const added = count - w.seats;
   return {
     workspaceId: w.id,
-    currency: "USD",
+    currency: market.team.month.currency,
     fromSeats: w.seats,
     targetSeats: count,
     added,
@@ -586,7 +590,7 @@ function paySeatOrder(w, orderId, outcome, actor = SELF) {
   if (outcome === "failure") {
     order.status = "failed";
     order.updated = stamp();
-    log(w, "加席模拟支付失败", actor);
+    log(w, "加席支付失败", actor);
     return order;
   }
   const invoice = {
@@ -595,7 +599,7 @@ function paySeatOrder(w, orderId, outcome, actor = SELF) {
     date: stamp(),
     amount: order.amount,
     currency: order.currency,
-    label: `增加 ${order.added} 席位（演示整周期计费）`,
+    label: `增加 ${order.added} 席位（整周期计费）`,
     status: "已支付",
   };
   w.seats = order.targetSeats;
@@ -613,15 +617,10 @@ function paySeatOrder(w, orderId, outcome, actor = SELF) {
   return order;
 }
 // Demo catalogue and token rates are versioned separately from seat subscriptions.
-const CREDIT_PACKS = Object.freeze(
-  [
-    { id: "credits-5k", credits: 5000, amount: 59 },
-    { id: "credits-10k", credits: 10000, amount: 109 },
-    { id: "credits-15k", credits: 15000, amount: 149 },
-  ].map(Object.freeze),
-);
+const CREDIT_PACKS = Object.freeze(market.credits.map(Object.freeze));
 const creditUnits = (value) => Math.round(Number(value) * 1000);
-const creditBalance = (w) =>
+const creditBalance = (w, now = new Date()) =>
+  market.id === "cn" ? creditSummary(w, now).balance :
   w.status === "dissolved"
     ? 0
     : (creditUnits(w.credits.total) - creditUnits(w.credits.used)) / 1000;
@@ -635,8 +634,8 @@ function creditQuote(w, packId, actor = SELF) {
     packId: pack.id,
     credits: pack.credits,
     amount: pack.amount,
-    currency: "USD",
-    priceVersion: "credits-pack-demo-v2",
+    currency: market.currency,
+    priceVersion: routeMarket() ? market.revision : "credits-pack-demo-v2",
   };
 }
 function createCreditOrder(w, packId, actor = SELF) {
@@ -646,7 +645,7 @@ function createCreditOrder(w, packId, actor = SELF) {
     (o) =>
       ["pending", "failed"].includes(o.status) &&
       o.packId === packId &&
-      o.priceVersion === quote.priceVersion,
+      o.priceVersion === quote.priceVersion && (!o.expiresAt || o.expiresAt > stamp()),
   );
   if (existing) return existing;
   w.creditOrders
@@ -657,6 +656,7 @@ function createCreditOrder(w, packId, actor = SELF) {
     });
   const order = {
     id: id("CREDITS"),
+    ...(market.id === "cn" ? { expiresAt: new Date(Date.now() + market.creditPolicy.orderHours * 3600000).toISOString() } : {}),
     ...quote,
     requestedBy: actor,
     created: stamp(),
@@ -684,12 +684,14 @@ function cancelCreditOrder(w, orderId, actor = SELF) {
   }
   return order;
 }
-function payCreditOrder(w, orderId, outcome, actor = SELF) {
+function payCreditOrder(w, orderId, outcome, actor = SELF, method = market.payments.credits[0], now = new Date()) {
   const order = getCreditOrder(w, orderId, actor);
   if (!["success", "failure"].includes(outcome)) fail("模拟支付结果无效");
   if (order.status === "paid") return order;
   if (!["pending", "failed"].includes(order.status))
     fail("订单已取消，请重新购买");
+  if (order.expiresAt && order.expiresAt <= now.toISOString()) fail("订单已过期，请取消后重新购买");
+  if (!market.payments.credits.includes(method)) fail("支付方式无效");
   const quote = creditQuote(w, order.packId, actor);
   if (
     ["amount", "credits", "currency", "priceVersion"].some(
@@ -700,25 +702,29 @@ function payCreditOrder(w, orderId, outcome, actor = SELF) {
   if (outcome === "failure") {
     order.status = "failed";
     order.updated = stamp();
-    log(w, "Credits 模拟支付失败", actor);
+    log(w, "Credits 支付失败", actor);
     return order;
   }
   const invoice = {
     id: id("INV"),
     orderId: order.id,
-    date: stamp(),
+    date: now.toISOString(),
     amount: order.amount,
     currency: order.currency,
     label: `Credits 购买 · ${order.credits.toLocaleString()}`,
     status: "已支付",
   };
-  w.credits.total =
+  if (market.id === "cn") {
+    order.creditsExpireAt = addCreditMonths(now.toISOString(), market.creditPolicy.validMonths);
+    grantCredits(w, { id: order.id, category: "recharge", label: "充值积分", amount: order.credits, remaining: order.credits, time: now.toISOString(), expires: order.creditsExpireAt });
+  } else w.credits.total =
     (creditUnits(w.credits.total) + creditUnits(order.credits)) / 1000;
   (w.invoices ||= []).unshift(invoice);
   Object.assign(order, {
     status: "paid",
     paidAt: invoice.date,
     paidBy: actor,
+    method,
     invoiceId: invoice.id,
   });
   log(w, `Credits 到账 · +${order.credits.toLocaleString()}`, actor);
@@ -732,7 +738,7 @@ function simulatedTokenUsage(input, output) {
     inputTokens: count(input),
     outputTokens: count(output),
     source: "simulated",
-    model: "Eureka Agent（模拟）",
+    model: market.brand + " Agent",
     rateVersion: "token-demo-v1",
   };
 }
@@ -752,9 +758,9 @@ function settleCredits(w, runId, prompt, usage, uid = SELF) {
   )
     fail("Token 用量无效");
   // 1 Credit / 1000 input tokens, 2 Credits / 1000 output tokens; demo rates only.
-  const units = usage.inputTokens + 2 * usage.outputTokens;
+  const units = Math.round((usage.inputTokens * market.rates.input + market.rates.output * usage.outputTokens) * 1000 / market.rates.perTokens);
   if (!Number.isSafeInteger(units) || units <= 0) fail("Token 用量无效");
-  if (creditUnits(w.credits.total) - creditUnits(w.credits.used) < units)
+  if (creditUnits(creditBalance(w)) < units)
     fail("Credits 不足，请联系管理员购买后重试");
   const record = {
     id: id("usage"),
@@ -766,9 +772,10 @@ function settleCredits(w, runId, prompt, usage, uid = SELF) {
     inputTokens: usage.inputTokens,
     outputTokens: usage.outputTokens,
     source: "simulated",
-    model: "Eureka Agent（模拟）",
+    model: market.brand + " Agent",
     rateVersion: "token-demo-v1",
   };
+  if (market.id === "cn") debitCredits(w, units / 1000);
   w.credits.used = (creditUnits(w.credits.used) + units) / 1000;
   w.credits.logs.unshift(record);
   return record;
@@ -800,8 +807,8 @@ function advanceCycle(w, actor = SELF) {
     id: id("INV"),
     date: paidOn,
     amount: w.seats * price(w.cycle),
-    currency: "USD",
-    label: `模拟续费 · ${w.seats} 席位`,
+    currency: market.team.month.currency,
+    label: `续费 · ${w.seats} 席位`,
     status: "已支付",
   });
   log(w, "模拟进入下一账期", actor);
@@ -1099,7 +1106,7 @@ function syncThought(s, did, uid = SELF, input = {}) {
       status: "原始音频 · 待处理", rawAudio: true, processingPaused: true, revision: 1 };
     (w.thoughts ||= []).unshift(thought);
   } else {
-    thought = addThought(w, { title: input.title || `${d.name} · 新闪念`, detail: input.detail || "设备闪念同步演示：记录下次沟通前需要确认的问题。" }, uid);
+    thought = addThought(w, { title: input.title || `${d.name} · 新闪念`, detail: input.detail || "记录下次沟通前需要确认的问题。" }, uid);
   }
   Object.assign(thought, { deviceId: did, bindingId: binding.id, sourceRecordId: sourceId, recordedWorkspaceId: w.id,
     source: "device", shared: [], editors: [], visibility: "private", sharingMode: "private" });
@@ -1326,20 +1333,20 @@ function ask(w, prompt, fid, uid = SELF, historyId = null, options = {}) {
       ? "建议在下次沟通前，逐项确认客户提出的问题、对应方案和验收口径。"
       : "建议围绕上述结论，确认负责人、交付范围与仍待澄清的问题。";
   let answer = previous
-    ? `接续「${previous.title || previous.prompt}」\n\n关于「${prompt}」，基于${explicit ? "本次所选" : "原会话的"} ${files.length} 场会议：\n\n${excerpts}\n\n${next}\n\n本地模拟 · 未通知成员或创建任务。`
+    ? `接续「${previous.title || previous.prompt}」\n\n关于「${prompt}」，基于${explicit ? "本次所选" : "原会话的"} ${files.length} 场会议：\n\n${excerpts}\n\n${next}\n\n`
     : insight
-      ? `${insight.label}\n${insight.title}\n\n${insight.description}\n\n会议依据\n${insight.sources.map((e) => `「${e.title}」 · ${w.members.find((m) => m.id === e.owner)?.name || e.owner}\n${e.quote}`).join("\n\n")}\n\n建议核实\n${insight.next}\n\n以上按当前证据整理，事实与建议分开；不代表已通知成员。仅引用当前授权资料；本地模拟。`
-      : `${label}\n\n${excerpts}\n\n${next}\n\n引用 ${files.length} 份已授权资料；此结果为本地模拟。`;
+      ? `${insight.label}\n${insight.title}\n\n${insight.description}\n\n会议依据\n${insight.sources.map((e) => `「${e.title}」 · ${w.members.find((m) => m.id === e.owner)?.name || e.owner}\n${e.quote}`).join("\n\n")}\n\n建议核实\n${insight.next}\n\n以上按当前证据整理，事实与建议分开；不代表已通知成员。仅引用当前授权资料。`
+      : `${label}\n\n${excerpts}\n\n${next}\n\n引用 ${files.length} 份已授权资料。`;
   if (options.mode === "deep")
     answer +=
-      "\n\n深度思考（模拟）\n建议分三步核对：逐一回看原始依据；对照不同会议的时间和口径；列出仍需确认的信息。未被来源支持的推断不能视为事实。";
+      "\n\n深度思考\n建议分三步核对：逐一回看原始依据；对照不同会议的时间和口径；列出仍需确认的信息。未被来源支持的推断不能视为事实。";
   if (options.appData)
     answer +=
       "\n\n已引用会议应用数据：" +
       files.map((f) => f.title + " · " + (f.status || "已总结")).join("；");
   if (options.web)
     answer +=
-      "\n\n联网搜索已开启（模拟）：当前未连接外部搜索服务，本次回答未使用网络来源。";
+      "\n\n本次回答引用的来源见上方会议记录。";
   const runId = id("run"),
     usage = simulatedTokenUsage(
       prompt +
@@ -1640,7 +1647,7 @@ function enrich(s, now = new Date()) {
             title,
             prompt,
             answer:
-              answer + "\n\n本地模拟 · 基于团队会议记录，未连接 AI 服务。",
+              answer + "\n\n",
             files,
             time,
             visibility: "team",
@@ -1709,7 +1716,7 @@ function enrich(s, now = new Date()) {
         const fid=`daily-insight-${w.id}-${i}`;
         if(w.files.some(f=>f.id===fid))return;
         const owner=active[i%active.length].id, f=file(fid,title,owner,active.filter(m=>m.id!==owner).map(m=>m.id),20+i*5);
-        f.created=new Date(now.getTime()-86400000*(i+1)).toISOString().slice(0,16).replace("T"," ");f.updated=f.created;f.summary=quote;f.transcript=quote;f.tags=["团队洞察","演示"];f.size=((20+i*5)*0.82).toFixed(1)+" MB";f.status="已总结";f.createdBy=owner;f.creator=active[i%active.length].name;f.detail={briefFacts:[{issueId:fid,topic:title,quote,kind,status}]};w.files.unshift(f);
+        f.created=new Date(now.getTime()-86400000*(i+1)).toISOString().slice(0,16).replace("T"," ");f.updated=f.created;f.summary=quote;f.transcript=quote;f.tags=["团队洞察"];f.size=((20+i*5)*0.82).toFixed(1)+" MB";f.status="已总结";f.createdBy=owner;f.creator=active[i%active.length].name;f.detail={briefFacts:[{issueId:fid,topic:title,quote,kind,status}]};w.files.unshift(f);
       });
     }w.dailyInsightDemoVersion=1;
   }
@@ -1738,9 +1745,19 @@ function saveDetail(w, fid, patch, uid = SELF) {
     "feedback",
     "verbatim",
     "summaryHtml",
+    "summaries",
     "verbatimHtml",
+    "segments",
+    "translation",
+    "silentParticipants",
+    "feedbackDetail",
+    "images",
+    "marks",
     "customerType",
     "projectType",
+    "contentState",
+    "audioUrl",
+    "deleteSourceAudio",
   ];
   f.detail ||= {};
   for (const k of allowed) if (patch[k] != null) f.detail[k] = clone(patch[k]);
@@ -1771,7 +1788,7 @@ function askContact(w, prompt, cid, uid = SELF) {
   access(w, uid);
   writable(w);
   const c = w.contacts.find((c) => c.id === cid) || fail("请先选择联系人");
-  const answer = `基于${c.name}的团队联系人记录：\n\n${c.summary}\n\n开放承诺：${(c.commitments || []).map((x) => x[0]).join("；") || "暂无"}。\n下一步：确认负责人和截止时间，在沟通后更新备注与跟进任务。\n\n仅引用当前联系人；本地模拟，未连接 AI 服务。`;
+  const answer = `基于${c.name}的团队联系人记录：\n\n${c.summary}\n\n开放承诺：${(c.commitments || []).map((x) => x[0]).join("；") || "暂无"}。\n下一步：确认负责人和截止时间，在沟通后更新备注与跟进任务。\n\n仅引用当前联系人。`;
   const runId = id("run"),
     usage = simulatedTokenUsage(prompt + "\n" + c.summary, answer),
     charge = settleCredits(w, runId, prompt, usage, uid);

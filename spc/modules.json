@@ -1,0 +1,184 @@
+{
+  "version": "1.0",
+  "rulesVersion": "rules-20261012-05",
+  "modules": [
+    {
+      "id": "identity",
+      "name": "账号与工作区",
+      "view": "auth",
+      "owner": "待认领",
+      "status": "待模块 PM 评审",
+      "chapters": [
+        "auth",
+        "workspaces",
+        "members"
+      ],
+      "sources": [
+        "src/features/auth",
+        "src/features/spaces",
+        "src/features/enterprise",
+        "src/features/markets/workbench.tsx"
+      ],
+      "dependencies": [
+        "subscription",
+        "connectors"
+      ],
+      "rules": [
+        "MARKET-01",
+        "ACCOUNT-01",
+        "SPACE-01",
+        "ACCESS-01",
+        "ENTERPRISE-01",
+        "AUTH-GUEST-01"
+      ]
+    },
+    {
+      "id": "subscription",
+      "name": "订阅与席位",
+      "view": "subscription",
+      "owner": "待认领",
+      "status": "待模块 PM 评审",
+      "chapters": [
+        "personal-subscription",
+        "billing",
+        "team-create"
+      ],
+      "sources": [
+        "src/features/spaces/model/subscription.js",
+        "src/features/spaces/billing.tsx",
+        "src/features/spaces/model/time-packs.ts",
+        "src/features/spaces/domestic-membership.tsx"
+      ],
+      "dependencies": [
+        "identity",
+        "credits"
+      ],
+      "rules": [
+        "RIGHTS-01",
+        "ASYNC-01",
+        "EXPIRE-01",
+        "CN-MEMBER-01",
+        "CN-TIME-01"
+      ]
+    },
+    {
+      "id": "credits",
+      "name": "Credits",
+      "view": "credits",
+      "owner": "待认领",
+      "status": "待模块 PM 评审",
+      "chapters": [
+        "credits"
+      ],
+      "sources": [
+        "src/features/account/rewards.ts",
+        "src/features/account/experience.tsx",
+        "src/features/spaces/model/credit-ledger.ts",
+        "docs/baizhi-billing-reference.md"
+      ],
+      "dependencies": [
+        "subscription",
+        "agent"
+      ],
+      "rules": [
+        "RIGHTS-01",
+        "ASYNC-01",
+        "CN-POINTS-01",
+        "CN-POINTS-02",
+        "CN-POINTS-03"
+      ]
+    },
+    {
+      "id": "agent",
+      "name": "Agent",
+      "view": "home",
+      "owner": "待认领",
+      "status": "待模块 PM 评审",
+      "chapters": [
+        "agent",
+        "agent-process"
+      ],
+      "sources": [
+        "src/features/agent"
+      ],
+      "dependencies": [
+        "credits",
+        "connectors",
+        "meetings",
+        "calendar"
+      ],
+      "rules": [
+        "ASYNC-01",
+        "ACCESS-01"
+      ]
+    },
+    {
+      "id": "connectors",
+      "name": "连接器",
+      "view": "connectors",
+      "owner": "待认领",
+      "status": "待模块 PM 评审",
+      "chapters": [
+        "connectors"
+      ],
+      "sources": [
+        "src/features/connectors"
+      ],
+      "dependencies": [
+        "identity",
+        "agent"
+      ],
+      "rules": [
+        "MARKET-01",
+        "CONNECT-01"
+      ]
+    },
+    {
+      "id": "meetings",
+      "name": "会议与录音",
+      "view": "home",
+      "owner": "待认领",
+      "status": "待模块 PM 评审",
+      "chapters": [
+        "recording",
+        "meeting-list",
+        "meeting-detail"
+      ],
+      "sources": [
+        "src/features/meetings"
+      ],
+      "dependencies": [
+        "identity",
+        "agent",
+        "calendar"
+      ],
+      "rules": [
+        "SHARE-01",
+        "ASYNC-01",
+        "EXPIRE-01"
+      ]
+    },
+    {
+      "id": "calendar",
+      "name": "日程与待办",
+      "view": "calendar",
+      "owner": "待认领",
+      "status": "待模块 PM 评审",
+      "chapters": [
+        "thoughts"
+      ],
+      "sources": [
+        "src/features/personal/calendar.tsx"
+      ],
+      "dependencies": [
+        "meetings",
+        "agent",
+        "connectors"
+      ],
+      "rules": [
+        "SHARE-01",
+        "SPACE-01"
+      ]
+    }
+  ]
+}

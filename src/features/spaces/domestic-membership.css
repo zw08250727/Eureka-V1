@@ -1,0 +1,319 @@
+/* Keep PersonalBilling's layout; scope domestic additions to this page. */
+.cn-membership {
+  max-width: 1140px;
+  margin: 0 auto;
+  color: var(--market-ink, #262626);
+}
+
+.cn-membership .ps-page-header h1 {
+  font-size: 26px;
+  line-height: 1.4;
+  margin: 0 0 8px;
+}
+
+.cn-membership .ps-page-header p {
+  color: #595959;
+  font-size: 14px;
+  line-height: 1.8;
+  margin: 0;
+}
+
+.cn-membership .ps-page-header nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cn-membership .ps-page-header button,
+.cn-membership .ps-plan-footer .link {
+  min-height: 36px;
+  font-size: 13px;
+}
+
+.cn-membership .cn-member-account .cn-member-identity {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.cn-member-identity > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.cn-member-identity h2 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cn-membership .cn-member-identity .ws-mini-avatar {
+  width: 44px;
+  height: 44px;
+  background: var(--market-soft, #f2f3f5);
+  color: var(--market-ink, #262626);
+  font-size: 18px;
+}
+
+.cn-membership .cn-member-account small,
+.cn-membership .cn-member-account p {
+  color: #595959;
+  font-size: 12px;
+}
+
+.cn-member-pack-balance {
+  display: block;
+  margin-top: 4px;
+}
+
+.cn-membership .cn-member-quota progress {
+  accent-color: var(--market-accent, #165dff);
+}
+
+.cn-member-tabs,
+.cn-member-tiers {
+  display: flex;
+  width: fit-content;
+  max-width: 100%;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 8px;
+  background: var(--market-soft, #f2f3f5);
+  margin: 0 auto 24px;
+}
+
+.cn-member-tabs button,
+.cn-member-tiers button {
+  flex: 1;
+  min-height: 36px;
+  padding: 8px 24px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: #595959;
+  cursor: pointer;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.cn-member-tabs button[aria-selected="true"],
+.cn-member-tiers button[aria-pressed="true"] {
+  background: #fff;
+  border-color: var(--market-border, #ebebeb);
+  color: var(--market-ink, #262626);
+  font-weight: 600;
+}
+
+.cn-member-tiers {
+  margin: 24px auto 8px;
+}
+
+.cn-member-tier-description {
+  margin: 0;
+  text-align: center;
+  color: #595959;
+  font-size: 12px;
+}
+
+.cn-membership .ps-benefit-strip {
+  color: #595959;
+}
+
+.cn-membership .cn-member-cycles .ps-plan-option {
+  min-width: 0;
+  color: var(--market-ink, #262626);
+  border-radius: 8px;
+}
+
+.cn-membership .cn-member-cycles .cn-member-total {
+  color: var(--market-ink, #262626);
+}
+
+.cn-membership .cn-member-cycles .ps-price-note,
+.cn-membership .cn-member-cycles dt,
+.cn-membership .cn-member-cycles strong small {
+  color: #595959;
+  font-size: 12px;
+}
+
+.cn-membership .cn-member-cycles dd {
+  background: var(--market-soft, #f2f3f5);
+  color: var(--market-ink, #262626);
+}
+
+.cn-membership .cn-member-cycles .ps-saving {
+  font-size: 12px;
+}
+
+.cn-membership .cn-member-buy:disabled {
+  cursor: default;
+  opacity: .55;
+}
+
+.cn-membership .cn-member-benefits h3 {
+  font-size: 16px;
+}
+
+.cn-membership .cn-member-benefits p {
+  color: #595959;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.cn-member-benefits ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 24px;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cn-member-benefits li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.cn-member-benefits li svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.cn-member-benefits li:nth-child(-n+3) {
+  font-weight: 600;
+}
+
+.cn-time-packs {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.cn-time-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.cn-time-options button {
+  position: relative;
+  min-width: 0;
+  padding: 32px 16px 16px;
+  text-align: left;
+  border: 1px solid var(--market-border, #ebebeb);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--market-ink, #262626);
+  cursor: pointer;
+}
+
+.cn-time-options button[aria-pressed="true"] {
+  border-color: var(--market-accent, #165dff);
+  box-shadow: 0 0 0 1px var(--market-accent, #165dff);
+  background: #f7f9ff;
+}
+
+.cn-time-options strong {
+  display: block;
+  font-size: 23px;
+  margin-bottom: 8px;
+}
+
+.cn-time-options small {
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.cn-time-options button > span:not(.cn-time-badge),
+.cn-time-options del {
+  font-size: 12px;
+  color: #595959;
+}
+
+.cn-time-options button > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 40px;
+  padding-top: 12px;
+  border-top: 1px solid var(--market-border, #ebebeb);
+}
+
+.cn-time-options b {
+  font-size: 18px;
+}
+
+.cn-time-badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 4px 8px;
+  border-radius: 8px 0 8px 0;
+  background: var(--market-accent, #165dff);
+  color: #fff;
+  font-size: 12px;
+}
+
+.cn-time-rules {
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 2;
+  color: #595959;
+  margin: 24px 0;
+}
+
+.cn-membership .cn-time-buy {
+  display: block;
+  min-width: 240px;
+  min-height: 44px;
+  margin: 0 auto;
+}
+
+.cn-member-pending {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--market-border, #ebebeb);
+  border-radius: 8px;
+  background: var(--market-soft, #f2f3f5);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+
+.cn-membership button:focus-visible {
+  outline: 2px solid var(--market-accent, #165dff);
+  outline-offset: 3px;
+}
+
+@media (max-width: 600px) {
+  .cn-member-tabs button,
+  .cn-member-tiers button,
+  .cn-membership .ps-page-header button,
+  .cn-membership .ps-plan-footer .link {
+    min-height: 44px;
+  }
+
+  .cn-member-benefits ul,
+  .cn-time-options {
+    grid-template-columns: 1fr;
+  }
+
+  .cn-member-pending {
+    flex-wrap: wrap;
+  }
+
+  .cn-time-options button > div {
+    margin-top: 16px;
+  }
+
+  .cn-membership .cn-time-buy {
+    width: 100%;
+    min-width: 0;
+  }
+}

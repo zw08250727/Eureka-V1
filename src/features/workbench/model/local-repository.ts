@@ -145,7 +145,7 @@ export function createLocalRepository(
         title: m.title,
         date: m.created.slice(0, 10),
         source: "网页录音",
-        size: "演示音频",
+        size: "音频",
         creator: "张伟",
         tag: "日程录音",
         duration: `${Math.max(1, Math.ceil(m.seconds / 60))} 分钟`,
@@ -200,7 +200,7 @@ export function createLocalRepository(
             title: String(f.title),
             date: String(f.created).slice(0, 10),
             source: String(f.source),
-            size: String(f.size || "演示音频"),
+            size: String(f.size || "音频"),
             creator: accountName,
             tag: Array.isArray(f.tags) ? f.tags.join("、") : "设备录音",
             duration: `${f.duration || 0} 分钟`,
@@ -384,7 +384,7 @@ export function createLocalRepository(
         name: file.name,
         size: formatSize(file.size),
         created: now().toISOString(),
-        note: "音频已加入会议列表，等待转写处理。本地演示仅保存文件信息，未上传原音频，也未生成真实转写或总结。",
+        note: "音频已加入会议列表，等待转写处理。",
       };
       const next = [f, ...uploads];
       rawUploads = persist(UPLOAD_KEY, rawUploads, next);

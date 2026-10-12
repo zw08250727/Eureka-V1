@@ -8,7 +8,7 @@ import {
   scheduleTime,
 } from "@/features/personal/asset-rules";
 import { RefIcon as Icon } from "@/features/reference/symbols";
-import { navigateLegacy } from "@/lib/routes";
+import { navigateLegacy, type AppView } from "@/lib/routes";
 import { todayRecords } from "../model/selectors";
 import type { AgentContext, WorkbenchSnapshot } from "../model/types";
 export function dailyContext(data: WorkbenchSnapshot, now: Date): AgentContext {
@@ -41,7 +41,11 @@ export function TodayOverview({
   agentOpen,
   readOnly = false,
   headerActions,
+  guest = false,
+  onNavigate = navigateLegacy,
 }: {
+  guest?: boolean;
+  onNavigate?: (view: AppView, id?: string) => void;
   data: WorkbenchSnapshot;
   now: Date;
   title: string;
@@ -71,7 +75,7 @@ export function TodayOverview({
               disabled={readOnly}
               id="module-start-recording"
               type="button"
-              onClick={() => navigateLegacy("recording")}
+              onClick={() => onNavigate("recording")}
             >
               <Icon name="mic" />
               <span>
@@ -135,7 +139,7 @@ export function TodayOverview({
                         <button
                           className="brief-inline-link"
                           onClick={() =>
-                            navigateLegacy("calendar", r.upcoming!.id)
+                            onNavigate("calendar", r.upcoming!.id)
                           }
                         >
                           {`${scheduleTime(r.upcoming)} 的${r.upcoming.title}`}
@@ -146,7 +150,7 @@ export function TodayOverview({
                     )}
                   </>
                 ) : (
-                  <>今天没有日程，可以留出一段专注时间</>
+                  <>{guest ? "登录后，日程、待办与灵感在这里汇聚" : "今天没有日程，可以留出一段专注时间"}</>
                 )}
                 {pending.length ? (
                   <>
@@ -166,7 +170,7 @@ export function TodayOverview({
                     ))}
                   </>
                 ) : (
-                  <>{r.todos.length ? "，待办已全部完成" : "，暂无待办"}</>
+                  <>{guest ? "" : r.todos.length ? "，待办已全部完成" : "，暂无待办"}</>
                 )}
                 。
               </p>
@@ -203,7 +207,7 @@ export function TodayOverview({
                 <button
                   type="button"
                   className="brief-archive"
-                  onClick={() => navigateLegacy("thoughts", "schedule")}
+                  onClick={() => onNavigate("thoughts", "schedule")}
                 >
                   全部闪念
                 </button>
@@ -214,10 +218,10 @@ export function TodayOverview({
                 <h2>今日日程</h2>
                 <button
                   type="button"
-                  onClick={() => navigateLegacy("calendar")}
+                  onClick={() => onNavigate("calendar")}
                   aria-label="查看日程与待办"
                 >
-                  {r.schedules.length} 场 ↗
+                  {guest ? "查看" : `${r.schedules.length} 场`} ↗
                 </button>
               </header>
               <div className="daily-rhythm-events">
@@ -225,7 +229,7 @@ export function TodayOverview({
                   <button
                     key={s.id}
                     className="rhythm-event"
-                    onClick={() => navigateLegacy("calendar", s.id)}
+                    onClick={() => onNavigate("calendar", s.id)}
                   >
                     <time>{scheduleTime(s)}</time>
                     <span>
@@ -242,7 +246,7 @@ export function TodayOverview({
                   </button>
                 ))}
                 {!r.schedules.length ? (
-                  <p>今天没有日程，给自己留一段专注时间。</p>
+                  <p>{guest ? "登录后查看你的日程与待办" : "今天没有日程，给自己留一段专注时间。"}</p>
                 ) : null}
               </div>
             </aside>
@@ -253,19 +257,19 @@ export function TodayOverview({
                 <h2>灵感</h2>
                 <button
                   type="button"
-                  onClick={() => navigateLegacy("thoughts", "inspiration")}
+                  onClick={() => onNavigate("thoughts", "inspiration")}
                 >
-                  {r.ideas.length} 条 ↗
+                  {guest ? "查看" : `${r.ideas.length} 条`} ↗
                 </button>
               </header>
               <div>
-                {!r.ideas.length && <p>今天暂无灵感</p>}
+                {!r.ideas.length && <p>{guest ? "登录后留住每一个好想法" : "今天暂无灵感"}</p>}
                 {r.ideas.slice(-2).reverse().map((i) => (
                   <button
                     type="button"
                     className="daily-idea"
                     key={i.id}
-                    onClick={() => navigateLegacy("thoughts", i.id)}
+                    onClick={() => onNavigate("thoughts", i.id)}
                   >
                     <span>{i.title}</span>
                     <time>{i.time}</time>
@@ -278,7 +282,7 @@ export function TodayOverview({
                 <h2>今日记账</h2>
                 <button
                   type="button"
-                  onClick={() => navigateLegacy("thoughts", "ledger")}
+                  onClick={() => onNavigate("thoughts", "ledger")}
                   aria-label="查看全部记账"
                 >
                   ↗
@@ -293,7 +297,7 @@ export function TodayOverview({
                     </div>
                   ))
                 ) : (
-                  <span>今日暂无支出</span>
+                  <span>{guest ? "登录后查看收支记录" : "今日暂无支出"}</span>
                 )}
                 {r.income.map((t) => (
                   <div key={t.currency}>
@@ -307,7 +311,7 @@ export function TodayOverview({
                   <button
                     type="button"
                     key={x.id}
-                    onClick={() => navigateLegacy("thoughts", x.id)}
+                    onClick={() => onNavigate("thoughts", x.id)}
                   >
                     {x.title.replace("客户拜访", "").replace("客户工作", "") +
                       " "}

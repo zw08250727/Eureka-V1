@@ -1,4 +1,6 @@
 "use client";
+import { marketStorage } from "@/features/markets/storage";
+
 import { useEffect, useRef, useState, type RefObject } from "react";
 const KEY = "eureka:agent-panel-width:v1";
 export function useAgentWidth(host: RefObject<HTMLDivElement | null>) {
@@ -17,7 +19,7 @@ export function useAgentWidth(host: RefObject<HTMLDivElement | null>) {
       if (initial) {
         initial = false;
         try {
-          setPreferred(Number(localStorage.getItem(KEY)) || 390);
+          setPreferred(Number(marketStorage.getItem(KEY)) || 390);
         } catch {
           /* Window sizing remains available without persistence. */
         }
@@ -32,7 +34,7 @@ export function useAgentWidth(host: RefObject<HTMLDivElement | null>) {
     const next = Math.min(max, Math.max(min, value));
     setPreferred(next);
     try {
-      localStorage.setItem(KEY, String(next));
+      marketStorage.setItem(KEY, String(next));
     } catch {
       /* Preference only: keep session sizing. */
     }

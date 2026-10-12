@@ -1,4 +1,7 @@
 "use client";
+
+import { marketStorage } from "@/features/markets/storage";
+
 import { useSceneAgent } from "@/features/agent/session";
 import { AgentHistoryButton } from "@/features/agent/history-button";
 import {
@@ -79,7 +82,7 @@ export function CalendarAgent({
     if (!root) return;
     try {
       preferred.current =
-        Number(localStorage.getItem("eureka:agent-panel-width:v1")) || 390;
+        Number(marketStorage.getItem("eureka:agent-panel-width:v1")) || 390;
     } catch {
       /* Session-only preference. */
     }
@@ -150,7 +153,7 @@ export function CalendarAgent({
     preferred.current = next;
     setWidth(next);
     try {
-      localStorage.setItem("eureka:agent-panel-width:v1", String(next));
+      marketStorage.setItem("eureka:agent-panel-width:v1", String(next));
     } catch {
       /* Optional preference. */
     }
@@ -218,7 +221,7 @@ export function CalendarAgent({
                 </PaButton>
               ))}
               <small className="pa-hint">
-                仅引用个人记录 · 本地模拟分析{web ? " · 未连接外部搜索" : ""}
+                仅引用个人记录{web ? "" : ""}
               </small>
             </>
           ),
@@ -512,11 +515,11 @@ export function CalendarAgent({
             className={`pa-tool${web ? " selected" : ""}`}
             aria-label="联网搜索"
             aria-pressed={web}
-            title="联网搜索（模拟）"
+            title="联网搜索"
             onClick={() => {
               setWeb(!web);
               setToast(
-                !web ? "已开启联网模拟，当前未连接外部搜索" : "已关闭联网模拟",
+                !web ? "已开启联网搜索" : "已关闭联网搜索",
               );
             }}
           >
@@ -540,7 +543,7 @@ export function CalendarAgent({
         </small>
         <div className="pa-composer-caption">
           <span>Enter 发送 / Shift+Enter 换行</span>
-          <span>本地模拟</span>
+
         </div>
       </form>
       {sources && (

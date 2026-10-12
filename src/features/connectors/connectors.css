@@ -1,0 +1,309 @@
+.connectors-page {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 32px 36px 64px;
+  color: var(--ink, #27322d);
+  font-size: 14px;
+}
+.connectors-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.connector-primary,
+.connector-dialog button {
+  min-height: 36px;
+  border: 1px solid var(--market-border);
+  border-radius: 8px;
+  background: white;
+  padding: 8px 14px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+}
+.connector-primary,
+.connector-dialog button.primary {
+  background: var(--market-accent);
+  color: white;
+  border-color: var(--market-accent);
+}
+.connector-primary:disabled,
+.connector-dialog button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.connector-search {
+  box-sizing: border-box;
+  min-width: 0;
+  width: 280px;
+  height: 40px;
+  border: 1px solid var(--market-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: white;
+  color: inherit;
+  font: inherit;
+}
+.connector-group {
+  margin-top: 24px;
+}
+.connector-group h2 {
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.connector-group h2 > span {
+  color: #6b776f;
+  font-size: 12px;
+  font-weight: 400;
+}
+.connectors-page .connector-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+.connectors-page .connector-card {
+  display: flex;
+  text-align: left;
+  flex-direction: column;
+  gap: 12px;
+  background: white;
+  color: inherit;
+  border: 1px solid var(--market-border);
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  font: inherit;
+  height: auto;
+  min-height: 120px;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+.connector-card:hover {
+  border-color: var(--market-accent);
+  box-shadow: 0 5px 20px #12391e09;
+}
+.connector-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.connector-mark {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: var(--market-soft);
+  color: var(--market-accent);
+  font-weight: 650;
+  font-size: 19px;
+}
+.connector-mark.large {
+  height: 52px;
+  width: 52px;
+  font-size: 25px;
+  margin-bottom: 22px;
+}
+.connector-state {
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-size: 12px;
+  color: #778078;
+  background: #f4f5f3;
+  padding: 4px 7px;
+  border-radius: 6px;
+}
+.connector-state.connected {
+  background: var(--market-soft);
+  color: var(--market-accent);
+}
+.connector-card-top > strong {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 16px;
+  font-weight: 600;
+}
+.connector-description {
+  line-height: 1.7;
+  color: #6f7873;
+  font-size: 12px;
+}
+.connector-empty {
+  margin: 0;
+  padding: 20px;
+  border-radius: 10px;
+  background: var(--market-soft);
+  color: #778278;
+  font-size: 13px;
+}
+.connector-muted {
+  color: #79817c;
+  font-size: 12px;
+  line-height: 1.7;
+  margin-top: 24px;
+}
+.connector-banner {
+  background: var(--market-soft);
+  color: var(--market-accent);
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+.connector-error {
+  color: #a72a35;
+  background: #fff1f2;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.connector-dialog {
+  box-sizing: border-box;
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  border: 1px solid var(--market-border);
+  border-radius: 16px;
+  padding: 0;
+  color: #2b3630;
+  background: white;
+  font:
+    14px/1.6 "PingFang SC",
+    sans-serif;
+}
+.connector-dialog::backdrop {
+  background: #14241c66;
+}
+.connector-dialog header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--market-border);
+  gap: 15px;
+}
+.connector-dialog h2 {
+  font-size: 18px;
+  margin: 0;
+}
+.connector-dialog h3 {
+  font-size: 18px;
+  font-weight: 600;
+}
+.connector-dialog header button {
+  border: 0;
+  font-size: 22px;
+  padding: 0;
+  min-width: 36px;
+}
+.connector-dialog-body {
+  padding: 24px;
+}
+.connector-dialog-body > label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 18px;
+}
+.connector-dialog input:not([type="radio"]),
+.connector-dialog textarea {
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px solid var(--market-border);
+  border-radius: 8px;
+  padding: 10px;
+  color: inherit;
+  background: white;
+  font: inherit;
+}
+.connector-dialog textarea {
+  font-family: monospace;
+  resize: vertical;
+}
+.connector-dialog footer {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--market-border);
+}
+.connector-dialog .danger {
+  color: #aa2936;
+  border-color: #eabec3;
+}
+.connector-dialog dl {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 10px;
+  font-size: 12px;
+}
+.connector-dialog dt {
+  color: #758077;
+}
+.connector-dialog dd {
+  margin: 0;
+}
+.connector-url {
+  overflow-wrap: anywhere;
+  background: #f7f8f6;
+  padding: 10px;
+  font-size: 12px;
+}
+.connector-mode {
+  border: 0;
+  padding: 0;
+  margin: 0 0 18px;
+  display: flex;
+  gap: 18px;
+}
+.connector-mode legend {
+  margin-bottom: 10px;
+}
+.connector-mode label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.connectors-page :focus-visible,
+.connector-dialog :focus-visible {
+  outline: 2px solid var(--market-accent);
+  outline-offset: 3px;
+}
+@media (max-width: 700px) {
+  .connectors-page {
+    padding: 22px 16px;
+  }
+  .connectors-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .connector-primary { min-height: 44px; }
+  .connectors-page .connector-grid {
+    grid-template-columns: 1fr;
+  }
+  .connector-search {
+    width: 100%;
+    height: 44px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .connectors-page .connector-card {
+    transition: none;
+  }
+}
+
+.connectors-page .connector-mark::before,
+.connectors-page .connector-mark::after { content: none; }
+.connectors-page .connector-mark,
+.connectors-page .connector-card:hover .connector-mark { box-shadow: none; transform: none; }

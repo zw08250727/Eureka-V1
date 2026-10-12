@@ -1,4 +1,7 @@
 "use client";
+
+import { marketStorage } from "@/features/markets/storage";
+
 import { useSceneAgent } from "@/features/agent/session";
 import { AgentHistoryButton } from "@/features/agent/history-button";
 import { useEffect, useRef, useState, type RefObject } from "react";
@@ -59,7 +62,7 @@ export function MeetingAgent({
     let preferred = 390;
     try {
       preferred =
-        Number(localStorage.getItem("eureka:agent-panel-width:v1")) || 390;
+        Number(marketStorage.getItem("eureka:agent-panel-width:v1")) || 390;
     } catch {
       /* Keep session sizing. */
     }
@@ -85,7 +88,7 @@ export function MeetingAgent({
     host.current?.style.setProperty("--agent-panel-width", `${next}px`);
     if (persist)
       try {
-        localStorage.setItem("eureka:agent-panel-width:v1", String(next));
+        marketStorage.setItem("eureka:agent-panel-width:v1", String(next));
       } catch {
         /* Preference only. */
       }
@@ -107,7 +110,7 @@ export function MeetingAgent({
     abort.current = controller;
     try {
       agent.ensureAvailable();
-      let text = `这场会议的主要内容：\n${r.summary}\n\n可以继续按负责人、截止时间整理后续行动。\n\n${web ? "联网搜索已选，当前仅模拟，未执行真实检索。" : "模拟回复，尚未调用 AI 服务。"}`;
+      let text = `这场会议的主要内容：\n${r.summary}\n\n可以继续按负责人、截止时间整理后续行动。\n\n${web ? "" : ""}`;
       if (gateway) {
         const reply = await gateway.send(
           prompt,
@@ -242,7 +245,7 @@ export function MeetingAgent({
               {session.messages.map((m, i) => (
                 <article className={`agent-history-message ${m.role}`} key={i}>
                   <span>
-                    {m.role === "user" ? "你" : "Ask Agent · 模拟回复"}
+                    {m.role === "user" ? "你" : "Ask Agent"}
                   </span>
                   <p>{m.text}</p>
                 </article>
@@ -312,7 +315,7 @@ export function MeetingAgent({
                   className="agent-tool-button"
                   id="agent-web-toggle"
                   aria-label="联网搜索"
-                  title="联网搜索（模拟）"
+                  title="联网搜索"
                   aria-pressed={web}
                   onClick={() => setWeb(!web)}
                 >

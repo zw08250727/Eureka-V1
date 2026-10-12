@@ -1,4 +1,7 @@
 "use client";
+
+import { marketStorage } from "@/features/markets/storage";
+
 import { readSessions, useSceneAgent } from "@/features/agent/session";
 import { AgentHistoryButton } from "@/features/agent/history-button";
 import { Fragment, useLayoutEffect, useEffect, useRef, useState } from "react";
@@ -44,7 +47,7 @@ export function ManagementAgentResize() {
     setRange({ min, max, width });
     if (persist)
       try {
-        localStorage.setItem("eureka:agent-panel-width:v1", String(width));
+        marketStorage.setItem("eureka:agent-panel-width:v1", String(width));
       } catch {
         /* Width still works for this session. */
       }
@@ -54,7 +57,7 @@ export function ManagementAgentResize() {
       let width = 390;
       try {
         width =
-          Number(localStorage.getItem("eureka:agent-panel-width:v1")) || 390;
+          Number(marketStorage.getItem("eureka:agent-panel-width:v1")) || 390;
       } catch {
         /* Default width. */
       }
@@ -265,7 +268,7 @@ export function TeamHistoryAgent({
                 {t.usage.cost.toLocaleString("zh-CN", {
                   maximumFractionDigits: 3,
                 })}{" "}
-                Credits（模拟）
+                Credits
               </div>
             ) : null}
           </Fragment>
@@ -318,7 +321,7 @@ export function TeamHistoryAgent({
             className={`ws-tool${web ? " selected" : ""}`}
             aria-label="联网搜索"
             aria-pressed={web}
-            title="联网搜索（模拟）"
+            title="联网搜索"
             onClick={() => setWeb(!web)}
           >
             <Icon name="globe" />
@@ -339,11 +342,11 @@ export function TeamHistoryAgent({
               ? "已引用当前历史会话"
               : "基于当前工作空间"}
           {apps ? " · 应用数据" : ""}
-          {web ? " · 联网模拟" : ""}
+          {web ? " · 联网搜索" : ""}
         </small>
         <div className="ws-composer-caption">
           <small>Enter 发送 / Shift+Enter 换行</small>
-          <small>按 Token 用量结算 · 本地模拟</small>
+          <small>按 Token 用量结算</small>
         </div>
         <p className="ws-form-error" role="alert">
           {error}
@@ -416,7 +419,7 @@ export function PersonalHistoryAgent({
   }, []);
   useAgentLayout(rail, true, true);
   const [saved] = useState(() => {
-    try { return readSessions(localStorage).find((s) => (s.id === id || s.id === "seed:" + id) && s.space === "personal" && s.actor === (new URLSearchParams(location.search).get("actor") || "zhang")); }
+    try { return readSessions(marketStorage).find((s) => (s.id === id || s.id === "seed:" + id) && s.space === "personal" && s.actor === (new URLSearchParams(location.search).get("actor") || "zhang")); }
     catch { return undefined; }
   });
   const index = personalHistoryTitles.indexOf(id);
@@ -424,7 +427,7 @@ export function PersonalHistoryAgent({
     ...personalHistory[0], messages: saved.messages,
     source: SCENES[saved.scene]?.label || "历史会话",
     next: "基于这条会话继续梳理下一步",
-    followup: "这条历史会话已恢复。当前为本地模拟；需要最新数据或执行操作时，请回到对应场景。",
+    followup: "这条历史会话已恢复。可继续补充问题。",
   } : personalHistory[index] || { ...personalHistory[0], messages: [], source: "不可用", next: "", followup: "会话不存在或已删除。" };
   const agent = useSceneAgent(saved?.scene || "home", saved?.sourceId || "", saved?.id || (index >= 0 ? "seed:" + id : undefined), { title: personalHistoryTitles[index] || id, messages: seed.messages });
   const [fresh, setFresh] = useState(false);
@@ -448,8 +451,8 @@ export function PersonalHistoryAgent({
   function send() {
     if (!input.trim() || (!fresh && !saved && index < 0)) return;
     const text = agent.run(input.trim(), () => fresh
-      ? `已收到：${input.trim()}。当前为本地模拟。`
-      : `收到你的补充：“${input.trim()}”\n\n${seed.followup}\n\n${web ? "当前未执行真实联网检索。" : "模拟回复，尚未调用 AI 服务。"}`);
+      ? `已收到：${input.trim()}。`
+      : `收到你的补充：“${input.trim()}”\n\n${seed.followup}\n\n${web ? "" : ""}`);
     setMessages((rows) => [...rows, { role: "user", text: input.trim() }, { role: "assistant", text }]);
     setInput("");
     requestAnimationFrame(() => {
@@ -541,16 +544,12 @@ export function PersonalHistoryAgent({
                       className="agent-history-message assistant"
                       key={i}
                     >
-                      <span>Ask Agent · 本地模拟</span>
+                      <span>Ask Agent</span>
                       <p>{m.text}</p>
                       <p>
                         已收到你的问题，可以继续补充背景，或引用资料展开讨论。
                       </p>
-                      <small>
-                        {web
-                          ? "联网搜索已选，当前仅模拟，未执行真实检索。"
-                          : "模拟回复，尚未调用 AI 服务。"}
-                      </small>
+
                     </article>
                   ))
               : null}
@@ -563,7 +562,7 @@ export function PersonalHistoryAgent({
           >
             <header className="agent-session-head">
               <span>
-                历史会话 <small>模拟对话</small>
+                历史会话
               </span>
               <h3 id="agent-history-title" tabIndex={-1}>
                 {saved?.title || personalHistoryTitles[index] || "会话不存在或已删除"}
@@ -581,7 +580,7 @@ export function PersonalHistoryAgent({
               {messages.map((m, i) => (
                 <article className={`agent-history-message ${m.role}`} key={i}>
                   <span>
-                    {m.role === "user" ? "你" : "Ask Agent · 模拟回复"}
+                    {m.role === "user" ? "你" : "Ask Agent"}
                   </span>
                   <p>{m.text}</p>
                 </article>
@@ -673,7 +672,7 @@ export function PersonalHistoryAgent({
                   className="agent-tool-button"
                   id="agent-web-toggle"
                   aria-label="联网搜索"
-                  title={web ? "已开启联网搜索（模拟）" : "联网搜索（模拟）"}
+                  title={web ? "已开启联网搜索" : "联网搜索"}
                   aria-pressed={web}
                   onClick={() => setWeb(!web)}
                 >
@@ -704,7 +703,7 @@ export function PersonalHistoryAgent({
                 <span id="agent-keyboard-hint">
                   Enter 发送 / Shift+Enter 换行
                 </span>
-                <span>本地模拟</span>
+
               </div>
             </div>
           </div>

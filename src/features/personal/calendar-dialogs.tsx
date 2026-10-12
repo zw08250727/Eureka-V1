@@ -1,4 +1,7 @@
 "use client";
+
+import { marketStorage, scopedKey } from "@/features/markets/storage";
+
 import { Select } from "@/components/ui/select";
 import {
   useEffect,
@@ -35,8 +38,8 @@ export function useLivePersonal(accountId = "zhang", workspaceId = "personal") {
     const reload = () => {
       if (!repo.current) return;
       try {
-        repo.current.actions = createActions(localStorage, () => new Date(), accountId, workspaceId);
-        repo.current.thoughts = createThoughts(localStorage, () => new Date(), accountId, workspaceId);
+        repo.current.actions = createActions(marketStorage, () => new Date(), accountId, workspaceId);
+        repo.current.thoughts = createThoughts(marketStorage, () => new Date(), accountId, workspaceId);
         refresh();
       } catch {
         /* Keep the last readable snapshot; mutations retain their explicit error reporting. */
@@ -346,7 +349,7 @@ export function ActionEditor({
       }
     };
     const changed = (e: StorageEvent) => {
-      if (e.key === "eureka:personal-actions:v1" || e.key?.startsWith("eureka:actions:"))
+      if (e.key === scopedKey("eureka:personal-actions:v1") || e.key?.startsWith(scopedKey("eureka:actions:")))
         setError("另一页面已更新，请保留输入后重新打开记录");
     };
     const nav = (e: MouseEvent) => {

@@ -1,4 +1,8 @@
 "use client";
+import { creditText, personalPlanName, routeMarket } from "@/features/markets/config";
+import { reviewToolsEnabled } from "@/features/markets/review";
+
+import { marketConfig } from "@/features/markets/config";
 import { Select } from "@/components/ui/select";
 import type { FormEvent, ReactNode } from "react";
 import { M } from "./model/store";
@@ -36,24 +40,25 @@ export function CheckoutDialog({
   onSubmit: (e: FormEvent<HTMLFormElement>) => void;
   onClose: () => void;
 }) {
+  const cn = routeMarket() === "cn";
   const paid = o.status === "paid",
     personal = kind === "personal",
     seat = kind === "seat";
   let title: string, body: ReactNode, footer: ReactNode;
   if (paid) {
-    title = personal ? "Pro 已生效" : seat ? "席位已增加" : "Credits 已到账";
+    title = personal ? `${o.planName || personalPlanName()} 已生效` : seat ? "席位已增加" : creditText("Credits 已到账");
     body = personal ? (
       <>
         <div className="ws-success">
           <span className="ws-credit-success-mark">✓</span>
-          <h3>模拟支付成功</h3>
-          <strong>Pro · {o.cycle === "year" ? "连续包年" : "连续包月"}</strong>
-          <p>每月 5,000 Credits · 99,999 分钟</p>
+          <h3>支付成功</h3>
+          <strong>{o.planName || personalPlanName()} · {o.cycle === "year" ? (cn ? "1 年" : "连续包年") : (cn ? "1 个月" : "连续包月")}</strong>
+          <p>每月 {(o.monthlyCredits ?? marketConfig().benefits.proCredits).toLocaleString()}{creditText(" Credits ·")}{o.monthlyMinutes === null ? "无限录音转写时长" : `${(o.monthlyMinutes ?? marketConfig().benefits.proMinutes).toLocaleString()} 分钟`}</p>
           <p>权益至 {date(o.subscription?.endsAt)}</p>
         </div>
         <p className="ws-muted">
-          本次 {dollars(o.amount)}{" "}
-          USD；未发生真实扣款。个人权益已更新，团队订阅不受影响。
+          本次 {money(o.amount, o.currency)}{" "}
+          {o.currency}；个人权益已更新。
         </p>
       </>
     ) : seat ? (
@@ -64,7 +69,7 @@ export function CheckoutDialog({
           <b>3 已生效</b>
         </div>
         <div className="ws-success">
-          <h3>模拟支付成功</h3>
+          <h3>支付成功</h3>
           <p>
             新增 {o.added} 席位已生效，总席位 {o.targetSeats} 个。
           </p>
@@ -72,7 +77,7 @@ export function CheckoutDialog({
           <p>账单 {o.invoiceId}</p>
         </div>
         <p className="ws-muted">
-          已更新可用席位与账单记录，可继续邀请成员。未发生真实扣款。
+          已更新可用席位与账单记录，可继续邀请成员。
         </p>
       </>
     ) : (
@@ -84,18 +89,20 @@ export function CheckoutDialog({
         </div>
         <div className="ws-success">
           <span className="ws-credit-success-mark">✓</span>
-          <h3>模拟支付成功</h3>
-          <strong>+{creditNumber(o.credits)} Credits</strong>
+          <h3>支付成功</h3>
+          <strong>+{creditNumber(o.credits)}{creditText(" Credits")}</strong>
           <p>已加入「{w.name}」共享池</p>
-          <p>当前可用 {creditNumber(M.creditBalance(w))} Credits</p>
+          {o.creditsExpireAt && <p>积分有效期至 {date(o.creditsExpireAt)}</p>}
+          <p>当前可用 {creditNumber(M.creditBalance(w))}{creditText(" Credits")}</p>
         </div>
         <div className="ws-order">
           <p>订单 {o.id}</p>
+          {o.expiresAt && <p>请于 {date(o.expiresAt)} 前支付</p>}
           <p>
             实付 {money(o.amount, o.currency)} · 账单 {o.invoiceId}
           </p>
         </div>
-        <p className="ws-muted">未发生真实扣款。重复查看此结果不会重复到账。</p>
+
       </>
     );
     footer = (
@@ -124,7 +131,7 @@ export function CheckoutDialog({
       ? "确认个人订阅"
       : seat
         ? "确认加席订单"
-        : "确认 Credits 订单";
+        : creditText("确认 Credits 订单");
     body = personal ? (
       <>
         <div className="ws-steps">
@@ -133,46 +140,36 @@ export function CheckoutDialog({
           <span>3 权益生效</span>
         </div>
         <div className="ws-order">
-          <h3>Pro · {o.cycle === "year" ? "连续包年" : "连续包月"}</h3>
+          <h3>{o.planName || personalPlanName()} · {o.cycle === "year" ? (cn ? "1 年" : "连续包年") : (cn ? "1 个月" : "连续包月")}</h3>
           <p>订单 {o.id}</p>
+          {o.expiresAt && <p>请于 {date(o.expiresAt)} 前支付</p>}
           <div>
             <span>账户</span>
             <strong>{email}</strong>
           </div>
           <div>
             <span>每月权益</span>
-            <strong>5,000 Credits · 99,999 分钟</strong>
+            <strong>{(o.monthlyCredits ?? marketConfig().benefits.proCredits).toLocaleString()}{creditText(" Credits ·")}{o.monthlyMinutes === null ? "无限录音转写时长" : `${(o.monthlyMinutes ?? marketConfig().benefits.proMinutes).toLocaleString()} 分钟`}</strong>
           </div>
           <div>
             <span>本次应付</span>
-            <strong>{dollars(o.amount)} USD</strong>
+            <strong>{money(o.amount, o.currency)} {o.currency}</strong>
           </div>
         </div>
         <label className="ws-field">
-          模拟支付方式
+          支付方式
           <Select
             name="method"
             value={method}
             onChange={(e) => setMethod(e.target.value)}
           >
-            <option>Visa ···· 4242</option>
-            <option>Apple Pay（模拟）</option>
+            {marketConfig().payments.subscription.map(method => <option key={method}>{method}</option>)}
           </Select>
         </label>
         <p className="ws-muted">
-          支付成功后立即生效，随后每{o.cycle === "year" ? "年" : "月"}按{" "}
-          {dollars(o.amount)}{" "}
-          自动续费，可随时取消续费并保留已购期间权益。年付的分钟数与 Credits
-          仍按月刷新。
+          {cn ? "单次购买，支付成功后立即生效，不自动续费。年付会员积分仍随会员周期按月发放至个人账户。" : creditText(`支付成功后立即生效，随后每${o.cycle === "year" ? "年" : "月"}按 ${dollars(o.amount)} 自动续费，可随时取消续费并保留已购期间权益。年付的分钟数与 Credits 仍按月刷新。`)}
         </p>
-        <p className="ws-info">
-          本地模拟，不会扣款。切换套餐演示按新套餐全额计费、从支付日起重新起算，不折抵旧套餐；正式差价规则待确认。
-        </p>
-        {o.status === "failed" ? (
-          <p className="ws-seat-payment-error" role="alert">
-            模拟支付失败，未扣款、未开通权益。可重试或取消。
-          </p>
-        ) : null}
+        {o.status === "failed" && <p className="ws-seat-payment-error" role="alert">支付失败，未扣款、未开通权益。可重试或取消。</p>}
         <input type="hidden" name="orderId" value={o.id} />
         <input type="hidden" name="workspaceId" value={w.id} />
       </>
@@ -186,6 +183,7 @@ export function CheckoutDialog({
         <div className="ws-order ws-seat-order">
           <h3>{w.name}</h3>
           <p>订单 {o.id}</p>
+          {o.expiresAt && <p>请于 {date(o.expiresAt)} 前支付</p>}
           <div>
             <span>总席位</span>
             <strong>
@@ -205,7 +203,7 @@ export function CheckoutDialog({
           </div>
         </div>
         <p className="ws-muted">
-          演示按新增席位的完整{o.cycle === "year" ? "年度" : "月度"}
+          按新增席位的完整{o.cycle === "year" ? "年度" : "月度"}
           原价计费，税费另计；首次开通优惠不重复用于加席，不按剩余天数折算，现有账期不变。
         </p>
         {o.snapshot !==
@@ -226,10 +224,9 @@ export function CheckoutDialog({
         {w.pendingSeats ? (
           <p className="ws-info">支付成功后，将取消已安排的减席计划。</p>
         ) : null}
-        <div className="ws-seat-payment-method">
-          <span>模拟支付方式</span>
-          <strong>{w.billing.method}</strong>
-        </div>
+        <label className="ws-field">支付方式
+          {seat ? <strong>{w.billing.method}</strong> : <Select name="method" value={method} onChange={e => setMethod(e.target.value)}>{marketConfig().payments.credits.map(value => <option key={value}>{value}</option>)}</Select>}
+        </label>
         <p className="ws-muted">
           新增席位当前周期截止：{o.nextDate}
           {w.renew
@@ -238,14 +235,12 @@ export function CheckoutDialog({
         </p>
         {o.status === "failed" ? (
           <div className="ws-seat-payment-error" role="alert">
-            模拟支付失败，未扣款、未增加席位。可以重试或取消订单。
+            支付失败，未扣款、未增加席位。可以重试或取消订单。
           </div>
         ) : null}
         <input type="hidden" name="orderId" value={o.id} />
         <input type="hidden" name="workspaceId" value={w.id} />
-        <div className="ws-info">
-          本地模拟支付，不会真实扣款。关闭窗口后可在账单页继续支付。
-        </div>
+
       </>
     ) : (
       <>
@@ -257,9 +252,10 @@ export function CheckoutDialog({
         <div className="ws-order">
           <h3>{w.name}</h3>
           <p>订单 {o.id}</p>
+          {o.expiresAt && <p>请于 {date(o.expiresAt)} 前支付</p>}
           <div>
             <span>购买数量</span>
-            <strong>{creditNumber(o.credits)} Credits</strong>
+            <strong>{creditNumber(o.credits)}{creditText(" Credits")}</strong>
           </div>
           <div>
             <span>到账位置</span>
@@ -270,23 +266,16 @@ export function CheckoutDialog({
             <strong>{money(o.amount, o.currency)}</strong>
           </div>
         </div>
-        <div className="ws-seat-payment-method">
-          <span>模拟支付方式</span>
-          <strong>{w.billing.method}</strong>
-        </div>
-        <p className="ws-muted">
-          一次性购买，无自动续购。支付成功后 Credits 才会到账，并生成独立账单。
-        </p>
+        <label className="ws-field">支付方式
+          {seat ? <strong>{w.billing.method}</strong> : <Select name="method" value={method} onChange={e => setMethod(e.target.value)}>{marketConfig().payments.credits.map(value => <option key={value}>{value}</option>)}</Select>}
+        </label>
+        <p className="ws-muted">{creditText("一次性购买，无自动续购。支付成功后 Credits 才会到账，有效期一年；购买后不支持退款，如需发票请联系客服。")}</p>
         {o.status === "failed" ? (
-          <div className="ws-seat-payment-error" role="alert">
-            模拟支付失败，未扣款、未增加 Credits。可重试或取消订单。
-          </div>
+          <div className="ws-seat-payment-error" role="alert">{creditText("支付失败，未扣款、未增加 Credits。可重试或取消订单。")}</div>
         ) : null}
         <input type="hidden" name="workspaceId" value={w.id} />
         <input type="hidden" name="orderId" value={o.id} />
-        <div className="ws-info">
-          本地模拟支付，不会真实扣款。关闭窗口后，可从 Credits 页继续支付。
-        </div>
+
       </>
     );
     footer = (
@@ -307,7 +296,7 @@ export function CheckoutDialog({
         >
           取消订单
         </Button>
-        <Button
+        {reviewToolsEnabled() && (<Button
           action={personal ? "personal-fail" : `${kind}-pay-fail`}
           value={o.id}
           className="link"
@@ -316,11 +305,11 @@ export function CheckoutDialog({
           }
         >
           模拟支付失败
-        </Button>
+        </Button>)}
         <button type="submit" className="ws-btn primary">
           {personal
-            ? "模拟支付 " + dollars(o.amount)
-            : `${o.status === "failed" ? "重试模拟支付" : "模拟支付"} ${money(o.amount, o.currency)}`}
+            ? "确认支付 " + money(o.amount, o.currency)
+            : `${o.status === "failed" ? "重试支付" : "确认支付"} ${money(o.amount, o.currency)}`}
         </button>
       </>
     );

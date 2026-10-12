@@ -1,4 +1,6 @@
 "use client";
+import { marketStorage } from "@/features/markets/storage";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createLocalRepository } from "../model/local-repository";
 import type { WorkbenchRepository, WorkbenchSnapshot } from "../model/types";
@@ -10,7 +12,7 @@ export function useWorkbench() {
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      repo.current ??= createLocalRepository(localStorage);
+      repo.current ??= createLocalRepository(marketStorage);
       setData(await repo.current.load());
       setError("");
     } catch (e) {
@@ -21,7 +23,7 @@ export function useWorkbench() {
   }, []);
   useEffect(() => {
     let active = true;
-    const repository = createLocalRepository(localStorage);
+    const repository = createLocalRepository(marketStorage);
     repo.current = repository;
     repository
       .load()

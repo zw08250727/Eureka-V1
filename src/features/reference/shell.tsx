@@ -1,4 +1,11 @@
 "use client";
+import { creditText } from "@/features/markets/config";
+import { reviewToolsEnabled } from "@/features/markets/review";
+
+import { productName, productLogo } from "@/features/markets/brand";
+
+import { marketConfig, routeMarket } from "@/features/markets/config";
+import { signOut } from "@/features/markets/storage";
 import { Select } from "@/components/ui/select";
 import "./workspace-navigation.css";
 import "./ui-polish.css";
@@ -21,6 +28,8 @@ import { RecordingPermission } from "@/features/meetings/recording-permission";
 import { CreateTeamDialog, InvitationsDialog } from "@/features/spaces/setup";
 import { M } from "@/features/spaces/model/store";
 import dynamic from "next/dynamic";
+import { DomesticPointsEntry, DomesticPointsGuide } from "@/features/account/domestic-points";
+import { claimReward } from "@/features/account/rewards";
 import { CreditsPromo, openAccount, type AccountPanel } from "@/features/account/experience";
 const TemplatePreferences=dynamic(()=>import("@/features/meetings/template-picker").then(m=>m.TemplatePreferences));
 const AccountExperience = dynamic(() => import("@/features/account/experience").then(m => m.AccountExperience));
@@ -174,14 +183,14 @@ export function ReferenceShell({
           <div className="brand-row">
             <div className="workspace-brand">
               <img
-                src={assetUrl("eurekamind-logo.png?v=sidebar-brand-v2")}
+                src={productLogo()}
                 width={34}
                 height={34}
-                alt="EurekaMind"
+                alt={productName()}
               />
               <div className="workspace-brand-copy">
-                <strong>EurekaMind</strong>
-                <span>PC Workbench</span>
+                <strong>{productName()}</strong>
+                <span>{routeMarket() ? `${marketConfig().label} · PC Workbench` : "PC Workbench"}</span>
               </div>
             </div>
             <button
@@ -345,7 +354,7 @@ export function ReferenceShell({
           </div>
 
           <div className="user-footer">
-          <button className="ex-top-credits ex-lower-credits" onClick={()=>openAccount(team?"recharge":"tasks")}>{team?"充值 Credits":"✦ 做任务赚 Credits"}<span style={{float:"right"}}>›</span></button>
+          {routeMarket() === "cn" ? <DomesticPointsGuide w={w} actor={actor} onPanel={openAccount}/> : <button className={"ex-top-credits ex-lower-credits" + (team ? " credit-recharge-cta" : "")} disabled={team && !M.admin(w, actor)} onClick={()=>openAccount(team?"recharge":"tasks")}>{team?creditText("充值 Credits"):creditText("✦ 做任务赚 Credits")}<span style={{float:"right"}}>›</span></button>}
             <button
               className="user-card"
               id="user-card"
@@ -378,23 +387,23 @@ export function ReferenceShell({
                 {pageTitle}
               </div>
               <div className="topbar-right">
-                <button className="ex-top-credits" onClick={()=>openAccount("credits")}>✦ {M.creditBalance(w).toLocaleString()} Credits</button>
+                {routeMarket() === "cn" ? <DomesticPointsEntry key={`${space}:${actor}`} w={w} actor={actor} onPanel={openAccount}/> : <button className="ex-top-credits" onClick={()=>openAccount("credits")}>✦ {M.creditBalance(w).toLocaleString()}{creditText(" Credits")}</button>}
                 <button className="ex-top-credits" aria-label="所有通知" onClick={()=>openAccount("notifications")}><RefIcon name="bell"/></button>
                 <button
                   className="record-promo"
                   id="hardware-top-promo"
-                  aria-label="打开 EurekaMind 商城"
+                  aria-label={`打开 ${productName()} 商城`}
                   type="button"
                   onClick={() => location.assign("https://eurekamind.ai/shop")}
                 >
                   <span className="promo-device">
                     <img
                       src={assetUrl("hardware-entry.png")}
-                      alt="EurekaMind"
+                      alt={productName()}
                     />
                   </span>
                   <span className="promo-copy">
-                    <strong>EurekaMind</strong>
+                    <strong>{productName()}</strong>
                     <span>智能记录，轻松协作</span>
                   </span>
                 </button>
@@ -407,7 +416,7 @@ export function ReferenceShell({
                     <button
                       className="app-download-btn"
                       id="app-download-btn"
-                      aria-label="下载 EurekaMind App"
+                      aria-label={`下载 ${productName()} App`}
                       aria-haspopup="dialog"
                       aria-expanded={download}
                       type="button"
@@ -418,15 +427,15 @@ export function ReferenceShell({
                     <div
                       className="app-qr-popover"
                       role="dialog"
-                      aria-label="EurekaMind App 下载二维码"
+                      aria-label={`${productName()} App 下载二维码`}
                     >
-                      <strong>EurekaMind App</strong>
+                      <strong>{productName()} App</strong>
                       <span>扫码安装 App，绑定你的录音设备</span>
                       <div className="app-qr-grid">
                         <div className="app-qr-item">
                           <img
                             src={assetUrl("download/eurekamind-app-qr.png")}
-                            alt="EurekaMind App 下载二维码"
+                            alt={`${productName()} App 下载二维码`}
                           />
                           <strong>扫码下载</strong>
                           <span>App Store</span>
@@ -538,6 +547,8 @@ export function ReferenceShell({
               <button
                 type="button"
                 className="ws-btn ws-menu-item"
+                disabled={!!M.accountTeam(data, data.account.id)}
+                title={M.accountTeam(data, data.account.id) ? "最多一个 Team，请先由原团队管理员移除成员资格" : undefined}
                 onClick={() => {
                   setMenu(null);
                   try { M.assertCanJoinTeam(data); setSetupDialog("create"); }
@@ -577,7 +588,7 @@ export function ReferenceShell({
               </>}
               {menu === "account" ? (
                 <>
-                  <CreditsPromo w={w}/>
+                  <CreditsPromo w={w} actor={actor} onSignin={() => { try { controller.change(st => claimReward(M.get(st, space), actor, "signin")); } catch(e) { notify((e as Error).message); } }}/>
                   {[
                     ["home", "mic", "会议录音"],
                     ["my-devices", "phone", "我的设备"],
@@ -599,15 +610,14 @@ export function ReferenceShell({
                   <button
                     type="button"
                     className="ws-btn ws-menu-item"
-                    onClick={() => location.assign(basePath + "/")}
+                    onClick={signOut}
                   >
                     <RefIcon name="collapse" className="ws-icon" />
                     退出登录
                   </button>
                 </>
               ) : null}
-              {menu === "account" && <div className="review-menu-section"><button type="button" className="review-menu-entry" onClick={()=>{setMenu(null);setReviewOpen(true)}}>评审演示<span>仅供评审 ↗</span></button></div>}
-              <p className="ws-menu-note">同一账号 · 各空间的数据与订阅独立</p>
+              {reviewToolsEnabled() && menu === "account" && <div className="review-menu-section"><button type="button" className="review-menu-entry" onClick={()=>{setMenu(null);setReviewOpen(true)}}>评审工具</button></div>}
             </div>,
             document.body,
           )
@@ -618,13 +628,13 @@ export function ReferenceShell({
           <label className="mobile-space-picker">当前工作区<Select aria-label="切换工作区" value={space} onChange={e => go("home", "", e.target.value)}>{data.spaces.filter(s => M.member(s)).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</Select></label>
           <div className="mobile-space-actions"><button disabled={!!M.accountTeam(data, data.account.id)} title={M.accountTeam(data, data.account.id) ? "每个账号最多加入或创建一个团队" : "创建团队"} onClick={() => { try { M.assertCanJoinTeam(data); setMobileNav(false); setSetupDialog("create"); } catch(e) { notify((e as Error).message); } }}>创建团队</button><button onClick={() => { setMobileNav(false); setSetupDialog("invitations"); }}>工作空间邀请</button></div>
           <nav className="mobile-nav-links" aria-label="工作区功能">{([["home","首页"],["recording","开始录音"],["contacts","通讯录"],["calendar","日程与待办"],["connectors","连接器"],...(team ? [["members","团队成员"],...(admin ? [["devices","设备查看"],["space-settings","空间设置"]] : [])] : [])] as [AppView,string][]).map(([v,label]) => <button key={v} aria-current={view === v ? "page" : undefined} onClick={() => {setMobileNav(false);go(v)}}>{label}<span aria-hidden="true">→</span></button>)}</nav>
-          <div className="mobile-nav-account"><span>我的账户</span><CreditsPromo w={w}/><nav className="mobile-nav-links" aria-label="账户功能">{([["settings","个人设置"],["subscription",team ? "订阅与席位" : "个人订阅"],["my-devices","我的设备"],["updates","更新日志"],["product","产品介绍"]] as [AppView,string][]).map(([v,label]) => <button key={v} onClick={() => go(v)}>{label}<span aria-hidden="true">→</span></button>)}</nav></div>
-          <div className="review-menu-section"><button type="button" className="review-menu-entry" onClick={()=>{setMobileNav(false);setReviewOpen(true)}}>评审演示<span>仅供评审 ↗</span></button></div>
+          <div className="mobile-nav-account"><span>我的账户</span><CreditsPromo w={w} actor={actor} onSignin={() => { try { controller.change(st => claimReward(M.get(st, space), actor, "signin")); } catch(e) { notify((e as Error).message); } }}/><nav className="mobile-nav-links" aria-label="账户功能">{([["settings","个人设置"],["subscription",team ? "订阅与席位" : "个人订阅"],["my-devices","我的设备"],["updates","更新日志"],["product","产品介绍"]] as [AppView,string][]).map(([v,label]) => <button key={v} onClick={() => go(v)}>{label}<span aria-hidden="true">→</span></button>)}</nav></div>
+          {reviewToolsEnabled() && <div className="review-menu-section"><button type="button" className="review-menu-entry" onClick={()=>{setMobileNav(false);setReviewOpen(true)}}>评审工具</button></div>}
         </div>
       </ReferenceDialog>}
-      {reviewOpen && <ReferenceDialog className="ex-dialog review-tools-dialog" label="评审演示" onClose={()=>setReviewOpen(false)}>
-        <header className="ex-head"><h2>评审演示</h2><button className="ex-close" aria-label="关闭评审工具" onClick={()=>setReviewOpen(false)}>×</button></header>
-        <div className="ex-body review-tools-body"><p>仅用于体验身份切换和需求评审。</p>{reviewSwitch}<a className="prd-review-entry" href={prdUrl} target="_blank" rel="noopener">需求评审 <span aria-hidden="true">↗</span></a></div>
+      {reviewOpen && <ReferenceDialog className="ex-dialog review-tools-dialog" label="评审工具" onClose={()=>setReviewOpen(false)}>
+        <header className="ex-head"><h2>评审工具</h2><button className="ex-close" aria-label="关闭评审工具" onClick={()=>setReviewOpen(false)}>×</button></header>
+        <div className="ex-body review-tools-body">{reviewSwitch}<a className="prd-review-entry" href={prdUrl} target="_blank" rel="noopener">需求评审 <span aria-hidden="true">↗</span></a><a className="prd-review-entry" href={`${basePath}/review/`}>版本与模块评审总览 ↗</a><a className="prd-review-entry" href={`${basePath}/`}>国内／海外演示入口 ↗</a></div>
       </ReferenceDialog>}
       {templatePreferences&&<TemplatePreferences onClose={()=>setTemplatePreferences(false)}/>}
       {accountPanel&&<AccountExperience key={`${space}:${actor}:${accountPanel}`} controller={controller} space={space} actor={actor} panel={accountPanel} onClose={()=>setAccountPanel(null)}/>}

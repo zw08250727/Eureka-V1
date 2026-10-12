@@ -25,20 +25,22 @@ for (const [bound, viewed] of [["personal", "team-eureka"], ["team-eureka", "per
   });
 }
 
-test("hardware stays bound to A after switching to B; explicit unbind/rebind moves only future recordings", () => {
-  const s = M.seed(), a = M.get(s, "team-eureka"), b = M.acceptInvite(s, "invite-growth");
+test("ACCOUNT-01 / SPACE-01: team binding survives viewing personal; rebind moves only future recordings", () => {
+  const s = M.seed(), a = M.get(s, "team-eureka"), b = M.get(s, "personal");
   rebind(s, a.id);
   const oldBinding = s.devices[0].bindings!.at(-1)!.id;
-  M.setDeviceSharing(s, a.id, "zhang", "meetings", true, ["lin"], "zhang", ["lin"]);
   M.setCaptureSpace(s, b.id); s.activeId = b.id;
   const old = M.sync(s, "dev-personal", "zhang", { sourceId: "A" });
-  expect(old.space.id).toBe(a.id); expect(old.file.editors).toEqual(["lin"]);
+  expect(old.space.id).toBe(a.id);
+  M.share(a, old.file.id, ["kevin"]);
+  expect(M.canEdit(a, old.file, "kevin")).toBe(false);
   expect(() => M.sync(s, "dev-personal", "zhang", { sourceId: "spoof", workspaceId: b.id })).toThrow(/只能进入/);
   expect(() => M.bind(s, "dev-personal", b.id)).toThrow(/先解绑/);
   rebind(s, b.id);
   expect(M.sync(s, "dev-personal", "zhang", { sourceId: "B" }).space.id).toBe(b.id);
   expect(M.sync(s, "dev-personal", "zhang", { sourceId: "offline-A", bindingId: oldBinding }).space.id).toBe(a.id);
-  expect(a.files.find(f => f.id === old.file.id)?.editors).toEqual(["lin"]);
+  expect(a.files.find(f => f.id === old.file.id)?.shared).toEqual(["kevin"]);
+  expect(M.accountTeams(s)).toHaveLength(1);
   expect(b.files.some(f => f.id === old.file.id)).toBe(false);
   expect(M.deviceList(s, a.id).some(d => d.id === "dev-personal")).toBe(false);
 });
@@ -94,17 +96,20 @@ test("view and edit grants apply per recipient; editing never grants deletion or
   expect(() => M.edit(w, f.id, { title: "到期" }, "kevin")).toThrow(/只读/);
 });
 
-test("future policy assigns edit grants to meetings only in their workspace, history unchanged", () => {
-  const s = M.seed(), a = M.get(s, "team-eureka"), b = M.acceptInvite(s, "invite-growth");
-  const old = M.addFile(a, { title: "旧记录" });
-  M.setDeviceSharing(s, a.id, "zhang", "meetings", true, ["lin", "kevin"], "zhang", ["kevin"]);
-  expect(() => M.setDeviceSharing(s, a.id, "zhang", "thoughts", true, ["lin"], "zhang", ["lin"])).toThrow(/不参与团队共享/);
-  for (const source of ["网页录音", "文件上传", "笔记"]) expect(M.addFile(a, { title: source, source }).editors).toEqual(["kevin"]);
-  expect(old.shared).toEqual([]); expect(M.addFile(b, { title: "另一团队" }).editors || []).toEqual([]);
-  const personal = M.get(s, "personal"), t = M.addThought(personal, { title: "个人闪念", detail: "" });
-  expect(() => M.shareThought(personal, t.id, ["lin"])).toThrow(/不参与共享/);
-  expect(() => M.editThought(a, t.id, { title: "旧团队页面保存", detail: "" })).toThrow(/闪念不存在/);
-
+test("ACCOUNT-01 / SHARE-01: per-record sharing does not grant future or personal recordings", () => {
+  const s = M.seed(), team = M.get(s, "team-eureka"), personal = M.get(s, "personal");
+  const shared = M.addFile(team, { title: "明确共享的会议" });
+  M.share(team, shared.id, ["kevin"]);
+  expect(M.getFile(team, shared.id, "kevin").id).toBe(shared.id);
+  expect(M.canEdit(team, shared, "kevin")).toBe(false);
+  for (const source of ["网页录音", "文件上传", "笔记"]) {
+    const next = M.addFile(team, { title: source, source });
+    expect(next.shared).toEqual([]);
+    expect(() => M.getFile(team, next.id, "kevin")).toThrow();
+  }
+  expect(M.addFile(personal, { title: "个人会议" }).shared).toEqual([]);
+  expect(personal.files.some(f => f.id === shared.id)).toBe(false);
+  expect(M.accountTeams(s)).toHaveLength(1);
 });
 
 test("rebind is atomic when saving fails, and old permissions never become editing grants by migration", () => {

@@ -1,7 +1,8 @@
-/* eslint-disable @next/next/no-img-element -- Preserve the original image element sizing and local upload preview behavior. */
 "use client";
+/* eslint-disable @next/next/no-img-element -- Preserve the original image element sizing and local upload preview behavior. */
+
 import { Select } from "@/components/ui/select";
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   MdDialog,
   MdButton as B,
@@ -16,6 +17,8 @@ import type { MeetingDetail } from "./types";
 import type { Workspace } from "@/features/spaces/model/types";
 import { TemplateContent } from "./template-picker";
 import { assetUrl } from "@/lib/routes";
+import { routeMarket } from "@/features/markets/config";
+import { DomesticExportShareDialog } from "./export-share-dialog";
 const shareNames: Record<string, string> = {
   audio: "音频",
   transcript: "转译文本",
@@ -39,28 +42,54 @@ export function MeetingDialogs({
   workspace,
   copyText,
   previewImage,
+  allImages,
+  previewIndex,
+  onPreview,
+  onPlayParticipantSegment,
+  onStopParticipantSegment,
+  activeParticipantSegmentKey,
 }: {
   kind: string;
   r: MeetingDetail;
   onClose: () => void;
-  onSave: (patch: Partial<MeetingDetail>) => void;
+  onSave: (patch: Partial<MeetingDetail>) => void | Promise<void>;
   onRemove: () => Promise<void>;
   seek: (n: number) => void;
   workspace?: Workspace;
   copyText: string;
   previewImage?: { name: string; url: string };
+  allImages?: { name: string; url: string }[];
+  previewIndex?: number;
+  onPreview?: (index: number) => void;
+  onPlayParticipantSegment?: (segment: { key: string; start: number; end?: number }) => void;
+  onStopParticipantSegment?: () => void;
+  activeParticipantSegmentKey?: string;
 }) {
 
+  const domestic = routeMarket() === "cn";
+  const previewImages = allImages ?? r.images ?? (previewImage ? [previewImage] : []);
+  const [imageIndex, setImageIndex] = useState(() => previewIndex ?? Math.max(0, previewImages.findIndex(image => image.url === previewImage?.url)));
+  const [imageZoom, setImageZoom] = useState(1);
+  const [imageRotation, setImageRotation] = useState(0);
+  const [failedImage, setFailedImage] = useState("");
   const [openedAt] = useState(() => Date.now());
   const [page, setPage] = useState(kind),
     [error, setError] = useState(""),
     [form, setForm] = useState({ ...r, tagsText: r.tags.join("，") }),
-    [silent, setSilent] = useState<string[]>([]),
+    [silent, setSilent] = useState<string[]>(() => domestic ? [...(r.silentParticipants || [])] : []),
     [choice, setChoice] = useState("summary"),
     [format, setFormat] = useState("txt"),
     [shareTypes, setShareTypes] = useState(Object.keys(shareNames)),
     [days, setDays] = useState(7),
     [busy, setBusy] = useState(false);
+  const saving = useRef(false);
+  const stopParticipant = useRef(onStopParticipantSegment);
+  useEffect(() => { stopParticipant.current = onStopParticipantSegment; }, [onStopParticipantSegment]);
+  useEffect(() => () => {
+    if (domestic && kind === "participants") stopParticipant.current?.();
+  }, [domestic, kind]);
+  if (domestic && (kind === "export" || kind.startsWith("share")))
+    return <DomesticExportShareDialog kind={kind} r={r} workspace={workspace} onClose={onClose} />;
   const field = (
     key: "title" | "customer" | "project" | "location" | "tagsText",
     label: string,
@@ -77,6 +106,18 @@ export function MeetingDialogs({
     </label>
   );
   const save = (patch: Partial<MeetingDetail>) => {
+    if (domestic) {
+      if (saving.current) return;
+      saving.current = true;
+      setBusy(true);
+      setError("");
+      void (async () => {
+        try { await onSave(patch); onClose(); }
+        catch (e) { setError(e instanceof Error ? e.message : "保存失败，输入已保留，请重试"); }
+        finally { saving.current = false; setBusy(false); }
+      })();
+      return;
+    }
     try {
       onSave(patch);
       onClose();
@@ -94,7 +135,7 @@ export function MeetingDialogs({
     footer: ReactNode = null,
     cls = "";
   const cancel = (
-    <B action="dismiss" onClick={onClose}>
+    <B action="dismiss" disabled={domestic && busy} onClick={onClose}>
       取消
     </B>
   );
@@ -107,6 +148,7 @@ export function MeetingDialogs({
         <B
           action="save-name"
           className="md-btn md-primary"
+          disabled={domestic && busy}
           onClick={() =>
             form.title.trim()
               ? save({ title: form.title.trim() })
@@ -149,7 +191,7 @@ export function MeetingDialogs({
               <input
                 id={`md-${key}`}
                 list={`md-${key}s`}
-                maxLength={80}
+                maxLength={domestic ? 50 : 80}
                 placeholder={
                   customer ? "搜索或输入客户名称" : "搜索或输入商机项目"
                 }
@@ -158,7 +200,7 @@ export function MeetingDialogs({
               />
               <datalist id={`md-${key}s`}>
                 {(customer
-                  ? ["ABC Energy", "演示科技"]
+                  ? ["ABC Energy", "青禾科技"]
                   : ["产品试用项目", "客户合作方案"]
                 ).map((x) => (
                   <option key={x}>{x}</option>
@@ -185,7 +227,7 @@ export function MeetingDialogs({
           ))}
         </div>
         {field("tagsText", "已选标签（最多10个）", {
-          maxLength: 210,
+          maxLength: domestic ? 310 : 210,
           placeholder: "用逗号分隔多个标签",
         })}
         <small>常用标签</small>
@@ -217,6 +259,7 @@ export function MeetingDialogs({
         <B
           action="save-info"
           className="md-btn md-primary"
+          disabled={domestic && busy}
           onClick={() => {
             const tags = [
               ...new Set(
@@ -226,10 +269,13 @@ export function MeetingDialogs({
                   .filter(Boolean),
               ),
             ];
-            if (tags.length > 10 || tags.some((t) => t.length > 20)) {
-              setError("最多10个标签，每个标签不超过20字");
+            const tagLimit = domestic ? 30 : 20;
+            if (tags.length > 10 || tags.some((t) => t.length > tagLimit)) {
+              setError(`最多10个标签，每个标签不超过${tagLimit}字`);
               return;
             }
+            if (domestic && (form.customer.trim().length > 50 || form.project.trim().length > 50)) { setError("客户名称和商机项目名称各不能超过50字"); return; }
+            if (domestic && form.location.trim().length > 30) { setError("位置不能超过30字"); return; }
             save({
               customer: form.customer.trim(),
               project: form.project.trim(),
@@ -246,6 +292,8 @@ export function MeetingDialogs({
     );
   }
   if (page === "participants") {
+    const nameLimit = domestic ? 16 : 30;
+    const participantLines = domestic ? linesFor(r) : [];
     title = "编辑参会人";
     subtitle = "修改名称会同步到转译文本和逐字稿。";
     body = (
@@ -256,7 +304,7 @@ export function MeetingDialogs({
             action="add-person"
             className="md-link"
             onClick={() => {
-              if (form.speakers.length + silent.length >= 20)
+              if (!domestic && form.speakers.length + silent.length >= 20)
                 setError("最多添加20位参会人");
               else setSilent([...silent, ""]);
             }}
@@ -270,7 +318,7 @@ export function MeetingDialogs({
               <input
                 data-md-person
                 aria-label="未发言参会人"
-                maxLength={30}
+                maxLength={nameLimit}
                 placeholder="输入参会人姓名"
                 value={s}
                 onChange={(e) =>
@@ -279,6 +327,7 @@ export function MeetingDialogs({
                   )
                 }
               />
+              {domestic ? <B action="remove-silent-person" aria-label={`删除未发言参会人 ${s || i + 1}`} onClick={() => setSilent(current => current.filter((_, j) => j !== i))}>删除</B> : null}
             </label>
           ))}
         </div>
@@ -289,7 +338,7 @@ export function MeetingDialogs({
                 <input
                   data-md-person
                   aria-label={`参会人 ${i + 1}`}
-                  maxLength={30}
+                  maxLength={nameLimit}
                   value={name}
                   onChange={(e) =>
                     setForm({
@@ -300,9 +349,20 @@ export function MeetingDialogs({
                     })
                   }
                 />
-                <small>{i < 3 ? "总发言时长 · 演示" : "未发言"}</small>
+                <small>{domestic ? `${participantLines.filter(line => line.speaker === i).length} 个发言片段` : i < 3 ? "总发言时长" : "未发言"}</small>
               </header>
-              {i < 3 ? (
+              {domestic ? participantLines.map((line, index) => ({ line, end: participantLines[index + 1]?.at, key: `${r.id}:${line.speaker}:${line.at}:${index}` })).filter(({ line }) => line.speaker === i).slice(0, 2).map(({ line, end, key }, index) => (
+                <div className="md-clip" key={key}>
+                  <B action="clip" className="md-link" data-at={line.at} aria-pressed={activeParticipantSegmentKey === key} aria-label={`${activeParticipantSegmentKey === key ? "暂停" : "播放"}${name}的第${index + 1}段发言`} onClick={() => {
+                    if (activeParticipantSegmentKey === key && onStopParticipantSegment) onStopParticipantSegment();
+                    else if (onPlayParticipantSegment) onPlayParticipantSegment({ key, start: line.at, ...(end !== undefined && end > line.at ? { end } : {}) });
+                    else seek(line.at);
+                  }}>
+                    {`${activeParticipantSegmentKey === key ? "Ⅱ" : "▶"} ${clockTime(line.at)}${end !== undefined && end > line.at ? ` — ${clockTime(end)}` : ""}`}
+                  </B>
+                  <p>{line.text}</p>
+                </div>
+              )) : i < 3 ? (
                 <div className="md-clip">
                   <B
                     action="clip"
@@ -326,7 +386,19 @@ export function MeetingDialogs({
         <B
           action="save-people"
           className="md-btn md-primary"
+          disabled={domestic && busy}
           onClick={() => {
+            if (domestic) {
+              const normalize = (value: string) => value.trim().replace(/\s+/g, " ");
+              const speakers = form.speakers.map(normalize);
+              const silentParticipants = silent.map(normalize);
+              if ([...speakers, ...silentParticipants].some(value => !value)) { setError("请填写所有参会人姓名"); return; }
+              if ([...speakers, ...silentParticipants].some(value => value.length > nameLimit)) { setError(`参会人姓名最多${nameLimit}字`); return; }
+              // Keep speaker indices stable. A participant rename applies to that speaker's segments.
+              const segments = r.segments?.map(segment => speakers[segment.speaker] !== r.speakers[segment.speaker] ? { ...segment, speakerName: undefined } : segment);
+              save({ speakers, silentParticipants, ...(segments ? { segments } : {}) });
+              return;
+            }
             const people = [...form.speakers, ...silent].map((s) => s.trim());
             if (people.some((s) => !s)) setError("请填写所有参会人姓名");
             else save({ speakers: people });
@@ -348,13 +420,15 @@ export function MeetingDialogs({
         <B
           action="regenerate"
           className="md-btn md-primary"
+          disabled={domestic && busy}
           onClick={() =>
             save({
               template: form.template,
               language: form.language,
               detail: form.detail,
-              summary: regenerated(form),
-              summaryHtml: "",
+              // Domestic generation has no backend yet; only persist configuration.
+              // Omit content fields so the latest saved summary and rich text survive.
+              ...(domestic ? {} : { summary: regenerated(form), summaryHtml: "" }),
             })
           }
         >
@@ -367,7 +441,7 @@ export function MeetingDialogs({
     title = "选择导出内容";
     subtitle = "请选择您需要导出的内容类型";
     body = [
-      ["audio", "音频", "会议录音文件（演示音频）"],
+      ["audio", "音频", "会议录音文件"],
       ["transcript", "转译文本", "会议语音转文字内容"],
       ["translation", "实时翻译", "会议实时翻译内容"],
       ["summary", `总结-${r.title}`, "AI生成的会议总结"],
@@ -447,7 +521,7 @@ export function MeetingDialogs({
                 download(
                   await response.blob(),
                   "wav",
-                  `${r.title}-演示音频`,
+                  `${r.title}-音频`,
                   "audio/wav",
                 );
               } else {
@@ -554,9 +628,7 @@ export function MeetingDialogs({
             ? `有效至：${new Date(openedAt + days * 86400000).toLocaleString("zh-CN")}`
             : "链接永久有效"}
         </p>
-        <div className="md-notice">
-          当前为本地原型，未连接分享服务。可预览访问者看到的内容，不会发布公开链接。
-        </div>
+
       </>
     );
     footer = (
@@ -589,7 +661,7 @@ export function MeetingDialogs({
           onClick={() =>
             setError(
               shareTypes.length
-                ? "尚未连接分享服务，无法生成公开链接。可先预览分享内容。"
+                ? "暂时无法生成分享链接，请稍后重试。"
                 : "请至少选择一项分享内容",
             )
           }
@@ -601,7 +673,7 @@ export function MeetingDialogs({
   }
   if (page === "share-preview") {
     title = "分享内容预览";
-    subtitle = "仅本地预览 · 尚未发布";
+    subtitle = "尚未发布";
     body = (
       <>
         <h2>{r.title}</h2>
@@ -609,7 +681,7 @@ export function MeetingDialogs({
           <section key={t}>
             <h3>{shareNames[t]}</h3>
             {t === "audio" ? (
-              <p className="md-notice">演示音频 · 返回详情页播放</p>
+              <p className="md-notice">返回详情页播放音频</p>
             ) : (
               <div className="md-prose">
                 {t === "summary"
@@ -632,7 +704,7 @@ export function MeetingDialogs({
     body = (
       <div className="md-empty" style={{ minHeight: 160 }}>
         <h2>暂无分享记录</h2>
-        <p>当前原型尚未发布公开分享链接。</p>
+
       </div>
     );
     footer = (
@@ -749,17 +821,54 @@ export function MeetingDialogs({
       </B>
     );
   }
-  if (page === "image-preview" && previewImage) {
-    title = previewImage.name;
-    subtitle = "本次会话上传的图片";
-    body = (
-      <img
+  if (page === "image-preview" && (previewImage || domestic)) {
+    const index = Math.max(0, Math.min((onPreview ? previewIndex : undefined) ?? imageIndex, previewImages.length - 1));
+    const image = domestic ? previewImages[index] : previewImage;
+    const changeImage = (next: number) => {
+      setImageIndex(next);
+      onPreview?.(next);
+      setImageZoom(1);
+      setImageRotation(0);
+      setError("");
+      setFailedImage("");
+    };
+    title = image?.name || "图片预览";
+    subtitle = domestic ? `${previewImages.length ? index + 1 : 0} / ${previewImages.length}` : "本次会话上传的图片";
+    body = !domestic && image ? <img className="md-preview-image" src={image.url} alt={image.name} /> : (
+      image ? <div style={{ overflow: "auto", maxHeight: "60vh" }}><img
         className="md-preview-image"
-        src={previewImage.url}
-        alt={previewImage.name}
-      />
+        src={image.url}
+        alt={image.name}
+        style={{ width: `${imageZoom * 100}%`, maxWidth: "none", maxHeight: "none", transform: `rotate(${imageRotation}deg)` }}
+        onError={() => setFailedImage(image.url)}
+      /></div> : <p>暂无可查看的图片</p>
     );
-    footer = (
+    if (domestic && image && failedImage === image.url) body = <p role="alert">图片无法加载，请重新上传或选择其他图片。</p>;
+    footer = domestic ? <div className="md-pills" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+      <B action="image-prev" disabled={index <= 0} onClick={() => changeImage(index - 1)}>上一张</B>
+      <B action="image-next" disabled={index >= previewImages.length - 1} onClick={() => changeImage(index + 1)}>下一张</B>
+      <B action="image-zoom-out" aria-label="缩小图片" disabled={!image || imageZoom <= .2} onClick={() => setImageZoom(zoom => Math.max(.2, zoom / 1.2))}>−</B>
+      <B action="image-reset" disabled={!image} onClick={() => { setImageZoom(1); setImageRotation(0); }}>{Math.round(imageZoom * 100)}%</B>
+      <B action="image-zoom-in" aria-label="放大图片" disabled={!image || imageZoom >= 7} onClick={() => setImageZoom(zoom => Math.min(7, zoom * 1.2))}>＋</B>
+      <B action="image-rotate" disabled={!image} onClick={() => setImageRotation(rotation => (rotation + 90) % 360)}>旋转</B>
+      <B action="image-download" disabled={busy || !image || failedImage === image?.url} onClick={async () => {
+        if (!image || busy) return;
+        setBusy(true); setError("");
+        try {
+          const url = new URL(image.url, location.href);
+          if (!(url.protocol === "data:" && url.href.startsWith("data:image/")) && !(url.origin === location.origin && ["blob:", "http:", "https:"].includes(url.protocol))) throw Error("图片下载地址无效");
+          const response = await fetch(url.href);
+          if (!response.ok) throw Error("图片下载失败，请重试");
+          const blob = await response.blob();
+          const extensions: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/gif": "gif", "image/avif": "avif", "image/bmp": "bmp" };
+          const extension = extensions[blob.type.split(";")[0]];
+          if (!extension) throw Error("暂不支持下载此图片格式");
+          if (routeMarket() !== "cn") throw Error("市场已切换，请重新打开图片");
+          download(blob, extension, image.name.replace(/\.[^.]+$/, ""));
+        } catch (e) { setError((e as Error).message); }
+        finally { setBusy(false); }
+      }}>{busy ? "下载中…" : "下载图片"}</B>
+    </div> : (
       <B action="dismiss" onClick={onClose}>
         关闭
       </B>
@@ -769,12 +878,13 @@ export function MeetingDialogs({
     <MdDialog
       title={title}
       subtitle={subtitle}
-      onClose={onClose}
+      onClose={domestic && busy ? () => {} : onClose}
       footer={footer}
-      error={error}
+      error={domestic ? undefined : error}
       className={cls}
     >
       {body}
+      {domestic && error ? <p role="alert">{error}</p> : null}
     </MdDialog>
   );
 }

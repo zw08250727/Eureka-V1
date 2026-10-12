@@ -141,9 +141,7 @@ export function ContactAgent({
             <div className="contacts-xiaozhi-answer" aria-live="polite">
               {answer || person?.summary || "暂无关系摘要"}
             </div>
-            <small className="contacts-xiaozhi-note">
-              示例回答 · 未连接 AI 服务
-            </small>
+
           </div>
           <div className="xiaozhi-composer">
             <textarea
@@ -187,7 +185,7 @@ export function ContactAgent({
             <span className="agent-context-hint">已引用联系人关系</span>
             <div className="agent-composer-caption">
               <span>Enter 发送 / Shift+Enter 换行</span>
-              <span>本地模拟</span>
+
             </div>
           </div>
         </div>

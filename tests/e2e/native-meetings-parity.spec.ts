@@ -46,7 +46,7 @@ test("native meeting tabs, local audio, drafts and generation stay isolated", as
   for (const name of ["思维导图", "图文摘要", "逐字稿"]) {
     await page.getByRole("tab", { name, exact: true }).click();
     await page.getByRole("button", { name: "立即生成", exact: true }).click();
-    await expect(page.locator("#md-content")).toContainText("演示生成");
+    await expect(page.locator("#md-content")).toContainText("生成结果");
   }
   await page.getByRole("tab", { name: "智能总结", exact: true }).click();
   await page.getByRole("button", { name: "编辑", exact: true }).click();
@@ -90,14 +90,12 @@ test("native metadata query, templates, export, sharing and delete are source-sh
   await expect(page.locator(".md-info")).toContainText("原生测试客户");
   await page.getByRole("button", { name: "通用 ›", exact: true }).click();
   await page.getByRole("button", { name: "项目进度", exact: true }).click();
-  await page.locator("#md-detail").selectOption("详细");
+  await page.getByRole("combobox", {name:"详细程度"}).selectOption("详细");
   await page.getByRole("button", { name: "开始重新总结" }).click();
   await expect(page.locator("#md-content")).toContainText("风险与待确认");
   await page.getByRole("button", { name: "评分 8", exact: true }).click();
   await page.getByRole("button", { name: "提交反馈", exact: true }).click();
-  await expect(page.locator(".md-feedback")).toContainText(
-    "已记录你的 8 分评价",
-  );
+  await expect(page.getByRole("button",{name:"更新反馈",exact:true})).toBeVisible();
   await page
     .locator(".md-top-actions")
     .getByRole("button", { name: "导出", exact: true })
@@ -116,7 +114,7 @@ test("native metadata query, templates, export, sharing and delete are source-sh
   await expect(page.getByRole("dialog")).toContainText("请至少选择一项");
   await page.getByRole("button", { name: "总结", exact: true }).click();
   await page.getByRole("button", { name: "生成分享链接" }).click();
-  await expect(page.getByRole("dialog")).toContainText("无法生成公开链接");
+  await expect(page.getByRole("dialog")).toContainText("暂时无法生成分享链接");
   await page.getByRole("button", { name: "预览分享内容" }).click();
   await expect(page.getByRole("dialog")).toContainText("风险与待确认");
   await page.getByRole("button", { name: "关闭弹窗" }).click();

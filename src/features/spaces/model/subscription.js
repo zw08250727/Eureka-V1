@@ -1,9 +1,10 @@
+import cn from "../../markets/cn.json";
+import { marketConfig } from "../../markets/config";
+import { grantCredits } from "./credit-ledger";
 // Existing personal subscription rules, imported as a module.
 
-const plans = {
-  month: { cycle: "month", amount: 17.99, currency: "USD" },
-  year: { cycle: "year", amount: 99.99, currency: "USD" },
-};
+const config = marketConfig();
+const plans = config.personal;
 const fail = (message) => {
     throw Error(message);
   },
@@ -31,8 +32,8 @@ function current(w, now = new Date().toISOString()) {
   if (!s || s.endsAt <= effectiveNow)
     return {
       ...status,
-      plan: "标准版",
-      minutes: 400,
+      plan: config.id === "cn" ? "免费版" : "标准版",
+      minutes: config.benefits.standardMinutes,
       credits: null,
       renew: false,
       cycle: null,
@@ -40,22 +41,28 @@ function current(w, now = new Date().toISOString()) {
       nextRefresh: null,
       usedMinutes: 0,
     };
-  return { ...s, ...status, plan: "Pro", minutes: 99999, credits: 5000, usedMinutes: 0 };
+  const tier = config.id === "cn" ? cn.memberCatalog.find(p => p.id === (s.tier || "professional")) : null;
+  return { ...s, ...status, tier: tier?.id, plan: tier?.name || "Pro", minutes: tier ? (tier.minutes ?? Infinity) : config.benefits.proMinutes, credits: tier?.monthlyCredits || config.benefits.proCredits, usedMinutes: 0 };
 }
 const snapshot = (w) => JSON.stringify(w.personalSubscription || null);
-function create(w, cycle) {
+function create(w, cycle, tier = "professional") {
   owner(w);
-  const p = plans[cycle] || fail("请选择有效的套餐");
+  const selected = config.id === "cn" ? cn.memberCatalog.find(p => p.id === tier) : null;
+  if (config.id === "cn" && !selected) fail("请选择有效的会员类型");
+  const p = selected ? { cycle, amount: selected[cycle], currency: "CNY" } : plans[cycle];
+  if (!p || !["month", "year"].includes(cycle)) fail("请选择有效的套餐");
   const s = current(w);
-  if (s.plan === "Pro" && s.cycle === cycle)
+  if (s.endsAt > new Date().toISOString() && s.cycle === cycle && (config.id !== "cn" || s.tier === tier))
     fail("当前套餐已生效，无需重复购买");
+  if (config.id === "cn" && s.endsAt > new Date().toISOString() && s.tier === "excellent" && tier !== "excellent") fail("当前已享卓越版权益，请到期后再选择专业版");
   w.personalOrders ||= [];
   const before = snapshot(w),
     old = w.personalOrders.find(
       (o) =>
         ["pending", "failed"].includes(o.status) &&
-        o.cycle === cycle &&
-        o.snapshot === before,
+        o.cycle === cycle && (config.id !== "cn" || o.tier === tier) &&
+        o.snapshot === before && o.amount === p.amount && o.currency === p.currency &&
+        o.priceVersion === (config.id === "cn" ? config.revision : "mobile-demo-v1"),
     );
   if (old) return old;
   w.personalOrders
@@ -68,7 +75,10 @@ function create(w, cycle) {
     created: new Date().toISOString(),
     status: "pending",
     snapshot: before,
-    priceVersion: "mobile-demo-v1",
+    priceVersion: config.id === "cn" ? config.revision : "mobile-demo-v1",
+    planName: selected?.name || "Pro",
+    ...(selected ? { tier, monthlyMinutes: selected.minutes, storageGB: selected.storageGB } : {}),
+    monthlyCredits: selected?.monthlyCredits || config.benefits.proCredits,
   };
   w.personalOrders.unshift(order);
   return order;
@@ -91,7 +101,7 @@ function pay(
   w,
   orderId,
   result,
-  method = "Visa ···· 4242",
+  method = config.payments.subscription[0],
   now = new Date().toISOString(),
 ) {
   const o = get(w, orderId);
@@ -99,15 +109,17 @@ function pay(
   if (o.status === "paid") return o;
   if (!["pending", "failed"].includes(o.status)) fail("订单已取消");
   if (o.snapshot !== snapshot(w)) fail("订阅已变化，请重新确认订单");
-  const p = plans[o.cycle];
+  const tier = config.id === "cn" ? cn.memberCatalog.find(p => p.id === o.tier) : null;
+  const p = tier ? { amount: tier[o.cycle], currency: "CNY" } : plans[o.cycle];
   if (
     !p ||
     o.amount !== p.amount ||
     o.currency !== p.currency ||
-    o.priceVersion !== "mobile-demo-v1"
+    (config.id === "cn" && (!tier || o.monthlyCredits !== tier.monthlyCredits || o.monthlyMinutes !== tier.minutes)) ||
+    o.priceVersion !== (config.id === "cn" ? config.revision : "mobile-demo-v1")
   )
     fail("订单报价无效");
-  if (!["Visa ···· 4242", "Apple Pay（模拟）"].includes(method))
+  if (!config.payments.subscription.includes(method))
     fail("支付方式无效");
   if (result === "failure") {
     o.status = "failed";
@@ -115,11 +127,12 @@ function pay(
   }
   const subscription = {
     plan: "Pro",
+    ...(tier ? { tier: tier.id } : {}),
     cycle: o.cycle,
     startsAt: now,
     endsAt: addMonths(now, o.cycle === "year" ? 12 : 1),
     nextRefresh: addMonths(now, 1),
-    renew: true,
+    renew: config.id !== "cn",
     orderId: o.id,
   };
   o.status = "paid";
@@ -129,11 +142,29 @@ function pay(
   o.invoiceId = "INV-" + o.id;
   w.personalSubscription = { ...subscription };
   w.plan = "Pro";
-  w.credits.total += 5000;
+  if (config.id === "cn") grantCredits(w, { id: `${o.id}:0`, category: "membership", label: `${o.planName}会员积分`, amount: o.monthlyCredits, remaining: o.monthlyCredits, time: now, expires: null });
+  else w.credits.total += config.benefits.proCredits;
   return o;
+}
+// Monthly grant anniversaries are anchored to purchase, including Jan 31 and leap years.
+function refresh(w, now = new Date().toISOString()) {
+  if (config.id !== "cn" || w.type !== "personal") return;
+  const s = w.personalSubscription;
+  if (!s?.startsAt || !s.endsAt || !s.orderId) return;
+  const order = (w.personalOrders || []).find(o => o.id === s.orderId);
+  if (!order?.monthlyCredits) return; // Never reissue legacy paid grants.
+  for (let i = 1; i < (s.cycle === "year" ? 12 : 1); i++) {
+    const at = addMonths(s.startsAt, i);
+    if (at >= s.endsAt || at > now) break;
+    grantCredits(w, { id: `${s.orderId}:${i}`, category: "membership", label: `${order.planName || "专业版"}会员积分`, amount: order.monthlyCredits, remaining: order.monthlyCredits, time: at, expires: null });
+  }
+  let next = addMonths(s.startsAt, 1);
+  for (let i = 2; next <= now && next < s.endsAt; i++) next = addMonths(s.startsAt, i);
+  s.nextRefresh = next < s.endsAt ? next : null;
 }
 function renew(w, value) {
   owner(w);
+  if (config.id === "cn") fail("当前套餐为单次购买，无自动续费");
   if (current(w).plan !== "Pro") fail("暂无有效 Pro 订阅");
   w.personalSubscription.renew = !!value;
   return w.personalSubscription;
@@ -152,6 +183,7 @@ function restore(w, now = new Date().toISOString()) {
 
 const subscriptionModel = {
   plans,
+  refresh,
   current,
   create,
   get,

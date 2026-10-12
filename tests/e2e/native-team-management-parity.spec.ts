@@ -72,7 +72,7 @@ test("native members: pending invite, accept, roles, resend, removal and refresh
   );
   await action(page, "invite").click();
   await dialog(page).locator("[name=emails]").fill("parity@example.com");
-  await dialog(page).getByRole("button", { name: "发送模拟邀请" }).click();
+  await dialog(page).getByRole("button", { name: "发送邀请" }).click();
   let row = page
     .locator(".ws-table tbody tr")
     .filter({ hasText: "parity@example.com" });
@@ -80,7 +80,7 @@ test("native members: pending invite, accept, roles, resend, removal and refresh
   await expect(row.locator("[data-member-time=joined]")).toHaveText("—");
   await expect(row.locator("[data-member-time=left]")).toHaveText("—");
   await row.getByRole("button", { name: "重发", exact: true }).click();
-  await expect(page.locator("#ws-toast")).toContainText("模拟邀请已重发");
+  await expect(page.locator("#ws-toast")).toContainText("邀请已重发");
   await row.getByRole("button", { name: "模拟接受" }).click();
   await expect(row).toContainText("Unlimited");
   await expect(row.locator("[data-member-time=joined]")).toHaveText(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}/);
@@ -111,7 +111,7 @@ test("native members: pending invite, accept, roles, resend, removal and refresh
   ).toBe(before);
   await action(page, "invite").click();
   await dialog(page).locator("[name=emails]").fill("parity@example.com");
-  await dialog(page).getByRole("button", { name: "发送模拟邀请" }).click();
+  await dialog(page).getByRole("button", { name: "发送邀请" }).click();
   await expect(row.locator("[data-member-time=joined]")).toHaveText("—");
   await row.getByRole("button", { name: "模拟接受" }).click();
   await expect(row).toHaveCount(1);
@@ -143,19 +143,19 @@ test("native members: invalid/full invites and failed storage preserve form and 
   await open(page, "members");
   await action(page, "invite").click();
   await dialog(page).locator("[name=emails]").fill("invalid-email");
-  await dialog(page).getByRole("button", { name: "发送模拟邀请" }).click();
+  await dialog(page).getByRole("button", { name: "发送邀请" }).click();
   await expect(dialog(page).locator(".ws-form-error")).not.toBeEmpty();
   await dialog(page)
     .locator("[name=emails]")
     .fill(
       "one@example.com,two@example.com,three@example.com,four@example.com,five@example.com,six@example.com",
     );
-  await dialog(page).getByRole("button", { name: "发送模拟邀请" }).click();
+  await dialog(page).getByRole("button", { name: "发送邀请" }).click();
   await expect(dialog(page).locator(".ws-form-error")).not.toBeEmpty();
   const before = await read(page);
   await dialog(page).locator("[name=emails]").fill("one@example.com");
   await failStorage(page);
-  await dialog(page).getByRole("button", { name: "发送模拟邀请" }).click();
+  await dialog(page).getByRole("button", { name: "发送邀请" }).click();
   await expect(dialog(page).locator(".ws-form-error")).toContainText(
     "保存失败",
   );
@@ -226,10 +226,10 @@ test("native create team: plans, draft recovery, failure, retry, success invite 
   const before = (await read(page)).spaces.length;
   await dialog(page).getByRole("button", { name: "模拟支付失败" }).click();
   await expect(dialog(page).locator(".ws-form-error")).toContainText(
-    "模拟支付失败",
+    "支付失败",
   );
   expect((await read(page)).spaces).toHaveLength(before);
-  await dialog(page).getByRole("button", { name: "模拟支付并开通" }).click();
+  await dialog(page).getByRole("button", { name: "支付并开通" }).click();
   await expect(dialog(page).locator("h2")).toHaveText("团队已准备好");
   expect((await read(page)).spaces).toHaveLength(before + 1);
   await dialog(page).getByRole("button", { name: "邀请伙伴" }).click();
@@ -372,7 +372,7 @@ test("native creation cancellation and stale draft do not create teams", async (
     s.name = "其他标签页草稿";
     localStorage.setItem("eureka:team-setup:v1", JSON.stringify(s));
   });
-  await dialog(page).getByRole("button", { name: "模拟支付并开通" }).click();
+  await dialog(page).getByRole("button", { name: "支付并开通" }).click();
   await expect(dialog(page).locator(".ws-form-error")).toContainText(
     "其他页面",
   );

@@ -1,4 +1,5 @@
 "use client";
+
 import { Select } from "@/components/ui/select";
 import { M } from "./model/store";
 import type { SpacesController } from "./use-spaces";
@@ -50,7 +51,7 @@ export function InviteMembersDialog({
             增加席位
           </Button>
           <button className="ws-btn primary" type="submit">
-            发送模拟邀请
+            发送邀请
           </button>
         </>
       }
@@ -81,7 +82,7 @@ export function InviteMembersDialog({
           <option value="admin">管理员 · 管理成员、设备和账单</option>
         </Select>
       </label>
-      <p className="ws-muted">本地模拟邀请，不会发送真实邮件。</p>
+
     </Dialog>
   );
 }

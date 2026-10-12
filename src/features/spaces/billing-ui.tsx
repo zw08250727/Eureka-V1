@@ -1,4 +1,8 @@
 "use client";
+import { creditText } from "@/features/markets/config";
+import { reviewToolsEnabled } from "@/features/markets/review";
+
+import { formatMarketMoney } from "@/features/markets/config";
 import { Select } from "@/components/ui/select";
 import {
   useEffect,
@@ -20,7 +24,7 @@ export const money = (n: number, currency = "CNY") =>
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
-export const dollars = (n: number) => "$" + Number(n).toFixed(2);
+export const dollars = (n: number) => formatMarketMoney(n);
 export const creditNumber = (n: number = 0) =>
   Number(n).toLocaleString("zh-CN", { maximumFractionDigits: 3 });
 export const date = (value?: string | null) =>
@@ -97,7 +101,7 @@ export function ManagementTabs({
 }) {
   const tabs: [string, string, AppView][] = [
     ["billing", "订阅与席位", "subscription"],
-    ["credits", "Credits", "credits"],
+    ["credits", creditText("Credits"), "credits"],
     ["settings", "基本设置", "space-settings"],
     ["audit", "活动记录", "audit"],
   ];
@@ -172,8 +176,8 @@ export function WsRoot({
       <div className={`ws-layout${agent ? " with-agent" : ""}`}>
         <div className="ws-content">
           {children}
-          <footer className="ws-demo-footer">
-            交互演示 · 数据保存在本浏览器
+          {reviewToolsEnabled() && (<footer className="ws-demo-footer">
+
             {w.type === "team" ? (
               <label>
                 体验成员视角{" "}
@@ -195,7 +199,7 @@ export function WsRoot({
                 </Select>
               </label>
             ) : null}
-          </footer>
+          </footer>)}
         </div>
         {agent}
       </div>

@@ -1,0 +1,320 @@
+{
+  "revision": "market-20261012-04",
+  "status": "会员与加时包已核对当前网页在售界面及前端源码；团队定价保留既有独立基线",
+  "currency": "CNY",
+  "personal": {
+    "month": {
+      "cycle": "month",
+      "amount": 50,
+      "currency": "CNY"
+    },
+    "year": {
+      "cycle": "year",
+      "amount": 199,
+      "currency": "CNY"
+    }
+  },
+  "benefits": {
+    "standardMinutes": 300,
+    "proMinutes": 3000,
+    "proCredits": 5000,
+    "teamCredits": 50000,
+    "personalDemoCredits": 3000
+  },
+  "team": {
+    "month": {
+      "monthly": 28,
+      "originalMonthly": 35,
+      "firstAmount": 28,
+      "renewalAmount": 35,
+      "currency": "USD"
+    },
+    "year": {
+      "monthly": 20,
+      "originalMonthly": 25,
+      "firstAmount": 240,
+      "renewalAmount": 300,
+      "currency": "USD"
+    }
+  },
+  "credits": [
+    {
+      "id": "credits-5k",
+      "credits": 5000,
+      "amount": 59,
+      "original": 89
+    },
+    {
+      "id": "credits-10k",
+      "credits": 10000,
+      "amount": 109,
+      "original": 159
+    },
+    {
+      "id": "credits-15k",
+      "credits": 15000,
+      "amount": 149,
+      "original": 199
+    }
+  ],
+  "rewards": {
+    "register": 1000,
+    "profile": 500,
+    "app": 200,
+    "signin": 1000,
+    "feedback": 500
+  },
+  "rewardLimits": {
+    "signin": 15,
+    "feedback": 10
+  },
+  "rates": {
+    "input": 1,
+    "output": 2,
+    "perTokens": 1000
+  },
+  "id": "cn",
+  "label": "国内版",
+  "accountRealm": "eureka-cn",
+  "providers": [
+    "手机号",
+    "邮箱"
+  ],
+  "agent": {
+    "id": "eurekamind-agent-cn",
+    "mcpPrefix": "cn:",
+    "skillPrefix": "cn:",
+    "status": "原型标识，真实模型与服务待配置"
+  },
+  "connectors": [
+    {
+      "id": "feishu",
+      "name": "飞书",
+      "description": "连接文档、日历与团队协作资料。",
+      "tools": 30
+    },
+    {
+      "id": "dingtalk",
+      "name": "钉钉",
+      "description": "连接通讯录、日程、待办与办公资料。",
+      "tools": 8
+    }
+  ],
+  "payments": {
+    "subscription": [
+      "微信",
+      "支付宝"
+    ],
+    "credits": [
+      "微信",
+      "支付宝"
+    ],
+    "status": "已核对网页会员、加时包及积分支付渠道"
+  },
+  "brand": "百智",
+  "membership": [
+    {
+      "id": "standard",
+      "name": "标准版",
+      "monthlyCredits": 3000
+    },
+    {
+      "id": "professional",
+      "name": "专业版",
+      "monthlyCredits": 5000
+    },
+    {
+      "id": "excellent",
+      "name": "卓越版",
+      "monthlyCredits": 10000
+    }
+  ],
+  "creditPolicy": {
+    "validMonths": 12,
+    "orderHours": 2
+  },
+  "memberCatalog": [
+    {
+      "id": "professional",
+      "name": "专业版",
+      "description": "适合专业人士",
+      "month": 50,
+      "year": 199,
+      "originalYear": 599,
+      "yearMonthly": "16.6",
+      "saving": "67%",
+      "minutes": 3000,
+      "monthlyCredits": 5000,
+      "storageGB": 50
+    },
+    {
+      "id": "excellent",
+      "name": "卓越版",
+      "description": "适合高频深度人士",
+      "month": 100,
+      "year": 599,
+      "originalYear": 1199,
+      "yearMonthly": "50",
+      "saving": "50%",
+      "minutes": null,
+      "monthlyCredits": 10000,
+      "storageGB": 200
+    }
+  ],
+  "memberFeatures": [
+    "AI专业总结",
+    "AI个人助理",
+    "16种语言+27种方言录音识别",
+    "16种语言+27种方言转写翻译",
+    "区分发言人",
+    "声纹识别",
+    "专业模版库",
+    "自定义模版",
+    "跨端协同",
+    "行业热词库管理",
+    "闪念笔记（硬件W2专享）",
+    "PC端AI PPT生成",
+    "PC端AI 编辑器"
+  ],
+  "memberComparison": [
+    [
+      "转写时长",
+      "300分钟/月",
+      "1500分钟/月",
+      "3000分钟/月",
+      "无限"
+    ],
+    [
+      "月赠积分",
+      "0",
+      "3000积分/月",
+      "5000积分/月",
+      "10000积分/月"
+    ],
+    [
+      "PC端知识库空间",
+      "10G",
+      "20G",
+      "50G",
+      "200G"
+    ],
+    [
+      "AI专业总结",
+      "✓",
+      "✓",
+      "✓",
+      "✓"
+    ],
+    [
+      "AI个人助理",
+      "✓",
+      "✓",
+      "✓",
+      "✓"
+    ],
+    [
+      "多语言转写翻译",
+      "✓",
+      "✓",
+      "✓",
+      "✓"
+    ],
+    [
+      "多语言录音识别",
+      "✓",
+      "✓",
+      "✓",
+      "✓"
+    ],
+    [
+      "区分发言人",
+      "✓",
+      "✓",
+      "✓",
+      "✓"
+    ],
+    [
+      "声纹识别",
+      "—",
+      "✓",
+      "✓",
+      "✓"
+    ],
+    [
+      "专业模板库",
+      "✓",
+      "✓",
+      "✓",
+      "✓"
+    ],
+    [
+      "自定义模板",
+      "✓",
+      "✓",
+      "✓",
+      "✓"
+    ],
+    [
+      "跨端协同",
+      "✓",
+      "✓",
+      "✓",
+      "✓"
+    ],
+    [
+      "行业热词库管理",
+      "✓",
+      "✓",
+      "✓",
+      "✓"
+    ],
+    [
+      "闪念笔记（硬件W2专享）",
+      "✓",
+      "✓",
+      "✓",
+      "✓"
+    ],
+    [
+      "PC端AI PPT生成",
+      "—",
+      "✓",
+      "✓",
+      "✓"
+    ],
+    [
+      "PC端AI 编辑器",
+      "—",
+      "✓",
+      "✓",
+      "✓"
+    ]
+  ],
+  "timePacks": [
+    {
+      "id": "time-120",
+      "minutes": 120,
+      "amount": 5,
+      "original": 29,
+      "unitPrice": "0.04"
+    },
+    {
+      "id": "time-1000",
+      "minutes": 1000,
+      "amount": 39,
+      "original": 69,
+      "unitPrice": "0.04"
+    },
+    {
+      "id": "time-2000",
+      "minutes": 2000,
+      "amount": 69,
+      "original": 129,
+      "unitPrice": "0.03"
+    }
+  ],
+  "timePackPolicy": {
+    "validMonths": 24,
+    "orderHours": 2
+  }
+}

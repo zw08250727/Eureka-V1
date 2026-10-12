@@ -1,4 +1,9 @@
 "use client";
+import { creditText } from "@/features/markets/config";
+import { productName } from "@/features/markets/brand";
+
+import { marketStorage } from "@/features/markets/storage";
+
 import { Select } from "@/components/ui/select";
 import { useEffect, useRef, useState } from "react";
 import { usePersonal } from "./use-personal";
@@ -21,7 +26,7 @@ export function SettingsPage({
   actor: string;
 }) {
   const { data, error, repo, refresh } = usePersonal(actor,space);
-  const [tab,setTab]=useState(()=>typeof window!=="undefined"&&new URLSearchParams(location.search).get("id")==="credits"?"Credits 明细":"个人信息");
+  const [tab,setTab]=useState(()=>typeof window!=="undefined"&&new URLSearchParams(location.search).get("id")==="credits"?creditText("Credits 明细"):typeof window!=="undefined"&&new URLSearchParams(location.search).get("id")==="recording"?"录音设置":"个人信息");
   const [toast, setToast] = useState("");
   const [logout, setLogout] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -30,7 +35,7 @@ export function SettingsPage({
     const values: Record<string, string> = {};
     try {
       for (const key of ["asr", "notes"]) {
-        const value = localStorage.getItem(`eurekamind:settings:${key}`);
+        const value = marketStorage.getItem(`eurekamind:settings:${key}`);
         if (value !== null) values[key] = value;
       }
     } catch {
@@ -94,8 +99,8 @@ export function SettingsPage({
             <RefIcon name="x" />
           </button>
         </header>
-        <AccountTabs items={["个人信息","Credits 明细","录音设置","录音转写时长"]} value={tab} onChange={setTab} label="个人设置" panelId="account-settings-panel" className="ex-settings-tabs"/>
-        <div id="account-settings-panel" role="tabpanel" aria-labelledby={`account-settings-panel-tab-${["个人信息","Credits 明细","录音设置","录音转写时长"].indexOf(tab)}`} tabIndex={0}>
+        <AccountTabs items={["个人信息",creditText("Credits 明细"),"录音设置","录音转写时长"]} value={tab} onChange={setTab} label="个人设置" panelId="account-settings-panel" className="ex-settings-tabs"/>
+        <div id="account-settings-panel" role="tabpanel" aria-labelledby={creditText(`account-settings-panel-tab-${["个人信息","Credits 明细","录音设置","录音转写时长"].indexOf(tab)}`)} tabIndex={0}>
         <AccountSettings {...{controller,space,actor,tab}}/>
         <div hidden={tab!=="录音设置"}>
         <section className="settings-float-section">
@@ -246,7 +251,7 @@ export function SettingsPage({
           <div className="settings-float-row">
             <div className="settings-row-copy">
               <strong>服务条款</strong>
-              <span>EurekaMind 账户服务条款</span>
+              <span>{productName()} 账户服务条款</span>
             </div>
             <a
               className="settings-link"
@@ -260,7 +265,7 @@ export function SettingsPage({
           <div className="settings-float-row">
             <div className="settings-row-copy">
               <strong>隐私政策</strong>
-              <span>EurekaMind 如何处理用户数据</span>
+              <span>{productName()} 如何处理用户数据</span>
             </div>
             <a
               className="settings-link"

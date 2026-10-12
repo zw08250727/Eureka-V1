@@ -14,12 +14,22 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "node scripts/test-models.mjs",
     "test:e2e": "playwright test --pass-with-no-tests",
-    "check": "npm run lint && npm run typecheck && npm test",
+    "check": "npm run lint && npm run typecheck && npm test && npm run check:spc",
     "sync:ui": "node scripts/sync-reference-ui.mjs",
     "test:visual": "node scripts/check-ui-parity.cjs",
-    "test:deployment": "node scripts/check-deployment.cjs"
+    "test:deployment": "node scripts/check-deployment.cjs",
+    "check:spc": "node scripts/check-spc.mjs",
+    "test:markets": "playwright test tests/e2e/markets.spec.ts tests/e2e/market-model.spec.ts tests/e2e/single-team-agent.spec.ts tests/e2e/domestic-auth.spec.ts tests/e2e/baizhi-theme.spec.ts tests/e2e/domestic-showcase.spec.ts tests/e2e/guest-auth.spec.ts",
+    "capture:auth-assets": "playwright test --config=playwright.auth-assets.config.ts",
+    "package:markets": "node scripts/package-markets.mjs",
+    "test:packages": "node scripts/test-market-packages.mjs",
+    "test:cn-billing": "playwright test --config=playwright.cn-model.config.ts && playwright test tests/e2e/domestic-billing.spec.ts tests/e2e/domestic-points.spec.ts tests/e2e/domestic-membership.spec.ts",
+    "test:release": "playwright test --config=playwright.cn-model.config.ts && playwright test tests/e2e/guest-auth.spec.ts tests/e2e/auth-entry.spec.ts tests/e2e/domestic-auth.spec.ts tests/e2e/domestic-showcase.spec.ts tests/e2e/markets.spec.ts tests/e2e/baizhi-theme.spec.ts tests/e2e/domestic-points.spec.ts tests/e2e/domestic-billing.spec.ts tests/e2e/domestic-membership.spec.ts tests/e2e/domestic-meeting-detail.spec.ts tests/e2e/domestic-meeting-editor.spec.ts tests/e2e/domestic-meeting-export-share.spec.ts tests/e2e/market-model.spec.ts tests/e2e/single-team-agent.spec.ts"
   },
   "dependencies": {
+    "markdown-it": "^14.3.2",
+    "markmap-lib": "^0.18.12",
+    "markmap-view": "^0.18.12",
     "next": "16.2.5",
     "react": "19.2.4",
     "react-dom": "19.2.4"
@@ -27,6 +37,7 @@
   "devDependencies": {
     "@playwright/test": "^1.58.0",
     "@tailwindcss/postcss": "^4.3.3",
+    "@types/markdown-it": "^14.2.0",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",

@@ -1,4 +1,7 @@
 "use client";
+
+import { marketStorage } from "@/features/markets/storage";
+
 import { useState } from "react";
 import { createWorkspaceStore, M } from "@/features/spaces/model/store";
 import { createActions } from "./store";
@@ -11,7 +14,7 @@ export function assetOwner(space: string, owner?: string) {
   if (space === "personal") return "";
   try {
     return (
-      M.get(createWorkspaceStore(localStorage).read(), space).members.find(
+      M.get(createWorkspaceStore(marketStorage).read(), space).members.find(
         (m) => m.id === owner,
       )?.name || "原成员"
     );
@@ -25,7 +28,7 @@ export function canEditAsset(
   r: { ownerId?: string },
 ) {
   if (space === "personal") return true;
-  const w = M.get(createWorkspaceStore(localStorage).read(), space);
+  const w = M.get(createWorkspaceStore(marketStorage).read(), space);
   return (
     w.status === "active" &&
     !!M.member(w, actor) &&
@@ -49,7 +52,7 @@ export function AssetSharing({
     [ids, setIds] = useState<string[]>([]),
     [error, setError] = useState("");
   if (space === "personal") return null;
-  const w = M.get(createWorkspaceStore(localStorage).read(), space);
+  const w = M.get(createWorkspaceStore(marketStorage).read(), space);
   if (record && (record.ownerId !== actor || record.previousOwnerId))
     return null;
   if (!M.member(w, actor)) return null;
@@ -130,13 +133,13 @@ export function AssetSharing({
                   try {
                     if (record) {
                       createActions(
-                        localStorage,
+                        marketStorage,
                         () => new Date(),
                         actor,
                         space,
                       ).share(record.id, ids);
                     } else {
-                      createWorkspaceStore(localStorage).change((st) => {
+                      createWorkspaceStore(marketStorage).change((st) => {
                         const current = M.get(st, space);
                         M.writable(current);
                         if (!M.member(current, actor))

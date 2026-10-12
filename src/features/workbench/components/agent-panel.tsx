@@ -1,4 +1,5 @@
 "use client";
+
 import { useSceneAgent } from "@/features/agent/session";
 import { AgentHistoryButton } from "@/features/agent/history-button";
 import { useEffect, useRef, useState, type RefObject } from "react";
@@ -235,7 +236,7 @@ export function AgentPanel({
                   className="widget-agent-result"
                   aria-live="polite"
                 >
-                  <span>AI · 演示建议</span>
+                  <span>AI 建议</span>
                   <h4>{m.reply.title}</h4>
                   <p className="widget-agent-request">
                     {m.prompt.split("\n")[0]}
@@ -249,14 +250,10 @@ export function AgentPanel({
                 </section>
               ) : (
                 <article key={i} className="agent-history-message assistant">
-                  <span>Ask Agent · 本地模拟</span>
+                  <span>Ask Agent</span>
                   <p>{m.prompt}</p>
                   <p>已收到你的问题，可以继续补充背景，或引用资料展开讨论。</p>
-                  <small>
-                    {web
-                      ? "联网搜索已选，当前仅模拟，未执行真实检索。"
-                      : "模拟回复，尚未调用 AI 服务。"}
-                  </small>
+
                 </article>
               ),
             )}
@@ -365,7 +362,7 @@ export function AgentPanel({
                   className="agent-tool-button"
                   id="agent-web-toggle"
                   aria-label="联网搜索"
-                  title="联网搜索（模拟）"
+                  title="联网搜索"
                   aria-pressed={web}
                   onClick={() => {
                     setWeb(!web);
@@ -397,7 +394,7 @@ export function AgentPanel({
                 <span id="agent-keyboard-hint">
                   Enter 发送 / Shift+Enter 换行
                 </span>
-                <span>本地模拟</span>
+
               </div>
             </form>
           </div>

@@ -1,8 +1,15 @@
 "use client";
+
+import { routeMarket } from "@/features/markets/config";
+import { DomesticTranscript } from "./domestic-transcript";
+import { DomesticFeedback } from "./domestic-feedback";
+import { domesticVerbatimText, DomesticAssets } from "./domestic-assets";
+import type { MeetingFeedback } from "./types";
+import MarkdownIt from "markdown-it";
 import { Fragment, useEffect, useRef, useState } from "react";
 import { MdButton as B, MdIcon as I, clockTime } from "./reference-ui";
 import { sanitizeRichText } from "./store";
-import type { MeetingDetail } from "./types";
+import type { TranscriptSegment, MeetingDetail } from "./types";
 export const meetingTabs = [
   ["summary", "智能总结"],
   ["transcript", "转译文本"],
@@ -12,8 +19,16 @@ export const meetingTabs = [
   ["verbatim", "逐字稿"],
 ] as const;
 export type MeetingTab = (typeof meetingTabs)[number][0];
-export function linesFor(r: MeetingDetail) {
+export function linesFor(r: MeetingDetail): TranscriptSegment[] {
+  if (r.segments) return r.segments;
   const source = r.transcript;
+  if(routeMarket() === "cn") {
+    return source.split("\n").filter(line=>line.trim()).map((line,i)=>{
+      const match=line.match(/^(\d+)s\s+([^：:]+)[：:](.*)$/);
+      const speaker=match ? r.speakers.indexOf(match[2]) : i % Math.max(1,r.speakers.length);
+      return {at:match ? Number(match[1]) : i*7,speaker:Math.max(0,speaker),...(match && speaker<0 ? {speakerName:match[2]} : {}),text:match ? match[3] : line,en:r.translation?.split("\n").filter(Boolean)[i] || ""};
+    });
+  }
   // Baseline snapshots contain prefixed transcript lines; original seeded rows use the four sample utterances.
   const baseline = /^0s 张伟：这是「/.test(source);
   if (source && !baseline)
@@ -24,14 +39,14 @@ export function linesFor(r: MeetingDetail) {
         at: i * 7,
         speaker: i % Math.max(1, r.speakers.length),
         text,
-        en: `Demo translation: ${text}`,
+        en: text,
       }));
   return [
     {
       at: 0,
       speaker: 0,
-      text: `这是「${r.title}」的演示转译。我们先确认本次讨论的范围，重点看产品交付和客户试用反馈。`,
-      en: `This is a demonstration transcript for “${r.title}”. Let's review product delivery and customer feedback.`,
+      text: `这是「${r.title}」的转写。我们先确认本次讨论的范围，重点看产品交付和客户试用反馈。`,
+      en: `This is the transcript for “${r.title}”. Let's review product delivery and customer feedback.`,
     },
     {
       at: 7,
@@ -57,11 +72,13 @@ export function transcriptText(r: MeetingDetail, translation = false) {
   return linesFor(r)
     .map(
       (l) =>
-        `${clockTime(l.at)} ${r.speakers[l.speaker] || "发言人"}\n${translation ? l.en : l.text}`,
+        `${clockTime(l.at)} ${l.speakerName || r.speakers[l.speaker] || "发言人"}\n${translation ? l.en : l.text}`,
     )
     .join("\n\n");
 }
 export function currentText(r: MeetingDetail, tab: MeetingTab) {
+  if(routeMarket() === "cn" && tab === "verbatim")return domesticVerbatimText(r);
+  if(routeMarket() === "cn" && tab === "visual")return "";
   return tab === "summary"
     ? r.summary
     : tab === "translation"
@@ -245,6 +262,7 @@ export function MeetingContent({
   action,
   seek,
   zoom,
+  onSave, onFeedback, time = 0, reward = false,
 }: {
   r: MeetingDetail;
   tab: MeetingTab;
@@ -254,7 +272,13 @@ export function MeetingContent({
   action: (a: string) => void;
   seek: (n: number) => void;
   zoom: number;
+  onSave: (patch: Partial<MeetingDetail>) => void;
+  onFeedback: (value: MeetingFeedback) => void;
+  time?: number; reward?: boolean;
 }) {
+  const cn = routeMarket() === "cn";
+  if (cn && (tab === "transcript" || tab === "translation")) return <DomesticTranscript key={`${r.id}/${tab}`} r={r} readonly={readonly} seek={seek} onSave={onSave} time={time} translation={tab === "translation"}/>;
+  if (cn && (tab === "mindmap" || tab === "visual" || tab === "verbatim")) return <DomesticAssets r={r} tab={tab} readonly={readonly} action={action} zoom={zoom}/>;
   if (tab === "summary")
     return (
       <>
@@ -268,7 +292,7 @@ export function MeetingContent({
               disabled={readonly}
               onClick={() => action("template")}
             >
-              {r.template} ›
+              {cn ? "当前模板：" : ""}{r.template} ›
             </B>
             <B action="edit" disabled={readonly} onClick={() => action("edit")}>
               <I name="edit" /> 编辑
@@ -276,11 +300,11 @@ export function MeetingContent({
           </div>
         </div>
         <Prose html={r.summaryHtml} text={r.summary} />
-        <p className="md-edited">
+        {(!cn || r.updated) && <p className="md-edited">
           <I name="clock" /> 最后编辑：
           {r.updated || `${r.created.slice(0, 10)} 15:06`}
-        </p>
-        <section className="md-feedback">
+        </p>}
+        {cn ? <DomesticFeedback key={`${r.id}/${r.feedbackDetail?.time || "new"}`} value={r.feedbackDetail} readonly={readonly} reward={reward} onSubmit={onFeedback}/> : <section className="md-feedback">
           <div className="md-feedback-head">
             <span className="md-feedback-mark">
               <I name="spark" />
@@ -290,12 +314,7 @@ export function MeetingContent({
                 欢迎评价本次结果，下次更懂你{" "}
                 <span className="md-reward">✦ 奖励500积分</span>
               </h3>
-              <p>
-                {r.feedback
-                  ? `已记录你的 ${r.feedback} 分评价，感谢反馈。`
-                  : "提交评分反馈，帮助优化会议总结。"}{" "}
-                <span className="md-demo">演示反馈 · 不发放真实积分</span>
-              </p>
+
             </div>
           </div>
           <div className="md-feedback-bottom">
@@ -321,7 +340,7 @@ export function MeetingContent({
               {r.feedback ? "更新反馈" : "提交反馈"}
             </B>
           </div>
-        </section>
+        </section>}
       </>
     );
   if (tab === "transcript" || tab === "translation")
@@ -331,7 +350,7 @@ export function MeetingContent({
           <small>
             {tab === "translation"
               ? "以下实时翻译结果，仅供参考"
-              : "按发言人和时间整理 · 演示转译内容"}
+              : "按发言人和时间整理 · 转写内容"}
           </small>
           <B action="copy" onClick={() => action("copy")}>
             <I name="copy" /> 复制全文
@@ -409,7 +428,7 @@ export function MeetingContent({
         >
           立即生成
         </B>
-        <small>使用本地模拟数据展示生成结果</small>
+
       </div>
     );
   }
@@ -417,7 +436,7 @@ export function MeetingContent({
     <>
       <div className="md-generated-head">
         <span className="md-demo">
-          演示生成 · {meetingTabs.find((t) => t[0] === tab)?.[1]}
+          生成结果 · {meetingTabs.find((t) => t[0] === tab)?.[1]}
         </span>
         <div>
           {tab === "mindmap" ? (
@@ -480,7 +499,10 @@ export function MeetingContent({
     </>
   );
 }
+const markdown = new MarkdownIt({html:false,breaks:true,linkify:false});
+markdown.disable(["image"]);
 function Prose({ html, text }: { html?: string; text: string }) {
+  if (routeMarket() === "cn") return <div className="md-prose cn-markdown" dangerouslySetInnerHTML={{__html: sanitizeRichText(html || markdown.render(text))}}/>;
   return html ? (
     <div
       className="md-prose"

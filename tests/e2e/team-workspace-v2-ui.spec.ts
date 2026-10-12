@@ -34,36 +34,30 @@ test("common primary entries, admin-only device information and member content s
   await expect(page.getByRole("table")).toHaveCount(0);
 });
 
-test("content policies are scoped to owner and current workspace; upload and software recording use them", async ({ page }) => {
-  const s = M.seed(), second = M.acceptInvite(s, "invite-growth").id;
-  await seed(page, s); await go(page, "content-permissions");
-  for (const name of ["会议信息共享给团队"]) {
-    await page.getByRole("switch", { name }).click();
-    await page.getByRole("checkbox", { name: /林晓/ }).check();
-    await page.getByRole("button", { name: "保存授权", exact: true }).click();
-    await expect(page.getByRole("switch", { name })).toBeChecked();
-  }
-  await go(page, "content-permissions", "kevin");
-  await expect(page.getByRole("switch", { name: "会议信息共享给团队" })).not.toBeChecked();
-  await go(page, "content-permissions", "zhang", second);
-  await expect(page.getByRole("switch", { name: "会议信息共享给团队" })).not.toBeChecked();
-  await go(page);
+test("ACCOUNT-01 / SHARE-01: upload and recording stay in the only team, private until individually shared", async ({ page }) => {
+  await seed(page); await go(page);
+  const before = M.get(await raw(page), "personal").files;
   await page.getByRole("button", { name: "上传", exact: true }).click();
-  await page.getByLabel("选择音频文件").setInputFiles({ name: "来自软件的授权上传.wav", mimeType: "audio/wav", buffer: Buffer.from("demo") });
+  await page.getByLabel("选择音频文件").setInputFiles({ name: "团队上传.wav", mimeType: "audio/wav", buffer: Buffer.from("demo") });
   await page.getByRole("dialog").getByRole("button", { name: "上传", exact: true }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  let w = M.get(await raw(page), "team-eureka");
-  expect(w.files.find(f => f.title === "来自软件的授权上传")?.shared).toEqual(["lin"]);
+  let team = M.get(await raw(page), "team-eureka");
+  const uploaded = team.files.find(f => f.title === "团队上传")!;
+  expect(uploaded.shared).toEqual([]);
   await page.locator("#module-start-recording").click();
   await expect(page.locator("#record-permission-modal")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "新建网页录音" })).toHaveCount(0);
   await page.getByRole("button", { name: "开始授权", exact: true }).click();
   await expect(page).toHaveURL(/view=recording/);
   await page.getByRole("button", { name: "结束录音", exact: true }).click();
   await expect(page.getByText("录音已结束，转写内容已保存", { exact: true })).toBeVisible();
-  w = M.get(await raw(page), "team-eureka");
-  expect(w.files.find(f => f.title === "新录音 · 产品沟通")?.shared).toEqual(["lin"]);
-  expect(M.get(await raw(page), second).files.some(f => f.title === "来自软件的授权上传")).toBe(false);
+  team = M.get(await raw(page), "team-eureka");
+  expect(team.files.find(f => f.title === "新录音 · 产品沟通")?.shared).toEqual([]);
+  expect(M.get(await raw(page), "personal").files).toEqual(before);
+  expect(M.accountTeams(await raw(page))).toHaveLength(1);
+  await go(page, "home", "kevin");
+  await expect(page.getByRole("button", { name: "团队上传", exact: true })).toHaveCount(0);
+  await go(page, "home", "zhang", "personal");
+  await expect(page.getByRole("button", { name: "团队上传", exact: true })).toHaveCount(0);
 });
 
 test("team offers private calendar and thought modules without a sharing switch", async ({ page }) => {

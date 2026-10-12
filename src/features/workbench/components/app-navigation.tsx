@@ -1,4 +1,6 @@
 "use client";
+import { productName, productLogo } from "@/features/markets/brand";
+
 import Image from "next/image";
 import { useState } from "react";
 import { Icon } from "@/components/ui/icon";
@@ -36,13 +38,13 @@ export function Sidebar({
       <div className="app-brand">
         <Image
           unoptimized
-          src={assetUrl("eurekamind-logo.png")}
+          src={productLogo()}
           alt=""
           width={34}
           height={34}
         />
         <span>
-          <b>EurekaMind</b>
+          <b>{productName()}</b>
           <small>PC Workbench</small>
         </span>
         <Button
@@ -215,14 +217,14 @@ export function TopBar({
             height={28}
           />
           <span>
-            <b>EurekaMind</b>
+            <b>{productName()}</b>
             <small>智能记录，轻松协作</small>
           </span>
         </a>
         <div className="app-download-wrap" ref={downloadRef}>
           <button
             className="phone-link"
-            aria-label="下载 EurekaMind App"
+            aria-label={`下载 ${productName()} App`}
             aria-haspopup="dialog"
             aria-expanded={download}
             onClick={() => setDownload(!download)}
@@ -233,14 +235,14 @@ export function TopBar({
             <div
               className="app-download-popover"
               role="dialog"
-              aria-label="EurekaMind App 下载二维码"
+              aria-label={`${productName()} App 下载二维码`}
             >
-              <strong>EurekaMind App</strong>
+              <strong>{productName()} App</strong>
               <p>扫码安装 App，绑定你的录音设备</p>
               <Image
                 unoptimized
                 src={assetUrl("download/eurekamind-app-qr.png")}
-                alt="EurekaMind App 下载二维码"
+                alt={`${productName()} App 下载二维码`}
                 width={160}
                 height={160}
               />

@@ -1,0 +1,45 @@
+.auth-overlay {
+  box-sizing: border-box;
+  width: min(520px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: 0;
+  border: 1px solid #e8eaf0;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 24px 96px #17212a29;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.auth-overlay::backdrop { background: #17212a66; }
+.auth-overlay .auth.auth-centered { min-height: 0; padding: 44px 40px 32px; }
+.auth-overlay .auth-form { margin: 0; }
+.auth-overlay .brand { margin-bottom: 24px; }
+.auth-overlay .desc { margin-bottom: 22px; }
+.auth-overlay .auth-overlay-close {
+  position: sticky;
+  display: block;
+  top: 10px;
+  margin: 10px 10px -46px auto;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  color: #656b75;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+.auth-overlay-close:hover { background: #f2f3f6; }
+.auth-overlay-close:focus-visible { outline: 2px solid #165dff; outline-offset: 2px; }
+@media (max-width: 520px) {
+  .auth-overlay { width: calc(100vw - 24px); max-height: calc(100dvh - 24px); border-radius: 16px; }
+  .auth-overlay .auth.auth-centered { padding: 48px 24px 28px; }
+  .auth-overlay .auth-overlay-close { width: 44px; height: 44px; margin-top: 6px; margin-bottom: -50px; top: 6px; }
+}
+/* Shared workbench status badges must not style form validation feedback. */
+.auth-overlay .auth .status { display: block; background: transparent; border: 0; border-radius: 0; height: auto; padding: 6px 0 0; }
+.auth-overlay .auth .status:empty { padding: 0; }

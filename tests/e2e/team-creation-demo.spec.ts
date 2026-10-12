@@ -4,6 +4,11 @@ import { creationDemoSeed, CREATION_DEMO_KEY, CREATION_DEMO_DRAFT } from "../../
 
 const ORIGINAL_DRAFT = "eureka:team-setup:v1";
 const toggle = (page: Page) => page.getByRole("combobox", { name: "评审视角", exact: true });
+async function openReview(page: Page) {
+  await page.locator("#user-card").click();
+  await page.getByRole("button", {name: "评审工具", exact: true}).click();
+  await expect(toggle(page)).toBeVisible();
+}
 async function openCreate(page: Page) {
   await page.locator("#ws-switcher").click();
   await page.getByRole("button", { name: "创建团队工作空间", exact: true }).click();
@@ -36,6 +41,7 @@ test("existing team account can demo checkout, recovery, invitation, restart and
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/workbench/?view=members&space=team-eureka");
   const originalRaw = await page.evaluate((key) => localStorage.getItem(key), M.KEY);
+  await openReview(page);
   await toggle(page).selectOption("creation-demo");
   await expect(page).toHaveURL(/demo=create-team/);
   await expectPersonalWorkbench(page);
@@ -47,28 +53,31 @@ test("existing team account can demo checkout, recovery, invitation, restart and
   await page.locator('#ws-dialog [name="name"]').fill("评审创建的新团队");
   await page.getByRole("button", { name: "确认订单", exact: true }).click();
   await page.getByRole("button", { name: "模拟支付失败", exact: true }).click();
-  await expect(page.getByRole("dialog")).toContainText("模拟支付失败");
+  await expect(page.getByRole("dialog")).toContainText("支付失败");
   await page.reload();
   await expectPersonalWorkbench(page);
   await openCreate(page);
   await expect(page.getByRole("dialog", { name: "确认团队订单", exact: true })).toContainText("评审创建的新团队");
-  await page.getByRole("button", { name: "模拟支付并开通", exact: true }).click();
+  await page.getByRole("button", { name: "支付并开通", exact: true }).click();
   await expect(page.getByRole("dialog")).toContainText("团队已准备好");
   await page.getByRole("button", { name: "邀请伙伴", exact: true }).click();
   await page.locator('#ws-dialog [name="emails"]').fill("review@example.com");
-  await page.getByRole("button", { name: "发送模拟邀请", exact: true }).click();
+  await page.getByRole("button", { name: "发送邀请", exact: true }).click();
   await page.locator(".sidebar").getByRole("button", { name: "团队成员", exact: true }).click();
   await expect(page.locator("#ws-view")).toContainText("review@example.com");
+  await openReview(page);
   await expect(toggle(page)).toHaveValue("creation-demo");
+  await page.keyboard.press("Escape");
   await expect(page.locator("#ws-switcher")).toContainText("评审创建的新团队");
   await page.reload();
   await expect(page.locator("#ws-view")).toContainText("review@example.com");
   await page.locator("#ws-switcher").click();
-  await page.getByRole("button", { name: "创建团队工作空间", exact: true }).click();
-  await expect(page.locator("#ws-dialog")).toContainText("Unlimited");
+  // ACCOUNT-01 applies inside the review fixture as well.
+  await expect(page.getByRole("button", { name: "创建团队工作空间", exact: true })).toBeDisabled();
   await page.keyboard.press("Escape");
   expect(await page.evaluate((key) => localStorage.getItem(key), M.KEY)).toBe(originalRaw);
   expect(await page.evaluate((key) => localStorage.getItem(key), ORIGINAL_DRAFT)).toBe("original draft must remain untouched");
+  await openReview(page);
   await page.getByRole("button", { name: "重新体验", exact: true }).click();
   await expectPersonalWorkbench(page);
   await expect(page.getByRole("dialog")).toHaveCount(0);
@@ -81,6 +90,7 @@ test("existing team account can demo checkout, recovery, invitation, restart and
   await page.getByRole("button", { name: "关闭", exact: true }).click();
   await expect(page).toHaveURL(/view=home/);
   await expectPersonalWorkbench(page);
+  await openReview(page);
   await toggle(page).selectOption("exit-demo");
   await expect(page).toHaveURL(/view=members&space=team-eureka/);
   await expect(page).not.toHaveURL(/demo=/);
@@ -116,6 +126,7 @@ test("demo keeps normal personal modules and supports joining through the worksp
   await expect(page).toHaveURL(/demo=create-team/);
   await page.goto("/workbench/?view=contacts&space=personal&demo=create-team");
   await expect(page.locator("#contacts-root")).toBeVisible();
+  await openReview(page);
   await toggle(page).selectOption("exit-demo");
   await expect(page).not.toHaveURL(/demo=/);
   await expect(page.locator("#recent-meeting-title")).toBeVisible();

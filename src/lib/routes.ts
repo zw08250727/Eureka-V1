@@ -1,3 +1,4 @@
+import { routeMarket } from "@/features/markets/config";
 export const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
 export const assetUrl = (path: string) =>
   `${basePath}/prototype/one-to-one-reference/assets/${path}`;
@@ -40,6 +41,7 @@ export function appUrl(
     view: view === "spaces" ? "home" : view,
     space: view === "spaces" ? id : workspace,
   });
+  if (current?.get("review") === "1") query.set("review", "1");
   if (id && view !== "spaces") query.set("id", id);
   if (current?.get("demo") === "create-team") query.set("demo", "create-team");
   if (actor || current?.get("actor"))
@@ -50,7 +52,8 @@ export function appUrl(
     (!actor || actor === (current?.get("actor") || "zhang")) &&
     current?.get("perspective") === "member"
   ) query.set("perspective", "member");
-  return `${basePath}/workbench/?${query}`;
+  const market = routeMarket();
+  return `${basePath}/${market ? market + "/" : ""}workbench/?${query}`;
 }
 export const legacyUrl = appUrl;
 export const requestRecording = (id = "") =>

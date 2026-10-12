@@ -1,6 +1,6 @@
+import { signOut } from "@/features/markets/storage";
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { basePath } from "@/lib/routes";
 
 export function SettingsLogoutDialog({ onClose }: { onClose: () => void }) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -58,7 +58,7 @@ export function SettingsLogoutDialog({ onClose }: { onClose: () => void }) {
             className="pa-btn primary"
             data-pa="modal-confirm"
             data-id=""
-            onClick={() => location.replace(basePath + "/")}
+            onClick={signOut}
           >
             退出登录
           </button>

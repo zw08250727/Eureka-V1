@@ -31,7 +31,7 @@ test("personal account: no duplicate workspace switch, rewards, checkout retry a
   await expect(pay).toContainText("$149");
   await pay.getByRole("button", { name: "确认充值", exact: true }).click();
   await pay.getByRole("button", { name: "模拟支付失败" }).click();
-  await pay.getByRole("button", { name: "重试模拟支付" }).click();
+  await pay.getByRole("button", { name: "重试支付" }).click();
   await expect(pay).toContainText("充值成功");
   await pay.getByRole("button", { name: "查看订单" }).click();
   await expect(
@@ -98,58 +98,29 @@ test("team daily ownership, share-only own records, no reward or note entry", as
     fullPage: true,
   });
 });
-test("connector source functions add, edit, search and persist scoped configuration", async ({
-  page,
-}) => {
+test("native connectors add, edit, search, delete and isolate workspaces", async ({ page }) => {
   await page.goto("/workbench/?view=connectors&space=personal&actor=zhang");
-  const f = page.frameLocator('iframe[title="连接器"]');
-  await expect(f.getByText("系统连接器", { exact: true })).toBeVisible();
-  await f.getByText("新增连接器", { exact: true }).click();
-  await f.locator("#fName").fill("Demo MCP");
-  await f.locator("#fUrl").fill("not-a-url");
-  await f.locator("#maskAdd button").filter({ hasText: "确定" }).click();
-  await expect(f.locator("#eUrl")).toBeVisible();
-  await f.locator("#fUrl").fill("https://example.com/mcp");
-  await f.locator("#maskAdd button").filter({ hasText: "确定" }).click();
-  await expect(f.locator("#customGrid")).toContainText("Demo MCP");
+  await expect(page.locator("iframe")).toHaveCount(0);
+  await page.getByRole("button", { name: "＋ 添加自定义连接器" }).click();
+  await page.getByLabel("连接器名称").fill("Demo MCP");
+  await page.getByLabel("服务地址").fill("not-a-url");
+  await page.getByRole("button", { name: "保存连接器" }).click();
+  await expect(page.getByRole("dialog").getByRole("alert")).toContainText("HTTP");
+  await page.getByLabel("服务地址").fill("https://example.com/mcp");
+  await page.getByRole("button", { name: "保存连接器" }).click();
   await page.reload();
-  await expect(f.locator("#customGrid")).toContainText("Demo MCP");
-  const card = f.locator(".conn-card").filter({ hasText: "Demo MCP" });
-  await card.hover();
-  await card.getByTitle("编辑", { exact: true }).click();
-  await f.locator("#fName").fill("Edited MCP");
-  await f.locator("#maskAdd .primary").click();
-  await expect(f.locator("#customGrid")).toContainText("Edited MCP");
-  await f.getByText("新增连接器", { exact: true }).click();
-  await f.locator("#tabJson").click();
-  await f.locator("#fName2").fill("JSON MCP");
-  await f.locator("#fJson").fill("invalid");
-  await f.locator("#maskAdd .primary").click();
-  await expect(f.locator("#eJson")).toBeVisible();
-  await f
-    .locator("#fJson")
-    .fill(
-      JSON.stringify({
-        mcpServers: { demo: { url: "https://example.com/json" } },
-      }),
-    );
-  await f.locator("#maskAdd .primary").click();
-  await expect(f.locator("#customGrid")).toContainText("JSON MCP");
-  await f.locator("#connSearch").fill("Edited MCP");
-  await expect(f.locator(".conn-card:visible")).toHaveCount(1);
-  await page.screenshot({
-    path: "test-results/connectors.png",
-    fullPage: true,
-  });
-  await f.locator(".conn-card:visible").hover();
-  await f
-    .locator(".conn-card:visible")
-    .getByTitle("删除", { exact: true })
-    .click();
-  await f.locator("#dlgOk").click();
-  await expect(f.locator("#customGrid")).not.toContainText("Edited MCP");
+  await page.getByRole("button", { name: "查看 Demo MCP" }).click();
+  await page.getByRole("button", { name: "编辑", exact: true }).click();
+  await page.getByLabel("连接器名称").fill("Edited MCP");
+  await page.getByRole("button", { name: "保存连接器" }).click();
+  await page.getByRole("searchbox").fill("Edited MCP");
+  await expect(page.locator(".connector-card")).toHaveCount(1);
+  await page.getByRole("button", { name: "查看 Edited MCP" }).click();
+  await page.getByRole("button", { name: "删除", exact: true }).click();
+  await page.getByRole("button", { name: "确认删除", exact: true }).click();
+  await expect(page.locator(".connector-card")).toHaveCount(0);
   await page.goto("/workbench/?view=connectors&space=team-eureka&actor=zhang");
-  await expect(f.locator("#customGrid")).not.toContainText("JSON MCP");
+  await expect(page.locator(".connectors-page")).not.toContainText("Edited MCP");
 });
 test("meeting library is on right; template community and changelog gallery are functional", async ({
   page,

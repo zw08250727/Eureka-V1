@@ -179,40 +179,38 @@ test("native billing: reduction, cycle reversal, billing form, expiry and renewa
   expect((await state(page)).status).toBe("expired");
 });
 
-test("native billing: credit packs, back, failure/resume, success, cancellation, logs and balance isolation", async ({
-  page,
-}) => {
+test("native billing: current credit packs, back, retry, receipt and balance isolation", async ({ page }) => {
   await go(page, "credits");
   await expect(page.locator(".ws-credit-summary")).toContainText("37,600");
   await expect(page.locator(".ws-credit-usage th")).toHaveCount(4);
   await action(page, "topup").click();
-  await submit(page).click();
-  await action(page, "credit-back").click();
-  await dialog(page).locator('[name="packId"][value="credits-50k"]').check();
-  await submit(page).click();
-  await expect(dialog(page)).toContainText("¥450.00");
-  await action(page, "credit-pay-fail").click();
-  await expect(page.locator(".ws-seat-payment-error")).toContainText(
-    "未增加 Credits",
-  );
+  await page.getByRole("button", { name: "确认充值", exact: true }).click();
+  await page.getByRole("button", { name: "模拟支付失败", exact: true }).click();
   const before = await state(page);
   await page.reload();
   await action(page, "credit-checkout").click();
+  await action(page, "credit-back").click();
+  // CN-POINTS-01 / MARKET-01: shared SKU IDs, independent market amounts/currency.
+  await dialog(page).locator('[name="packId"][value="credits-15k"]').check();
+  await submit(page).click();
+  await expect(dialog(page)).toContainText("$149.00");
+  await action(page, "credit-pay-fail").click();
+  await expect(page.locator(".ws-seat-payment-error")).toContainText("未增加 Credits");
   await submit(page).click();
   await expect(dialog(page)).toContainText("Credits 已到账");
-  expect((await state(page)).credits.total).toBe(before.credits.total + 50000);
+  expect((await state(page)).credits.total).toBe(before.credits.total + 15000);
   const paid = await state(page);
   const download = page.waitForEvent("download");
   await dialog(page).locator('[data-ws-action="invoice"]').click();
-  expect((await download).suggestedFilename()).toMatch(/\.txt$/);
+  expect((await download).suggestedFilename()).toMatch(/INV.*\.txt$/);
   await action(page, "close-dialog").click();
   await action(page, "credit-checkout").click();
   expect((await state(page)).credits.total).toBe(paid.credits.total);
   await action(page, "close-dialog").click();
   await action(page, "topup").click();
-  await submit(page).click();
-  await action(page, "credit-cancel").click();
-  await action(page, "confirm").click();
+  await page.getByRole("button", { name: "确认充值", exact: true }).click();
+  await page.getByRole("button", { name: "取消订单", exact: true }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "关闭", exact: true }).click();
   await expect(page.locator(".ws-credit-orders")).toContainText("已取消");
   expect((await state(page, "personal")).credits.used).toBe(0);
 });
@@ -240,7 +238,7 @@ test("native billing: seat payment storage rollback and cross-tab conflict prese
   );
   expect((await state(page)).seats).toBe(before.seats);
   await submit(page).click();
-  await expect(dialog(page)).toContainText("模拟支付成功");
+  await expect(dialog(page)).toContainText("支付成功");
   await action(page, "close-dialog").click();
   await seats(page, "9");
   await patch(
@@ -259,7 +257,7 @@ test("native billing: seat payment storage rollback and cross-tab conflict prese
   await action(page, "seat-back").click();
   await submit(page).click();
   await submit(page).click();
-  await expect(dialog(page)).toContainText("模拟支付成功");
+  await expect(dialog(page)).toContainText("支付成功");
 });
 
 test("native billing: credits and personal payment storage failure do not grant entitlements", async ({
@@ -272,7 +270,7 @@ test("native billing: credits and personal payment storage failure do not grant 
     if (space === "personal") { await page.reload(); await patch(page, "s.spaces.forEach(w=>{if(w.type==='team')w.status='expired'})"); }
     await go(page, view, space);
     await action(page, buy).click();
-    if (view === "credits") await submit(page).click();
+    if (view === "credits") await page.getByRole("button", { name: "确认充值", exact: true }).click();
     const before = await state(page, space);
     await page.evaluate((k) => {
       const save = Storage.prototype.setItem;
@@ -281,10 +279,13 @@ test("native billing: credits and personal payment storage failure do not grant 
         save.call(this, name, value);
       };
     }, key);
-    await submit(page).click();
-    await expect(dialog(page).locator(".ws-form-error")).toContainText(
-      "保存失败",
-    );
+    if (view === "credits") {
+      await page.getByRole("button", { name: "确认支付", exact: true }).click();
+      await expect(page.getByRole("dialog").getByRole("alert")).toContainText("保存失败");
+    } else {
+      await submit(page).click();
+      await expect(dialog(page).locator(".ws-form-error")).toContainText("保存失败");
+    }
     const after = await state(page, space);
     expect(after.credits).toEqual(before.credits);
     expect(after.personalSubscription).toEqual(before.personalSubscription);

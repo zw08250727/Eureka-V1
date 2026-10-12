@@ -1,11 +1,13 @@
 "use client";
+import { productName, productLogo } from "@/features/markets/brand";
+
 import { useState } from "react";
 import Image from "next/image";
 import { M } from "@/features/spaces/model/store";
 import type { WorkspaceState } from "@/features/spaces/model/types";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
-import { appUrl, assetUrl, type AppView } from "@/lib/routes";
+import { appUrl, type AppView } from "@/lib/routes";
 export function TeamSidebar({
   state,
   space,
@@ -38,13 +40,13 @@ export function TeamSidebar({
       <div className="app-brand">
         <Image
           unoptimized
-          src={assetUrl("eurekamind-logo.png")}
+          src={productLogo()}
           alt=""
           width={34}
           height={34}
         />
         <span>
-          <b>EurekaMind</b>
+          <b>{productName()}</b>
           <small>PC Workbench</small>
         </span>
         <Button

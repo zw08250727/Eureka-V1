@@ -1,7 +1,8 @@
 import type { Workspace, Subscription, Order, Cycle } from "./types";
 declare const model: {
+  refresh(w: Workspace, now?: string): void;
   current(w: Workspace, now?: string): Subscription;
-  create(w: Workspace, cycle: Cycle): Order;
+  create(w: Workspace, cycle: Cycle, tier?: string): Order;
   get(w: Workspace, id: string): Order;
   cancel(w: Workspace, id: string): Order;
   pay(

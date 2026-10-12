@@ -1,4 +1,5 @@
 "use client";
+
 import { useRef, useState } from "react";
 import { ReferenceDialog } from "@/features/reference/dialog";
 import { RefIcon } from "@/features/reference/symbols";
@@ -110,9 +111,7 @@ export function UploadDialog({
         <p id="audio-upload-error" role="alert">
           {error}
         </p>
-        <p className="audio-upload-demo">
-          本地演示仅保存文件信息，原音频不会上传。录音进入会议列表后显示为“待处理”。
-        </p>
+
       </div>
       <footer>
         <button type="button" disabled={busy} onClick={onClose}>

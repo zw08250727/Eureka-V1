@@ -1,3 +1,4 @@
+import { marketConfig, routeMarket } from "../markets/config";
 // One Agent identity. These are scene adapters, not separate agents.
 // MCP / skill identifiers describe the integration contract; this prototype uses local data.
 export const AGENT_ID = "eurekamind-agent";
@@ -40,5 +41,10 @@ export const SCENES = {
 };
 export function agentRoute(scene) {
   if (!Object.hasOwn(SCENES, scene)) throw Error("Agent 场景不可用");
-  return { agentId: AGENT_ID, scene, ...SCENES[scene] };
+  const market = routeMarket();
+  const config = marketConfig(market).agent;
+  return { agentId: market ? config.id : AGENT_ID, scene, ...SCENES[scene],
+    dataMcp: SCENES[scene].dataMcp.map(id => market ? config.mcpPrefix + id : id),
+    skills: SCENES[scene].skills.map(id => market ? config.skillPrefix + id : id),
+  };
 }

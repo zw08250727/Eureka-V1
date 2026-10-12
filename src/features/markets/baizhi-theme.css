@@ -1,0 +1,272 @@
+/* Visual reference: 100wiser.com/index, inspected 2026-10-12.
+   Scope includes body portals; geometry and business states stay in feature CSS. */
+html:has([data-market="cn"]) {
+  --market-accent: #165dff;
+  --market-soft: #f2f3f5;
+  --market-ink: #262626;
+  --market-border: #ebebeb;
+  --cn-action: #262626;
+  --cn-action-hover: #111;
+  --cn-link-hover: #0e42d2;
+  --cn-input: #f2f3f5;
+  --cn-sidebar: #f9f9f9;
+  --cn-selected: #ededed;
+  --cn-focus: #165dff4d;
+  --cn-disabled: #adc6ff;
+  --cn-brand-gradient: linear-gradient(135deg, #165dff, #6545ff 60%, #a18bff);
+  --primary-50: #f2f5ff;
+  --primary-100: #e8efff;
+  --primary-200: #d6e3ff;
+  --primary-300: #adc6ff;
+  --primary-400: #759eff;
+  --primary-500: #165dff;
+  --primary-600: #165dff;
+  --primary-700: #165dff;
+  --primary-800: #262626;
+  --primary-900: #262626;
+  --blue: #165dff;
+  --blue-5: #165dff0d;
+  --blue-8: #165dff14;
+  --bg: #fff;
+  --bg-app: #fff;
+  --bg-surface: #fff;
+  --bg-subtle: #fafafa;
+  --bg-hover: #f5f5f5;
+  --bg-active: #ededed;
+  --border-light: #f0f0f0;
+  --border: #ebebeb;
+  --border-strong: #d9d9d9;
+  --text-primary: #262626;
+  --text-secondary: #595959;
+  --text-tertiary: #8c8c8c;
+  --ink: #262626;
+  --sub: #595959;
+  --muted: #8c8c8c;
+  --line: #ebebeb;
+  --soft-line: #0000000f;
+  --glass: #fff;
+  --glass-strong: #fff;
+  --ui-ink: #262626;
+  --ui-muted: #595959;
+  --ui-line: #ebebeb;
+  --ui-blue: #165dff;
+  --ui-soft: #f2f3f5;
+  --team: #165dff;
+  --team-dark: #165dff;
+  --team-soft: #f2f5ff;
+  --team-line: #d6e3ff;
+  --team-ink: #262626;
+  --ai-gradient: var(--cn-brand-gradient);
+  --shadow-sm: 0 2px 8px #00000006;
+  --shadow-md: 0 4px 16px #0000000d;
+}
+
+/* Flat white canvas, neutral navigation, original sizing and placement. */
+html:has([data-market="cn"]) body {
+  background: #fff;
+  color: var(--ink);
+}
+html:has([data-market="cn"]) body::before,
+html:has([data-market="cn"]) body::after { background: none; }
+html:has([data-market="cn"]) body :is(.app, .main, .main-content, .app-main, .app-body) { background: #fff; }
+html:has([data-market="cn"]) body :is(.sidebar, .enterprise-workbench aside) {
+  background: var(--cn-sidebar);
+  border-color: var(--line);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+html:has([data-market="cn"]) body :is(.topbar, .sidebar-bottom, .user-card, .workspace-brand) {
+  background: transparent;
+  border-color: var(--line);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+html:has([data-market="cn"]) body .topbar { background: #fff; }
+html:has([data-market="cn"]) body :is(.nav-item, .side-group-head, .side-sub-item, .apps-side-entry) { color: var(--ink); }
+html:has([data-market="cn"]) body :is(.nav-item, .side-group-head, .side-sub-item, .apps-side-entry):hover {
+  background: var(--cn-selected); color: var(--ink); box-shadow: none;
+}
+html:has([data-market="cn"]) body :is(.nav-item.active, .side-group-head.active, .side-sub-item.active, .apps-side-entry.active, .enterprise-workbench nav button[aria-current]) {
+  background: var(--cn-selected); color: var(--ink); box-shadow: none;
+}
+html:has([data-market="cn"]) body :is(.nav-item.active .nav-label, .recording-nav-item .nav-icon, .brand-name, .page-crumb, .workspace-brand-copy) { color: var(--ink); }
+html:has([data-market="cn"]) body .brand-logo { filter: none; }
+
+/* Shared cards and overlays: no tinted glass or decorative shadows. */
+html:has([data-market="cn"]) body :is(.recording-commandbar, .recording-launcher, .home-meeting-library, .workspace-module, .recording-card, .agent-picker, .apps-workspace, .contacts-workspace, .ws-surface, .settings-float-section, .ps-account, .ps-plans, .connector-card) {
+  background: #fff; border-color: var(--line); box-shadow: none; backdrop-filter: none;
+}
+html:has([data-market="cn"]) body :is(.xiaozhi-rail, .contacts-xiaozhi-rail, .drawer, .modal, .ws-dialog, .ex-dialog, .connector-dialog, .contacts-dialog, .apps-dialog) {
+  background: #fff; color: var(--ink); border-color: #f0f1f4;
+  box-shadow: 0 4px 16px #00000014; backdrop-filter: none;
+}
+html:has([data-market="cn"]) body dialog::backdrop { background: #00000080; backdrop-filter: none; }
+html:has([data-market="cn"]) body :is(.ws-menu, .user-menu, .app-qr-popover, .ui-select-popup[popover]) {
+  background: #fff; color: var(--ink); border-color: var(--line); box-shadow: var(--shadow-md); backdrop-filter: none;
+}
+html:has([data-market="cn"]) body :is(.ws-btn, .ex-button, .ex-dialog button, .apps-btn, .contacts-button, .connector-dialog button, .mobile-nav-trigger, .ex-top-credits) {
+  color: var(--ink); background: #fff; border-color: var(--line); border-radius: 6px; box-shadow: none;
+}
+html:has([data-market="cn"]) body :is(.ws-btn, .ex-button, .ex-dialog button, .apps-btn, .contacts-button, .connector-dialog button, .ex-top-credits):hover:not(:disabled) {
+  background: #fafafa; border-color: #d9d9d9; box-shadow: none;
+}
+html:has([data-market="cn"]) body :is(.ws-btn.primary, .ex-button.primary, .ex-footer .primary, .primary-btn, .capture-action.primary, .recording-primary, .apps-btn.primary, .contacts-button.primary, .connector-primary, .connector-dialog button.primary, .xiaozhi-send, .recording-assistant-send, .enterprise-task-form button) {
+  background: var(--cn-action); color: #fff; border-color: var(--cn-action); border-radius: 6px; box-shadow: none;
+}
+html:has([data-market="cn"]) body :is(.ws-btn.primary, .ex-button.primary, .ex-footer .primary, .primary-btn, .capture-action.primary, .recording-primary, .apps-btn.primary, .contacts-button.primary, .connector-primary, .connector-dialog button.primary, .xiaozhi-send, .recording-assistant-send, .enterprise-task-form button):hover:not(:disabled) {
+  background: var(--cn-action-hover); border-color: var(--cn-action-hover); color: #fff; box-shadow: none;
+}
+html:has([data-market="cn"]) body :is(.ws-btn.danger, .ex-button.danger, .connector-dialog .danger) { color: #cf313b; border-color: #f0c5c8; }
+html:has([data-market="cn"]) body :is(input[type="checkbox"], input[type="radio"]) { accent-color: var(--market-accent); }
+html:has([data-market="cn"]) body :is(.ex-form, .ws-form, .connector-dialog) :is(input:not([type="checkbox"]):not([type="radio"]), textarea, select),
+html:has([data-market="cn"]) body .enterprise-task-form input {
+  color: var(--ink); background: var(--cn-input); border-color: transparent; border-radius: 8px;
+}
+html:has([data-market="cn"]) body :is(.connector-search, .apps-search, .contacts-search) { background: #fff; border-color: var(--line); color: var(--sub); }
+html:has([data-market="cn"]) body .ui-select-chevron { color: var(--sub); }
+html:has([data-market="cn"]) body .ui-select-option[aria-selected="true"] { color: var(--market-accent); background: #f2f5ff; }
+html:has([data-market="cn"]) body .ui-select-option[data-active="true"] { background: #f5f5f5; outline-color: var(--line); }
+html:has([data-market="cn"]) body .ui-select-option[aria-disabled="true"] { color: #bfbfbf; background: transparent; }
+html:has([data-market="cn"]) body :is(.ui-select>select:focus-visible, .ui-select[data-open="true"]>select) { border-color: var(--market-accent); outline-color: var(--cn-focus); }
+html:has([data-market="cn"]) body :is(button, a, input, select, textarea, summary):focus-visible { outline-color: var(--cn-focus); }
+
+/* Connector directory, subscription cards and team overview. */
+html:has([data-market="cn"]) body .connector-card:hover { border-color: #c9c9c9; box-shadow: 0 4px 8px #0000000a; }
+html:has([data-market="cn"]) body :is(.connector-description, .connectors-scope, .connector-search, .connector-card-bottom, .connector-dialog dt, .enterprise-profile span, .enterprise-content header span) { color: var(--sub); }
+html:has([data-market="cn"]) body .connector-card-bottom { border-color: var(--line); }
+html:has([data-market="cn"]) body :is(.connector-state, .connector-url) { background: var(--cn-input); color: var(--sub); }
+html:has([data-market="cn"]) body :is(.connector-state.connected, .connector-mark) { background: #f2f5ff; color: var(--market-accent); }
+html:has([data-market="cn"]) body .ps-plan-option { background: #fff; border-color: var(--line); box-shadow: none; }
+html:has([data-market="cn"]) body .ps-plan-option.selected { background: #f7f9ff; border-color: var(--market-accent); box-shadow: 0 0 0 1px var(--market-accent); }
+html:has([data-market="cn"]) body .ps-plan-footer .primary { box-shadow: none; }
+html:has([data-market="cn"]) body .ps-account progress::-webkit-progress-value { background: var(--market-accent); }
+html:has([data-market="cn"]) body .mobile-nav-links>button[aria-current="page"] { background: var(--cn-selected); color: var(--ink); }
+html:has([data-market="cn"]) body #ws-view :is(.team-overview, .team-overview-title h1, .team-section-heading h2, .team-insight h3, .team-private-column h3) { color: var(--ink); }
+html:has([data-market="cn"]) body #ws-view :is(.team-overview-canvas, .team-private-column, .team-overview-actions button) { border-color: var(--line); }
+html:has([data-market="cn"]) body #ws-view .team-private-column { background: #fafafa; }
+html:has([data-market="cn"]) body #ws-view .team-insight-body { color: var(--sub); }
+html:has([data-market="cn"]) body #ws-view .team-overview-actions button { color: var(--ink); }
+html:has([data-market="cn"]) body #ws-view .team-overview-actions button.team-primary { background: var(--cn-action); border-color: var(--cn-action); color: white; }
+html:has([data-market="cn"]) body #ws-view .team-overview-actions button.team-primary:hover:not(:disabled) { background: var(--cn-action-hover); }
+html:has([data-market="cn"]) body .enterprise-workbench { color: var(--ink); }
+html:has([data-market="cn"]) body :is(.enterprise-profile button, .enterprise-tasks li, .enterprise-member) { border-color: var(--line); }
+
+/* Login keeps the existing full-page composition, with the official form palette. */
+html:has([data-market="cn"]) body .auth {
+  --ink: #262626; --muted: #8c8c8c; --line: #f0f1f4;
+  --primary-50: #f2f5ff; --primary-700: #165dff;
+  --ai-gradient: var(--cn-brand-gradient);
+}
+html:has([data-market="cn"]) body .auth .input {
+  color: var(--ink); background: var(--cn-input); border-color: transparent; box-shadow: none;
+}
+html:has([data-market="cn"]) body .auth .input::placeholder { color: #8c8c8c; }
+html:has([data-market="cn"]) body .auth .input:focus { border-color: var(--market-accent); box-shadow: 0 0 0 3px #165dff14; }
+html:has([data-market="cn"]) body .auth :is(.primary, button[type="submit"]) {
+  background: var(--market-accent); border-color: var(--market-accent); color: #fff; box-shadow: none;
+}
+html:has([data-market="cn"]) body .auth :is(.primary, button[type="submit"]):hover:not(:disabled) { background: var(--cn-link-hover); }
+html:has([data-market="cn"]) body .auth :is(.primary, button[type="submit"]):disabled { background: var(--cn-disabled); border-color: var(--cn-disabled); opacity: 1; }
+html:has([data-market="cn"]) body .auth .plain { background: var(--cn-input); border-color: transparent; color: var(--market-accent); box-shadow: none; }
+html:has([data-market="cn"]) body .auth .plain:hover:not(:disabled) { background: #e8efff; }
+html:has([data-market="cn"]) body .auth .plain:disabled { color: #8c8c8c; opacity: 1; }
+html:has([data-market="cn"]) body .auth-editions { background: #f2f2f4; }
+html:has([data-market="cn"]) body .auth-editions button { color: #8c8c8c; border-radius: 8px; }
+html:has([data-market="cn"]) body .auth-editions button[aria-pressed="true"] { color: var(--ink); background: #fff; box-shadow: none; }
+html:has([data-market="cn"]) body .auth-methods { border-color: #f2f3f5; }
+html:has([data-market="cn"]) body .auth-methods button { color: var(--ink); }
+html:has([data-market="cn"]) body .auth-methods button[aria-pressed="true"] { color: var(--market-accent); border-bottom-color: var(--market-accent); }
+html:has([data-market="cn"]) body .auth .status { color: var(--sub); }
+html:has([data-market="cn"]) body .auth .status[role="alert"] { color: #cf313b; }
+html:has([data-market="cn"]) body .auth-visual {
+  background: #fafafe url("./assets/baizhi-login-bg.png") center / cover no-repeat;
+}
+html:has([data-market="cn"]) body .auth-visual::before,
+html:has([data-market="cn"]) body .auth-visual::after { background: none; }
+html:has([data-market="cn"]) body :is(.visual-kicker, .preview-card, .preview-top, .preview-side) { border-color: #f0f1f4; }
+html:has([data-market="cn"]) body .workspace-preview { background: #fff; box-shadow: 0 4px 8px #0000001a; border-color: #f0f1f4; }
+html:has([data-market="cn"]) body .preview-side { background: var(--cn-sidebar); }
+html:has([data-market="cn"]) body .preview-nav { color: var(--sub); }
+html:has([data-market="cn"]) body .preview-nav.active { background: var(--cn-selected); color: var(--ink); }
+html:has([data-market="cn"]) body :is(.preview-summary, .preview-members span) { background: #f2f5ff; border-color: #e8efff; color: var(--market-accent); }
+html:has([data-market="cn"]) body :is(.preview-recording, .summary-icon, .preview-floating>svg) { color: #6854d7; }
+html:has([data-market="cn"]) body :is(.preview-card>span, .preview-summary div>span, .preview-floating span, .showcase-copy p) { color: var(--sub); }
+html:has([data-market="cn"]) body .preview-wave i { background: #adc6ff; }
+html:has([data-market="cn"]) body .preview-wave i:nth-child(3n) { background: #a18bff; }
+html:has([data-market="cn"]) body .visual-kicker i,
+html:has([data-market="cn"]) body .showcase-step[aria-pressed="true"]>span { background: var(--market-accent); }
+
+/* Retained module selectors carry IDs; match that scope without !important. */
+html:has([data-market="cn"]) body .ws-switcher {
+  color: var(--ink); background: #fff; border-color: var(--line); border-radius: 8px;
+}
+html:has([data-market="cn"]) body :is(.ws-space-avatar, .ws-mini-avatar) { color: var(--sub); background: var(--cn-input); }
+html:has([data-market="cn"]) body :is(.ws-space-copy small, .ws-menu-space small, .ws-nav-label) { color: var(--muted); }
+html:has([data-market="cn"]) body .sidebar .nav-icon { color: var(--sub); }
+html:has([data-market="cn"]) body .ws-team-nav .ws-btn.active { background: var(--cn-selected); color: var(--ink); }
+html:has([data-market="cn"]) body.app-data-mode .topbar-right .ex-top-credits {
+  background: #fff; border-color: var(--line); color: var(--ink); border-radius: 6px; box-shadow: none;
+}
+html:has([data-market="cn"]) body.app-data-mode .topbar-right .ex-top-credits:hover { background: #fafafa; border-color: #d9d9d9; }
+html:has([data-market="cn"]) body :is(#contacts-root .contacts-actions, #personal-actions .pa-page-head>div+div, .today-workbench-head-side .recording-command-actions)>button {
+  background: #fff; border-color: var(--line); color: var(--ink); border-radius: 6px;
+}
+html:has([data-market="cn"]) body :is(#contacts-root .contacts-actions, #personal-actions .pa-page-head>div+div, .today-workbench-head-side .recording-command-actions)>button:hover { background: #fafafa; border-color: #d9d9d9; }
+html:has([data-market="cn"]) body :is(#contacts-root .contacts-actions, #personal-actions .pa-page-head>div+div, .today-workbench-head-side .recording-command-actions)>button:is(.primary, .recording-primary) { background: var(--cn-action); border-color: var(--cn-action); color: #fff; }
+html:has([data-market="cn"]) body :is(#contacts-root .contacts-actions, #personal-actions .pa-page-head>div+div, .today-workbench-head-side .recording-command-actions)>button:is(.primary, .recording-primary):hover { background: var(--cn-action-hover); border-color: var(--cn-action-hover); }
+html:has([data-market="cn"]) body #today-assets-grid :is(.daily-focus, .daily-inspiration, .daily-ledger) { background: #fff; border-color: var(--line); box-shadow: none; }
+html:has([data-market="cn"]) body #today-assets-grid :is(.daily-brief-narrative, .rhythm-event strong, .daily-ledger-total) { color: var(--ink); }
+html:has([data-market="cn"]) body #today-assets-grid .brief-primary { background: var(--cn-input); color: var(--ink); border-color: var(--line); }
+html:has([data-market="cn"]) body :is(#xiaozhi-rail, #pa-agent, #contacts-xiaozhi-rail, .ws-agent, #knowledge-xiaozhi-panel) {
+  --agent-ink: #262626; --agent-copy: #595959; --agent-meta: #8c8c8c;
+  background: #fff; border-color: var(--line); box-shadow: var(--shadow-sm);
+}
+html:has([data-market="cn"]) body :is(#xiaozhi-rail, #pa-agent, #contacts-xiaozhi-rail, .ws-agent, #knowledge-xiaozhi-panel) :is(.xiaozhi-composer, .ws-composer, #pa-agent-prompt) { background: #f9f9f9; border-color: var(--line); box-shadow: none; }
+html:has([data-market="cn"]) body :is(#xiaozhi-rail, #pa-agent, #contacts-xiaozhi-rail, .ws-agent, #knowledge-xiaozhi-panel) :is(.xiaozhi-send, .pa-composer-tools>[type="submit"], .ws-composer-tools>[type="submit"]) { background: var(--cn-action); color: #fff; box-shadow: none; }
+html:has([data-market="cn"]) body.app-data-mode .pa-settings .ex-button.primary { background: var(--cn-action); border-color: var(--cn-action); color: #fff; }
+html:has([data-market="cn"]) body.app-data-mode .pa-settings .ex-button.primary:hover { background: var(--cn-action-hover); }
+html:has([data-market="cn"]) body.app-data-mode .pa-settings .ex-form :is(input,select,textarea) { background: var(--cn-input); color: var(--ink); border-color: transparent; }
+html:has([data-market="cn"]) body.app-data-mode .pa-settings .ex-form input:disabled { color: #8c8c8c; }
+html:has([data-market="cn"]) body.app-data-mode .pa-settings .ex-settings-tabs>button[aria-selected="true"] { color: var(--ink); border-color: var(--line); }
+
+/* Content typography, tables and filters retain their existing density. */
+html:has([data-market="cn"]) body :is(.today-workbench-head h1, .ws-page-head h1, .pa-page-head h1, .ws-section-head h2, .ws-recording-head h2, .pa-calendar-heading h2, .home-meeting-title strong, .ws-table strong) { color: var(--ink); }
+html:has([data-market="cn"]) body :is(.home-meeting-row, .ws-table td, .pa-list-row, .brief-task, .daily-rhythm header, .daily-ledger-total strong) { color: var(--sub); }
+html:has([data-market="cn"]) body :is(.ws-page-head p, .pa-page-head p, .pa-list-row small, .pa-list-row time, .ws-table small, .home-meeting-head p, .rhythm-event time, .rhythm-event em) { color: var(--muted); }
+html:has([data-market="cn"]) body :is(.home-meeting-table-head, .ws-table th) { color: var(--muted); background: #fafafa; border-color: var(--line); }
+html:has([data-market="cn"]) body :is(.home-meeting-row, .ws-table td, .ws-recording-head, .pa-calendar-heading, .pa-list-row, .daily-rhythm, .rhythm-event) { border-color: var(--line); }
+html:has([data-market="cn"]) body :is(.pa-calendar, .pa-card, .pa-view-tabs, .pa-dialog) { color: var(--ink); background: #fff; border-color: var(--line); }
+html:has([data-market="cn"]) body :is(.pa-btn, .pa-calendar-dates input, .pa-calendar-edit) { color: var(--sub); background: #fff; border-color: var(--line); border-radius: 6px; }
+html:has([data-market="cn"]) body .pa-btn:hover:not(:disabled) { background: #f5f5f5; color: var(--ink); border-color: #d9d9d9; }
+html:has([data-market="cn"]) body .pa-view-tabs .selected,
+html:has([data-market="cn"]) body .pa-btn.primary { background: var(--cn-action); color: #fff; border-color: var(--cn-action); }
+html:has([data-market="cn"]) body .pa-source { color: var(--sub); background: var(--cn-input); }
+html:has([data-market="cn"]) body :is(.pa-day-number.selected, .mf-day.mf-day-selected) { background: var(--market-accent); color: #fff; box-shadow: none; }
+html:has([data-market="cn"]) body :is(#recording-card, #ws-view) :is(.mf-control, .mf-trigger, .mf-search, .ws-search, .ws-filter-date, .ws-filter-source, #ws-meeting-status) { border-color: var(--line); background: #fff; color: var(--sub); border-radius: 6px; }
+html:has([data-market="cn"]) body .mf-popover { background: #fff; border-color: var(--line); box-shadow: var(--shadow-md); }
+html:has([data-market="cn"]) body :is(.mf-option, .mf-calendar-head strong, .mf-day) { color: var(--ink); }
+html:has([data-market="cn"]) body .mf-option[aria-selected="true"] { color: var(--market-accent); background: #f2f5ff; }
+html:has([data-market="cn"]) body .mf-day.mf-day-selected { color: white; }
+html:has([data-market="cn"]) body :is(.ex-summary, .ex-hero, .ws-order, .ws-payment, .ws-pricing) { background: #fafafa; border-color: var(--line); color: var(--ink); box-shadow: none; }
+html:has([data-market="cn"]) body :is(.ex-summary p, .ex-summary label, .ex-summary small, .ex-order-meta, .ex-steps) { color: var(--sub); }
+html:has([data-market="cn"]) body :is(.ex-summary .ex-total, .ex-summary .ex-total strong, .ws-price, .ex-order-meta>strong) { color: var(--ink); }
+html:has([data-market="cn"]) body :is(.ex-summary, .pa-dialog) :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) { background: var(--cn-input); border-color: transparent; color: var(--ink); }
+html:has([data-market="cn"]) body .ws-team-nav .ws-btn { background: transparent; }
+html:has([data-market="cn"]) body .ws-team-nav .ws-btn:hover,
+html:has([data-market="cn"]) body .ws-team-nav .ws-btn.active { background: var(--cn-selected); }
+html:has([data-market="cn"]) body :is(#contacts-root .contacts-actions, #personal-actions .pa-page-head>div+div, .today-workbench-head-side .recording-command-actions) :is(.contacts-xiaozhi-mark, .ws-agent-mark, .xiaozhi-entry-mark) { background: var(--cn-brand-gradient); }
+
+/* Recharge is an explicit commercial CTA; other workbench actions stay neutral. */
+html:has([data-market="cn"]) body.app-data-mode :is(.ex-promo, .ex-balance-actions, .ex-footer, .ex-summary, .ws-credit-balance-actions, .user-footer) .credit-recharge-cta:not(:disabled) {
+  background: var(--market-accent); border: 1px solid var(--market-accent);
+  color: #fff; font-weight: 600; box-shadow: 0 2px 5px #165dff20;
+}
+html:has([data-market="cn"]) body.app-data-mode :is(.ex-promo, .ex-balance-actions, .ex-footer, .ex-summary, .ws-credit-balance-actions, .user-footer) .credit-recharge-cta:hover:not(:disabled) {
+  background: #0e42d2; border-color: #0e42d2; color: #fff;
+}
+html:has([data-market="cn"]) body .credit-recharge-cta:focus-visible {
+  outline: 2px solid var(--market-accent); outline-offset: 3px;
+}
+html:has([data-market="cn"]) body .credit-recharge-cta:disabled {
+  background: #f2f3f5; color: #8c8c8c; border-color: #ebebeb; cursor: not-allowed; box-shadow: none;
+}

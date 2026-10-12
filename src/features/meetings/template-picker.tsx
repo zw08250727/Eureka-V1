@@ -1,12 +1,34 @@
-/* eslint-disable @next/next/no-img-element -- Icons extracted from the authorized reference component. */
 "use client";
+/* eslint-disable @next/next/no-img-element -- Icons extracted from the authorized reference component. */
+
+import { marketStorage } from "@/features/markets/storage";
+import { routeMarket } from "@/features/markets/config";
+
 import { Select } from "@/components/ui/select";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createActions } from "@/features/personal/store";
 import { templates } from "./templates";
 import { basePath } from "@/lib/routes";
 import { ReferenceDialog } from "@/features/reference/dialog";
 type Config = { template: string; language: string; detail: string };
+const defaults: Config = { template: "智能匹配", language: "中文（中国）", detail: "标准" };
+function templateScope() {
+  const query = new URLSearchParams(typeof location === "undefined" ? "" : location.search);
+  return { market: routeMarket(), actor: query.get("actor") || "zhang", space: query.get("space") || "personal" };
+}
+function checkTemplateScope(origin: ReturnType<typeof templateScope>, session: string | null | undefined) {
+  const current = templateScope();
+  if (origin.market !== current.market || origin.actor !== current.actor || origin.space !== current.space || session !== marketStorage.getItem("eureka:auth:v1"))
+    throw Error("账号或工作区已变更，请重新打开模板设置");
+}
+function recordingConfig(value: unknown): Partial<Config> {
+  if (value === undefined) return {};
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw Error("录音模板设置格式无效，请保留浏览器数据后重试");
+  const config = value as Record<string, unknown>;
+  for (const key of ["template", "language", "detail"] as const)
+    if (config[key] !== undefined && typeof config[key] !== "string") throw Error("录音模板设置格式无效，请保留浏览器数据后重试");
+  return config as Partial<Config>;
+}
 type Custom = {
   name: string;
   description: string;
@@ -40,6 +62,10 @@ export function TemplateContent({
   value: Config;
   onChange: (v: Partial<Config>) => void;
 }) {
+  const domestic = routeMarket() === "cn";
+  const [origin] = useState(templateScope);
+  const session = useRef<string | null | undefined>(undefined);
+  const libraryRaw = useRef<string | null | undefined>(undefined);
   const [category, setCategory] = useState("通用"),
     [communityOpen, setCommunityOpen] = useState(false),
     [query, setQuery] = useState(""),
@@ -60,26 +86,66 @@ export function TemplateContent({
     Promise.resolve().then(() => {
       if (!active) return;
       try {
-        const s = JSON.parse(localStorage.getItem(key) || "{}");
+        const raw = marketStorage.getItem(key);
+        const s = JSON.parse(raw || "{}");
+        if (domestic) {
+          if (!s || typeof s !== "object" || Array.isArray(s)) throw Error("模板数据格式无效，请保留浏览器数据后重试");
+          const validFavorites = s.favorites === undefined || Array.isArray(s.favorites) && s.favorites.every((v: unknown) => typeof v === "string");
+          const validCustom = s.custom === undefined || Array.isArray(s.custom) && s.custom.every((v: unknown) => !!v && typeof v === "object" && ["name", "description", "prompt", "category"].every(k => typeof (v as Record<string, unknown>)[k] === "string"));
+          if (!validFavorites || !validCustom) throw Error("模板数据格式无效，请保留浏览器数据后重试");
+        }
+        const config = domestic ? recordingConfig(createActions(marketStorage, () => new Date(), origin.actor, origin.space).read().settings.recordingTemplate) : null;
         setFavorites(s.favorites || []);
         setCustom(s.custom || []);
-        setDefaultName(s.defaultName || "");
-      } catch {}
+        setDefaultName(domestic ? config?.template || defaults.template : s.defaultName || "");
+        libraryRaw.current = raw;
+        session.current = marketStorage.getItem("eureka:auth:v1");
+      } catch (e) { if (domestic) setError(e instanceof Error ? e.message : "模板读取失败，请重试"); }
     });
     return () => {
       active = false;
     };
-  }, [key]);
+  }, [key, domestic, origin]);
   function persist(next: {
     favorites?: string[];
     custom?: Custom[];
     defaultName?: string;
   }) {
+    if (domestic) {
+      try {
+        checkTemplateScope(origin, session.current);
+        if (libraryRaw.current === undefined) throw Error("模板数据未能读取，请重新打开后重试");
+        setError("");
+        if (next.defaultName !== undefined) {
+          const name = next.defaultName.trim();
+          if (!name) throw Error("请选择默认模板");
+          createActions(marketStorage, () => new Date(), origin.actor, origin.space).change(s => {
+            s.settings.recordingTemplate = { ...defaults, ...recordingConfig(s.settings.recordingTemplate), template: name };
+          });
+          setDefaultName(name);
+          onChange({ template: name });
+          return true;
+        }
+        if (marketStorage.getItem(key) !== libraryRaw.current) throw Error("另一页面已更新模板，输入已保留，请重新打开后重试");
+        const stored = JSON.parse(libraryRaw.current || "{}");
+        const n = { ...stored, favorites, custom, ...next };
+        const raw = JSON.stringify(n);
+        marketStorage.setItem(key, raw);
+        libraryRaw.current = raw;
+        setFavorites(n.favorites);
+        setCustom(n.custom);
+        return true;
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "保存失败，输入已保留，请重试");
+        return false;
+      }
+    }
     const n = { favorites, custom, defaultName, ...next };
-    localStorage.setItem(key, JSON.stringify(n));
+    marketStorage.setItem(key, JSON.stringify(n));
     setFavorites(n.favorites);
     setCustom(n.custom);
     setDefaultName(n.defaultName);
+    return true;
   }
   const names =
     category === "我的模版"
@@ -119,6 +185,7 @@ export function TemplateContent({
         </button>
       </nav>
       <div>
+        {domestic && error && <p role="alert">{error}</p>}
         <div className="ex-template-community">
           <strong>选择总结模板</strong>
           <button className="ex-link" onClick={() => setCommunityOpen(true)}>
@@ -208,9 +275,7 @@ export function TemplateContent({
             </Select>
           </label>
         </div>
-        <p className="ex-muted" style={{ marginTop: 16 }}>
-          当前为本地总结演示，按所选模板重排示例内容。
-        </p>
+
       </div>
       {communityOpen && (
         <ReferenceDialog
@@ -280,10 +345,11 @@ export function TemplateContent({
                     </div>
                     <button
                       onClick={() => {
+                        if (domestic && !favorites.includes(t.name) && !persist({ favorites: [...favorites, t.name] })) return;
                         onChange({ template: t.name });
                         setCommunityOpen(false);
                         setCategory("我的模版");
-                        if (!favorites.includes(t.name))
+                        if (!domestic && !favorites.includes(t.name))
                           persist({ favorites: [...favorites, t.name] });
                       }}
                     >
@@ -306,9 +372,8 @@ export function TemplateContent({
                 ＋ 创建模板
               </button>
             )}
-            <p className="ex-muted">
-              社区模板为演示数据；收藏、创建和默认设置保存在当前工作区。
-            </p>
+            {domestic && error && <p role="alert">{error}</p>}
+
           </div>
         </ReferenceDialog>
       )}
@@ -378,12 +443,13 @@ export function TemplateContent({
                 setError("请填写名称和总结要求");
                 return;
               }
-              persist({
+              const saved = persist({
                 custom: [
                   ...custom.filter((c) => c.name !== editing.name),
                   editing,
                 ],
               });
+              if (domestic && !saved) return;
               setEditing(null);
               setCategory("我的模版");
             }}
@@ -428,29 +494,27 @@ export function TemplateContent({
   );
 }
 export function TemplatePreferences({ onClose }: { onClose: () => void }) {
+  const domestic = routeMarket() === "cn";
+  const [origin] = useState(templateScope);
   const scope = new URLSearchParams(
     typeof location === "undefined" ? "" : location.search,
   );
   const actor = scope.get("actor") || "zhang",
     space = scope.get("space") || "personal";
-  const [error, setError] = useState("");
-  const [value, setValue] = useState<Config>(() => {
-    const defaults = {
-      template: "智能匹配",
-      language: "中文（中国）",
-      detail: "标准",
-    };
-    if (typeof localStorage === "undefined") return defaults;
+  const [initial] = useState(() => {
     try {
+      const stored = createActions(marketStorage, () => new Date(), actor, space).read().settings.recordingTemplate;
       return {
-        ...defaults,
-        ...(createActions(localStorage, () => new Date(), actor, space).read()
-          .settings.recordingTemplate as Partial<Config>),
+        value: { ...defaults, ...(domestic ? recordingConfig(stored) : stored as Partial<Config>) },
+        session: domestic ? marketStorage.getItem("eureka:auth:v1") : null,
+        error: "",
       };
-    } catch {
-      return defaults;
+    } catch (e) {
+      return { value: defaults, session: undefined, error: domestic ? e instanceof Error ? e.message : "录音设置读取失败，请重新打开后重试" : "" };
     }
   });
+  const [error, setError] = useState(initial.error);
+  const [value, setValue] = useState<Config>(initial.value);
   return (
     <ReferenceDialog
       className="ex-dialog"
@@ -468,19 +532,24 @@ export function TemplatePreferences({ onClose }: { onClose: () => void }) {
           value={value}
           onChange={(p) => setValue({ ...value, ...p })}
         />
-        <p role="status">{error}</p>
+        <p role={domestic ? "alert" : "status"}>{error}</p>
         <footer className="ex-footer">
           <button
             className="primary"
             onClick={() => {
               try {
+                if (domestic) {
+                  if (initial.error) throw Error("录音设置未能读取，请保留输入并重新打开后重试");
+                  checkTemplateScope(origin, initial.session);
+                  if (!value.template.trim()) throw Error("请选择总结模板");
+                }
                 createActions(
-                  localStorage,
+                  marketStorage,
                   () => new Date(),
                   actor,
                   space,
                 ).change((s) => {
-                  s.settings.recordingTemplate = value;
+                  s.settings.recordingTemplate = domestic ? { ...recordingConfig(s.settings.recordingTemplate), ...value } : value;
                 });
                 onClose();
               } catch (e) {

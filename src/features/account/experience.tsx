@@ -1,4 +1,12 @@
 "use client";
+import { creditText, routeMarket, markets } from "@/features/markets/config";
+import { reviewToolsEnabled } from "@/features/markets/review";
+import { productName } from "@/features/markets/brand";
+
+import { marketConfig, formatMarketMoney } from "@/features/markets/config";
+import { marketStorage } from "@/features/markets/storage";
+
+import { creditSummary } from "@/features/spaces/model/credit-ledger";
 import { Select } from "@/components/ui/select";
 import { useState, useEffect, useRef } from "react";
 import { ReferenceDialog } from "@/features/reference/dialog";
@@ -6,10 +14,11 @@ import { M } from "@/features/spaces/model/store";
 import type { Workspace } from "@/features/spaces/model/types";
 import type { SpacesController } from "@/features/spaces/use-spaces";
 import { appUrl } from "@/lib/routes";
-import { claimReward, rewardState } from "./rewards";
+import { claimReward, countMonthlyFeedbackRewards, rewardState } from "./rewards";
 import { OrdersPanel } from "./orders-panel";
 import { AccountTabs, AccountStatus, CreditsHero } from "./ui";
 import "./experience.css";
+import { DomesticAccountPoints } from "./domestic-points";
 export type AccountPanel =
   | "credits"
   | "tasks"
@@ -28,14 +37,19 @@ export const openAccount = (panel: AccountPanel) =>
     new CustomEvent("eureka:account-panel", { detail: panel }),
   );
 const format = (n: number) => n.toLocaleString("en-US");
-const originals = [89, 159, 199];
+const originals = marketConfig().credits.map(pack => pack.original);
 export function CreditsPromo({
   w,
   compact = false,
+  actor = "zhang",
+  onSignin,
 }: {
   w: Workspace;
   compact?: boolean;
+  actor?: string;
+  onSignin?: () => void;
 }) {
+  if (routeMarket() === "cn") return <DomesticAccountPoints w={w} actor={actor} onPanel={openAccount} onSignin={onSignin}/>;
   const monthly = rewardState(w).entries.filter((e) =>
       e.id.startsWith(
         "signin:" + new Date().toLocaleDateString("sv-SE").slice(0, 7),
@@ -46,24 +60,22 @@ export function CreditsPromo({
     <div className="ex-promo">
       <header>
         {team
-          ? "团队 Credits"
-          : `本月签到 ${monthly.length}/15 次 · 累计 ${format(monthly.length * 1000)} Credits`}
+          ? creditText("团队 Credits")
+          : creditText(`本月签到 ${monthly.length}/${marketConfig().rewardLimits.signin} 次 · 累计 ${format(monthly.length * marketConfig().rewards.signin)} Credits`)}
         {!team && (
-          <button className="ex-link" onClick={() => openAccount("tasks")}>
-            赚 Credits ›
-          </button>
+          <button className="ex-link" onClick={() => openAccount("tasks")}>{creditText("赚 Credits ›")}</button>
         )}
       </header>
       <strong>
         {format(M.creditBalance(w))}{" "}
-        <small style={{ fontSize: 12 }}>Credits</small>
+        <small style={{ fontSize: 12 }}>{creditText("Credits")}</small>
       </strong>
       {!compact && !team && (
-        <span className="ex-muted">每日签到 +1,000 Credits</span>
+        <span className="ex-muted">{creditText(`每日签到 +${format(marketConfig().rewards.signin)} Credits`)}</span>
       )}
       <footer>
-        <button className="ex-button" onClick={() => openAccount("recharge")}>
-          充值
+        <button className="ex-button credit-recharge-cta" disabled={team && !M.admin(w, actor)} onClick={() => openAccount("recharge")}>
+          {team && !M.admin(w, actor) ? "联系管理员充值" : (routeMarket() === "cn" ? "充值积分" : "充值")}
         </button>
         {!team && (
           <button
@@ -97,7 +109,7 @@ export function AccountExperience({
     [notice, setNotice] = useState(""),
     [noticeError, setNoticeError] = useState(false),
     [feedback, setFeedback] = useState(""),
-    [channel, setChannel] = useState("Card"),
+    [channel, setChannel] = useState(marketConfig().payments.credits[0]),
     [onlyDiff, setOnlyDiff] = useState(false),
     [readIds, setReadIds] = useState<string[]>([]);
   useEffect(() => {
@@ -106,7 +118,7 @@ export function AccountExperience({
       if (!active) return;
       try {
         const ids = JSON.parse(
-          localStorage.getItem(`eureka:notifications:${space}:${actor}`) ||
+          marketStorage.getItem(`eureka:notifications:${space}:${actor}`) ||
             "[]",
         );
         setReadIds(ids);
@@ -130,14 +142,14 @@ export function AccountExperience({
       M.visible(w, actor).find((f) => f.owner !== actor) ||
       M.visible(w, actor)[0];
   const titles: Record<string, string> = {
-    credits: "Credits",
-    tasks: "做任务赚 Credits",
-    recharge: "充值 Credits",
+    credits: creditText("Credits"),
+    tasks: creditText("做任务赚 Credits"),
+    recharge: creditText("充值 Credits"),
     notifications: "所有通知",
     compare: "各版本功能对比",
     faq: "常见问题",
     orders: "我的订单",
-    rules: "Credits 使用规则",
+    rules: creditText("Credits 使用规则"),
     feedback: "用户反馈",
     download: "下载 App",
   };
@@ -154,14 +166,14 @@ export function AccountExperience({
   function reward(kind: Parameters<typeof claimReward>[2]) {
     perform(() => {
       controller.change((st) => claimReward(M.get(st, space), actor, kind, feedback));
-      setNotice("奖励已领取，Credits 已加入个人余额");
+      setNotice(creditText("奖励已领取，Credits 已加入个人余额"));
     });
   }
   function mark(id?: string) {
     const ids = id
       ? [...new Set([...readIds, id])]
       : ["expiry", "share", "release"];
-    try { localStorage.setItem(
+    try { marketStorage.setItem(
       `eureka:notifications:${space}:${actor}`,
       JSON.stringify(ids),
     );
@@ -170,12 +182,12 @@ export function AccountExperience({
   function pay(outcome: "success" | "failure") {
     perform(() => {
       controller.change((st) =>
-        M.payCreditOrder(M.get(st, space), orderId, outcome, actor),
+        M.payCreditOrder(M.get(st, space), orderId, outcome, actor, channel),
       );
       setNoticeError(outcome === "failure");
       setNotice(
         outcome === "success"
-          ? "支付成功，Credits 已到账"
+          ? creditText("支付成功，Credits 已到账")
           : "支付未完成，请重试；不会重复入账",
       );
     });
@@ -183,6 +195,8 @@ export function AccountExperience({
   if (!page) return null;
   if (team && ["tasks", "feedback", "download"].includes(page)) return null;
   const signins = s.entries.filter((e) => e.id.startsWith("signin:" + month));
+  const feedbackCount = countMonthlyFeedbackRewards(s.entries);
+  const feedbackLimit = feedbackCount >= marketConfig().rewardLimits.feedback;
   return (
     <ReferenceDialog
       className={
@@ -206,24 +220,20 @@ export function AccountExperience({
         <AccountStatus message={notice} error={noticeError}/>
         {page === "credits" && (
           <>
-            <CreditsHero eyebrow={`${w.name} · 可用余额`} title={`${format(M.creditBalance(w))} Credits`} description={team ? "为团队的下一个洞察，补充一点能量。" : "把每一次好奇，变成更深入的探索。"}/>
+            <CreditsHero eyebrow={`${w.name} · 可用余额`} title={creditText(`${format(M.creditBalance(w))} Credits`)} description={team ? "为团队的下一个洞察，补充一点能量。" : "把每一次好奇，变成更深入的探索。"}/>
             <div className="ex-credit-uses"><span>✦ Agent 分析</span><span>⌕ 深入检索</span><span>↗ 更多 AI 能力</span></div>
             <div className="ex-footer ex-balance-actions">
-              <button className="ex-link" onClick={() => location.assign(appUrl("settings", "credits", space, actor))}>Credits 明细 →</button>
+              <button className="ex-link" onClick={() => location.assign(appUrl("settings", "credits", space, actor))}>{creditText("Credits 明细 →")}</button>
               {!team && (
-                <button onClick={() => setPage("tasks")}>
-                  做任务赚 Credits
-                </button>
+                <button onClick={() => setPage("tasks")}>{creditText("做任务赚 Credits")}</button>
               )}
-              <button className="primary" onClick={() => setPage("recharge")}>
-                充值 Credits
-              </button>
+              <button className="primary credit-recharge-cta" disabled={team && !M.admin(w, actor)} onClick={() => setPage("recharge")}>{creditText("充值 Credits")}</button>
             </div>
           </>
         )}
         {page === "tasks" && (
           <>
-            <CreditsHero eyebrow="GROW WITH EUREKAMIND" title="记录好习惯，收获新灵感" description="完成任务获得 Credits，让每一天的积累都有回响。"/>
+            <CreditsHero eyebrow={routeMarket() === "cn" ? "做任务赚积分" : "GROW WITH EUREKAMIND"} title="记录好习惯，收获新灵感" description={creditText("完成任务获得 Credits，让每一天的积累都有回响。")}/>
             <AccountTabs items={["新手成长", "活跃互动", "会员升级"]} value={tab} onChange={setTab} label="奖励任务" panelId="reward-tasks"/>
             <div id="reward-tasks" role="tabpanel" aria-labelledby={`reward-tasks-tab-${["新手成长", "活跃互动", "会员升级"].indexOf(tab)}`} tabIndex={0}>
             {tab === "新手成长" ? (
@@ -231,20 +241,20 @@ export function AccountExperience({
                 {
                   id: "register" as const,
                   title: "新用户注册",
-                  amount: 1000,
+                  amount: marketConfig().rewards.register,
                   desc: "在 PC 端或 App 端完成注册，同一账号仅奖励一次。",
                 },
                 {
                   id: "profile" as const,
                   title: "完善个人信息",
-                  amount: 500,
+                  amount: marketConfig().rewards.profile,
                   desc: "补充头像、昵称及职业等基本信息。",
                 },
                 {
                   id: "app" as const,
                   title: "下载 App",
-                  amount: 200,
-                  desc: "首次下载 EurekaMind App 并完成登录。",
+                  amount: marketConfig().rewards.app,
+                  desc: `首次下载 ${productName()} App 并完成登录。`,
                 },
               ].map((t) => (
                 <div className="ex-task" key={t.id}>
@@ -279,29 +289,23 @@ export function AccountExperience({
                   <div>
                     <h3>
                       用户反馈（
-                      {
-                        s.entries.filter((e) =>
-                          e.id.startsWith("feedback:" + month),
-                        ).length
-                      }
-                      /10 次）
+                      {feedbackCount}
+                      /{marketConfig().rewardLimits.feedback} 次）
                     </h3>
                     <p>
-                      评价任务或录音总结、提交使用反馈，每月最多获得 5,000
-                      Credits。
-                    </p>
+                      评价任务或录音总结、提交使用反馈，每月最多获得 {format(marketConfig().rewards.feedback * marketConfig().rewardLimits.feedback)}{creditText("Credits。")}</p>
                   </div>
-                  <b>+500</b>
-                  <button onClick={() => setPage("feedback")}>去反馈</button>
+                  <b>+{format(marketConfig().rewards.feedback)}</b>
+                  <button disabled={feedbackLimit} onClick={() => setPage("feedback")}>{feedbackLimit ? "本月已领满" : "去反馈"}</button>
                 </div>
                 <div className="ex-task">
                   <div>
-                    <h3>每日签到（{signins.length}/15 次）</h3>
-                    <p>每月最多获得 15,000 Credits；每天限领取一次。</p>
+                    <h3>每日签到（{signins.length}/{marketConfig().rewardLimits.signin} 次）</h3>
+                    <p>每月最多获得 {format(marketConfig().rewards.signin * marketConfig().rewardLimits.signin)}{creditText(" Credits；每天限领取一次。")}</p>
                   </div>
-                  <b>+1,000</b>
+                  <b>+{format(marketConfig().rewards.signin)}</b>
                   <button
-                    disabled={signins.length >= 15 || signins.some((e) =>
+                    disabled={signins.length >= marketConfig().rewardLimits.signin || signins.some((e) =>
                       e.id.endsWith(new Date().toLocaleDateString("sv-SE")),
                     )}
                     onClick={() => reward("signin")}
@@ -310,28 +314,27 @@ export function AccountExperience({
                       e.id.endsWith(new Date().toLocaleDateString("sv-SE")),
                     )
                       ? "今日已签到"
-                      : signins.length >= 15 ? "本月已达上限" : "立即签到"}
+                      : signins.length >= marketConfig().rewardLimits.signin ? "本月已达上限" : "立即签到"}
                   </button>
                 </div>
               </>
             ) : (
               <>
                 <div className="ex-grid">
-                  {[
+                  {(routeMarket() === "cn" ? markets.cn.membership.map(tier => [tier.name, format(tier.monthlyCredits)]) : [
                     ["标准版", "3,000"],
-                    ["专业版", "5,000"],
+                    ["专业版", format(marketConfig().benefits.proCredits)],
                     ["卓越版", "10,000"],
-                  ].map(([n, v]) => (
+                  ]).map(([n, v]) => (
                     <div className="ex-summary" key={n}>
                       <h3>{n}</h3>
                       <strong>+{v}</strong>
-                      <p>Credits / 月</p>
+                      <p>{creditText("Credits / 月")}</p>
                     </div>
                   ))}
                 </div>
                 <p className="ex-muted">
-                  会员成长奖励档位展示，按会员周期发放。当前 EurekaMind
-                  可购买套餐与实际权益以个人订阅页为准。
+                  会员积分随会员周期按月发放至个人账户，团队权益单独维护。
                 </p>
                 <button
                   className="primary"
@@ -352,6 +355,7 @@ export function AccountExperience({
         {page === "feedback" && (
           <>
             <p>你对录音总结或 Agent 任务的使用体验如何？</p>
+            <p className="ex-muted">本月已领取 {feedbackCount}/{marketConfig().rewardLimits.feedback} 次反馈奖励，包含会议总结评分。</p>
             <label>
               满意度
               <Select>
@@ -368,9 +372,8 @@ export function AccountExperience({
             />
             <div className="ex-footer">
               <button onClick={() => setPage("tasks")}>返回</button>
-              <button className="primary" onClick={() => reward("feedback")}>
-                提交反馈并领取 500 Credits
-              </button>
+              <button className="primary" disabled={feedbackLimit} onClick={() => reward("feedback")}>
+                {feedbackLimit ? "本月反馈奖励已领满" : `提交反馈并领取 ${format(marketConfig().rewards.feedback)}${creditText(" Credits")}`}</button>
             </div>
           </>
         )}
@@ -378,16 +381,14 @@ export function AccountExperience({
           <>
             <p>下载 App 后登录同一账号，便可在手机上记录、同步与整理。</p>
             <a
-              href="https://apps.apple.com/us/app/eurekamind-ai-note-taker/id6742087483"
+              href={routeMarket() === "cn" ? "https://100wiser.com/index" : "https://apps.apple.com/us/app/eurekamind-ai-note-taker/id6742087483"}
               target="_blank"
               rel="noreferrer"
             >
-              在 App Store 查看 EurekaMind ↗
+              {routeMarket() === "cn" ? "查看百智 App 下载方式" : `在 App Store 查看 ${productName()}`} ↗
             </a>
-            <div className="ex-rule">
-              当前为交互演示。以下按钮仅模拟首次 App 登录。
-            </div>
-            <button
+
+            {reviewToolsEnabled() && (<button
               onClick={() =>
                 perform(() => {
                   controller.change((st) => {
@@ -400,12 +401,12 @@ export function AccountExperience({
               }
             >
               模拟首次登录并领取
-            </button>
+            </button>)}
           </>
         )}
         {page === "recharge" && (
           <>
-            <CreditsHero eyebrow={`充值至 ${w.name} · USD`} title="为下一个好想法，蓄满能量" description="选择适合你的 Credits 包，按需补充，随用随取。"/>
+            <CreditsHero eyebrow={`充值至 ${w.name} · ${marketConfig().currency}`} title="为下一个好想法，蓄满能量" description={creditText("选择适合你的 Credits 包，按需补充，随用随取。")}/>
             <ol className="ex-checkout-steps" aria-label="充值进度"><li data-active={!order || order.status === "cancelled"}>1 选择套餐</li><li data-active={!!order && ["pending", "failed"].includes(order.status)}>2 确认支付</li><li data-active={order?.status === "paid"}>3 充值完成</li></ol>
             {!order || order.status === "cancelled" ? (
               <>
@@ -417,33 +418,29 @@ export function AccountExperience({
                       key={p.id}
                       onClick={() => setSku(p.id)}
                     >
-                      <span className="ex-sku-label">{i === 2 ? "✦ 最划算" : "Credits 充值包"}<i aria-hidden="true">{sku === p.id ? "✓" : "○"}</i></span>
+                      <span className="ex-sku-label">{i === 2 ? "✦ 最划算" : creditText("Credits 充值包")}<i aria-hidden="true">{sku === p.id ? "✓" : "○"}</i></span>
                       <strong>
                         {format(p.credits)}{" "}
-                        <small style={{ fontSize: 12 }}>Credits</small>
+                        <small style={{ fontSize: 12 }}>{creditText("Credits")}</small>
                       </strong>
                       <b>
-                        ${p.amount} <del>${originals[i]}</del>
+                        {formatMarketMoney(p.amount)} <del>{formatMarketMoney(originals[i])}</del>
                       </b>
                       <small>
-                        $1 ≈ {Math.round(p.credits / p.amount)} Credits
-                      </small>
+                        {formatMarketMoney(1)} ≈ {Math.round(p.credits / p.amount)}{creditText(" Credits")}</small>
                     </button>
                   ))}
                 </div>
                 <div className="ex-summary">
-                  应付 <strong>${selected.amount}</strong>{" "}
-                  <del>${originals[packs.indexOf(selected)]}</del> · 已优惠 $
-                  {originals[packs.indexOf(selected)] - selected.amount}
+                  应付 <strong>{formatMarketMoney(selected.amount)}</strong>{" "}
+                  <del>{formatMarketMoney(originals[packs.indexOf(selected)])}</del> · 已优惠{" "}
+                  {formatMarketMoney(originals[packs.indexOf(selected)] - selected.amount)}
                 </div>
-                <p className="ex-muted">
-                  购买后有效期 1 年。当前为 USD
-                  演示价格，不代表汇率换算或正式售价。
-                </p>
+
                 <div className="ex-footer">
                   <button onClick={() => setPage("rules")}>充值规则</button>
                   <button
-                    className="primary"
+                    className="primary credit-recharge-cta"
                     disabled={team && !M.admin(w, actor)}
                     onClick={() =>
                       perform(() => {
@@ -467,24 +464,24 @@ export function AccountExperience({
                   <strong>
                     {order.status === "paid"
                       ? "充值成功"
-                      : `${format(order.credits || 0)} Credits`}
+                      : creditText(`${format(order.credits || 0)} Credits`)}
                   </strong>
                   <p>订单 {order.id}</p>
+                  {order.expiresAt && order.status !== "paid" && <p>请于 {new Date(order.expiresAt).toLocaleString("zh-CN")} 前支付</p>}
+                  {order.creditsExpireAt && <p>积分有效期至 {new Date(order.creditsExpireAt).toLocaleDateString("zh-CN")}</p>}
                   <p>
-                    金额 ${order.amount} USD · {w.name}
+                    金额 {formatMarketMoney(order.amount, order.currency)} {order.currency} · {w.name}
                   </p>
                 </div>
                 {order.status === "paid" ? (
                   <>
-                    <p>Credits 已入账。重复确认不会再次扣费或入账。</p>
+                    <p>{creditText("Credits 已入账，可在积分明细中查看。")}</p>
                     <button onClick={() => setPage("orders")}>查看订单</button>
                   </>
                 ) : (
                   <>
-                    <AccountTabs items={["Visa / Mastercard", "PayPal"]} value={channel === "Card" ? "Visa / Mastercard" : channel} onChange={v => setChannel(v === "PayPal" ? v : "Card")} label="支付方式"/>
-                    <p className="ex-rule">
-                      演示结账 · 不收集支付信息，不产生真实扣款。
-                    </p>
+                    <AccountTabs items={marketConfig().payments.credits} value={channel} onChange={setChannel} label="支付方式"/>
+
                     <div className="ex-footer">
                       <button
                         onClick={() =>
@@ -502,16 +499,16 @@ export function AccountExperience({
                       >
                         取消订单
                       </button>
-                      <button onClick={() => pay("failure")}>
+                      {reviewToolsEnabled() && (<button onClick={() => pay("failure")}>
                         模拟支付失败
-                      </button>
+                      </button>)}
                       <button
                         className="primary"
                         onClick={() => pay("success")}
                       >
                         {order.status === "failed"
-                          ? "重试模拟支付"
-                          : "模拟支付成功"}
+                          ? "重试支付"
+                          : "确认支付"}
                       </button>
                     </div>
                   </>
@@ -522,13 +519,8 @@ export function AccountExperience({
         )}
         {page === "rules" && (
           <>
-            <p>
-              Credits 可用于 Agent 任务与指定 AI 功能，按任务所属工作区扣除。
-            </p>
-            <p>
-              充值 Credits 有效期为购买后 1
-              年；虚拟服务购买后不支持退款。需要发票时可从“我的订单”提交申请。
-            </p>
+            <p>{creditText("Credits 可用于 PC 端执行任务或 App 端兑换录音转写时长，按任务所属工作区扣除。")}</p>
+            <p>{creditText("充值 Credits 有效期为购买后 1 年；虚拟服务购买后不支持退款。如需开票，请联系客服。")}</p>
             <p>
               个人奖励归个人工作区，团队充值归团队工作区，余额不会随切换合并。
             </p>
@@ -540,8 +532,8 @@ export function AccountExperience({
             {
               id: "expiry",
               icon: "!",
-              title: "您的 Credits 即将过期",
-              text: "演示提醒：2,000 Credits 将在本月底到期，请及时查看明细。",
+              title: creditText("您的 Credits 即将过期"),
+              text: routeMarket() === "cn" ? `${creditSummary(w).expiring.toLocaleString()} 积分将在本月底到期，请及时查看明细。` : "2,000 Credits 将在本月底到期，请及时查看明细。",
               time: "今天 09:00",
               link: "查看明细",
             },
@@ -550,7 +542,7 @@ export function AccountExperience({
               icon: "♧",
               title: "收到一条内容共享",
               text: sharedMeeting
-                ? `演示通知：「${sharedMeeting.title}」已可查看，打开会议回顾纪要与行动。`
+                ? `「${sharedMeeting.title}」已可查看，打开会议回顾纪要与行动。`
                 : "暂无可访问的会议内容。",
               time: "昨天 14:30",
               link: "打开会议",
@@ -558,12 +550,12 @@ export function AccountExperience({
             {
               id: "release",
               icon: "✦",
-              title: "EurekaMind 功能更新",
+              title: `${productName()} 功能更新`,
               text: "模板社区、连接器与团队洞察已加入工作台。",
               time: "10 月 10 日",
               link: "查看更新",
             },
-          ].map((n) => (
+          ].filter(n => routeMarket() !== "cn" || n.id !== "expiry" || creditSummary(w).expiring > 0).map((n) => (
             <article className="ex-notice" key={n.id}>
               <span className="ex-notice-icon">{n.icon}</span>
               <div>
@@ -616,22 +608,24 @@ export function AccountExperience({
               <thead>
                 <tr>
                   <th>权益项</th>
-                  <th>标准版</th>
-                  <th>Pro</th>
+                  <th>{routeMarket() === "cn" ? "免费版" : "标准版"}</th>
+                  {routeMarket() === "cn" && <th>标准版（购卡赠送）</th>}
+                  <th>{routeMarket() === "cn" ? "专业版" : "Pro"}</th>
+                  {routeMarket() === "cn" && <th>卓越版</th>}
                 </tr>
               </thead>
               <tbody>
-                {[
-                  ["每月转写时长", "400 分钟", "99,999 分钟"],
-                  ["每月 Credits", "0", "5,000"],
+                {(routeMarket() === "cn" ? markets.cn.memberComparison : [
+                  ["每月转写时长", `${format(marketConfig().benefits.standardMinutes)} 分钟`, `${format(marketConfig().benefits.proMinutes)} 分钟`],
+                  [creditText("每月 Credits"), "0", format(marketConfig().benefits.proCredits)],
                   ["AI 专业总结", "✓", "✓"],
                   ["AI 个人助理", "✓", "✓"],
                   ["多语言转写翻译", "✓", "✓"],
                   ["区分发言人", "✓", "✓"],
                   ["专业模板库", "✓", "✓"],
                   ["高级 AI 分析", "—", "✓"],
-                ]
-                  .filter((row) => !onlyDiff || row[1] !== row[2])
+                ])
+                  .filter((row) => !onlyDiff || row.slice(1).some(value => value !== row[1]))
                   .map((row) => (
                     <tr key={row[0]}>
                       {row.map((v, i) => (
@@ -648,7 +642,7 @@ export function AccountExperience({
             {[
               [
                 "有哪些会员类型？",
-                "当前 EurekaMind 保留标准版与 Pro。转写时长、Credits 和高级 AI 能力按个人订阅方案提供，团队订阅独立计费。",
+                creditText(`当前 ${productName()} ${routeMarket() === "cn" ? "提供免费版、标准版、专业版与卓越版" : "保留标准版与 Pro"}。会员积分按月发放，团队订阅独立计费。`),
               ],
               [
                 "会员权益里的功能具体指什么？",
@@ -660,7 +654,7 @@ export function AccountExperience({
               ],
               [
                 "转写时长和加时包有什么区别？",
-                "会员转写额度随周期刷新，加时包为一次性额度。EurekaMind 当前原型仅演示已上架的订阅与 Credits 套餐。",
+                routeMarket() === "cn" ? "会员转写时长按月刷新；加时包一次性购买，有效期2年，可叠加使用，优先消耗先到期的时长。积分与转写时长分别计算。" : creditText(`会员转写额度随周期刷新，Credits 余额与订阅权益可在个人订阅页查看。`),
               ],
               [
                 "升级后何时生效？",
@@ -668,7 +662,7 @@ export function AccountExperience({
               ],
               [
                 "购买会员是否支持发票？",
-                "可在“我的订单 → 开发票”选择已支付订单并填写抬头。原型仅保存申请，不发送真实发票。",
+                "可在“我的订单 → 开发票”选择已支付订单并填写抬头。可在订单中查看申请状态。",
               ],
             ].map(([q, a]) => (
               <details className="ex-rule" key={q}>

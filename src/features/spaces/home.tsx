@@ -1,4 +1,5 @@
 "use client";
+
 import { Select } from "@/components/ui/select";
 import "./team-home.css";
 import { RecipientDialog } from "./sharing-settings";
@@ -433,9 +434,9 @@ export function TeamHome({
                   source: "文件上传",
                   duration: 0,
                   summary:
-                    "音频已加入会议列表，等待转写处理。本地演示仅保存文件信息，未上传原音频，也未生成真实转写或总结。",
+                    "音频已加入会议列表，等待转写处理。",
                   transcript:
-                    "音频已加入会议列表，等待转写处理。本地演示仅保存文件信息，未上传原音频，也未生成真实转写或总结。",
+                    "音频已加入会议列表，等待转写处理。",
                 },
                 actor,
               );

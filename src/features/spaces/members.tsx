@@ -1,4 +1,6 @@
 "use client";
+import { reviewToolsEnabled } from "@/features/markets/review";
+
 import { Select } from "@/components/ui/select";
 import { useEffect, useRef, useState } from "react";
 import { M } from "./model/store";
@@ -165,25 +167,25 @@ export function MembersPage({
                                   onClick={() =>
                                     act(() => {
                                       action(m, "resend");
-                                      setNotice("模拟邀请已重发");
+                                      setNotice("邀请已重发");
                                     })
                                   }
                                 >
                                   重发
                                 </Button>
-                                <Button
+                                {reviewToolsEnabled() && (<Button
                                   action="member-accept"
                                   value={m.id}
                                   className="link"
                                   onClick={() =>
                                     act(() => {
                                       action(m, "accept");
-                                      setNotice("成员已模拟接受邀请");
+                                      setNotice("成员已接受邀请");
                                     })
                                   }
                                 >
                                   模拟接受
-                                </Button>
+                                </Button>)}
                               </>
                             ) : (
                               <Button
@@ -240,7 +242,7 @@ export function MembersPage({
           space={space}
           actor={actor}
           onClose={() => setModal("")}
-          onSaved={() => setNotice("模拟邀请已创建，可在成员列表体验接受流程")}
+          onSaved={() => setNotice("邀请已发送")}
         />
       ) : null}
       {modal === "role" && member ? (
@@ -306,7 +308,7 @@ export function MembersPage({
           }
         >
           <p>
-            {member.status === "pending" ? "撤销邀请并释放预占席位，不涉及设备或资料。" : `将撤销成员访问权并释放席位。其团队区全部资料移交给当前管理员 ${w.members.find(m => m.id === actor)?.name || actor}；系统自动解绑绑定在本团队的设备并清空硬件文件（原型模拟）。个人工作区不受影响，订阅席位数量和账单不自动减少。`}
+            {member.status === "pending" ? "撤销邀请并释放预占席位，不涉及设备或资料。" : `将撤销成员访问权并释放席位。其团队区全部资料移交给当前管理员 ${w.members.find(m => m.id === actor)?.name || actor}；系统自动解绑绑定在本团队的设备并清空硬件文件。个人工作区不受影响，订阅席位数量和账单不自动减少。`}
           </p>
         </Dialog>
       ) : null}

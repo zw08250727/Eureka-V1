@@ -1,4 +1,6 @@
 "use client";
+import { marketStorage, scopedKey } from "@/features/markets/storage";
+
 import { useEffect, useRef, useState, useCallback } from "react";
 import { ensureTeamDailyDemo } from "./team-daily-demo";
 import { ensureCustomerDetailDemo } from "./customer-detail-demo";
@@ -38,13 +40,13 @@ export function usePersonal(accountId = "zhang", workspaceId = "personal", custo
     let active = true;
     Promise.resolve().then(() => {
       try {
-        ensureTeamCustomerDemo(localStorage, workspaceId, accountId);
-        ensureTeamDailyDemo(localStorage, workspaceId);
-        if (customerDetails) ensureCustomerDetailDemo(localStorage, workspaceId, accountId);
+        ensureTeamCustomerDemo(marketStorage, workspaceId, accountId);
+        ensureTeamDailyDemo(marketStorage, workspaceId);
+        if (customerDetails) ensureCustomerDetailDemo(marketStorage, workspaceId, accountId);
         repo.current = {
-          actions: createActions(localStorage, () => new Date(), accountId, workspaceId),
-          thoughts: createThoughts(localStorage, () => new Date(), accountId, workspaceId),
-          contacts: createContacts(localStorage, accountId, workspaceId),
+          actions: createActions(marketStorage, () => new Date(), accountId, workspaceId),
+          thoughts: createThoughts(marketStorage, () => new Date(), accountId, workspaceId),
+          contacts: createContacts(marketStorage, accountId, workspaceId),
         };
         if (active) refresh();
       } catch (e) {
@@ -52,12 +54,12 @@ export function usePersonal(accountId = "zhang", workspaceId = "personal", custo
       }
     });
     const external = (event: StorageEvent) => {
-      if (event.key !== null && !["baizhi-v14-contacts", "eureka:workspaces:v2"].includes(event.key)) return;
+      if (event.key !== null && !["baizhi-v14-contacts", "eureka:workspaces:v2"].map(key => scopedKey(key)).includes(event.key)) return;
       if (!repo.current) return;
       try {
-        repo.current.actions = createActions(localStorage,()=>new Date(),accountId,workspaceId);
-        repo.current.thoughts = createThoughts(localStorage,()=>new Date(),accountId,workspaceId);
-        repo.current.contacts = createContacts(localStorage, accountId, workspaceId);
+        repo.current.actions = createActions(marketStorage,()=>new Date(),accountId,workspaceId);
+        repo.current.thoughts = createThoughts(marketStorage,()=>new Date(),accountId,workspaceId);
+        repo.current.contacts = createContacts(marketStorage, accountId, workspaceId);
         refresh();
         setError("");
       } catch (error) {

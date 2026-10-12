@@ -1,4 +1,5 @@
 "use client";
+
 import { Select } from "@/components/ui/select";
 import { useState } from "react";
 import { M } from "./model/store";
@@ -134,8 +135,7 @@ export function AutomaticTaskDialog({
           </label>
         </div>
         <p className="ws-muted">
-          仅本人可见。基于当前团队可访问的会议；本地模拟不在后台定时执行，可点击“模拟运行”预览结果，按实际输入与输出
-          Token 用量模拟扣减 Credits。
+          仅本人可见。基于当前团队可访问的会议，按 Token 用量扣减 Credits。
         </p>
         {task ? (
           <>
@@ -181,7 +181,7 @@ export function AutomaticTaskDialog({
                   }
                 }}
               >
-                模拟运行
+                立即运行
               </Button>
             </div>
             {(task.runs || []).slice(0, 3).map((r, i) => (

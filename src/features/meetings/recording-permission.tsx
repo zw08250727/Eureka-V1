@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useRef, useState } from "react";
 import { DeleteOverlay } from "./reference-ui";
 import { RefIcon as Icon } from "@/features/reference/symbols";
@@ -52,7 +53,7 @@ export function RecordingPermission({
         </div>
         <div className="permission-note">
           <strong>需要授权两项权限：</strong>
-          麦克风用于实时转写；系统音频用于捕捉会议软件、视频通话等电脑内部声音。原型仅演示授权流程，不会真正访问设备。
+          麦克风用于实时转写；系统音频用于捕捉会议软件、视频通话等电脑内部声音。
         </div>
         <div className="permission-list">
           {[

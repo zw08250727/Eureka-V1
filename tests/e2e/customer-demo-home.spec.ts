@@ -1,28 +1,34 @@
 import { test, expect } from "@playwright/test";
 import { demoWeek } from "../../src/features/workbench/model/demo-week";
 import M from "../../src/features/spaces/model/core";
+import { accountWithoutTeam } from "./fixtures/workspace-state";
 import { ensureTeamCustomerDemo } from "../../src/features/personal/team-customer-demo";
 import { createContacts } from "../../src/features/personal/store";
 const memory = () => { const values = new Map<string, string>(); return { getItem: (k: string) => values.get(k) ?? null, setItem: (k: string, v: string) => { values.set(k, v); }, removeItem: (k: string) => { values.delete(k); } } as Storage; };
-test("demo migration is scoped, preserves choices and edits, and never recreates deleted examples", () => {
+test("ACCOUNT-01: demo migration preserves choices in the only joined team and excludes a separately created team", () => {
   Object.defineProperty(globalThis, "window", { configurable: true, value: { dispatchEvent() {} } });
   try {
-    const storage = memory(), state = M.seed(), growth = M.acceptInvite(state, "invite-growth");
+    const storage = memory(), state = accountWithoutTeam(), growth = M.acceptInvite(state, "invite-growth");
     growth.customerSharing = { wang: false };
     storage.setItem(M.KEY, JSON.stringify(state));
     ensureTeamCustomerDemo(storage, growth.id, "zhang");
-    expect(createContacts(storage, "zhang", growth.id).readVisible().personal.contacts).toHaveLength(3);
-    expect(createContacts(storage, "wang", growth.id).readVisible().personal.contacts).toHaveLength(3);
+    expect(createContacts(storage, "zhang", growth.id).readVisible().personal.contacts).toHaveLength(6);
+    expect(createContacts(storage, "wang", growth.id).readVisible().personal.contacts).toHaveLength(6);
     expect(JSON.parse(storage.getItem(M.KEY)!).spaces.find((w: { id: string }) => w.id === growth.id).customerSharing.wang).toBe(false);
     const contacts = createContacts(storage, "zhang", growth.id);
     contacts.change(s => { s.personal.contacts = []; });
     const before = storage.getItem("baizhi-v14-contacts");
     ensureTeamCustomerDemo(storage, growth.id, "zhang");
     expect(storage.getItem("baizhi-v14-contacts")).toBe(before);
-    const own = M.create(state, { name: "真实新团队", country: "中国", cycle: "month", seats: 2, orderId: "demo-check" });
-    storage.setItem(M.KEY, JSON.stringify(state));
-    ensureTeamCustomerDemo(storage, own.id, "zhang");
+    expect(M.accountTeams(state)).toHaveLength(1);
+    const separateState = accountWithoutTeam();
+    const separateStorage = memory();
+    const own = M.create(separateState, { name: "真实新团队", country: "中国", cycle: "month", seats: 2, orderId: "demo-check" });
+    separateStorage.setItem(M.KEY, JSON.stringify(separateState));
+    ensureTeamCustomerDemo(separateStorage, own.id, "zhang");
+    expect(separateStorage.getItem("baizhi-v14-contacts")).toBeNull();
     expect(storage.getItem("baizhi-v14-contacts")).toBe(before);
+    expect(M.accountTeams(separateState)).toHaveLength(1);
   } finally { Reflect.deleteProperty(globalThis, "window"); }
 });
 
@@ -42,22 +48,22 @@ test("existing customer data remains private and failed initialization rolls bac
   } finally { Reflect.deleteProperty(globalThis, "window"); }
 });
 
-test("growth and product teams contain filterable shared examples without moving personal customers", async ({ page }) => {
-  const state = M.seed(), growth = M.acceptInvite(state, "invite-growth");
-  await page.addInitScript(state => { if (!localStorage.getItem("eureka:workspaces:v2")) localStorage.setItem("eureka:workspaces:v2", JSON.stringify(state)); }, state);
-  await page.goto(`/workbench/?view=contacts&space=${growth.id}&actor=zhang`);
-  await expect(page.locator(".contacts-person-card")).toHaveCount(6);
-  await page.getByLabel("筛选所属成员").selectOption("wang");
-  await expect(page.locator(".contacts-person-card")).toHaveCount(3);
-  await page.getByLabel("筛选客户来源").selectOption("agent");
-  await expect(page.locator(".contacts-person-card")).toHaveCount(1);
-  await page.goto(`/workbench/?view=contacts&space=${growth.id}&actor=zhang`);
-  await page.screenshot({ path: "test-results/growth-demo-customers.png", fullPage: true, animations: "disabled" });
-  await page.goto("/workbench/?view=contacts&space=team-eureka");
-  await expect(page.locator(".contacts-person-card")).toHaveCount(9);
-  await page.goto("/workbench/?view=contacts&space=personal");
-  await expect(page.locator(".contacts-person-card").filter({ hasText: "示例客户" })).toHaveCount(0);
-});
+for (const kind of ["growth", "product"] as const) {
+  test(`ACCOUNT-01: ${kind} is the only joined team; examples are filterable and personal customers stay separate`, async ({ page }) => {
+    const state = kind === "growth" ? accountWithoutTeam() : M.seed();
+    const team = kind === "growth" ? M.acceptInvite(state, "invite-growth") : M.get(state, "team-eureka");
+    expect(M.accountTeams(state).map(w => w.id)).toEqual([team.id]);
+    await page.addInitScript(state => { if (!localStorage.getItem("eureka:workspaces:v2")) localStorage.setItem("eureka:workspaces:v2", JSON.stringify(state)); }, state);
+    await page.goto(`/workbench/?view=contacts&space=${team.id}&actor=zhang`);
+    await expect(page.locator(".contacts-person-card")).toHaveCount(kind === "growth" ? 6 : 9);
+    await page.getByLabel("筛选所属成员").selectOption(kind === "growth" ? "wang" : "lin");
+    await expect(page.locator(".contacts-person-card")).toHaveCount(3);
+    await page.getByLabel("筛选客户来源").selectOption("crm");
+    await expect(page.locator(".contacts-person-card")).toHaveCount(1);
+    await page.goto("/workbench/?view=contacts&space=personal");
+    await expect(page.locator(".contacts-person-card").filter({ hasText: "示例客户" })).toHaveCount(0);
+  });
+}
 
 test("homepage shows latest two inspirations and keeps modules compact with many records", async ({ page }) => {
   await page.clock.setFixedTime(new Date("2026-10-09T10:00:00+08:00"));

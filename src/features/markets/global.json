@@ -1,0 +1,121 @@
+{
+  "revision": "market-20261012-02",
+  "status": "待 PM 确认；金额沿用现有 USD 演示基线，不代表两地正式定价",
+  "currency": "USD",
+  "personal": {
+    "month": {
+      "cycle": "month",
+      "amount": 17.99,
+      "currency": "USD"
+    },
+    "year": {
+      "cycle": "year",
+      "amount": 99.99,
+      "currency": "USD"
+    }
+  },
+  "benefits": {
+    "standardMinutes": 400,
+    "proMinutes": 99999,
+    "proCredits": 5000,
+    "teamCredits": 50000,
+    "personalDemoCredits": 3000
+  },
+  "team": {
+    "month": {
+      "monthly": 28,
+      "originalMonthly": 35,
+      "firstAmount": 28,
+      "renewalAmount": 35,
+      "currency": "USD"
+    },
+    "year": {
+      "monthly": 20,
+      "originalMonthly": 25,
+      "firstAmount": 240,
+      "renewalAmount": 300,
+      "currency": "USD"
+    }
+  },
+  "credits": [
+    {
+      "id": "credits-5k",
+      "credits": 5000,
+      "amount": 59,
+      "original": 89
+    },
+    {
+      "id": "credits-10k",
+      "credits": 10000,
+      "amount": 109,
+      "original": 159
+    },
+    {
+      "id": "credits-15k",
+      "credits": 15000,
+      "amount": 149,
+      "original": 199
+    }
+  ],
+  "rewards": {
+    "register": 1000,
+    "profile": 500,
+    "app": 200,
+    "signin": 1000,
+    "feedback": 500
+  },
+  "rewardLimits": {
+    "signin": 15,
+    "feedback": 10
+  },
+  "rates": {
+    "input": 1,
+    "output": 2,
+    "perTokens": 1000
+  },
+  "id": "global",
+  "label": "海外版",
+  "accountRealm": "eureka-global",
+  "providers": [
+    "Google",
+    "Apple"
+  ],
+  "agent": {
+    "id": "eurekamind-agent-global",
+    "mcpPrefix": "global:",
+    "skillPrefix": "global:",
+    "status": "原型标识，真实模型与服务待配置"
+  },
+  "connectors": [
+    {
+      "id": "google-workspace",
+      "name": "Google Workspace",
+      "description": "连接文档、日历与个人工作资料。",
+      "tools": 12
+    },
+    {
+      "id": "microsoft-365",
+      "name": "Microsoft 365",
+      "description": "连接日历、文档与团队协作资料。",
+      "tools": 10
+    },
+    {
+      "id": "slack",
+      "name": "Slack",
+      "description": "连接已授权的频道与消息。",
+      "tools": 6
+    }
+  ],
+  "payments": {
+    "subscription": [
+      "Visa ···· 4242",
+      "Apple Pay"
+    ],
+    "credits": [
+      "Visa / Mastercard",
+      "PayPal"
+    ],
+    "status": "沿用演示渠道；本市场正式支付方式待 PM 确认"
+  },
+  "brand": "EurekaMind"
+}

@@ -15,3 +15,4 @@ next-env.d.ts
 *.pem
 
 test-results-*/
+artifacts/markets/

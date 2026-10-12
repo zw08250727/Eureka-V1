@@ -1,4 +1,10 @@
 "use client";
+import { reviewToolsEnabled } from "@/features/markets/review";
+import { productName } from "@/features/markets/brand";
+
+import { marketConfig } from "@/features/markets/config";
+import { marketStorage } from "@/features/markets/storage";
+
 import { Select } from "@/components/ui/select";
 import { useEffect, useRef, useState } from "react";
 import { M } from "./model/store";
@@ -14,7 +20,7 @@ import {
   ManagementEmpty,
   ManagementToast,
 } from "./management-ui";
-import { dollars as money } from "./billing-ui";
+import { teamMoney as money } from "@/features/markets/config";
 import "./team-pricing.css";
 import { Workbench } from "@/features/workbench/workbench";
 import { TeamHome } from "./home";
@@ -48,7 +54,7 @@ export function CreateTeamDialog({
     let alive = true;
     Promise.resolve().then(() => {
       try {
-        snapshot.current = localStorage.getItem(key);
+        snapshot.current = marketStorage.getItem(key);
         let value: Setup | null = snapshot.current
           ? JSON.parse(snapshot.current)
           : null;
@@ -68,7 +74,7 @@ export function CreateTeamDialog({
         )
           throw Error("开通草稿无效或不属于当前账号，请保留数据后重试。");
         if (value && orders.current.some((o) => o.id === value!.orderId)) {
-          localStorage.removeItem(key);
+          marketStorage.removeItem(key);
           snapshot.current = null;
           value = null;
         }
@@ -95,7 +101,7 @@ export function CreateTeamDialog({
     };
   }, [accountId, key]);
   function fresh() {
-    if (localStorage.getItem(key) !== snapshot.current)
+    if (marketStorage.getItem(key) !== snapshot.current)
       throw Error("团队开通信息已在其他页面更新，请重新打开后继续。");
   }
   function save(next: Setup) {
@@ -103,7 +109,7 @@ export function CreateTeamDialog({
     fresh();
     const raw = JSON.stringify(next);
     try {
-      localStorage.setItem(key, raw);
+      marketStorage.setItem(key, raw);
     } catch {
       throw Error("开通信息保存失败，请保留输入并重试。");
     }
@@ -113,7 +119,7 @@ export function CreateTeamDialog({
   }
   function clear() {
     fresh();
-    localStorage.removeItem(key);
+    marketStorage.removeItem(key);
     snapshot.current = null;
   }
   function act(fn: () => void) {
@@ -170,7 +176,7 @@ export function CreateTeamDialog({
     );
   if (!setup)
     return (
-      <Dialog title="EurekaMind Team" onClose={onClose} error={error}>
+      <Dialog title={`${productName()} Team`} onClose={onClose} error={error}>
         {error ? null : <p>正在读取开通信息…</p>}
       </Dialog>
     );
@@ -179,7 +185,7 @@ export function CreateTeamDialog({
     return (
       <Dialog
         key="plan"
-        title="EurekaMind Team"
+        title={`${productName()} Team`}
         wide
         onClose={onClose}
         error={error}
@@ -249,10 +255,10 @@ export function CreateTeamDialog({
             </div>
             <p>
               {draft.cycle === "year"
-                ? "按年计费，每席位 $240.00 · 税费另计"
+                ? `按年计费，每席位 ${money(M.teamPricing.year.firstAmount)} · 税费另计`
                 : "按月计费 · 税费另计"}
             </p>
-            <p className="ws-price-offer">首次订阅 8 折{draft.cycle === "year" && <span>年付比月付节省 29%</span>}</p>
+            <p className="ws-price-offer">首次订阅 {Math.round(M.teamPricing[draft.cycle].firstAmount / M.teamPricing[draft.cycle].renewalAmount * 100) / 10} 折{draft.cycle === "year" && <span>年付比月付节省 {Math.round((1 - M.price("year") / (M.price("month") * 12)) * 100)}%</span>}</p>
             <p className="ws-muted">首期后按 {money(M.price(draft.cycle))} / 席位 / {draft.cycle === "year" ? "年" : "月"}续费</p>
             <Button
               action="setup"
@@ -263,11 +269,11 @@ export function CreateTeamDialog({
             </Button>
             <ul>
               <li>✓ 工作区统一 Unlimited 转写权益</li>
-              <li>✓ 50,000 团队 Credits</li>
+              <li>✓ {marketConfig().benefits.teamCredits.toLocaleString()} 团队 Credits</li>
               <li>✓ 成员、设备与账单管理</li>
               <li>✓ 2–50 席位，可随时扩容</li>
             </ul>
-            <small>本版本演示定价，不会发起真实支付。</small>
+
           </section>
         </div>
       </Dialog>
@@ -324,7 +330,7 @@ export function CreateTeamDialog({
             defaultValue={draft.name}
             required
             maxLength={40}
-            placeholder="例如：EurekaMind 产品团队"
+            placeholder={`例如：${productName()} 产品团队`}
           />
         </label>
         <label className="ws-field">
@@ -351,8 +357,8 @@ export function CreateTeamDialog({
           <label className="ws-field">
             计费周期
             <Select name="cycle" defaultValue={draft.cycle}>
-              <option value="year">年付 · $20 / 席位 / 月（首年 $240）</option>
-              <option value="month">月付 · $28 / 席位 / 月（首月优惠）</option>
+              <option value="year">年付 · {money(M.teamPricing.year.monthly)} / 席位 / 月（首年 {money(M.teamPricing.year.firstAmount)}）</option>
+              <option value="month">月付 · {money(M.teamPricing.month.monthly)} / 席位 / 月（首月优惠）</option>
             </Select>
           </label>
         </div>
@@ -389,12 +395,12 @@ export function CreateTeamDialog({
           >
             上一步
           </Button>
-          <Button
+          {reviewToolsEnabled() && (<Button
             action="payment-fail"
-            onClick={() => setError("模拟支付失败，未创建空间或扣款。请重试。")}
+            onClick={() => setError("支付失败，未创建空间或扣款。请重试。")}
           >
             模拟支付失败
-          </Button>
+          </Button>)}
           <Button
             action="payment"
             className="primary"
@@ -411,7 +417,7 @@ export function CreateTeamDialog({
               })
             }
           >
-            模拟支付并开通
+            支付并开通
           </Button>
         </>
       }
@@ -428,7 +434,7 @@ export function CreateTeamDialog({
           {draft.cycle === "year" ? "年付" : "月付"}
         </p>
         <div>
-          <span>货币</span><strong>USD</strong>
+          <span>货币</span><strong>{marketConfig().team.month.currency}</strong>
         </div>
         <div>
           <span>
@@ -441,14 +447,12 @@ export function CreateTeamDialog({
           <strong>−{money(draft.seats * (M.price(draft.cycle) - M.teamPricing[draft.cycle].firstAmount))}</strong>
         </div>
         <div>
-          <span>本次模拟支付</span>
+          <span>本次支付</span>
           <strong>{money(draft.seats * M.teamPricing[draft.cycle].firstAmount)}</strong>
         </div>
       </div>
       <p className="ws-muted">税费另计。首次优惠仅用于开通首期；之后按 {money(draft.seats * M.price(draft.cycle))} / {draft.cycle === "year" ? "年" : "月"}续费。</p>
-      <div className="ws-info">
-        演示订单：无需银行卡，不会真实扣款或发送邮件。信息已保存在此浏览器；关闭后可从“创建团队工作空间”继续。
-      </div>
+
     </Dialog>
   );
 }
@@ -518,6 +522,8 @@ export function InvitationsDialog({
           </Button>
           <Button
             action="join"
+            disabled={!!M.accountTeam(controller.state!, controller.state!.account.id)}
+            title={M.accountTeam(controller.state!, controller.state!.account.id) ? "最多一个 Team，请先由原团队管理员移除成员资格" : undefined}
             value={i.id}
             className="primary"
             onClick={() => {

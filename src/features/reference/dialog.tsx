@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 export function ReferenceDialog({
@@ -24,6 +25,7 @@ export function ReferenceDialog({
       trigger = document.activeElement;
     if (!node) return;
     node.showModal();
+    node.querySelector<HTMLElement>("[data-autofocus]")?.focus();
     const cancel = (e: Event) => {
       e.preventDefault();
       close.current();

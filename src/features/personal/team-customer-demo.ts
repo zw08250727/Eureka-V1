@@ -35,7 +35,7 @@ export function ensureTeamCustomerDemo(storage: Storage, workspaceId: string, ac
       initials: item.name.slice(0, 2), tag: "示例客户", count: 0, recent: "", region: ["上海", "杭州", "深圳"][index % 3],
       email: `customer-${member.id}-${i + 1}@example.com`, createdAt: `2026-10-0${8 - i}T0${9 - index}:30:00+08:00`,
       themes: [], memories: [], inferences: [],
-      sources: [{ id: `demo-source-${member.id}-${i + 1}`, channel: item.channel, fields: { name: item.name, company: item.company }, updatedAt: "2026-10-08", ...(item.channel === "crm" ? { crmId: `DEMO-${index + 1}`, crmSystem: "演示 CRM" } : {}) }],
+      sources: [{ id: `demo-source-${member.id}-${i + 1}`, channel: item.channel, fields: { name: item.name, company: item.company }, updatedAt: "2026-10-08", ...(item.channel === "crm" ? { crmId: `DEMO-${index + 1}`, crmSystem: "CRM" } : {}) }],
     }));
     data[prefix + member.id] = { ...(data[prefix + member.id] || {}), itemSharingVersion: 1, contacts, notes: data[prefix + member.id]?.notes || {}, tasks: data[prefix + member.id]?.tasks || [] };
     // Only fictional colleagues with no prior choice start with shared demo records.

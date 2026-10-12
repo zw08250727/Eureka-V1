@@ -135,15 +135,15 @@ export function ContactDialog({
                   <input type="hidden" name="sourceId" value={channel === "crm" ? crmId : channel === "phone" ? phoneId : sourceId} />
                 </>}
                 {kind === "add" && channel === "phone" ? <>
-                  <p className="customer-import-notice">手机通讯录演示 · 当前使用示例联系人，尚未读取真实手机通讯录。</p>
+
                   <label>选择手机联系人<Select aria-label="选择手机联系人" value={phoneId} onChange={e => setPhoneId(e.target.value)}>{phoneContacts.map(p => <option key={p.id} value={p.id}>{p.name} · {p.phone}</option>)}</Select></label>
                   <section className="customer-import-preview" aria-label="导入预览"><strong>{phoneContact.name}</strong><p>{phoneContact.company} · {phoneContact.role}</p><p>{phoneContact.phone} · {phoneContact.email}</p></section>
                   {Object.entries(phoneContact).filter(([k]) => k !== "id").map(([k,v]) => <input type="hidden" key={k} name={k} value={v} />)}
                   <input type="hidden" name="subjectType" value="person" /><input type="hidden" name="verifiedPhone" value="yes" />
                   <p className="contacts-muted">已核实手机号一致时，合并到本人在当前工作区的现有联系人；CRM 已有字段优先。</p>
                 </> : kind === "add" && channel === "crm" ? <>
-                  <p className="customer-import-notice">演示 CRM · 本地示例记录，尚未连接真实 CRM 系统。</p>
-                  <input type="hidden" name="crmSystem" value="演示 CRM" />
+
+                  <input type="hidden" name="crmSystem" value="CRM" />
                   <label>选择 CRM 客户<Select aria-label="选择 CRM 客户" name="crmId" value={crmId} onChange={(e) => setCrmId(e.target.value)}>
                     {crmCustomers.map((c) => <option key={c.crmId} value={c.crmId}>{c.name} · {c.subjectType === "enterprise" ? "企业" : "自然人"}</option>)}
                   </Select></label>

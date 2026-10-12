@@ -67,7 +67,7 @@ function subscribeAnimation(callback: () => void) {
   };
 }
 
-export function AuthShowcase() {
+export function AuthShowcase({ brand = "EurekaMind" }: { brand?: string }) {
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
   const [hovered, setHovered] = useState(false);
@@ -124,7 +124,7 @@ export function AuthShowcase() {
                 <span className="preview-app-mark">
                   <Icon name="spark" />
                 </span>
-                <strong>EurekaMind</strong>
+                <strong>{brand}</strong>
                 <span className="preview-space">{scene.space}</span>
               </div>
               <div className="preview-grid">
@@ -156,7 +156,6 @@ export function AuthShowcase() {
                 <div className="preview-main">
                   <div className="preview-heading">
                     {scene.heading}
-                    <span>场景示意</span>
                   </div>
                   <div className="preview-card">
                     <div className="preview-recording">
@@ -247,7 +246,7 @@ export function AuthShowcase() {
           </Button>
         </div>
       </div>
-      <p className="visual-footer">一个 EurekaMind 账号 · 个人与团队工作空间</p>
+
     </section>
   );
 }

@@ -1,12 +1,18 @@
+import { marketStorage } from "@/features/markets/storage";
+import { CREATION_DEMO_KEY, creationDemoSeed } from "../creation-demo";
 import M from "./core";
 import type { WorkspaceState, Workspace } from "./types";
 import { stageMemberTransfers } from "./transfers";
 export { M };
 export function createWorkspaceStore(storage: Storage, now = () => new Date(), options: { key?: string; seed?: (now: Date) => WorkspaceState } = {}) {
-  const key = options.key || M.KEY;
+  // All browser repositories must follow the same review workspace, including
+  // secondary views (daily assets, contacts and sharing). Injected stores stay explicit.
+  const review = storage === marketStorage && typeof location !== "undefined" && new URLSearchParams(location.search).get("demo") === "create-team";
+  const key = options.key || (review ? CREATION_DEMO_KEY : M.KEY);
+  const seed = options.seed || (review ? creationDemoSeed : M.seed);
   let raw = storage.getItem(key);
   function parse(): WorkspaceState {
-    if (raw === null) return (options.seed || M.seed)(now());
+    if (raw === null) return seed(now());
     const state = JSON.parse(raw);
     if (
       state?.version !== 2 ||

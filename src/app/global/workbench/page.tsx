@@ -1,0 +1,6 @@
+import { MarketWorkbench } from "@/features/markets/workbench";
+import "@/features/reference/prototype.css";
+import "@/app/workbench/toast.css";
+export default function Workbench() {
+  return <MarketWorkbench market="global" />;
+}

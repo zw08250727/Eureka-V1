@@ -1,0 +1,148 @@
+.review-board {
+  max-width: 1180px;
+  margin: auto;
+  padding: 28px 32px 80px;
+  color: #273b32;
+  font:
+    14px/1.75 "PingFang SC",
+    sans-serif;
+}
+.review-board header {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 28px;
+  border-bottom: 1px solid #dce5df;
+}
+.review-board a {
+  color: #24664e;
+  text-underline-offset: 4px;
+}
+.review-board-eyebrow {
+  font-size: 11px;
+  letter-spacing: 2px;
+  margin-top: 44px;
+  color: #738276;
+}
+.review-board h1 {
+  font-size: 36px;
+  font-weight: 550;
+  letter-spacing: -1px;
+  margin: 14px 0;
+}
+.review-board-lead {
+  color: #768077;
+}
+.review-board-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  margin: 26px 0;
+}
+.review-board-meta span {
+  padding: 5px 10px;
+  background: #eef4ef;
+  border-radius: 6px;
+}
+.review-board section {
+  margin-top: 40px;
+}
+.review-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.review-section-title > div {
+  display: flex;
+  gap: 20px;
+}
+.review-section-title > span {
+  font-size: 11px;
+  color: #78817a;
+}
+.review-board h2 {
+  font-size: 20px;
+  font-weight: 550;
+}
+.review-board section > p {
+  font-size: 12px;
+  color: #738077;
+}
+.review-table-wrap {
+  overflow: auto;
+  border: 1px solid #dce5df;
+  border-radius: 10px;
+}
+.review-board table {
+  border-collapse: collapse;
+  text-align: left;
+  min-width: 700px;
+  width: 100%;
+  font-size: 12px;
+}
+.review-board th,
+.review-board td {
+  padding: 13px 18px;
+  border-bottom: 1px solid #e9eee9;
+  max-width: 320px;
+  overflow-wrap: anywhere;
+}
+.review-board thead {
+  background: #f1f5f1;
+}
+.review-board tbody th {
+  font-weight: 500;
+}
+.review-board th small {
+  display: block;
+  color: #879087;
+  font-weight: 400;
+  margin-top: 4px;
+}
+.review-links {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.review-check-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.review-check-grid article {
+  background: #f4f7f3;
+  border-radius: 10px;
+  padding: 18px;
+}
+.review-check-grid h3 {
+  font-size: 14px;
+  margin: 0 0 10px;
+}
+.review-check-grid p {
+  font-size: 12px;
+  color: #758076;
+  margin: 0;
+}
+.review-footnote {
+  padding-top: 20px;
+}
+.review-board a:focus-visible {
+  outline: 2px solid #24664e;
+  outline-offset: 4px;
+}
+@media (max-width: 700px) {
+  .review-board {
+    padding: 22px 18px;
+  }
+  .review-board h1 {
+    font-size: 28px;
+  }
+  .review-check-grid {
+    grid-template-columns: 1fr;
+  }
+  .review-board-meta {
+    gap: 6px;
+  }
+}

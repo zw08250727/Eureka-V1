@@ -67,6 +67,15 @@ export interface AutomaticTask {
   runs: { time: string; status: string; threadId?: string }[];
 }
 export interface Order {
+  tier?: string;
+  monthlyCredits?: number;
+  monthlyMinutes?: number | null;
+  storageGB?: number;
+  method?: string;
+  paidAt?: string;
+  expiresAt?: string;
+  creditsExpireAt?: string;
+  planName?: string;
   id: string;
   status: "pending" | "failed" | "paid" | "cancelled";
   amount: number;
@@ -102,6 +111,7 @@ export interface DeviceThought extends ThoughtRecord {
   sharedAt?: string;
 }
 export interface Workspace {
+  meetingFeedback?: Record<string, import("@/features/meetings/types").MeetingFeedback>;
   rewards?: import("@/features/account/rewards").RewardState;
   thoughtSharing?: Record<string, Partial<Record<"inspiration" | "ledger" | "other", string[]>>>;
   demoArchived?: boolean;
@@ -111,7 +121,7 @@ export interface Workspace {
   contentSharing?: Record<string, Partial<Record<"meetings" | "thoughts", { enabled: boolean; users: string[]; editors?: string[] }>>>;
   entitlementResumedAt?: string;
   entitlementFreeze?: { since: string; teamIds: string[] };
-  transcriptionUsage?: { used: number; logs: { id: string; workspaceId: string; user: string; minutes: number; time: string }[] };
+  transcriptionUsage?: { used: number; logs: { id: string; workspaceId: string; user: string; minutes: number; time: string; allocations?: { source: string; minutes: number }[] }[] };
   thoughts?: DeviceThought[];
   demoAdminVersion?: number;
   demoWeekDays?: string[];
@@ -132,6 +142,7 @@ export interface Workspace {
   automaticTasks: AutomaticTask[];
   deletedThreadIds?: string[];
   credits: {
+    grants?: import("./credit-ledger").CreditGrant[];
     total: number;
     used: number;
     logs: {
@@ -151,6 +162,7 @@ export interface Workspace {
   seatOrders?: Order[];
   creditOrders?: Order[];
   personalOrders?: Order[];
+  timeOrders?: import("./time-packs").TimeOrder[];
   personalSubscription?: Subscription;
   closure?: {
     actor?: string;
@@ -163,6 +175,7 @@ export interface Workspace {
   };
 }
 export interface Subscription {
+  tier?: string;
   frozen?: boolean;
   frozenSince?: string;
   remainingDays?: number;
@@ -274,13 +287,15 @@ export interface WorkspaceAPI {
   ): Order;
   cancelSeatOrder(w: Workspace, id: string, actor?: string): Order;
   CREDIT_PACKS: { id: string; credits: number; amount: number }[];
-  creditBalance(w: Workspace): number;
+  creditBalance(w: Workspace, now?: Date): number;
   createCreditOrder(w: Workspace, pack: string, actor?: string): Order;
   payCreditOrder(
     w: Workspace,
     id: string,
     result: "success" | "failure",
     actor?: string,
+    method?: string,
+    now?: Date,
   ): Order;
   cancelCreditOrder(w: Workspace, id: string, actor?: string): Order;
   advanceCycle(w: Workspace, actor?: string): void;

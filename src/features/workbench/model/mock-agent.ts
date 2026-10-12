@@ -9,7 +9,7 @@ export const mockAgent: AgentGateway = {
             context.widget === "thoughts"
               ? "回顾当前闪念"
               : "把今天的记录连成下一步",
-          text: "AI · 演示建议",
+          text: "AI 建议",
           items:
             context.records?.map((r) =>
               context.widget === "thoughts"
@@ -18,14 +18,12 @@ export const mockAgent: AgentGateway = {
             ) || context.lines,
         }
       : {
-          title: "Ask Agent · 本地模拟",
+          title: "Ask Agent",
           text: `已收到你的问题：${prompt}。可以继续补充背景，或引用资料展开讨论。`,
           items: [
-            options.web
-              ? "联网搜索尚未连接外部服务。"
-              : "当前未连接真实模型服务。",
+
             options.audio ? "已引用当前会议列表。" : "",
-            options.apps ? "应用数据为本地演示引用。" : "",
+            options.apps ? "已引用应用数据。" : "",
           ].filter(Boolean),
         };
   },

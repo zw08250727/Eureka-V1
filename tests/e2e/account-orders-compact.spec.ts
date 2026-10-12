@@ -21,7 +21,7 @@ test('unified orders retry existing subscription, receipt, invoice and cancel pe
   const download=page.waitForEvent('download');await orders(page).getByRole('button',{name:'下载账单'}).click();expect((await download).suggestedFilename()).toMatch(/\.txt$/);
   await orders(page).getByRole('button',{name:'开发票'}).click();
   await orders(page).getByLabel('发票抬头').fill('张伟');await orders(page).getByLabel('接收邮箱').fill('demo@example.com');
-  await orders(page).getByRole('button',{name:'保存申请'}).click();await expect(orders(page)).toContainText('演示发票申请已保存');
+  await orders(page).getByRole('button',{name:'保存申请'}).click();await expect(orders(page)).toContainText('发票申请已保存');
   await orders(page).getByRole('button',{name:'关闭',exact:true}).click();
   await page.locator('.topbar').getByRole('button',{name:/Credits/}).click();await page.getByRole('button',{name:'充值 Credits',exact:true}).click();
   await page.getByRole('button',{name:'确认充值',exact:true}).click();await page.getByRole('button',{name:'关闭',exact:true}).click();

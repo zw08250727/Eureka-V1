@@ -1,0 +1,132 @@
+:root {
+  --market-accent: #196a56;
+  --market-soft: #edf5f1;
+  --market-ink: #172e2a;
+  --market-border: #d9e5df;
+  --market-radius: 12px;
+}
+html:has([data-market="global"]) {
+  --market-accent: #3858b6;
+  --market-soft: #eef1fc;
+  --market-ink: #253354;
+  --market-border: #dce2f0;
+  --blue: #3858b6;
+  --blue-5: #3858b60d;
+  --blue-8: #3858b614;
+}
+.market-surface {
+  min-height: 100%;
+}
+.market-surface .auth {
+  --auth-accent: var(--market-accent);
+}
+.market-surface .auth .primary,
+.market-surface .auth button[type="submit"],
+html:has(.market-surface) .ws-btn.primary,
+html:has(.market-surface) .ex-footer .primary {
+  background: var(--market-accent);
+  border-color: var(--market-accent);
+  color: white;
+}
+.market-surface .sidebar {
+  background: var(--market-soft);
+}
+.market-surface .nav-item.active,
+.market-surface .side-group-head.active {
+  color: var(--market-accent);
+  background: color-mix(in srgb, var(--market-accent) 9%, white);
+}
+.market-surface .auth-showcase {
+  background: var(--market-soft);
+}
+.market-loading {
+  padding: 64px;
+  font: 16px/1.6 sans-serif;
+}
+.market-loading a {
+  display: block;
+}
+.review-lobby {
+  min-height: 100dvh; display: grid; place-items: center; padding: 32px 24px;
+  background: #fff; color: #24272b; font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+.review-entry { width: min(560px, 100%); }
+.review-entry h1 { margin: 0 0 28px; font-size: 24px; font-weight: 600; }
+.review-market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.review-market-card { display: flex; align-items: center; justify-content: space-between; gap: 24px; border: 1px solid #e3e5e8; border-radius: 8px; padding: 24px; text-decoration: none; color: inherit; background: #fff; }
+.review-market-card:hover { border-color: #8c939d; background: #fafafa; }
+.review-market-card strong { display: block; font-size: 20px; font-weight: 600; }
+.review-market-card small { display: block; margin-top: 8px; color: #747980; font-size: 13px; }
+.review-lobby a:focus-visible { outline: 2px solid #3858b6; outline-offset: 4px; }
+.review-footer { display: flex; gap: 24px; margin-top: 28px; font-size: 13px; }
+.review-footer a { color: #747980; text-decoration: none; }
+.review-footer a:hover { text-decoration: underline; }
+html:has(.review-lobby) body::before, html:has(.review-lobby) body::after { display: none; }
+@media (max-width: 520px) { .review-market-grid { grid-template-columns: 1fr; } }
+.market-surface .auth {
+  --primary-50: var(--market-soft);
+  --primary-700: var(--market-accent);
+  --ai-gradient: linear-gradient(
+    135deg,
+    var(--market-accent),
+    color-mix(in srgb, var(--market-accent) 65%, #98c9b0)
+  );
+}
+.market-surface .auth-visual {
+  background: linear-gradient(145deg, white, var(--market-soft));
+}
+.market-surface .auth-visual::before,
+.market-surface .auth-visual::after {
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--market-accent) 20%, transparent),
+    transparent 68%
+  );
+}
+@media (max-width: 700px) {
+  .connector-primary,
+  .connector-dialog button {
+    min-height: 44px;
+  }
+}
+/* Bridge the retained prototype tokens to the market theme, including portal dialogs. */
+html:has(.market-surface) {
+  --primary-50: var(--market-soft);
+  --primary-100: color-mix(in srgb, var(--market-accent) 10%, white);
+  --primary-200: color-mix(in srgb, var(--market-accent) 22%, white);
+  --primary-300: color-mix(in srgb, var(--market-accent) 40%, white);
+  --primary-400: color-mix(in srgb, var(--market-accent) 70%, white);
+  --primary-500: var(--market-accent);
+  --primary-600: var(--market-accent);
+  --primary-700: var(--market-accent);
+  --primary-800: var(--market-ink);
+  --primary-900: var(--market-ink);
+  --bg-app: color-mix(in srgb, var(--market-soft) 55%, white);
+  --bg-hover: var(--market-soft);
+  --bg-active: var(--primary-100);
+  --border: var(--market-border);
+  --border-strong: var(--primary-200);
+  --ai-gradient: linear-gradient(
+    135deg,
+    var(--market-accent),
+    var(--primary-400)
+  );
+}
+html:has(.market-surface) body::before,
+html:has(.market-surface) body::after {
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--market-accent) 12%, transparent),
+    transparent 70%
+  );
+}
+.market-surface .sidebar {
+  border-right-color: var(--market-border);
+  box-shadow: none;
+}
+.market-surface .primary-btn,
+.market-surface .capture-action.primary {
+  background: var(--market-accent);
+  border-color: var(--market-accent);
+  box-shadow: none;
+}

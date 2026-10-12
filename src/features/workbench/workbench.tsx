@@ -1,4 +1,9 @@
 "use client";
+
+import { marketSessionStorage } from "@/features/markets/storage";
+
+import { openAccount } from "@/features/account/experience";
+import { requestRecording } from "@/lib/routes";
 import { useEffect, useRef, useState } from "react";
 import { PersonalHistoryAgent } from "@/features/spaces/management-history";
 import { Button } from "@/components/ui/button";
@@ -44,10 +49,24 @@ export function Workbench({
     const frame = requestAnimationFrame(() => setAgent(true));
     return () => cancelAnimationFrame(frame);
   }, [historyId, historyReady]);
+  useEffect(() => {
+    if (!historyReady) return;
+    const url = new URL(location.href);
+    const action = url.searchParams.get("action");
+    if (!["upload", "agent", "recording", "notifications"].includes(action || "")) return;
+    url.searchParams.delete("action");
+    history.replaceState(null, "", url.pathname + url.search + url.hash);
+    // Resume only opening a tool; never start capture, upload, or run an Agent.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Consume a one-shot post-login navigation intent.
+    if (action === "upload") setUploadOpen(true);
+    if (action === "agent") setAgent(true);
+    if (action === "recording") requestRecording();
+    if (action === "notifications") openAccount("notifications");
+  }, [historyReady]);
   function rotate() {
     let previous = "";
     try {
-      previous = sessionStorage.getItem("eureka:last-today-reminder") || "";
+      previous = marketSessionStorage.getItem("eureka:last-today-reminder") || "";
     } catch {
       /* greeting is not business data */
     }
@@ -55,7 +74,7 @@ export function Workbench({
     const next = choices[Math.floor(Math.random() * choices.length)];
     setTitle(next);
     try {
-      sessionStorage.setItem("eureka:last-today-reminder", next);
+      marketSessionStorage.setItem("eureka:last-today-reminder", next);
     } catch {
       /* keep in-memory greeting */
     }

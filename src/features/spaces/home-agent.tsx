@@ -1,4 +1,7 @@
 "use client";
+
+import { marketStorage } from "@/features/markets/storage";
+
 import { AgentHistoryButton } from "@/features/agent/history-button";
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { RefIcon } from "@/features/reference/symbols";
@@ -88,7 +91,7 @@ export function TeamHomeAgent({
   function persistWidth(value: number) {
     preferred.current = value;
     try {
-      localStorage.setItem("eureka:agent-panel-width:v1", String(value));
+      marketStorage.setItem("eureka:agent-panel-width:v1", String(value));
     } catch {
       /* Session resizing remains available. */
     }
@@ -96,7 +99,7 @@ export function TeamHomeAgent({
   useLayoutEffect(() => {
     try {
       preferred.current =
-        Number(localStorage.getItem("eureka:agent-panel-width:v1")) || 390;
+        Number(marketStorage.getItem("eureka:agent-panel-width:v1")) || 390;
     } catch {
       /* Default width. */
     }
@@ -302,7 +305,7 @@ export function TeamHomeAgent({
                 <div className="ws-agent-usage">
                   输入 {creditNumber(t.usage.inputTokens)} / 输出{" "}
                   {creditNumber(t.usage.outputTokens)} tokens ·{" "}
-                  {creditNumber(t.usage.cost)} Credits（模拟）
+                  {creditNumber(t.usage.cost)} Credits
                 </div>
               ) : null}
             </Fragment>
@@ -355,7 +358,7 @@ export function TeamHomeAgent({
               className={`ws-tool${web ? " selected" : ""}`}
               aria-label="联网搜索"
               aria-pressed={web}
-              title="联网搜索（模拟）"
+              title="联网搜索"
               onClick={() => setWeb(!web)}
             >
               {icon("globe")}
@@ -376,11 +379,11 @@ export function TeamHomeAgent({
                 ? "已引用当前历史会话"
                 : "基于当前工作空间"}
             {appData ? " · 应用数据" : ""}
-            {web ? " · 联网模拟" : ""}
+            {web ? " · 联网搜索" : ""}
           </small>
           <div className="ws-composer-caption">
             <small>Enter 发送 / Shift+Enter 换行</small>
-            <small>按 Token 用量结算 · 本地模拟</small>
+            <small>按 Token 用量结算</small>
           </div>
           <p className="ws-form-error" role="alert">
             {error}

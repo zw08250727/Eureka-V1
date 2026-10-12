@@ -5,35 +5,33 @@ const go = (p: Page, view: string, actor = "zhang", space = "team-eureka", id = 
 const raw = (p: Page) => p.evaluate(() => JSON.parse(localStorage.getItem("eureka:workspaces:v2")!) as WorkspaceState);
 const seed = (p: Page, s = M.seed()) => p.addInitScript(s => { if (!localStorage.getItem("eureka:workspaces:v2")) localStorage.setItem("eureka:workspaces:v2", JSON.stringify(s)); }, s);
 
-test("owner confirms rebind; switching workspaces never changes binding and admin sees only own team's metadata", async ({ page }) => {
-  const s = M.seed(), b = M.acceptInvite(s, "invite-growth"); await seed(page, s);
+test("ACCOUNT-01 / SPACE-01: switching personal and the only team preserves binding; unbind requires owner confirmation", async ({ page }) => {
+  const state = M.seed();
+  M.unbind(state, "dev-personal"); M.bind(state, "dev-personal", "team-eureka");
+  await seed(page, state);
   await go(page, "my-devices");
   const row = page.locator("tr").filter({ hasText: "EK-N-20260018" });
-  await row.getByRole("button", { name: "更换绑定工作区" }).click();
-  await page.getByLabel("目标工作区").selectOption("team-eureka");
-  await page.getByRole("button", { name: "取消", exact: true }).click();
-  expect((await raw(page)).devices[0].spaceId).toBe("personal");
-  await row.getByRole("button", { name: "更换绑定工作区" }).click();
-  await page.getByLabel("目标工作区").selectOption("team-eureka");
-  await page.getByRole("button", { name: "确认解绑并绑定" }).click();
   await expect(row).toContainText("EurekaMind 产品团队");
+  await row.getByRole("button", { name: "解绑", exact: true }).click();
+  await page.getByRole("button", { name: "取消", exact: true }).click();
   const binding = (await raw(page)).devices[0].bindings;
+  expect((await raw(page)).devices[0].spaceId).toBe("team-eureka");
   await page.locator("#ws-switcher").click();
-  await expect(page.locator("#ws-menu")).toContainText("不改变设备绑定");
+  await expect(page.locator("#ws-menu .ws-menu-space")).toHaveCount(2);
   await page.locator("#ws-menu").getByRole("button", { name: /个人工作空间/ }).click();
   await expect(page).toHaveURL(/space=personal/);
   await page.reload();
   expect((await raw(page)).devices[0].spaceId).toBe("team-eureka");
   expect((await raw(page)).devices[0].bindings).toEqual(binding);
-  await go(page, "home", "zhang", b.id);
-  expect((await raw(page)).devices[0].spaceId).toBe("team-eureka");
   await go(page, "devices"); await expect(row).toBeVisible();
-  await expect(page.getByRole("button", { name: /解绑|更换绑定/ })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "解绑", exact: true })).toHaveCount(0);
   await go(page, "my-devices");
-  await row.getByRole("button", { name: "更换绑定工作区" }).click();
-  await page.getByLabel("目标工作区").selectOption(b.id);
-  await page.getByRole("button", { name: "确认解绑并绑定" }).click();
+  await row.getByRole("button", { name: "解绑", exact: true }).click();
+  await page.getByRole("button", { name: "确认解绑", exact: true }).click();
+  await expect(row).toContainText("未绑定工作区");
+  expect((await raw(page)).devices[0].bound).toBe(false);
   await go(page, "devices"); await expect(row).toHaveCount(0);
+  expect(M.accountTeams(await raw(page))).toHaveLength(1);
 });
 
 test("member manages only their devices from account menu, without gaining team metadata access", async ({ page }) => {

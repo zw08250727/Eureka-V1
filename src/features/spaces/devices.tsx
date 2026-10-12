@@ -1,4 +1,6 @@
 "use client";
+import { productName } from "@/features/markets/brand";
+
 /* eslint-disable @next/next/no-img-element -- Preserve the reference image DOM and dimensions. */
 import { useState } from "react";
 import { M } from "./model/store";
@@ -34,14 +36,14 @@ export function DeviceBindingDialog({
         <section className="ws-device-guide-card">
           <h3>已经有设备？</h3>
           <p>
-            在手机上下载 EurekaMind App，
+            在手机上下载 {productName()} App，
             <br />
             登录后即可绑定你的设备。
           </p>
           <div className="ws-device-guide-art ws-device-guide-qr">
             <img
               src={assetUrl("download/eurekamind-download-qr.png")}
-              alt="扫码下载 EurekaMind App"
+              alt={`扫码下载 ${productName()} App`}
               width="240"
               height="240"
             />
@@ -60,14 +62,14 @@ export function DeviceBindingDialog({
         <section className="ws-device-guide-card">
           <h3>还没有设备？</h3>
           <p>
-            了解 EurekaMind 录音设备，
+            了解 {productName()} 录音设备，
             <br />
             让每一次对话都成为有价值的记录。
           </p>
           <div className="ws-device-guide-art">
             <img
               src={assetUrl("download/eurekamind-device.webp")}
-              alt="EurekaMind 录音设备"
+              alt={`${productName()} 录音设备`}
               width="280"
               height="280"
             />
@@ -80,7 +82,7 @@ export function DeviceBindingDialog({
           >
             购买设备 <Icon name="expand" />
           </a>
-          <small>前往 EurekaMind 官方商城</small>
+          <small>前往 {productName()} 官方商城</small>
         </section>
       </div>
       <p className="ws-device-guide-note">
@@ -108,7 +110,7 @@ export function DevicesPage({ controller, space, actor, own = false }: { control
     </tbody></table></div>{!devices.length && <Empty title="暂无绑定设备">设备经本人绑定当前工作区后显示在这里。</Empty>}</section>
     <p className="ws-info">单条共享只授予普通成员只读权限；管理员默认可编辑和管理本区全部内容，不改变设备绑定。团队到期后绑定不变，新录音仍进入该区并保留原始音频，暂停转录与 AI。</p>
     {modal === "guide" && !team && <DeviceBindingDialog onClose={() => setModal("")} />}
-    {modal === "detail" && device && <Dialog title="设备信息" onClose={() => setModal("")}><dl className="ws-device-detail"><dt>设备名称</dt><dd>{device.name}</dd><dt>序列号</dt><dd>{device.serial}</dd><dt>设备型号</dt><dd>{device.model}</dd><dt>设备所有者</dt><dd>{name(device.user)}</dd><dt>绑定工作区</dt><dd>{device.bound ? spaceName(device.spaceId) : "未绑定工作区"}</dd><dt>上次清空</dt><dd>{device.wipeStatus === "completed" ? "已清空硬件文件（模拟）" : "无清空记录"}</dd></dl></Dialog>}
+    {modal === "detail" && device && <Dialog title="设备信息" onClose={() => setModal("")}><dl className="ws-device-detail"><dt>设备名称</dt><dd>{device.name}</dd><dt>序列号</dt><dd>{device.serial}</dd><dt>设备型号</dt><dd>{device.model}</dd><dt>设备所有者</dt><dd>{name(device.user)}</dd><dt>绑定工作区</dt><dd>{device.bound ? spaceName(device.spaceId) : "未绑定工作区"}</dd><dt>上次清空</dt><dd>{device.wipeStatus === "completed" ? "已清空硬件文件" : "无清空记录"}</dd></dl></Dialog>}
     {modal === "unbind" && device && !team && <Dialog title="解除设备绑定？" error={error} onClose={() => setModal("")} footer={<><Button onClick={() => setModal("")}>取消</Button><Button className="primary" onClick={() => { try { controller.change(s => M.unbind(s, selected, actor)); setModal(""); } catch (e) { setError((e as Error).message); } }}>确认解绑</Button></>}><p>解除与「{spaceName(device.spaceId)}」的绑定。历史内容和既有授权保留，绑定新的工作区后才可继续录制并同步新内容。</p></Dialog>}
   </ManagementRoot>;
 }

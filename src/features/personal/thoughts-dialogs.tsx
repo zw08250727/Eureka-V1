@@ -1,4 +1,7 @@
 "use client";
+import { productName } from "@/features/markets/brand";
+
+import { scopedKey } from "@/features/markets/storage";
 /* eslint-disable @next/next/no-img-element -- Preserve the reference guide image markup and dimensions. */
 import { Select } from "@/components/ui/select";
 import {
@@ -93,7 +96,7 @@ export function ThoughtDialog({
       }
     };
     const storage = (e: StorageEvent) => {
-      if (e.key === "eureka:thoughts:v1" && editing)
+      if (e.key === scopedKey("eureka:thoughts:v1") && editing)
         setError("另一页面已更新，请保留输入，重新打开后编辑");
     };
     window.addEventListener("beforeunload", unload);
@@ -359,14 +362,14 @@ export function ThoughtDeviceGuide({ onClose }: { onClose: () => void }) {
           <section className="ws-device-guide-card">
             <h3>已经有设备？</h3>
             <p>
-              在手机上下载 EurekaMind App，
+              在手机上下载 {productName()} App，
               <br />
               登录后即可绑定你的设备。
             </p>
             <div className="ws-device-guide-art ws-device-guide-qr">
               <img
                 src={assetUrl("download/eurekamind-download-qr.png")}
-                alt="扫码下载 EurekaMind App"
+                alt={`扫码下载 ${productName()} App`}
                 width="240"
                 height="240"
               />
@@ -385,14 +388,14 @@ export function ThoughtDeviceGuide({ onClose }: { onClose: () => void }) {
           <section className="ws-device-guide-card">
             <h3>还没有设备？</h3>
             <p>
-              了解 EurekaMind 录音设备，
+              了解 {productName()} 录音设备，
               <br />
               让每一次对话都成为有价值的记录。
             </p>
             <div className="ws-device-guide-art">
               <img
                 src={assetUrl("download/eurekamind-device.webp")}
-                alt="EurekaMind 录音设备"
+                alt={`${productName()} 录音设备`}
                 width="280"
                 height="280"
               />
@@ -405,7 +408,7 @@ export function ThoughtDeviceGuide({ onClose }: { onClose: () => void }) {
             >
               购买设备 <RefIcon name="expand" />
             </a>
-            <small>前往 EurekaMind 官方商城</small>
+            <small>前往 {productName()} 官方商城</small>
           </section>
         </div>
         <p className="ws-device-guide-note">

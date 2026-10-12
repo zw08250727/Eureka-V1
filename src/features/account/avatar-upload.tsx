@@ -1,5 +1,6 @@
-/* eslint-disable @next/next/no-img-element -- Local avatar preview. */
 "use client";
+/* eslint-disable @next/next/no-img-element -- Local avatar preview. */
+
 import {useEffect,useId,useRef,useState} from 'react';
 export function AvatarUpload({value,name,onChange,onError}:{value:string;name:string;onChange:(value:string)=>void;onError:(message:string)=>void}){
   const input=useRef<HTMLInputElement>(null),generation=useRef(0),hint=useId();

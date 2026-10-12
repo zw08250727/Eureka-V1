@@ -2,29 +2,32 @@ import { expect, test } from "@playwright/test";
 import M from "../../src/features/spaces/model/core";
 const rebind = (s: ReturnType<typeof M.seed>, wid: string) => { M.unbind(s, "dev-personal"); M.bind(s, "dev-personal", wid); };
 
-test("device thoughts follow capture binding, stay private, and stop syncing after removal", () => {
-  const s = M.seed(), a = M.get(s, "team-eureka"), b = M.acceptInvite(s, "invite-growth"), p = M.get(s, "personal");
-  rebind(s, a.id);
+test("ACCOUNT-01 / SPACE-01: thoughts keep their personal or sole-team capture destination across rebind and removal", () => {
+  const s = M.seed(), team = M.get(s, "team-eureka"), personal = M.get(s, "personal");
+  rebind(s, team.id);
   const bindingId = s.devices[0].bindings!.at(-1)!.id;
-  M.setDeviceSharing(s, a.id, "zhang", "meetings", true, ["lin"]);
-  s.activeId = p.id;
-  const first = M.syncThought(s, "dev-personal", "zhang", { sourceId: "thought-A" });
-  expect(first.space.id).toBe(a.id); expect(first.thought.shared).toEqual([]);
-  expect(M.visibleThoughts(a, "lin")).toEqual([]);
-  expect(() => M.editThought(a, first.thought.id, { title: "管理员修改", detail: "" }, "lin")).toThrow(/本人/);
-  expect(() => M.shareThought(a, first.thought.id, ["lin"])).toThrow(/不参与共享/);
-  rebind(s, b.id);
-  expect(M.syncThought(s, "dev-personal", "zhang", { sourceId: "thought-A", bindingId }).thought.id).toBe(first.thought.id);
-  expect(M.syncThought(s, "dev-personal", "zhang", { sourceId: "thought-A" }).space.id).toBe(a.id);
-  expect(M.syncThought(s, "dev-personal", "zhang", { sourceId: "late-A", bindingId }).space.id).toBe(a.id);
-  expect(M.syncThought(s, "dev-personal", "zhang", { sourceId: "thought-B" }).space.id).toBe(b.id);
-  expect(M.visibleThoughts(p)).toEqual([]);
-  rebind(s, a.id); M.memberAction(s, a, "zhang", "remove", undefined, "lin");
-  expect(() => M.syncThought(s, "dev-personal")).toThrow(/访问权限/);
-  expect(s.devices[0].bound).toBe(true);
-  expect(() => M.visibleThoughts(a)).toThrow(/访问权限/);
-  expect(M.visibleThoughts(a, "lin")).toEqual([]);
-  expect(() => M.syncThought(s, "dev-personal", "lin")).toThrow(/自己的设备/);
+  s.activeId = personal.id;
+  const first = M.syncThought(s, "dev-personal", "zhang", { sourceId: "team-thought" });
+  expect(first.space.id).toBe(team.id);
+  expect(first.thought.shared).toEqual([]);
+  expect(M.visibleThoughts(team, "kevin")).toEqual([]);
+  expect(M.visibleThoughts(team, "lin").map(t => t.id)).toContain(first.thought.id);
+  rebind(s, personal.id);
+  expect(M.syncThought(s, "dev-personal", "zhang", { sourceId: "team-thought", bindingId }).thought.id).toBe(first.thought.id);
+  expect(M.syncThought(s, "dev-personal", "zhang", { sourceId: "team-thought" }).space.id).toBe(team.id);
+  expect(M.syncThought(s, "dev-personal", "zhang", { sourceId: "late-team", bindingId }).space.id).toBe(team.id);
+  const own = M.syncThought(s, "dev-personal", "zhang", { sourceId: "personal-thought" });
+  expect(own.space.id).toBe(personal.id);
+  expect(M.visibleThoughts(personal).map(t => t.id)).toEqual([own.thought.id]);
+  rebind(s, team.id);
+  M.memberAction(s, team, "zhang", "remove", undefined, "lin");
+  expect(s.devices[0].bound).toBe(false);
+  expect(() => M.syncThought(s, "dev-personal")).toThrow(/尚未绑定/);
+  expect(() => M.syncThought(s, "dev-personal", "zhang", { sourceId: "late-revoked", bindingId })).toThrow();
+  expect(() => M.visibleThoughts(team)).toThrow(/访问权限/);
+  expect(M.visibleThoughts(team, "lin").map(t => t.id)).toContain(first.thought.id);
+  expect(M.visibleThoughts(personal).map(t => t.id)).toEqual([own.thought.id]);
+  expect(M.accountTeams(s)).toHaveLength(0);
 });
 
 test("expired team retains raw private thought audio without AI, migration or repeat ingestion", () => {

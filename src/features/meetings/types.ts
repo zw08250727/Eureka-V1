@@ -1,4 +1,36 @@
+import type { MeetingSummary } from "./summaries";
+export interface TranscriptSegment {
+  at: number;
+  speaker: number;
+  text: string;
+  en: string;
+  speakerName?: string;
+  highlights?: { start: number; end: number }[];
+}
+export interface MeetingFeedback {
+  score: number;
+  reasons: string[];
+  content: string;
+  time: string;
+}
+/** Optional source context; absence does not imply a failure or disabled setting. */
+export interface MeetingContentState {
+  recordingStatus?: string | number;
+  /** Source viewType 2/3 indicates no substantive content; never infer from duration. */
+  viewType?: number;
+  /** Source subStatus 300001 means transcription quota was insufficient. */
+  transcriptSubStatus?: number;
+  autoTranslateEverEnabled?: boolean | 0 | 1;
+}
 export interface MeetingDetail {
+  audioUrl?: string;
+  deleteSourceAudio?: boolean;
+  contentState?: MeetingContentState;
+  summaries?: MeetingSummary[];
+  segments?: TranscriptSegment[];
+  silentParticipants?: string[];
+  feedbackDetail?: MeetingFeedback;
+  images?: {name: string; url: string}[];
   marks?: number[];
   deleted?: boolean;
   purged?: boolean;
@@ -7,6 +39,7 @@ export interface MeetingDetail {
   title: string;
   summary: string;
   transcript: string;
+  translation?: string;
   verbatim: string;
   summaryHtml?: string;
   verbatimHtml?: string;

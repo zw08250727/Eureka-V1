@@ -1,4 +1,9 @@
 "use client";
+import { creditText, routeMarket, personalPlanName, teamMoney } from "@/features/markets/config";
+import { reviewToolsEnabled } from "@/features/markets/review";
+import { productName } from "@/features/markets/brand";
+
+import { marketConfig } from "@/features/markets/config";
 import { openAccount } from "@/features/account/experience";
 import { RefIcon } from "@/features/reference/symbols";
 import type { Cycle, Order, Workspace, WorkspaceState } from "./model/types";
@@ -27,7 +32,7 @@ export function TeamTerm({ w }: { w: Workspace }) {
   return (
     <div className="ws-team-term">
       <strong>当前周期截止：{w.nextDate || "待确认"}</strong>
-      <span>本工作区统一到期，中途加入不另起个人套餐；设置、账单、转写和 Credits 与其他工作区独立。</span>
+      <span>{creditText("本工作区统一到期，中途加入不另起个人套餐；设置、账单、转写和 Credits 与其他工作区独立。")}</span>
       <span>本工作区累计转写：{w.transcriptionUsage?.used || 0} 分钟 · Unlimited</span>
       <small>
         {w.status !== "active"
@@ -52,6 +57,7 @@ export function PersonalBilling({
   cycle: Cycle;
   act: BillingAction;
 }) {
+  const cn = routeMarket() === "cn";
   const sub = PS.current(w),
     remainingMinutes = Math.max(0, sub.minutes - (w.transcriptionUsage?.used || 0)),
     orders = w.personalOrders || [],
@@ -68,14 +74,14 @@ export function PersonalBilling({
           <div>
             <h2>
               {state.account.name}{" "}
-              <Badge kind={sub.plan === "Pro" ? "blue" : "amber"}>
+              <Badge kind={sub.plan === personalPlanName() ? "blue" : "amber"}>
                 {sub.plan}
               </Badge>
             </h2>
             <p>
-              {sub.plan === "Pro"
-                ? `${sub.renew ? "下次续费" : "权益保留至"}：${date(sub.endsAt)} · ${sub.cycle === "year" ? "连续包年" : "连续包月"}`
-                : "标准版 · 每月 400 分钟"}
+              {sub.plan === personalPlanName()
+                ? `${sub.renew ? "下次续费" : "权益保留至"}：${date(sub.endsAt)} · ${sub.cycle === "year" ? (cn ? "1 年" : "连续包年") : (cn ? "1 个月" : "连续包月")}`
+                : `${cn ? "免费版" : "标准版"} · 每月 ${marketConfig().benefits.standardMinutes} 分钟`}
             </p>
           </div>
         </div>
@@ -87,11 +93,11 @@ export function PersonalBilling({
           <progress aria-label="剩余转写时长" max={sub.minutes} value={remainingMinutes} />
           <small>
             {sub.nextRefresh
-              ? "下次分钟 / Credits 刷新：" + date(sub.nextRefresh)
+              ? creditText("下次分钟 / Credits 刷新：") + date(sub.nextRefresh)
               : "个人订阅与团队席位分别计费"}
           </small>
         </div>
-        {sub.plan === "Pro" ? (
+        {sub.plan === personalPlanName() && !cn ? (
           <Button
             action="personal-renew"
             className="link"
@@ -106,8 +112,8 @@ export function PersonalBilling({
           <div>
             <strong>个人订阅支付未完成</strong>
             <span>
-              Pro · {pending.cycle === "year" ? "连续包年" : "连续包月"} ·{" "}
-              {dollars(pending.amount)}
+              {pending.planName || personalPlanName()} · {pending.cycle === "year" ? (cn ? "1 年" : "连续包年") : (cn ? "1 个月" : "连续包月")} ·{" "}
+              {money(pending.amount, pending.currency)}
             </span>
           </div>
           <Button
@@ -121,16 +127,16 @@ export function PersonalBilling({
       ) : null}
       <section className="ws-surface ps-plans">
         <div className="ps-plan-head">
-          <span className="ps-pro-mark">✦ EurekaMind Pro</span>
+          <span className="ps-pro-mark">✦ {productName()} {personalPlanName()}</span>
           <h2>从记录，到更有价值的洞察</h2>
           <p>用更充裕的转写时长和 AI 能力，专注每一次对话。</p>
-          <div className="ps-benefit-strip"><span>✓ 99,999 分钟 / 月</span><span>✓ 5,000 Credits / 月</span><span>✓ 高级 AI 分析</span></div>
+          <div className="ps-benefit-strip"><span>✓ {marketConfig().benefits.proMinutes.toLocaleString()} 分钟 / 月</span><span>✓ {marketConfig().benefits.proCredits.toLocaleString()}{creditText(" Credits / 月")}</span><span>✓ 高级 AI 分析</span></div>
         </div>
         <div className="ps-plan-options">
           {(
             [
-              { cycle: "month", amount: 17.99 },
-              { cycle: "year", amount: 99.99 },
+              { ...marketConfig().personal.month, cycle: "month" },
+              { ...marketConfig().personal.year, cycle: "year" },
             ] as const
           ).map((p) => (
             <button
@@ -143,19 +149,19 @@ export function PersonalBilling({
               onClick={() => act("personal-cycle", p.cycle)}
             >
               {p.cycle === "year" ? (
-                <span className="ps-saving">每年节省 $115.89</span>
+                <span className="ps-saving">每年节省 {dollars(marketConfig().personal.month.amount * 12 - marketConfig().personal.year.amount)}</span>
               ) : null}
-              <h3>{p.cycle === "year" ? "连续包年" : "连续包月"}</h3>
+              <h3>{p.cycle === "year" ? (cn ? "1 年" : "连续包年") : (cn ? "1 个月" : "连续包月")}</h3>
               <strong>
                 {dollars(p.amount)}{" "}
                 <small>/ {p.cycle === "year" ? "年" : "月"}</small>
               </strong>
-              <p className="ps-price-note">{p.cycle === "year" ? "约 $8.33 / 月 · 按年支付" : "灵活月付 · 每月续费"}</p>
+              <p className="ps-price-note">{p.cycle === "year" ? `约 ${dollars(marketConfig().personal.year.amount / 12)} / 月 · 按年支付` : (cn ? "单次购买 · 1 个月" : "灵活月付 · 每月续费")}</p>
               <dl>
-                <dt>每月 Credits</dt>
-                <dd>5,000 Credits</dd>
+                <dt>{creditText("每月 Credits")}</dt>
+                <dd>{marketConfig().benefits.proCredits.toLocaleString()}{creditText(" Credits")}</dd>
                 <dt>每月转写与摘要分钟数</dt>
-                <dd>99,999 分钟</dd>
+                <dd>{marketConfig().benefits.proMinutes.toLocaleString()} 分钟</dd>
               </dl>
             </button>
           ))}
@@ -163,23 +169,24 @@ export function PersonalBilling({
         <div className="ps-plan-details">
           <h3>订阅详情</h3>
           <p>
-            每月 5,000 Credits，用于 Agent 分析；每月 99,999
+            每月 {marketConfig().benefits.proCredits.toLocaleString()}{creditText(" Credits，用于 Agent 分析；每月")}{marketConfig().benefits.proMinutes.toLocaleString()}
             分钟转写与摘要时长。年付套餐按年支付，权益按月刷新。
           </p>
-          <p>支付为本地模拟，不会真实扣款。标准版每月包含 400 分钟。</p>
+          <p>{cn ? "免费版" : "标准版"}每月包含 {marketConfig().benefits.standardMinutes} 分钟。</p>
+          {cn && <p>标准版每月 3,000 积分，专业版每月 5,000 积分，卓越版每月 10,000 积分。标准版与卓越版可在 App 内查看开通方式。</p>}
         </div>
         <div className="ps-plan-footer">
           <Button
             action="personal-buy"
             className="primary"
-            disabled={sub.plan === "Pro" && sub.cycle === cycle}
+            disabled={sub.plan === personalPlanName() && sub.cycle === cycle}
             onClick={() => act("personal-buy")}
           >
-            {sub.plan === "Pro" && sub.cycle === cycle
+            {sub.plan === personalPlanName() && sub.cycle === cycle
               ? "当前套餐"
-              : sub.plan === "Pro"
-                ? "切换 Pro 套餐"
-                : "立即升级 Pro"}
+              : sub.plan === personalPlanName()
+                ? `切换${personalPlanName()}套餐`
+                : `立即升级 ${personalPlanName()}`}
           </Button>
           <Button
             action="personal-restore"
@@ -217,7 +224,7 @@ export function TeamBilling({
         />
         <section className="ws-surface ws-perks">
           <h2>Team Unlimited</h2>
-          <p>你在本工作区使用工作区的 Unlimited 转写及共享 Credits；不会消耗其他团队或个人额度。本区内容默认由本人及管理员管理。</p>
+          <p>{creditText("你在本工作区使用工作区的 Unlimited 转写及共享 Credits；不会消耗其他团队或个人额度。本区内容默认由本人及管理员管理。")}</p>
           <Badge kind={w.status === "active" ? "green" : "amber"}>
             {w.status === "active" ? "权益生效中" : "当前只读"}
           </Badge>
@@ -279,12 +286,12 @@ export function TeamBilling({
             </Badge>
           </div>
           <div className="ws-plan-amount">
-            {dollars(M.price(w.cycle) * w.seats)}
+            {teamMoney(M.price(w.cycle) * w.seats)}
             <small>/ {w.cycle === "year" ? "年" : "月"}</small>
           </div>
           <p>
-            {w.seats} 席位 × {dollars(M.price(w.cycle))} /{" "}
-            {w.cycle === "year" ? "年" : "月"} · USD 续费价格，税费另计
+            {w.seats} 席位 × {teamMoney(M.price(w.cycle))} /{" "}
+            {w.cycle === "year" ? "年" : "月"} · {marketConfig().team.month.currency} 续费价格，税费另计
           </p>
           <div className="ws-plan-divider" />
           <div className="ws-seat-usage">
@@ -370,22 +377,22 @@ export function TeamBilling({
                   ? "取消自动续费"
                   : "恢复自动续费"}
             </Button>
-            <Button
+            {reviewToolsEnabled() && (<Button
               action="advance-cycle"
               className="link"
               onClick={() => act("advance-cycle")}
             >
               模拟下一账期
-            </Button>
-            <Button
+            </Button>)}
+            {reviewToolsEnabled() && (<Button
               action="expire"
               className="link danger"
               onClick={() => act("expire")}
             >
               模拟到期
-            </Button>
+            </Button>)}
           </div>
-          <small>支付与订单均为本地演示，不会真实扣款。</small>
+
         </section>
       </div>
       <section className="ws-surface">
@@ -498,8 +505,8 @@ export function CreditsBilling({
       <WsHeading
         w={w}
         actor={actor}
-        title="团队 Credits"
-        subtitle="所有成员共用一个 Credits 池。Agent 按输入与输出 token 用量扣减，与本工作区转写权益共同维护，不跨工作区扣减。"
+        title={creditText("团队 Credits")}
+        subtitle={creditText("所有成员共用一个 Credits 池。Agent 按输入与输出 token 用量扣减，与本工作区转写权益共同维护，不跨工作区扣减。")}
       />
       <ManagementTabs w={w} actor={actor} active="credits" />
       {pending ? (
@@ -507,11 +514,11 @@ export function CreditsBilling({
           <div>
             <strong>
               {pending.status === "failed"
-                ? "Credits 支付未完成"
-                : "有一笔待支付的 Credits 订单"}
+                ? creditText("Credits 支付未完成")
+                : creditText("有一笔待支付的 Credits 订单")}
             </strong>
             <span>
-              {creditNumber(pending.credits)} Credits · {money(pending.amount,pending.currency)}
+              {creditNumber(pending.credits)}{creditText(" Credits ·")}{money(pending.amount,pending.currency)}
             </span>
           </div>
           <div className="ws-actions">
@@ -521,22 +528,20 @@ export function CreditsBilling({
       ) : null}
       <section className="ws-surface ws-credit-summary">
         <div>
-          <span>可用 Credits</span>
+          <span>{creditText("可用 Credits")}</span>
           <strong>{creditNumber(M.creditBalance(w))}</strong>
           <div className="ws-credit-balance-actions">
             <Button
               action="topup"
-              className="primary"
+              className="primary credit-recharge-cta"
               onClick={() => openAccount("recharge")}
             >
-              <RefIcon name="plus" className="ws-icon" />
-              购买 Credits
-            </Button>
+              <RefIcon name="plus" className="ws-icon" />{creditText("购买 Credits")}</Button>
             <small>一次性加购，团队共享</small>
           </div>
         </div>
         <div>
-          <span>累计消耗 Credits</span>
+          <span>{creditText("累计消耗 Credits")}</span>
           <strong>{creditNumber(c.used)}</strong>
         </div>
       </section>
@@ -544,16 +549,14 @@ export function CreditsBilling({
         <div className="ws-section-head">
           <div>
             <h2>使用记录</h2>
-            <p className="ws-muted">
-              Token 用量为本地模拟；正式接入后按模型返回的实际用量结算。
-            </p>
+
           </div>
         </div>
         <div className="ws-table-scroll">
           <table className="ws-table ws-credit-usage">
             <thead>
               <tr>
-                {["任务", "成员", "消耗 Credits", "时间"].map((t) => (
+                {["任务", "成员", creditText("消耗 Credits"), "时间"].map((t) => (
                   <th key={t}>{t}</th>
                 ))}
               </tr>
@@ -566,7 +569,7 @@ export function CreditsBilling({
                       {l.user === actor ? l.task : "成员 Agent 用量"}
                       <small>
                         {l.inputTokens != null
-                          ? "Token 用量模拟"
+                          ? "Token 用量"
                           : "历史记录 · 未记录 Token 明细"}
                       </small>
                     </td>
@@ -595,7 +598,7 @@ export function CreditsBilling({
           <table className="ws-table ws-credit-orders">
             <thead>
               <tr>
-                {["订单", "Credits", "金额", "状态", "操作"].map((t) => (
+                {["订单", creditText("Credits"), "金额", "状态", "操作"].map((t) => (
                   <th key={t}>{t}</th>
                 ))}
               </tr>
@@ -631,7 +634,7 @@ export function CreditsBilling({
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5}>暂无 Credits 购买记录</td>
+                  <td colSpan={5}>{creditText("暂无 Credits 购买记录")}</td>
                 </tr>
               )}
             </tbody>

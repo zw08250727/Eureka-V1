@@ -696,3 +696,34 @@
     transition: none !important;
   }
 }
+
+/* AUTH-UI-01: both markets keep the complete auth flow in one quiet, centered column. */
+.auth.auth-centered {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100dvh;
+  padding: 48px 24px;
+  background: #fff;
+}
+.auth-centered .auth-form {
+  flex: 0 0 auto;
+  width: min(400px, 100%);
+  min-height: 0;
+  padding: 0;
+  margin: auto 0;
+}
+.auth-centered .brand {
+  justify-content: center;
+  margin-bottom: 32px;
+}
+.auth.auth-centered .form {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+@media (max-width: 520px) {
+  .auth.auth-centered { padding: 32px 24px; }
+  .auth-centered .brand { margin-bottom: 28px; }
+}

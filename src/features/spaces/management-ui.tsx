@@ -1,4 +1,7 @@
 "use client";
+import { creditText } from "@/features/markets/config";
+import { reviewToolsEnabled } from "@/features/markets/review";
+
 import { Select } from "@/components/ui/select";
 import {
   useEffect,
@@ -120,7 +123,7 @@ export function ManagementTabs({
 }) {
   const tabs: [AppView, string, string][] = [
     ["subscription", "billing", "订阅与席位"],
-    ["credits", "credits", "Credits"],
+    ["credits", "credits", creditText("Credits")],
     ["space-settings", "settings", "基本设置"],
     ["audit", "audit", "活动记录"],
   ];
@@ -192,8 +195,8 @@ export function ManagementRoot({
       <div className={`ws-layout${rail ? " with-agent" : ""}`}>
         <div className="ws-content">
           {children}
-          <footer className="ws-demo-footer">
-            交互演示 · 数据保存在本浏览器
+          {reviewToolsEnabled() && (<footer className="ws-demo-footer">
+
             {w.type === "team" ? (
               <label>
                 体验成员视角{" "}
@@ -215,7 +218,7 @@ export function ManagementRoot({
                 </Select>
               </label>
             ) : null}
-          </footer>
+          </footer>)}
         </div>
         {rail}
       </div>

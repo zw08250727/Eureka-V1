@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { accountWithoutTeam } from "./fixtures/workspace-state";
 import {
   demoWeek,
   fillWeekActions,
@@ -127,7 +128,7 @@ test("normalization is idempotent, keeps edits and does not resurrect deleted sa
   expect(M.enrich(state, now)).toEqual(copy);
 });
 
-test("briefs respect current evidence, visibility and membership; new teams stay empty", () => {
+test("briefs respect current evidence, visibility and membership", () => {
   const now = at("2026-10-08"),
     state = M.seed(now),
     w = M.get(state, "team-eureka");
@@ -142,20 +143,19 @@ test("briefs respect current evidence, visibility and membership; new teams stay
   source.summary = demoWeek[0].evidence[1];
   source.deleted = true;
   expect(M.insights(w, "zhang", now).items.filter((i) => i.id === "demo-week-insight-2026-10-08")).toHaveLength(0);
-  const empty = {
-    ...structuredClone(w),
-    id: "new-user-team",
-    files: [],
-    demoWeekDays: undefined,
-  };
-  state.spaces.push(empty);
-  fillWeekWorkspaces(state, now);
-  expect(empty.files).toHaveLength(0);
-  expect(M.insights(empty, "zhang", now).items).toHaveLength(0);
   w.status = "dissolved";
   const saved = structuredClone(w);
   fillWeekWorkspaces(state, at("2026-10-14"));
   expect(w).toEqual(saved);
+});
+
+test("ACCOUNT-01: the first created team receives no built-in team samples", () => {
+  const state = accountWithoutTeam();
+  const team = M.create(state, { name: "新团队", country: "中国", cycle: "month", seats: 2, orderId: "empty-team" });
+  fillWeekWorkspaces(state, at("2026-10-08"));
+  expect(M.accountTeams(state).map(w => w.id)).toEqual([team.id]);
+  expect(team.files).toHaveLength(0);
+  expect(M.insights(team, "zhang", at("2026-10-08")).items).toHaveLength(0);
 });
 
 test("a persisted browser gains the next day's samples without duplicating the previous day", () => {
