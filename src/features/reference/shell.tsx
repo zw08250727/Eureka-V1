@@ -1,5 +1,6 @@
 "use client";
 import "./workspace-navigation.css";
+import "./ui-polish.css";
 import {
   useEffect,
   useRef,
@@ -10,6 +11,7 @@ import {
 /* The reference assets retain their original image sizing and decoding. */
 /* eslint-disable @next/next/no-img-element */
 import { createPortal } from "react-dom";
+import { ReferenceDialog } from "./dialog";
 import { RefIcon, Symbols } from "./symbols";
 import { appUrl, assetUrl, basePath, prdUrl, type AppView } from "@/lib/routes";
 import { AgentScope } from "@/features/agent/history-button";
@@ -40,10 +42,11 @@ export function ReferenceShell({
   controller: SpacesController;
   reviewSwitch?: ReactNode;
 }) {
+  const [mobileNav, setMobileNav] = useState(false);
   const [templatePreferences,setTemplatePreferences]=useState(false);
   useEffect(()=>{const open=()=>setTemplatePreferences(true);window.addEventListener("eureka:templates",open);return()=>window.removeEventListener("eureka:templates",open)},[]);
   const [accountPanel,setAccountPanel]=useState<AccountPanel>(null);
-  useEffect(()=>{const open=(e:Event)=>{setAccountPanel((e as CustomEvent<AccountPanel>).detail);setMenu(null)};window.addEventListener("eureka:account-panel",open);return()=>window.removeEventListener("eureka:account-panel",open)},[]);
+  useEffect(()=>{const open=(e:Event)=>{setAccountPanel((e as CustomEvent<AccountPanel>).detail);setMenu(null);setMobileNav(false)};window.addEventListener("eureka:account-panel",open);return()=>window.removeEventListener("eureka:account-panel",open)},[]);
   const [pageTitle, setPageTitle] = useState(title);
   const [recordRequest, setRecordRequest] = useState<{ id: string } | null>(
     null,
@@ -368,22 +371,13 @@ export function ReferenceShell({
         <main className="main">
           <div className="topbar">
             <div className="topbar-inner">
+              <button className="mobile-nav-trigger" aria-label="打开导航" onClick={() => setMobileNav(true)}><span aria-hidden="true">☰</span><span>导航</span></button>
               <div className="page-crumb" id="page-crumb">
                 {pageTitle}
               </div>
               <div className="topbar-right">
                 <button className="ex-top-credits" onClick={()=>openAccount("credits")}>✦ {M.creditBalance(w).toLocaleString()} Credits</button>
                 <button className="ex-top-credits" aria-label="所有通知" onClick={()=>openAccount("notifications")}><RefIcon name="bell"/></button>
-                {reviewSwitch}
-                <a
-                  className="prd-review-entry"
-                  href={prdUrl}
-                  target="_blank"
-                  rel="noopener"
-                  title="打开产品需求文档与评审"
-                >
-                  需求评审 <span aria-hidden="true">↗</span>
-                </a>
                 <button
                   className="record-promo"
                   id="hardware-top-promo"
@@ -450,6 +444,14 @@ export function ReferenceShell({
               </div>
             </div>
           </div>
+          <details className="review-dock">
+            <summary><span className="review-dock-dot" aria-hidden="true"/>评审演示<span aria-hidden="true">⌄</span></summary>
+            <div className="review-dock-body">
+              <span className="review-dock-caption">演示工具 · 切换体验身份</span>
+              {reviewSwitch}
+              <a className="prd-review-entry" href={prdUrl} target="_blank" rel="noopener">需求评审 <span aria-hidden="true">↗</span></a>
+            </div>
+          </details>
           {children}
           {recordRequest ? (
             <RecordingPermission
@@ -615,6 +617,15 @@ export function ReferenceShell({
             document.body,
           )
         : null}
+      {mobileNav && <ReferenceDialog className="ex-dialog mobile-nav-dialog" label="工作台导航" onClose={() => setMobileNav(false)}>
+        <header className="ex-head"><h2>工作台导航</h2><button className="ex-close" aria-label="关闭导航" onClick={() => setMobileNav(false)}>×</button></header>
+        <div className="ex-body">
+          <label className="mobile-space-picker">当前工作区<select aria-label="切换工作区" value={space} onChange={e => go("home", "", e.target.value)}>{data.spaces.filter(s => M.member(s)).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></label>
+          <div className="mobile-space-actions"><button disabled={!!M.accountTeam(data, data.account.id)} title={M.accountTeam(data, data.account.id) ? "每个账号最多加入或创建一个团队" : "创建团队"} onClick={() => { try { M.assertCanJoinTeam(data); setMobileNav(false); setSetupDialog("create"); } catch(e) { notify((e as Error).message); } }}>创建团队</button><button onClick={() => { setMobileNav(false); setSetupDialog("invitations"); }}>工作空间邀请</button></div>
+          <nav className="mobile-nav-links" aria-label="工作区功能">{([["home","首页"],["recording","开始录音"],["calendar","日程与待办"],["contacts","通讯录"],["connectors","连接器"],...(team ? [["members","团队成员"],...(admin ? [["devices","设备查看"],["space-settings","空间设置"]] : [])] : [])] as [AppView,string][]).map(([v,label]) => <button key={v} aria-current={view === v ? "page" : undefined} onClick={() => {setMobileNav(false);go(v)}}>{label}<span aria-hidden="true">→</span></button>)}</nav>
+          <div className="mobile-nav-account"><span>我的账户</span><CreditsPromo w={w}/><nav className="mobile-nav-links" aria-label="账户功能">{([["settings","个人设置"],["subscription",team ? "订阅与席位" : "个人订阅"],["my-devices","我的设备"],["updates","更新日志"],["product","产品介绍"]] as [AppView,string][]).map(([v,label]) => <button key={v} onClick={() => go(v)}>{label}<span aria-hidden="true">→</span></button>)}</nav></div>
+        </div>
+      </ReferenceDialog>}
       {templatePreferences&&<TemplatePreferences onClose={()=>setTemplatePreferences(false)}/>}
       {accountPanel&&<AccountExperience key={`${space}:${actor}:${accountPanel}`} controller={controller} space={space} actor={actor} panel={accountPanel} onClose={()=>setAccountPanel(null)}/>}
       <div className={"toast " + (toast ? "show" : "")} role="status">

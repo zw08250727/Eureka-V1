@@ -6,6 +6,7 @@ import { M } from "@/features/spaces/model/store";
 import PS from "@/features/spaces/model/subscription";
 import { RefIcon } from "@/features/reference/symbols";
 import { appUrl } from "@/lib/routes";
+import { AccountTabs } from "@/features/account/ui";
 import { AccountSettings } from "@/features/account/settings";
 import { SettingsLogoutDialog } from "./settings-dialog";
 
@@ -92,7 +93,8 @@ export function SettingsPage({
             <RefIcon name="x" />
           </button>
         </header>
-        <nav className="ex-settings-tabs" role="tablist">{["个人信息","Credits 明细","录音设置","录音转写时长"].map(t=><button role="tab" aria-selected={tab===t} key={t} onClick={()=>setTab(t)}>{t}</button>)}</nav>
+        <AccountTabs items={["个人信息","Credits 明细","录音设置","录音转写时长"]} value={tab} onChange={setTab} label="个人设置" panelId="account-settings-panel" className="ex-settings-tabs"/>
+        <div id="account-settings-panel" role="tabpanel" aria-labelledby={`account-settings-panel-tab-${["个人信息","Credits 明细","录音设置","录音转写时长"].indexOf(tab)}`} tabIndex={0}>
         <AccountSettings {...{controller,space,actor,tab}}/>
         <div hidden={tab!=="录音设置"}>
         <section className="settings-float-section">
@@ -162,7 +164,7 @@ export function SettingsPage({
               <span>默认语音识别语言</span>
             </div>
             <div className="settings-language-control">
-              <span className="settings-language-count">18</span>
+
               <select
                 className="settings-language-select"
                 data-settings-language="asr"
@@ -182,7 +184,7 @@ export function SettingsPage({
               <span>纪要输出与翻译目标语言</span>
             </div>
             <div className="settings-language-control">
-              <span className="settings-language-count">156</span>
+
               <select
                 className="settings-language-select"
                 data-settings-language="notes"
@@ -270,6 +272,7 @@ export function SettingsPage({
           </div>
         </section>
         <section className="settings-float-section"><div className="settings-float-row"><div className="settings-row-copy"><strong>获取地理位置</strong><span>为新录音附上位置信息</span></div><button className="settings-switch" role="switch" aria-label="获取地理位置" aria-checked={!!preferences.location} onClick={()=>update({location:!preferences.location})}><i/></button></div><div className="settings-float-row"><div className="settings-row-copy"><strong>声纹识别</strong><span>在 App 录入声纹后，用于识别录音中的发言人。</span></div><button className="settings-switch" role="switch" aria-label="声纹识别" aria-checked={!!preferences.voiceprint} onClick={()=>update({voiceprint:!preferences.voiceprint})}><i/></button></div><div className="settings-float-row"><div className="settings-row-copy"><strong>行业术语</strong><span>请在 App 内维护行业术语，提升识别准确率。</span></div></div><button className="ex-button" onClick={()=>window.dispatchEvent(new CustomEvent("eureka:templates"))}>总结模板、语言及详细程度</button></section>
+        </div>
         </div>
       </div>
       {toast ? (

@@ -1,15 +1,17 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ReferenceDialog } from "@/features/reference/dialog";
 import { M } from "@/features/spaces/model/store";
 import type { Workspace } from "@/features/spaces/model/types";
 import type { SpacesController } from "@/features/spaces/use-spaces";
 import { appUrl } from "@/lib/routes";
 import { claimReward, rewardState } from "./rewards";
+import { AccountTabs, AccountStatus, CreditsHero } from "./ui";
 import "./experience.css";
 export type AccountPanel =
   | "credits"
   | "tasks"
+  | "signin"
   | "recharge"
   | "notifications"
   | "compare"
@@ -64,9 +66,9 @@ export function CreditsPromo({
         {!team && (
           <button
             className="ex-button primary"
-            onClick={() => openAccount("tasks")}
+            onClick={() => openAccount("signin")}
           >
-            立即领取
+            {monthly.some(e => e.id.endsWith(new Date().toLocaleDateString("sv-SE"))) ? "今日已签到" : "立即领取"}
           </button>
         )}
       </footer>
@@ -86,11 +88,12 @@ export function AccountExperience({
   panel: AccountPanel;
   onClose: () => void;
 }) {
-  const [page, setPage] = useState(panel),
-    [tab, setTab] = useState("新手成长"),
+  const [page, setActivePage] = useState(panel === "signin" ? "tasks" : panel),
+    [tab, setTab] = useState(panel === "signin" ? "活跃互动" : "新手成长"),
     [sku, setSku] = useState("credits-15k"),
     [orderId, setOrderId] = useState(""),
     [notice, setNotice] = useState(""),
+    [noticeError, setNoticeError] = useState(false),
     [feedback, setFeedback] = useState(""),
     [channel, setChannel] = useState("Card"),
     [onlyDiff, setOnlyDiff] = useState(false),
@@ -113,6 +116,9 @@ export function AccountExperience({
       active = false;
     };
   }, [space, actor]);
+  const scrollBody = useRef<HTMLDivElement>(null);
+  useEffect(() => { scrollBody.current?.scrollTo(0, 0); }, [page]);
+  function setPage(next: Exclude<AccountPanel, "signin">) { setActivePage(next); setNotice(""); setNoticeError(false); }
   const w = M.get(controller.state!, space),
     team = w.type === "team",
     s = rewardState(w),
@@ -137,34 +143,36 @@ export function AccountExperience({
   };
   function perform(fn: () => void) {
     try {
+      setNoticeError(false);
       setNotice("操作成功");
       fn();
     } catch (e) {
+      setNoticeError(true);
       setNotice((e as Error).message);
     }
   }
   function reward(kind: Parameters<typeof claimReward>[2]) {
-    perform(() =>
-      controller.change((st) =>
-        claimReward(M.get(st, space), actor, kind, feedback),
-      ),
-    );
+    perform(() => {
+      controller.change((st) => claimReward(M.get(st, space), actor, kind, feedback));
+      setNotice("奖励已领取，Credits 已加入个人余额");
+    });
   }
   function mark(id?: string) {
     const ids = id
       ? [...new Set([...readIds, id])]
       : ["expiry", "share", "release"];
-    localStorage.setItem(
+    try { localStorage.setItem(
       `eureka:notifications:${space}:${actor}`,
       JSON.stringify(ids),
     );
-    setReadIds(ids);
+    setReadIds(ids); } catch { setNoticeError(true); setNotice("标记失败，请检查浏览器存储后重试"); }
   }
   function pay(outcome: "success" | "failure") {
     perform(() => {
       controller.change((st) =>
         M.payCreditOrder(M.get(st, space), orderId, outcome, actor),
       );
+      setNoticeError(outcome === "failure");
       setNotice(
         outcome === "success"
           ? "支付成功，Credits 已到账"
@@ -175,6 +183,7 @@ export function AccountExperience({
   if (!page) return null;
   if (team && ["tasks", "feedback", "download"].includes(page)) return null;
   const orders = [...(w.creditOrders || []), ...(w.personalOrders || [])];
+  const filteredOrders = orders.filter(o => orderFilter === "全部" || o.status === ({"已支付":"paid", "待支付":"pending", "支付失败":"failed", "已取消":"cancelled"}[orderFilter]));
   const signins = s.entries.filter((e) => e.id.startsWith("signin:" + month));
   return (
     <ReferenceDialog
@@ -195,14 +204,12 @@ export function AccountExperience({
           ×
         </button>
       </header>
-      <div className="ex-body">
+      <div className="ex-body" ref={scrollBody}>
+        <AccountStatus message={notice} error={noticeError}/>
         {page === "credits" && (
           <>
-            <div className="ex-summary">
-              <span>{w.name} · 可用余额</span>
-              <br />
-              <strong>{format(M.creditBalance(w))}</strong> Credits
-            </div>
+            <CreditsHero eyebrow={`${w.name} · 可用余额`} title={`${format(M.creditBalance(w))} Credits`} description={team ? "为团队的下一个洞察，补充一点能量。" : "把每一次好奇，变成更深入的探索。"}/>
+            <div className="ex-credit-uses"><span>✦ Agent 分析</span><span>⌕ 深入检索</span><span>↗ 更多 AI 能力</span></div>
             <div className="ex-footer">
               {!team && (
                 <button onClick={() => setPage("tasks")}>
@@ -225,18 +232,9 @@ export function AccountExperience({
         )}
         {page === "tasks" && (
           <>
-            <nav className="ex-tabs" role="tablist">
-              {["新手成长", "活跃互动", "会员升级"].map((t) => (
-                <button
-                  role="tab"
-                  aria-selected={tab === t}
-                  key={t}
-                  onClick={() => setTab(t)}
-                >
-                  {t}
-                </button>
-              ))}
-            </nav>
+            <CreditsHero eyebrow="GROW WITH EUREKAMIND" title="记录好习惯，收获新灵感" description="完成任务获得 Credits，让每一天的积累都有回响。" progress={signins.length}/>
+            <AccountTabs items={["新手成长", "活跃互动", "会员升级"]} value={tab} onChange={setTab} label="奖励任务" panelId="reward-tasks"/>
+            <div id="reward-tasks" role="tabpanel" aria-labelledby={`reward-tasks-tab-${["新手成长", "活跃互动", "会员升级"].indexOf(tab)}`} tabIndex={0}>
             {tab === "新手成长" ? (
               [
                 {
@@ -312,7 +310,7 @@ export function AccountExperience({
                   </div>
                   <b>+1,000</b>
                   <button
-                    disabled={signins.some((e) =>
+                    disabled={signins.length >= 15 || signins.some((e) =>
                       e.id.endsWith(new Date().toLocaleDateString("sv-SE")),
                     )}
                     onClick={() => reward("signin")}
@@ -321,7 +319,7 @@ export function AccountExperience({
                       e.id.endsWith(new Date().toLocaleDateString("sv-SE")),
                     )
                       ? "今日已签到"
-                      : "立即签到"}
+                      : signins.length >= 15 ? "本月已达上限" : "立即签到"}
                   </button>
                 </div>
               </>
@@ -354,6 +352,7 @@ export function AccountExperience({
                 </button>
               </>
             )}
+            </div>
             <p className="ex-muted" style={{ marginTop: 20 }}>
               新手奖励仅领取一次；活跃任务按自然月重新计算。
             </p>
@@ -415,7 +414,8 @@ export function AccountExperience({
         )}
         {page === "recharge" && (
           <>
-            <p className="ex-muted">充值至 {w.name} · USD</p>
+            <CreditsHero eyebrow={`充值至 ${w.name} · USD`} title="为下一个好想法，蓄满能量" description="选择适合你的 Credits 包，按需补充，随用随取。"/>
+            <ol className="ex-checkout-steps" aria-label="充值进度"><li data-active={!order || order.status === "cancelled"}>1 选择套餐</li><li data-active={!!order && ["pending", "failed"].includes(order.status)}>2 确认支付</li><li data-active={order?.status === "paid"}>3 充值完成</li></ol>
             {!order || order.status === "cancelled" ? (
               <>
                 <div className="ex-grid">
@@ -426,7 +426,7 @@ export function AccountExperience({
                       key={p.id}
                       onClick={() => setSku(p.id)}
                     >
-                      <span>{i === 2 ? "最划算" : "Credits 充值包"}</span>
+                      <span className="ex-sku-label">{i === 2 ? "✦ 最划算" : "Credits 充值包"}<i aria-hidden="true">{sku === p.id ? "✓" : "○"}</i></span>
                       <strong>
                         {format(p.credits)}{" "}
                         <small style={{ fontSize: 12 }}>Credits</small>
@@ -472,6 +472,7 @@ export function AccountExperience({
             ) : (
               <>
                 <div className="ex-summary">
+                  {order.status === "paid" && <div className="ex-success-mark" aria-hidden="true">✓</div>}
                   <strong>
                     {order.status === "paid"
                       ? "充值成功"
@@ -489,18 +490,7 @@ export function AccountExperience({
                   </>
                 ) : (
                   <>
-                    <div className="ex-tabs">
-                      {["Card", "PayPal"].map((c) => (
-                        <button
-                          role="tab"
-                          aria-selected={channel === c}
-                          key={c}
-                          onClick={() => setChannel(c)}
-                        >
-                          {c === "Card" ? "Visa / Mastercard" : c}
-                        </button>
-                      ))}
-                    </div>
+                    <AccountTabs items={["Visa / Mastercard", "PayPal"]} value={channel === "Card" ? "Visa / Mastercard" : channel} onChange={v => setChannel(v === "PayPal" ? v : "Card")} label="支付方式"/>
                     <p className="ex-rule">
                       演示结账 · 不收集支付信息，不产生真实扣款。
                     </p>
@@ -631,7 +621,7 @@ export function AccountExperience({
               />{" "}
               仅查看差异项
             </label>
-            <table className="ex-table">
+            <div className="ex-table-scroll" tabIndex={0} aria-label="权益对比表"><table className="ex-table">
               <thead>
                 <tr>
                   <th>权益项</th>
@@ -641,7 +631,7 @@ export function AccountExperience({
               </thead>
               <tbody>
                 {[
-                  ["每月转写时长", "400 分钟", "不限时长"],
+                  ["每月转写时长", "400 分钟", "99,999 分钟"],
                   ["每月 Credits", "0", "5,000"],
                   ["AI 专业总结", "✓", "✓"],
                   ["AI 个人助理", "✓", "✓"],
@@ -659,7 +649,7 @@ export function AccountExperience({
                     </tr>
                   ))}
               </tbody>
-            </table>
+            </table></div>
           </>
         )}
         {page === "faq" && (
@@ -701,37 +691,20 @@ export function AccountExperience({
         )}
         {page === "orders" && (
           <>
-            <div className="ex-tabs">
-              {["全部", "已支付", "已取消"].map((t) => (
-                <button
-                  role="tab"
-                  aria-selected={orderFilter === t}
-                  key={t}
-                  onClick={() => setOrderFilter(t)}
-                >
-                  {t}
-                </button>
-              ))}
-              <button
-                style={{ marginLeft: "auto" }}
-                onClick={() => setInvoice(!invoice)}
-              >
-                开发票
-              </button>
+            <div className="ex-order-tools"><AccountTabs items={["全部", "待支付", "已支付", "支付失败", "已取消"]} value={orderFilter} onChange={setOrderFilter} label="订单状态" panelId="account-orders"/>
+              <button disabled={!orders.some(o => o.status === "paid")} onClick={() => setInvoice(!invoice)}>开发票</button>
             </div>
+            <div id="account-orders" role="tabpanel" aria-labelledby={`account-orders-tab-${["全部", "待支付", "已支付", "支付失败", "已取消"].indexOf(orderFilter)}`} tabIndex={0}>
             {invoice && (
               <form
                 className="ex-summary"
                 onSubmit={(e) => {
                   e.preventDefault();
-                  setNotice("演示发票申请已保存");
-                  localStorage.setItem(
-                    `eureka:invoice-request:${space}`,
-                    JSON.stringify(
-                      Object.fromEntries(new FormData(e.currentTarget)),
-                    ),
-                  );
-                  setInvoice(false);
+                  const values = Object.fromEntries(new FormData(e.currentTarget));
+                  perform(() => {
+                    localStorage.setItem(`eureka:invoice-request:${space}`, JSON.stringify(values));
+                    setNotice("演示发票申请已保存"); setInvoice(false);
+                  });
                 }}
               >
                 <label>
@@ -760,13 +733,7 @@ export function AccountExperience({
                 </button>
               </form>
             )}
-            {orders
-              .filter(
-                (o) =>
-                  orderFilter === "全部" ||
-                  o.status ===
-                    (orderFilter === "已支付" ? "paid" : "cancelled"),
-              )
+            {filteredOrders
               .map((o) => (
                 <article className="ex-order" key={o.id}>
                   <header>
@@ -793,13 +760,12 @@ export function AccountExperience({
                     <br />
                     支付金额：${o.amount} USD
                   </p>
-                  {"credits" in o &&
-                    ["pending", "failed"].includes(o.status) && (
+                  {["pending", "failed"].includes(o.status) && (
                       <button
                         className="ex-link"
                         onClick={() => {
-                          setOrderId(o.id);
-                          setPage("recharge");
+                          if ("credits" in o) { setOrderId(o.id); setPage("recharge"); }
+                          else location.assign(appUrl("subscription", "", space, actor));
                         }}
                       >
                         继续支付
@@ -807,18 +773,11 @@ export function AccountExperience({
                     )}
                 </article>
               ))}
-            {orders.length === 0 && (
-              <p className="ex-muted">
-                暂无订单。完成演示充值后，可在这里查看订单和申请发票。
-              </p>
-            )}
+            {filteredOrders.length === 0 && <div className="ex-empty">暂无{orderFilter === "全部" ? "" : orderFilter}订单<span>完成充值或购买订阅后，订单会保留在这里。</span></div>}
+            </div>
           </>
         )}
-        {notice && (
-          <p role="status" className="ex-rule">
-            {notice}
-          </p>
-        )}
+
       </div>
     </ReferenceDialog>
   );

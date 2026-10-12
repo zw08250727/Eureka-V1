@@ -64,19 +64,16 @@ export function PersonalBilling({
   );
   return (
     <>
-      <div className="ex-tabs">{(["compare","faq","orders"] as const).map((p,i)=><button className="ex-button" key={p} onClick={()=>openAccount(p)}>{["权益对比","常见问题","我的订单"][i]}</button>)}</div>
-      <WsHeading
-        w={w}
-        actor={actor}
-        title="个人订阅"
-        subtitle="查看个人工作区的套餐、用量与账单。"
-      />
+      <div className="ps-page-header">
+      <WsHeading w={w} actor={actor} title="个人订阅" subtitle="给每一次记录，多一点可能。"/>
+      <nav className="ex-tabs" aria-label="订阅服务">{(["compare","faq","orders"] as const).map((p,i)=><button className="ex-button" key={p} onClick={()=>openAccount(p)}>{["权益对比","常见问题","我的订单"][i]}</button>)}</nav>
+      </div>
       <section className="ws-surface ps-account">
         <div>
-          <span className="ws-mini-avatar">张</span>
+          <span className="ws-mini-avatar">{state.account.name[0]}</span>
           <div>
             <h2>
-              张伟{" "}
+              {state.account.name}{" "}
               <Badge kind={sub.plan === "Pro" ? "blue" : "amber"}>
                 {sub.plan}
               </Badge>
@@ -93,7 +90,7 @@ export function PersonalBilling({
             {remainingMinutes.toLocaleString()}{" "}
             <small>/ {sub.minutes.toLocaleString()} 分钟剩余</small>
           </strong>
-          <progress max={sub.minutes} value={remainingMinutes} />
+          <progress aria-label="剩余转写时长" max={sub.minutes} value={remainingMinutes} />
           <small>
             {sub.nextRefresh
               ? "下次分钟 / Credits 刷新：" + date(sub.nextRefresh)
@@ -130,8 +127,10 @@ export function PersonalBilling({
       ) : null}
       <section className="ws-surface ps-plans">
         <div className="ps-plan-head">
-          <span>✦ Pro</span>
-          <p>在转写与摘要之外，解锁高级 AI 分析。</p>
+          <span className="ps-pro-mark">✦ EurekaMind Pro</span>
+          <h2>从记录，到更有价值的洞察</h2>
+          <p>用更充裕的转写时长和 AI 能力，专注每一次对话。</p>
+          <div className="ps-benefit-strip"><span>✓ 99,999 分钟 / 月</span><span>✓ 5,000 Credits / 月</span><span>✓ 高级 AI 分析</span></div>
         </div>
         <div className="ps-plan-options">
           {(
@@ -157,6 +156,7 @@ export function PersonalBilling({
                 {dollars(p.amount)}{" "}
                 <small>/ {p.cycle === "year" ? "年" : "月"}</small>
               </strong>
+              <p className="ps-price-note">{p.cycle === "year" ? "约 $8.33 / 月 · 按年支付" : "灵活月付 · 每月续费"}</p>
               <dl>
                 <dt>每月 Credits</dt>
                 <dd>5,000 Credits</dd>

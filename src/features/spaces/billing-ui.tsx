@@ -8,6 +8,7 @@ import {
   type FormEvent,
 } from "react";
 import { createPortal } from "react-dom";
+import { ReferenceDialog } from "@/features/reference/dialog";
 import { RefIcon } from "@/features/reference/symbols";
 import { appUrl, type AppView } from "@/lib/routes";
 import { M } from "./model/store";
@@ -217,27 +218,6 @@ export function WsDialog({
   onClose: () => void;
   error?: string;
 }) {
-  const ref = useRef<HTMLDialogElement>(null);
-  const closeRef = useRef(onClose);
-  useLayoutEffect(() => {
-    closeRef.current = onClose;
-  });
-  useEffect(() => {
-    const el = ref.current!;
-    const previous = document.activeElement;
-    el.showModal();
-    const cancel = (event: Event) => {
-      event.preventDefault();
-      closeRef.current();
-    };
-    el.addEventListener("cancel", cancel);
-    return () => {
-      el.removeEventListener("cancel", cancel);
-      el.close();
-      if (previous instanceof HTMLElement && previous.isConnected)
-        previous.focus({ preventScroll: true });
-    };
-  }, []);
   const content = (
     <>
       {children}
@@ -247,8 +227,8 @@ export function WsDialog({
       {footer ? <footer className="ws-dialog-footer">{footer}</footer> : null}
     </>
   );
-  return createPortal(
-    <dialog id="ws-dialog" ref={ref} className="ws-dialog">
+  return (
+    <ReferenceDialog id="ws-dialog" className="ws-dialog" label={title} onClose={onClose}>
       <div className="ws-dialog-head">
         <h2>{title}</h2>
         <WsButton
@@ -271,8 +251,7 @@ export function WsDialog({
       ) : (
         <div className="ws-dialog-content">{content}</div>
       )}
-    </dialog>,
-    document.body,
+    </ReferenceDialog>
   );
 }
 export function WsToast({

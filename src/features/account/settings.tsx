@@ -5,6 +5,7 @@ import type { SpacesController } from "@/features/spaces/use-spaces";
 import { M } from "@/features/spaces/model/store";
 import PS from "@/features/spaces/model/subscription";
 import { openAccount } from "./experience";
+import { AccountTabs, AccountStatus } from "./ui";
 import { appUrl } from "@/lib/routes";
 type Profile = {
   name: string;
@@ -37,7 +38,10 @@ export function AccountSettings({
       company: "",
       signature: "",
     }),
-    [filter, setFilter] = useState("全部"),
+    [creditFilter, setCreditFilter] = useState("全部"),
+    [timeFilter, setTimeFilter] = useState("全部"),
+    [savedProfile, setSavedProfile] = useState<Profile | null>(null),
+    [statusError, setStatusError] = useState(false),
     [status, setStatus] = useState("");
   useEffect(() => {
     let active = true;
@@ -47,7 +51,7 @@ export function AccountSettings({
         const value = JSON.parse(
           localStorage.getItem(`eureka:profile:${actor}`) || "null",
         );
-        if (value) setProfile(value);
+        if (value) { setProfile(value); setSavedProfile(value); }
       } catch {}
     });
     return () => {
@@ -78,30 +82,33 @@ export function AccountSettings({
   ].sort((a, b) => b.time.localeCompare(a.time));
   const visible = entries.filter(
     (e) =>
-      filter === "全部" || (filter === "获得" ? e.amount > 0 : e.amount < 0),
+      creditFilter === "全部" || (creditFilter === "获得" ? e.amount > 0 : e.amount < 0),
   );
   if (tab === "个人信息")
     return (
       <div className="ex-settings-body">
+        <div className="ex-section-intro"><h2>让大家更好地认识你</h2><p>完善头像与基本资料，让协作从认识彼此开始。</p></div>
         <form
           className="ex-form"
           onSubmit={(e) => {
             e.preventDefault();
-            localStorage.setItem(
-              `eureka:profile:${actor}`,
-              JSON.stringify(profile),
-            );
-            controller.change((st) => {
-              if (actor === st.account.id) st.account.name = profile.name;
-              const personal = st.spaces.find((w) => w.type === "personal");
-              if (personal)
-                (personal.rewards ||= { entries: [] }).profileComplete = !!(
-                  profile.avatar &&
-                  profile.name &&
-                  profile.occupation
-                );
-            });
-            setStatus("个人信息已保存");
+            const next = { ...profile, name: profile.name.trim(), occupation: profile.occupation.trim() };
+            if (!next.name || !next.occupation) { setStatusError(true); setStatus("请填写昵称和职业类型"); return; }
+            try {
+              const key = `eureka:profile:${actor}`;
+              const previous = localStorage.getItem(key);
+              localStorage.setItem(key, JSON.stringify(next));
+              try { controller.change((st) => {
+                if (actor === st.account.id) st.account.name = next.name;
+                const personal = st.spaces.find((w) => w.type === "personal");
+                if (personal) (personal.rewards ||= { entries: [] }).profileComplete = !!(next.avatar && next.name && next.occupation);
+              }); } catch (error) {
+                if (previous === null) localStorage.removeItem(key); else localStorage.setItem(key, previous);
+                throw error;
+              }
+              setProfile(next); setSavedProfile(next); setStatusError(false); setStatus("个人信息已保存");
+            } catch { setStatusError(true); setStatus("保存失败，请检查浏览器存储空间后重试。填写的内容已保留。"); }
+
           }}
         >
           <label className="wide">
@@ -120,12 +127,13 @@ export function AccountSettings({
                 const f = e.target.files?.[0];
                 if (!f) return;
                 if (!f.type.startsWith("image/") || f.size > 2e6) {
-                  setStatus("请选择小于 2 MB 的图片");
+                  setStatusError(true); setStatus("请选择小于 2 MB 的图片");
                   return;
                 }
                 const reader = new FileReader();
                 reader.onload = () =>
-                  setProfile({ ...profile, avatar: String(reader.result) });
+                  setProfile(current => ({ ...current, avatar: String(reader.result) }));
+                reader.onerror = () => { setStatusError(true); setStatus("图片读取失败，请重新选择"); };
                 reader.readAsDataURL(f);
               }}
             />
@@ -134,6 +142,8 @@ export function AccountSettings({
             我的昵称 *
             <input
               required
+              maxLength={50}
+              autoComplete="nickname"
               value={profile.name}
               onChange={(e) => setProfile({ ...profile, name: e.target.value })}
             />
@@ -209,7 +219,8 @@ export function AccountSettings({
               }
             />
           </label>
-          <footer className="wide ex-footer">
+          <footer className="wide ex-footer ex-save-bar">
+            <span className="ex-muted">{savedProfile && JSON.stringify(savedProfile) === JSON.stringify(profile) ? "所有更改已保存" : "更改后记得保存"}</span>
             <button
               type="button"
               className="ex-button"
@@ -220,7 +231,7 @@ export function AccountSettings({
             <button className="ex-button primary">保存</button>
           </footer>
         </form>
-        {status && <p role="status">{status}</p>}
+        <AccountStatus message={status} error={statusError}/>
       </div>
     );
   if (tab === "Credits 明细")
@@ -259,19 +270,8 @@ export function AccountSettings({
             </div>
           ))}
         </div>
-        <div className="ex-tabs">
-          {["全部", "获得", "消费"].map((t) => (
-            <button
-              role="tab"
-              className="ex-button"
-              aria-selected={filter === t}
-              key={t}
-              onClick={() => setFilter(t)}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
+        <AccountTabs label="Credits 筛选" items={["全部", "获得", "消费"]} value={creditFilter} onChange={setCreditFilter} panelId="credits-history"/>
+        <div className="ex-table-scroll" id="credits-history" role="tabpanel" aria-labelledby={`credits-history-tab-${["全部", "获得", "消费"].indexOf(creditFilter)}`} tabIndex={0}>
         <table className="ex-table">
           <thead>
             <tr>
@@ -293,7 +293,8 @@ export function AccountSettings({
             ))}
           </tbody>
         </table>
-        {!visible.length && <p className="ex-muted">暂无此类明细</p>}
+        {!visible.length && <div className="ex-empty">暂无此类明细<span>获得或使用 Credits 后，记录会显示在这里。</span></div>}
+        </div>
       </div>
     );
   if (tab === "录音转写时长")
@@ -303,10 +304,8 @@ export function AccountSettings({
           <p>当前工作区剩余转写时长</p>
           <strong>
             {!sub
-              ? "Unlimited"
-              : sub.minutes >= 99999
-                ? "不限时长"
-                : `${Math.max(0, sub.minutes - (w.transcriptionUsage?.used || 0))} 分钟`}
+              ? w.status === "active" && Boolean(M.member(w, actor)) ? "Unlimited" : "转写权益已暂停"
+              : `${Math.max(0, sub.minutes - (w.transcriptionUsage?.used || 0)).toLocaleString()} 分钟`}
           </strong>
           <p>
             {w.name} · {sub?.plan || "Team"} ·{" "}
@@ -321,19 +320,8 @@ export function AccountSettings({
             查看订阅
           </button>
         </div>
-        <div className="ex-tabs">
-          {["全部", "消费", "获得", "过期"].map((t) => (
-            <button
-              role="tab"
-              className="ex-button"
-              key={t}
-              aria-selected={filter === t}
-              onClick={() => setFilter(t)}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
+        <AccountTabs label="转写时长筛选" items={["全部", "消费", "获得", "过期"]} value={timeFilter} onChange={setTimeFilter} panelId="transcription-history"/>
+        <div className="ex-table-scroll" id="transcription-history" role="tabpanel" aria-labelledby={`transcription-history-tab-${["全部", "消费", "获得", "过期"].indexOf(timeFilter)}`} tabIndex={0}>
         <table className="ex-table">
           <thead>
             <tr>
@@ -343,7 +331,7 @@ export function AccountSettings({
             </tr>
           </thead>
           <tbody>
-            {(filter === "全部" || filter === "消费") &&
+            {(timeFilter === "全部" || timeFilter === "消费") &&
               (w.transcriptionUsage?.logs || []).map((l) => (
                 <tr key={l.id}>
                   <td>录音转写</td>
@@ -353,6 +341,8 @@ export function AccountSettings({
               ))}
           </tbody>
         </table>
+        {(!["全部", "消费"].includes(timeFilter) || !w.transcriptionUsage?.logs?.length) && <div className="ex-empty">暂无此类记录<span>转写时长的变动将在这里保留。</span></div>}
+        </div>
         <p className="ex-muted">使用任务所属工作区的额度，工作区之间不合并。</p>
       </div>
     );

@@ -19,3 +19,12 @@
 #today-assets-grid .daily-ledger-total strong { font-size:22px; line-height:28px; }
 #today-assets-grid .daily-ledger-items { min-height:0; flex:1; overflow-y:auto; }
 #today-assets-grid :is(.brief-todo-line,.daily-rhythm-events,.daily-brief-narrative,.daily-inspiration>div,.daily-ledger-total,.daily-ledger-items) { overscroll-behavior:contain; scrollbar-width:thin; }
+/* Narrow screens retain fixed slots, but stack them instead of hiding panels offscreen. */
+@media(max-width:760px) {
+  #today-assets-grid { height:520px; min-height:520px; max-height:520px; grid-template-columns:minmax(0,1fr); grid-template-rows:360px minmax(0,1fr); gap:12px; overflow-x:hidden; }
+  #today-assets-grid .daily-focus { grid-template-columns:minmax(0,1fr); grid-template-rows:200px minmax(0,1fr); padding:0; }
+  #today-assets-grid .daily-brief { padding:14px 16px; }
+  #today-assets-grid .daily-rhythm { padding:12px 16px; border-left:0; border-top:1px solid #e5ebf4; }
+  #today-assets-grid .daily-records { grid-template-columns:repeat(2,minmax(0,1fr)); grid-template-rows:minmax(0,1fr); }
+  #today-assets-grid .daily-records header { flex-wrap:wrap; gap:4px; }
+}
