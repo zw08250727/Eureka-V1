@@ -105,19 +105,50 @@
   font-weight: 600;
 }
 
+.cn-member-selection {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.cn-member-selection-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
 .cn-member-tiers {
-  margin: 24px auto 8px;
+  margin: 0;
 }
 
 .cn-member-tier-description {
   margin: 0;
-  text-align: center;
   color: #595959;
   font-size: 12px;
 }
 
-.cn-membership .ps-benefit-strip {
+.cn-member-highlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cn-member-highlights li {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
   color: #595959;
+  font-size: 12px;
+}
+
+.cn-member-highlights strong {
+  color: var(--market-ink, #262626);
+  font-size: 16px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .cn-membership .cn-member-cycles .ps-plan-option {

@@ -85,23 +85,21 @@ export function DomesticMembership({ w, account, cycle, act }: {
         <div id="cn-member-content" role="tabpanel" aria-labelledby={`cn-member-tab-${tab}`}>
           {tab === "会员" ? (
             <>
-              <div className="ps-plan-head">
-                <span className="ps-pro-mark">✦ {cn.brand} {plan.name}</span>
-                <h2>从记录，到更有价值的洞察</h2>
-                <p>用更充裕的转写时长和 AI 能力，专注每一次对话。</p>
-                <div className="ps-benefit-strip">
-                  <span>✓ {plan.minutes === null ? "无限录音转写" : `${plan.minutes.toLocaleString()} 分钟 / 月`}</span>
-                  <span>✓ {plan.monthlyCredits.toLocaleString()} 积分 / 月</span>
-                  <span>✓ {plan.storageGB}G 知识库空间</span>
+              <div className="cn-member-selection">
+                <div className="cn-member-selection-row">
+                  <div className="cn-member-tiers" role="group" aria-label="会员档位">
+                    {cn.memberCatalog.map(item => (
+                      <button type="button" key={item.id} aria-pressed={plan.id === item.id} onClick={() => setTier(item.id)}>{item.name}</button>
+                    ))}
+                  </div>
+                  <p className="cn-member-tier-description">{plan.description}</p>
                 </div>
+                <ul className="cn-member-highlights" aria-label="核心权益">
+                  <li><strong>{plan.minutes === null ? "无限" : plan.minutes.toLocaleString()}</strong><span>{plan.minutes === null ? "录音转写" : "分钟 / 月"}</span></li>
+                  <li><strong>{plan.monthlyCredits.toLocaleString()}</strong><span>积分 / 月</span></li>
+                  <li><strong>{plan.storageGB}G</strong><span>知识库空间</span></li>
+                </ul>
               </div>
-
-              <div className="cn-member-tiers" role="group" aria-label="会员档位">
-                {cn.memberCatalog.map(item => (
-                  <button type="button" key={item.id} aria-pressed={plan.id === item.id} onClick={() => setTier(item.id)}>{item.name}</button>
-                ))}
-              </div>
-              <p className="cn-member-tier-description">{plan.description}</p>
 
               <div className="ps-plan-options cn-member-cycles" role="group" aria-label="计费周期">
                 {(["month", "year"] as const).map(value => (
