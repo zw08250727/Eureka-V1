@@ -40,3 +40,5 @@
 - `GuestHome` 使用独立的轻量内容空态，保留默认个人工作区卡片，展示导航、会议／闪念入口及录音、上传、Agent 操作；不挂载今日概览、积分、团队等引导卡片，也不挂载业务控制器或读取已有账号资料。
 - `AuthOverlay` 复用 `Auth`、`DomesticAuth` 和 `ReferenceDialog`，负责关闭、滚动锁、焦点循环与焦点返回。
 - `Workbench` 只消费 upload、agent、recording、notifications 白名单一次性意图；消费后移除参数，刷新不重复唤起。
+
+`reference/sidebar-parts.tsx` 提供 `SidebarBrand`、`WorkspaceCard`、`PrimaryNavigation`，由游客首页和已登录 `ReferenceShell` 共用。只接收展示数据与动作回调，不导入账户模型，避免游客为复用侧栏而初始化私人资料。

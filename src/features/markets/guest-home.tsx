@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
+import { SidebarBrand, WorkspaceCard, PrimaryNavigation } from "@/features/reference/sidebar-parts";
 import { ReferenceDialog } from "@/features/reference/dialog";
 import { RefIcon, Symbols } from "@/features/reference/symbols";
-import { productLogo, productName } from "./brand";
+import { productName } from "./brand";
 import type { Market } from "./config";
 import { assetUrl, type AppView } from "@/lib/routes";
 import "@/features/reference/workspace-navigation.css";
@@ -14,15 +15,19 @@ import "./guest-home.css";
 export type HomeAction = "upload" | "agent" | "recording" | "notifications";
 export type LoginIntent = { view?: AppView; id?: string; action?: HomeAction };
 // A visitor never mounts account repositories or seeded personal/team records.
-const navigation: { view: AppView; label: string; icon: string }[] = [
-  { view: "home", label: "首页", icon: "home" },
-  { view: "recording", label: "开始录音", icon: "mic" },
-  { view: "contacts", label: "通讯录", icon: "user" },
-  { view: "calendar", label: "日程与待办", icon: "task" },
-  { view: "connectors", label: "连接器", icon: "link" },
-];
-
 export function GuestHome({ market, onLogin }: { market: Market; onLogin: (intent?: LoginIntent) => void }) {
+  const [collapsed, setCollapsed] = useState(false);
+  useEffect(() => {
+    document.documentElement.dataset.personalOnly = "1";
+    document.body.dataset.edition = "personal";
+    document.body.dataset.workspace = "personal";
+    document.body.dataset.wsType = "personal";
+    document.body.classList.add("app-data-mode");
+    return () => document.body.classList.remove("app-data-mode");
+  }, []);
+  useEffect(() => {
+    document.documentElement.dataset.sidebarCollapsed = String(collapsed);
+  }, [collapsed]);
   const [expanded, setExpanded] = useState(false);
   const [download, setDownload] = useState(false);
   function go(view: AppView, id?: string) {
@@ -32,21 +37,14 @@ export function GuestHome({ market, onLogin }: { market: Market; onLogin: (inten
   }
   return <div className="app guest-app" data-guest="true" data-nav-open={expanded}>
     <Symbols />
-    <aside className="sidebar" id="guest-sidebar">
-      <div className="brand-row"><div className="workspace-brand">
-        <Image src={productLogo(market)} alt="" width={34} height={34} unoptimized />
-        <div className="workspace-brand-copy"><strong>{productName(market)}</strong></div>
-      </div><button className="guest-nav-close" aria-label="收起导航" onClick={() => setExpanded(false)}>×</button></div>
-      <button className="ws-switcher" aria-label="个人工作区" onClick={() => onLogin()}>
-        <span className="ws-space-avatar"><RefIcon name="user" className="ws-icon" /></span>
-        <span className="ws-space-copy"><strong>个人工作区</strong></span>
-        <RefIcon name="chevron" className="ws-icon" />
-      </button>
-      <div className="sidebar-body"><nav className="nav sidebar-quick-nav" aria-label="快捷入口">
-        {navigation.map(({ view, label, icon }) => <button key={view} className={`nav-item ${view === "home" ? "active" : ""}`} aria-current={view === "home" ? "page" : undefined} title={label} onClick={() => view === "home" ? setExpanded(false) : go(view)}>
-          <span className="nav-left"><span className="nav-icon"><RefIcon name={icon} /></span><span className="nav-label">{label}</span></span>
-        </button>)}
-      </nav>
+    <aside className="sidebar" id="workspace-sidebar">
+      <SidebarBrand market={market} collapsed={collapsed} onCollapse={() => {
+        if (matchMedia("(max-width:1100px)").matches) setExpanded(false);
+        else setCollapsed(!collapsed);
+      }} />
+      <WorkspaceCard name="个人工作空间" description="Personal · 未登录" aria-label="个人工作空间" onClick={() => onLogin()} />
+      <div className="sidebar-body">
+        <PrimaryNavigation view="home" onNavigate={view => view === "home" ? setExpanded(false) : go(view)} />
       </div>
       <div className="user-footer">
         <button className="user-card" id="user-card" onClick={() => onLogin()} aria-label="登录 / 注册">
@@ -57,7 +55,7 @@ export function GuestHome({ market, onLogin }: { market: Market; onLogin: (inten
     {expanded && <button className="guest-nav-scrim" aria-label="关闭导航" onClick={() => setExpanded(false)} />}
     <main className="main">
       <div className="topbar"><div className="topbar-inner">
-        <button className="guest-nav-toggle" aria-label="打开导航" aria-expanded={expanded} aria-controls="guest-sidebar" onClick={() => setExpanded(true)}>☰</button>
+        <button className="guest-nav-toggle" aria-label="打开导航" aria-expanded={expanded} aria-controls="workspace-sidebar" onClick={() => setExpanded(true)}>☰</button>
         <div className="page-crumb">我的 AI 工作台</div>
         <div className="topbar-right">
           <a className="guest-hardware-link" href="https://eurekamind.ai/shop" target="_blank" rel="noopener noreferrer"><Image src={assetUrl("hardware-entry.png")} alt="" width={30} height={36} unoptimized /><span>智能记录，轻松协作</span></a>

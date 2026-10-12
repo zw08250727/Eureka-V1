@@ -16,8 +16,8 @@ for (const market of ["cn", "global"]) {
     // AUTH-GUEST-01: simplified guest home exposes only navigation and core actions.
     await expect(page.locator(".today-workbench, .guest-points-guide")).toHaveCount(0);
     await expect(page.locator(".guest-meeting-empty")).toHaveCount(1);
-    await expect(page.getByRole("button", { name: "个人工作区", exact: true })).toBeVisible();
-    const names = ["个人工作区", "开始录音", "通讯录", "日程与待办", "连接器", "上传", "Ask Agent", "我的闪念", "搜索会议", "登录后查看", "登录 / 注册"];
+    await expect(page.getByRole("button", { name: "个人工作空间", exact: true })).toBeVisible();
+    const names = ["个人工作空间", "开始录音", "通讯录", "日程与待办", "连接器", "上传", "Ask Agent", "我的闪念", "搜索会议", "登录后查看", "登录 / 注册"];
     for (const name of names) {
       const trigger = page.getByRole("button", { name, exact: true }).first();
       await trigger.click();
@@ -99,7 +99,7 @@ for (const market of ["cn", "global"]) {
     await page.screenshot({ path: `test-results/guest-${market}-${width}.png`, fullPage: true, animations: "disabled" });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     const main = await page.locator(".guest-app .main").boundingBox();
-    expect(main!.width).toBe(width < 1100 ? width : width - 244);
+    expect(main!.width).toBe(width < 1100 ? width : width - 272);
     const actions = await page.locator(".guest-library-actions").boundingBox();
     expect(actions!.x + actions!.width).toBeLessThanOrEqual(width - 16);
     await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();
@@ -131,4 +131,29 @@ test("corrupt credentials show guest home and failed persistence keeps credentia
   await expect(page.locator("#status")).toContainText("存储空间不足");
   await expect(page.locator("#phone")).toHaveValue("13800138000");
   await expect(page.locator(".guest-app")).toBeVisible();
+});
+
+for (const market of ["cn", "global"]) test(`${market}: guest sidebar matches the signed-in sidebar geometry and icons`, async ({ page }) => {
+  await page.setViewportSize({width:1440,height:900});
+  await page.goto(`/${market}/`);
+  await expect(page.getByRole('button',{name:'个人工作空间',exact:true})).toBeVisible();
+  const capture = () => page.evaluate(() => {
+    const selectors = ['#workspace-sidebar', '.brand-row', '.workspace-brand', '#ws-switcher', '.ws-space-avatar', '#home-entry', '#start-recording', '[data-contacts-entry]', '#todos-entry'];
+    return selectors.map(selector => {
+      const el = document.querySelector(selector)!;
+      const r = el.getBoundingClientRect(), s = getComputedStyle(el);
+      return {selector,x:r.x,y:r.y,width:r.width,height:r.height,padding:s.padding,borderRadius:s.borderRadius,fontSize:s.fontSize,color:s.color,background:s.backgroundColor,icons:selector === '#workspace-sidebar' ? [] : [...el.querySelectorAll('svg')].map(svg=>svg.innerHTML)};
+    });
+  });
+  await page.mouse.move(1000,700);
+  const guest = await capture();
+  await page.getByRole('button',{name:'收起侧栏',exact:true}).click();
+  await expect(page.locator('#workspace-sidebar')).toHaveCSS('width','76px');
+  await page.getByRole('button',{name:'展开侧栏',exact:true}).click();
+  await expect(page.locator('#workspace-sidebar')).toHaveCSS('width','272px');
+  await page.getByRole('button',{name:'个人工作空间',exact:true}).click();
+  await signIn(page,market);
+  await expect(page.locator('.app:not(.guest-app)')).toBeVisible();
+  await page.mouse.move(1000,700);
+  expect(await capture()).toEqual(guest);
 });
