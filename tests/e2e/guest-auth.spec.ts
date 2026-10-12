@@ -13,7 +13,10 @@ for (const market of ["cn", "global"]) {
     await expect(page.locator(".auth-overlay")).toHaveCount(0);
     await expect(page.locator(".meeting-row")).toHaveCount(0);
     await expect(page.locator("body")).not.toContainText(/张伟|3,000|5,000/);
-    const names = ["开始录音", "通讯录", "日程与待办", "连接器", "创建团队", "加入团队", "上传", "Ask Agent", "帮我安排", "全部闪念", "查看日程与待办", "查看全部记账", "升级会员", "所有通知", "搜索会议", "录音回收站", "登录 / 注册"];
+    // AUTH-GUEST-01: simplified guest home exposes only navigation and core actions.
+    await expect(page.locator(".today-workbench, .guest-points-guide, .ws-switcher")).toHaveCount(0);
+    await expect(page.locator(".guest-meeting-empty")).toHaveCount(1);
+    const names = ["开始录音", "通讯录", "日程与待办", "连接器", "上传", "Ask Agent", "我的闪念", "搜索会议", "登录后查看", "登录 / 注册"];
     for (const name of names) {
       const trigger = page.getByRole("button", { name, exact: true }).first();
       await trigger.click();
@@ -22,6 +25,14 @@ for (const market of ["cn", "global"]) {
       await page.getByRole("button", { name: "关闭登录", exact: true }).click();
       await expect(page.locator(".auth-overlay")).toHaveCount(0);
       await expect(trigger).toBeFocused();
+    }
+    // Removed promotional entrypoints remain protected when opened via a saved URL.
+    for (const view of ["credits", "subscription", "create-team", "invitations", "trash"]) {
+      await page.goto(`/${market}/workbench/?view=${view}`);
+      await expect(page.locator(".auth-overlay")).toBeVisible();
+      await expect(page.locator(".app:not(.guest-app)")).toHaveCount(0);
+      await page.keyboard.press("Escape");
+      await expect(page).toHaveURL(new RegExp(`/${market}/$`));
     }
     await page.getByRole("button", { name: "下载 App", exact: true }).click();
     await expect(page.locator(".guest-download-dialog")).toBeVisible();
@@ -53,7 +64,8 @@ for (const market of ["cn", "global"]) {
   });
   for (const action of ["上传", "Ask Agent", "开始录音", "所有通知"]) test(`${market}: login resumes ${action} without starting an operation`, async ({ page }) => {
     await page.goto(`/${market}/`);
-    await page.getByRole("button", { name: action, exact: true }).first().click();
+    if (action === "所有通知") await page.goto(`/${market}/workbench/?view=home&action=notifications`);
+    else await page.getByRole("button", { name: action, exact: true }).first().click();
     await signIn(page, market);
     if (action === "Ask Agent") await expect(page.locator("#xiaozhi-rail")).toBeVisible();
     else await expect(page.getByRole("dialog")).toBeVisible();
@@ -85,6 +97,10 @@ for (const market of ["cn", "global"]) {
     await expect(page.locator(".guest-app")).toBeVisible();
     await page.screenshot({ path: `test-results/guest-${market}-${width}.png`, fullPage: true, animations: "disabled" });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    const main = await page.locator(".guest-app .main").boundingBox();
+    expect(main!.width).toBe(width < 1100 ? width : width - 244);
+    const actions = await page.locator(".guest-library-actions").boundingBox();
+    expect(actions!.x + actions!.width).toBeLessThanOrEqual(width - 16);
     await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();
     await expect(page.locator("#auth-form")).toBeVisible();
     await page.screenshot({ path: `test-results/guest-auth-${market}-${width}.png`, animations: "disabled" });
