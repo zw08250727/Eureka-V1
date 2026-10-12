@@ -26,4 +26,5 @@
   .topbar-inner:has(.team-review-switch) { flex-wrap: wrap; padding-block: 8px; gap: 8px; }
   .team-review-switch { padding: 3px 6px; }
   .team-review-switch > span { display: none; }
+  .team-review-switch > .ui-select { display: inline-grid; }
 }
