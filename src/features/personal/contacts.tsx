@@ -86,9 +86,6 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
   const [noteIndex, setNoteIndex] = useState<number | null>(null);
   const [modal, setModal] = useState<ContactDialogKind | null>(null);
   const [crmGuide, setCrmGuide] = useState(false);
-  const [filtersOpen, setFiltersOpen] = useState(false);
-  const filtersRef = useRef<HTMLDivElement>(null);
-  const filterButtonRef = useRef<HTMLButtonElement>(null);
   const [sharing, setSharing] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [answer, setAnswer] = useState("");
@@ -147,7 +144,6 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
   const team = space !== "personal", workspace = controller?.state?.spaces.find(w => w.id === space);
   const workspaceReadonly = team && workspace?.status !== "active";
   const pageTitle = "通讯录";
-  const filterCount = [subjectFilter,sourceFilter,ownerFilter,createdFrom || createdTo].filter(Boolean).length;
   const isAdmin = !!workspace && M.admin(workspace, actor);
   const customerKey = (c: import("./store").Contact) => team ? `${c.ownerId}:${c.id}` : c.id;
   const ownerName = (owner?: string) => workspace?.members.find(m => m.id === owner)?.name || owner || "本人";
@@ -456,39 +452,16 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
                   </>
                 ) : (
                   <>
-                    <div className="contacts-toolbar contacts-toolbar-compact">
-                      <label className="contacts-search">
-                        <RefIcon name="search" />
-                        <input
-                          id="contacts-search"
-                          type="search"
-                          aria-label="搜索客户"
-                          placeholder="搜索姓名、公司、角色、主题…"
-                          value={query}
-                          onChange={(e) => setQuery(e.target.value)}
-                        />
-                      </label>
-                      <button ref={filterButtonRef} type="button" className="contacts-button contacts-filter-trigger" popoverTarget="contacts-filter-panel" onClick={event=>{
-                        event.preventDefault();const panel=filtersRef.current;if(!panel)return;
-                        if(panel.matches(':popover-open')){panel.hidePopover();return;}
-                        panel.showPopover();const rect=event.currentTarget.getBoundingClientRect();
-                        panel.style.width=`${Math.min(460,innerWidth-24)}px`;panel.style.maxHeight=`${innerHeight-24}px`;
-                        panel.style.left=`${Math.max(12,Math.min(rect.left,innerWidth-panel.offsetWidth-12))}px`;
-                        panel.style.top=`${Math.max(12,Math.min(rect.bottom+8,innerHeight-panel.offsetHeight-12))}px`;
-                      }} aria-expanded={filtersOpen} aria-label={filterCount?`筛选联系人，已选 ${filterCount} 项`:'筛选联系人'}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>筛选{filterCount>0&&<span className="contacts-filter-count">{filterCount}</span>}</button>
-                      <Select aria-label="按创建时间排序" value={dateOrder} onChange={e=>setDateOrder(e.target.value)}><option value="desc">最新创建</option><option value="asc">最早创建</option></Select>
+                    <div className="contacts-toolbar contacts-toolbar-inline" role="region" aria-label="搜索与筛选联系人">
+                      <label className="contacts-search-field"><span>搜索</span><span className="contacts-search"><RefIcon name="search"/><input id="contacts-search" type="search" aria-label="搜索客户" placeholder="姓名、公司、角色、主题…" value={query} onChange={e=>setQuery(e.target.value)}/></span></label>
+                      <label className="contacts-filter-field"><span>主体类型</span><Select aria-label="筛选主体类型" value={subjectFilter} onChange={e=>setSubjectFilter(e.target.value)}><option value="">全部类型</option><option value="enterprise">企业</option><option value="person">自然人</option></Select></label>
+                      <label className="contacts-filter-field contacts-source-field"><span>客户来源</span><Select aria-label="筛选客户来源" value={sourceFilter} onChange={e=>setSourceFilter(e.target.value)}><option value="">全部来源</option>{Object.entries(customerSourceFilters).map(([value,label])=><option key={value} value={value}>{label}</option>)}</Select></label>
+                      {team&&<label className="contacts-filter-field"><span>所属成员</span><Select aria-label="筛选所属成员" value={ownerFilter} onChange={e=>setOwnerFilter(e.target.value)}><option value="">全部成员</option>{workspace?.members.filter(m=>m.status==='active').map(m=><option key={m.id} value={m.id}>{m.name}{m.id===actor?'（我）':''}</option>)}</Select></label>}
+                      <label className="contacts-filter-field contacts-date-field"><span>创建开始日期</span><input type="date" aria-label="创建开始日期" value={createdFrom} max={createdTo||undefined} onChange={e=>setCreatedFrom(e.target.value)}/></label>
+                      <label className="contacts-filter-field contacts-date-field"><span>创建结束日期</span><input type="date" aria-label="创建结束日期" value={createdTo} min={createdFrom||undefined} onChange={e=>setCreatedTo(e.target.value)}/></label>
+                      <label className="contacts-filter-field"><span>排序</span><Select aria-label="按创建时间排序" value={dateOrder} onChange={e=>setDateOrder(e.target.value)}><option value="desc">最新创建</option><option value="asc">最早创建</option></Select></label>
+                      <button className="contacts-button contacts-reset" type="button" onClick={()=>{setSubjectFilter('');setSourceFilter('');setOwnerFilter('');setCreatedFrom('');setCreatedTo('');setQuery('');setDateOrder('desc')}}>重置</button>
                       <span className="contacts-toolbar-hint" aria-live="polite">共 {people.length} 个联系人</span>
-                      <div ref={filtersRef} id="contacts-filter-panel" popover="auto" className="customer-filters contacts-filter-popover" role="region" aria-label="客户筛选" onToggle={event=>setFiltersOpen(event.newState==='open')}>
-                        <header><strong>筛选联系人</strong><button type="button" aria-label="关闭筛选" onClick={()=>filtersRef.current?.hidePopover()}>×</button></header>
-                        <div className="contacts-filter-fields">
-                          <label>主体类型<Select aria-label="筛选主体类型" value={subjectFilter} onChange={e=>setSubjectFilter(e.target.value)}><option value="">全部类型</option><option value="enterprise">企业</option><option value="person">自然人</option></Select></label>
-                          <label>客户来源<Select aria-label="筛选客户来源" value={sourceFilter} onChange={e=>setSourceFilter(e.target.value)}><option value="">全部来源</option>{Object.entries(customerSourceFilters).map(([value,label])=><option key={value} value={value}>{label}</option>)}</Select></label>
-                          {team&&<label>所属成员<Select aria-label="筛选所属成员" value={ownerFilter} onChange={e=>setOwnerFilter(e.target.value)}><option value="">全部成员</option>{workspace?.members.filter(m=>m.status==='active').map(m=><option key={m.id} value={m.id}>{m.name}{m.id===actor?'（我）':''}</option>)}</Select></label>}
-                          <label>创建开始日期<input type="date" aria-label="创建开始日期" value={createdFrom} max={createdTo||undefined} onChange={e=>setCreatedFrom(e.target.value)}/></label>
-                          <label>创建结束日期<input type="date" aria-label="创建结束日期" value={createdTo} min={createdFrom||undefined} onChange={e=>setCreatedTo(e.target.value)}/></label>
-                        </div>
-                        <footer><button className="contacts-button" type="button" onClick={()=>{setSubjectFilter('');setSourceFilter('');setOwnerFilter('');setCreatedFrom('');setCreatedTo('')}}>重置筛选</button><span>已即时应用 · {people.length} 个联系人</span><button className="contacts-button primary" type="button" onClick={()=>filtersRef.current?.hidePopover()}>完成</button></footer>
-                      </div>
                     </div>
                     {createdFrom && createdTo && createdFrom > createdTo && <p role="alert">开始日期不能晚于结束日期</p>}
                     <div className="contacts-grid">
