@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element -- Icons extracted from the authorized reference component. */
 "use client";
+import { Select } from "@/components/ui/select";
 import { useState, useEffect } from "react";
 import { createActions } from "@/features/personal/store";
 import { templates } from "./templates";
@@ -178,7 +179,7 @@ export function TemplateContent({
         <div className="ex-form">
           <label>
             总结语言
-            <select
+            <Select
               value={value.language}
               onChange={(e) => onChange({ language: e.target.value })}
             >
@@ -193,18 +194,18 @@ export function TemplateContent({
               ].map((n) => (
                 <option key={n}>{n}</option>
               ))}
-            </select>
+            </Select>
           </label>
           <label>
             详细程度
-            <select
+            <Select
               value={value.detail}
               onChange={(e) => onChange({ detail: e.target.value })}
             >
               {["精简", "标准", "详细"].map((n) => (
                 <option key={n}>{n}</option>
               ))}
-            </select>
+            </Select>
           </label>
         </div>
         <p className="ex-muted" style={{ marginTop: 16 }}>

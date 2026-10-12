@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element -- Reuse the captured product changelog assets. */
 "use client";
+import { Select } from "@/components/ui/select";
 import { useState } from "react";
 import { basePath, appUrl } from "@/lib/routes";
 import { ReferenceDialog } from "@/features/reference/dialog";
@@ -94,7 +95,7 @@ export function CompanionPage({
     <section className="ex-log">
       <header className="ex-head">
         <h2>更新日志</h2>
-        <select
+        <Select
           className="ex-button"
           aria-label="筛选版本"
           value={version}
@@ -104,7 +105,7 @@ export function CompanionPage({
           {list.map((v) => (
             <option key={v.version}>{v.version}</option>
           ))}
-        </select>
+        </Select>
       </header>
       <nav className="ex-tabs" style={{ marginTop: 20 }}>
         {[

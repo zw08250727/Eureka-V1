@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element -- Preserve the original image element sizing and local upload preview behavior. */
 "use client";
+import { Select } from "@/components/ui/select";
 import { useState, type ReactNode } from "react";
 import {
   MdDialog,
@@ -494,9 +495,9 @@ export function MeetingDialogs({
       <>
         <label className="md-field">
           <span>分享类型</span>
-          <select aria-label="分享类型">
+          <Select aria-label="分享类型">
             <option>公开链接 · 任何人通过链接都可以访问</option>
-          </select>
+          </Select>
         </label>
         <div className="md-inline">
           <strong>分享内容</strong>

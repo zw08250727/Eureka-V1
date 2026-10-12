@@ -1,4 +1,5 @@
 "use client";
+import { Select } from "@/components/ui/select";
 import type { FormEvent, ReactNode } from "react";
 import { M } from "./model/store";
 import type { Workspace } from "./model/types";
@@ -149,14 +150,14 @@ export function CheckoutDialog({
         </div>
         <label className="ws-field">
           模拟支付方式
-          <select
+          <Select
             name="method"
             value={method}
             onChange={(e) => setMethod(e.target.value)}
           >
             <option>Visa ···· 4242</option>
             <option>Apple Pay（模拟）</option>
-          </select>
+          </Select>
         </label>
         <p className="ws-muted">
           支付成功后立即生效，随后每{o.cycle === "year" ? "年" : "月"}按{" "}

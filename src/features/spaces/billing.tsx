@@ -1,4 +1,5 @@
 "use client";
+import { Select } from "@/components/ui/select";
 import { useState } from "react";
 import { M } from "./model/store";
 import PS from "./model/subscription";
@@ -581,10 +582,10 @@ export function BillingPage({
           ))}
           <label className="ws-field">
             模拟支付方式
-            <select name="method" defaultValue={w.billing.method}>
+            <Select name="method" defaultValue={w.billing.method}>
               <option>Visa ···· 4242</option>
               <option>Mastercard ···· 5555</option>
-            </select>
+            </Select>
           </label>
         </WsDialog>
       ) : null}

@@ -1,4 +1,5 @@
 "use client";
+import { Select } from "@/components/ui/select";
 import "./team-home.css";
 import { RecipientDialog } from "./sharing-settings";
 import { TeamOverview } from "./team-overview";
@@ -198,11 +199,11 @@ export function TeamHome({
                   setPage(1);
                 }}
               />
-              <select id="ws-meeting-member" aria-label="团队成员" value={memberFilter} onChange={e => { setMemberFilter(e.target.value); setPage(1); }}>
+              <Select id="ws-meeting-member" aria-label="团队成员" value={memberFilter} onChange={e => { setMemberFilter(e.target.value); setPage(1); }}>
                 <option value="all">全部团队成员</option>
                 {w.members.filter(m => m.status === "active").map(m => <option key={m.id} value={m.id}>{m.name}{m.id === actor ? "（我）" : ""}</option>)}
-              </select>
-              <select
+              </Select>
+              <Select
                 id="ws-meeting-status"
                 aria-label="会议状态"
                 value={status}
@@ -216,7 +217,7 @@ export function TeamHome({
                     {v === "all" ? "全部状态" : v}
                   </option>
                 ))}
-              </select>
+              </Select>
               <Button
                 action="recycle"
                 onClick={() => {

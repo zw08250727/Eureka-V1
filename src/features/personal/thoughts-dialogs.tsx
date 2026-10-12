@@ -1,5 +1,6 @@
 "use client";
 /* eslint-disable @next/next/no-img-element -- Preserve the reference guide image markup and dimensions. */
+import { Select } from "@/components/ui/select";
 import {
   useEffect,
   useLayoutEffect,
@@ -145,7 +146,7 @@ export function ThoughtDialog({
               <div className="th-form-grid">
                 <label>
                   分类
-                  <select
+                  <Select
                     name="type"
                     value={type}
                     onChange={(e) =>
@@ -157,7 +158,7 @@ export function ThoughtDialog({
                         {thoughtNames[t]}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </label>
                 <label>
                   记录日期
@@ -203,7 +204,7 @@ export function ThoughtDialog({
                 </label>
                 <label>
                   记录性质
-                  <select
+                  <Select
                     name="entryKind"
                     defaultValue={base.entryKind || "actual"}
                   >
@@ -211,11 +212,11 @@ export function ThoughtDialog({
                     <option value="planned">
                       预算／计划（不计入实际收支）
                     </option>
-                  </select>
+                  </Select>
                 </label>
                 <label>
                   收支
-                  <select
+                  <Select
                     name="direction"
                     defaultValue={
                       base.direction === "income" ? "income" : "expense"
@@ -223,7 +224,7 @@ export function ThoughtDialog({
                   >
                     <option value="expense">支出</option>
                     <option value="income">收入</option>
-                  </select>
+                  </Select>
                 </label>
                 <label>
                   金额

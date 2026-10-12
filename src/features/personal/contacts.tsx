@@ -1,4 +1,5 @@
 "use client";
+import { Select } from "@/components/ui/select";
 import "./contacts-controls.css";
 import { createContacts, canShareContact } from "./store";
 import { RecipientDialog } from "@/features/spaces/sharing-settings";
@@ -464,12 +465,12 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
                       </span>
                     </div>
                     <div className="customer-filters" aria-label="客户筛选">
-                      <label>主体类型<select aria-label="筛选主体类型" value={subjectFilter} onChange={(e) => setSubjectFilter(e.target.value)}><option value="">全部类型</option><option value="enterprise">企业</option><option value="person">自然人</option></select></label>
-                      <label>客户来源<select aria-label="筛选客户来源" value={sourceFilter} onChange={(e) => setSourceFilter(e.target.value)}><option value="">全部来源</option>{Object.entries(customerSourceFilters).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-                      {team && <label>所属成员<select aria-label="筛选所属成员" value={ownerFilter} onChange={e => setOwnerFilter(e.target.value)}><option value="">全部成员</option>{workspace?.members.filter(m => m.status === "active").map(m => <option key={m.id} value={m.id}>{m.name}{m.id === actor ? "（我）" : ""}</option>)}</select></label>}
+                      <label>主体类型<Select aria-label="筛选主体类型" value={subjectFilter} onChange={(e) => setSubjectFilter(e.target.value)}><option value="">全部类型</option><option value="enterprise">企业</option><option value="person">自然人</option></Select></label>
+                      <label>客户来源<Select aria-label="筛选客户来源" value={sourceFilter} onChange={(e) => setSourceFilter(e.target.value)}><option value="">全部来源</option>{Object.entries(customerSourceFilters).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</Select></label>
+                      {team && <label>所属成员<Select aria-label="筛选所属成员" value={ownerFilter} onChange={e => setOwnerFilter(e.target.value)}><option value="">全部成员</option>{workspace?.members.filter(m => m.status === "active").map(m => <option key={m.id} value={m.id}>{m.name}{m.id === actor ? "（我）" : ""}</option>)}</Select></label>}
                       <label>创建开始日期<input type="date" aria-label="创建开始日期" value={createdFrom} max={createdTo || undefined} onChange={(e) => setCreatedFrom(e.target.value)} /></label>
                       <label>创建结束日期<input type="date" aria-label="创建结束日期" value={createdTo} min={createdFrom || undefined} onChange={(e) => setCreatedTo(e.target.value)} /></label>
-                      <label>排序<select aria-label="按创建时间排序" value={dateOrder} onChange={(e) => setDateOrder(e.target.value)}><option value="desc">创建时间：由新到旧</option><option value="asc">创建时间：由旧到新</option></select></label>
+                      <label>排序<Select aria-label="按创建时间排序" value={dateOrder} onChange={(e) => setDateOrder(e.target.value)}><option value="desc">创建时间：由新到旧</option><option value="asc">创建时间：由旧到新</option></Select></label>
                       <button className="contacts-button" type="button" onClick={() => { setSubjectFilter(""); setSourceFilter(""); setOwnerFilter(""); setCreatedFrom(""); setCreatedTo(""); setQuery(""); setDateOrder("desc"); }}>重置</button>
                     </div>
                     {createdFrom && createdTo && createdFrom > createdTo && <p role="alert">开始日期不能晚于结束日期</p>}

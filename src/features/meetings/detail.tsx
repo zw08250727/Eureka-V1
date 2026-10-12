@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element -- Preserve the original image element sizing and local upload preview behavior. */
 "use client";
+import { Select } from "@/components/ui/select";
 import { useEffect, useRef, useState } from "react";
 import { useWorkbench } from "@/features/workbench/hooks/use-workbench";
 import { createLocalRepository } from "@/features/workbench/model/local-repository";
@@ -656,7 +657,7 @@ export function MeetingPage({
                     >
                       15↷
                     </B>
-                    <select
+                    <Select
                       id="md-speed"
                       aria-label="播放倍速"
                       value={speed}
@@ -671,7 +672,7 @@ export function MeetingPage({
                           {x}x
                         </option>
                       ))}
-                    </select>
+                    </Select>
                     <span className="md-demo">演示音频</span>
                   </div>
                   <nav

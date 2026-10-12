@@ -1,3 +1,4 @@
+import { Select } from "@/components/ui/select";
 import { useEffect, useRef, useState } from "react";
 import type { Contact } from "./store";
 import type { CustomerSource } from "./contact-identity";
@@ -135,7 +136,7 @@ export function ContactDialog({
                 </>}
                 {kind === "add" && channel === "phone" ? <>
                   <p className="customer-import-notice">手机通讯录演示 · 当前使用示例联系人，尚未读取真实手机通讯录。</p>
-                  <label>选择手机联系人<select aria-label="选择手机联系人" value={phoneId} onChange={e => setPhoneId(e.target.value)}>{phoneContacts.map(p => <option key={p.id} value={p.id}>{p.name} · {p.phone}</option>)}</select></label>
+                  <label>选择手机联系人<Select aria-label="选择手机联系人" value={phoneId} onChange={e => setPhoneId(e.target.value)}>{phoneContacts.map(p => <option key={p.id} value={p.id}>{p.name} · {p.phone}</option>)}</Select></label>
                   <section className="customer-import-preview" aria-label="导入预览"><strong>{phoneContact.name}</strong><p>{phoneContact.company} · {phoneContact.role}</p><p>{phoneContact.phone} · {phoneContact.email}</p></section>
                   {Object.entries(phoneContact).filter(([k]) => k !== "id").map(([k,v]) => <input type="hidden" key={k} name={k} value={v} />)}
                   <input type="hidden" name="subjectType" value="person" /><input type="hidden" name="verifiedPhone" value="yes" />
@@ -143,9 +144,9 @@ export function ContactDialog({
                 </> : kind === "add" && channel === "crm" ? <>
                   <p className="customer-import-notice">演示 CRM · 本地示例记录，尚未连接真实 CRM 系统。</p>
                   <input type="hidden" name="crmSystem" value="演示 CRM" />
-                  <label>选择 CRM 客户<select aria-label="选择 CRM 客户" name="crmId" value={crmId} onChange={(e) => setCrmId(e.target.value)}>
+                  <label>选择 CRM 客户<Select aria-label="选择 CRM 客户" name="crmId" value={crmId} onChange={(e) => setCrmId(e.target.value)}>
                     {crmCustomers.map((c) => <option key={c.crmId} value={c.crmId}>{c.name} · {c.subjectType === "enterprise" ? "企业" : "自然人"}</option>)}
-                  </select></label>
+                  </Select></label>
                   <section className="customer-import-preview" aria-label="导入预览">
                     <strong>{crm.name}</strong><p>{crm.subjectType === "enterprise" ? "企业" : "自然人"} · {crm.region}</p>
                     <p>{crm.company} · {crm.role}</p><p>{crm.email || "未提供邮箱"}</p><p>{crm.summary}</p>
@@ -156,9 +157,9 @@ export function ContactDialog({
                   <p className="contacts-muted">仅导入到当前工作区的“通讯录”。本人已有匹配档案将更新，CRM 已有字段优先；不同成员、不同工作区保持独立。</p>
                 </> : <>
                   <div className="contacts-form-grid">
-                    <label>主体类型<select aria-label="主体类型" name="subjectType" value={subjectType} onChange={(e) => setSubjectType(e.target.value as "person" | "enterprise")} disabled={kind === "edit"}>
+                    <label>主体类型<Select aria-label="主体类型" name="subjectType" value={subjectType} onChange={(e) => setSubjectType(e.target.value as "person" | "enterprise")} disabled={kind === "edit"}>
                       <option value="person">自然人</option><option value="enterprise">企业</option>
-                    </select></label>
+                    </Select></label>
                     {kind === "edit" && <input type="hidden" name="subjectType" value={subjectType} />}
                     <label>{subjectType === "enterprise" ? "企业名称" : "客户姓名"}<input name="name" required maxLength={100} defaultValue={person?.name || ""} /></label>
                     {subjectType === "person" && <label>所属公司<input name="company" maxLength={100} defaultValue={person?.company || ""} /></label>}

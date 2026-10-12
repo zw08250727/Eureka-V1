@@ -1,4 +1,5 @@
 "use client";
+import { Select } from "@/components/ui/select";
 import {
   useEffect,
   useLayoutEffect,
@@ -182,7 +183,7 @@ export function ActionFields({ record }: { record: ActionRecord }) {
         )}
         <label className="pa-field">
           提醒时间
-          <select
+          <Select
             name="reminder"
             defaultValue={record.reminder}
             disabled={record.type === "todo" && !start}
@@ -192,7 +193,7 @@ export function ActionFields({ record }: { record: ActionRecord }) {
                 {t}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         <p className="pa-hint">
           时间按当前设备时区；待办截止时间可留空，保存到“未安排”

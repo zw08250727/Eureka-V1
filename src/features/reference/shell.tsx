@@ -1,4 +1,5 @@
 "use client";
+import { Select } from "@/components/ui/select";
 import "./workspace-navigation.css";
 import "./ui-polish.css";
 import {
@@ -620,7 +621,7 @@ export function ReferenceShell({
       {mobileNav && <ReferenceDialog className="ex-dialog mobile-nav-dialog" label="工作台导航" onClose={() => setMobileNav(false)}>
         <header className="ex-head"><h2>工作台导航</h2><button className="ex-close" aria-label="关闭导航" onClick={() => setMobileNav(false)}>×</button></header>
         <div className="ex-body">
-          <label className="mobile-space-picker">当前工作区<select aria-label="切换工作区" value={space} onChange={e => go("home", "", e.target.value)}>{data.spaces.filter(s => M.member(s)).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></label>
+          <label className="mobile-space-picker">当前工作区<Select aria-label="切换工作区" value={space} onChange={e => go("home", "", e.target.value)}>{data.spaces.filter(s => M.member(s)).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</Select></label>
           <div className="mobile-space-actions"><button disabled={!!M.accountTeam(data, data.account.id)} title={M.accountTeam(data, data.account.id) ? "每个账号最多加入或创建一个团队" : "创建团队"} onClick={() => { try { M.assertCanJoinTeam(data); setMobileNav(false); setSetupDialog("create"); } catch(e) { notify((e as Error).message); } }}>创建团队</button><button onClick={() => { setMobileNav(false); setSetupDialog("invitations"); }}>工作空间邀请</button></div>
           <nav className="mobile-nav-links" aria-label="工作区功能">{([["home","首页"],["recording","开始录音"],["calendar","日程与待办"],["contacts","通讯录"],["connectors","连接器"],...(team ? [["members","团队成员"],...(admin ? [["devices","设备查看"],["space-settings","空间设置"]] : [])] : [])] as [AppView,string][]).map(([v,label]) => <button key={v} aria-current={view === v ? "page" : undefined} onClick={() => {setMobileNav(false);go(v)}}>{label}<span aria-hidden="true">→</span></button>)}</nav>
           <div className="mobile-nav-account"><span>我的账户</span><CreditsPromo w={w}/><nav className="mobile-nav-links" aria-label="账户功能">{([["settings","个人设置"],["subscription",team ? "订阅与席位" : "个人订阅"],["my-devices","我的设备"],["updates","更新日志"],["product","产品介绍"]] as [AppView,string][]).map(([v,label]) => <button key={v} onClick={() => go(v)}>{label}<span aria-hidden="true">→</span></button>)}</nav></div>

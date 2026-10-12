@@ -1,4 +1,5 @@
 "use client";
+import { Select } from "@/components/ui/select";
 import { useState } from "react";
 import { M } from "@/features/spaces/model/store";
 import PS from "@/features/spaces/model/subscription";
@@ -41,7 +42,7 @@ export function OrdersPanel({controller, space, actor, resumeCredit}: {
       <AccountTabs items={filters} value={filter} onChange={setFilter} label="订单状态" panelId="account-orders"/>
       <button disabled={!orders.some(o => o.status === "paid")} onClick={() => setInvoice(!invoice)}>开发票</button>
     </div>
-    {w.type === "personal" && <label className="ex-order-kind">订单类型<select value={kind} onChange={e=>setKind(e.target.value)}><option value="all">全部类型</option><option value="personal">个人订阅</option><option value="credit">Credits 充值</option></select></label>}
+    {w.type === "personal" && <label className="ex-order-kind">订单类型<Select value={kind} onChange={e=>setKind(e.target.value)}><option value="all">全部类型</option><option value="personal">个人订阅</option><option value="credit">Credits 充值</option></Select></label>}
     {invoice && <form className="ex-summary" onSubmit={event=>{
       event.preventDefault(); const values=Object.fromEntries(new FormData(event.currentTarget));
       run(()=>{
@@ -54,7 +55,7 @@ export function OrdersPanel({controller, space, actor, resumeCredit}: {
         setInvoice(false);setMessage("演示发票申请已保存");
       });
     }}>
-      <label>选择已支付订单<select name="order" required>{orders.filter(o=>o.status==='paid').map(o=><option key={`${o.kind}:${o.id}`} value={`${o.kind}:${o.id}`}>{o.kind==='personal'?'Pro 订阅':'Credits 充值'} · {o.id}</option>)}</select></label>
+      <label>选择已支付订单<Select name="order" required>{orders.filter(o=>o.status==='paid').map(o=><option key={`${o.kind}:${o.id}`} value={`${o.kind}:${o.id}`}>{o.kind==='personal'?'Pro 订阅':'Credits 充值'} · {o.id}</option>)}</Select></label>
       <label>发票抬头<input name="title" required/></label><label>接收邮箱<input name="email" type="email" required/></label>
       <div className="ex-footer"><button type="button" onClick={()=>setInvoice(false)}>取消</button><button className="primary">保存申请</button></div>
     </form>}

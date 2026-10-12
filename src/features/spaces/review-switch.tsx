@@ -1,3 +1,4 @@
+import { Select } from "@/components/ui/select";
 import { appUrl, type AppView } from "@/lib/routes";
 import { M } from "./model/store";
 import type { WorkspaceState } from "./model/types";
@@ -13,7 +14,7 @@ export function ReviewPerspectiveSwitch({ state, space, actor, view, memberView,
   const value = w.type === "personal" ? "personal" : memberView || !M.admin(w, actor) ? "member" : "admin";
   return <div className="team-review-tools"><label className="team-review-switch" title="评审演示：切换视角或体验创建团队，保留原工作空间数据">
     <span>评审视角</span>
-    <select aria-label="评审视角" value={creationDemo ? "creation-demo" : value} onChange={(e) => {
+    <Select aria-label="评审视角" value={creationDemo ? "creation-demo" : value} onChange={(e) => {
       const next = e.target.value;
       if (next === "creation-demo") { startCreationDemo(); return; }
       if (next === "exit-demo") { exitCreationDemo(); return; }
@@ -35,6 +36,6 @@ export function ReviewPerspectiveSwitch({ state, space, actor, view, memberView,
       <option value="member" disabled={!team?.members.some(m => m.status === "active" && m.role === "member")}>成员视角{!team ? "（未加入团队）" : ""}</option>
       <option value="creation-demo">创建团队演示（未加入团队）</option>
       </>}
-    </select>
+    </Select>
   </label>{creationDemo ? <button type="button" className="team-review-reset" onClick={() => startCreationDemo(true)} title="只重置本次创建演示，保留原工作空间">重新体验</button> : null}</div>;
 }

@@ -1,4 +1,5 @@
 "use client";
+import { Select } from "@/components/ui/select";
 import { useState } from "react";
 import { M } from "./model/store";
 import type { AutomaticTask } from "./model/types";
@@ -117,10 +118,10 @@ export function AutomaticTaskDialog({
         <div className="ws-two-fields">
           <label className="ws-field">
             重复频率
-            <select name="frequency" defaultValue={task?.frequency || "weekly"}>
+            <Select name="frequency" defaultValue={task?.frequency || "weekly"}>
               <option value="daily">每天</option>
               <option value="weekly">每周五</option>
-            </select>
+            </Select>
           </label>
           <label className="ws-field">
             执行时间（GMT+8）

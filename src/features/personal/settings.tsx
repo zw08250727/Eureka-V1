@@ -1,4 +1,5 @@
 "use client";
+import { Select } from "@/components/ui/select";
 import { useEffect, useRef, useState } from "react";
 import { usePersonal } from "./use-personal";
 import type { SpacesController } from "@/features/spaces/use-spaces";
@@ -165,7 +166,7 @@ export function SettingsPage({
             </div>
             <div className="settings-language-control">
 
-              <select
+              <Select
                 className="settings-language-select"
                 data-settings-language="asr"
                 aria-label="语音识别"
@@ -175,7 +176,7 @@ export function SettingsPage({
                 <option value="en">英语</option>
                 <option value="zh-Hans">简体中文</option>
                 <option value="zh-Hant">繁体中文</option>
-              </select>
+              </Select>
             </div>
           </div>
           <div className="settings-float-row">
@@ -185,7 +186,7 @@ export function SettingsPage({
             </div>
             <div className="settings-language-control">
 
-              <select
+              <Select
                 className="settings-language-select"
                 data-settings-language="notes"
                 aria-label="纪要与翻译"
@@ -195,7 +196,7 @@ export function SettingsPage({
                 <option value="detected">检测语言</option>
                 <option value="en">英语</option>
                 <option value="zh-Hans">简体中文</option>
-              </select>
+              </Select>
             </div>
           </div>
         </section>

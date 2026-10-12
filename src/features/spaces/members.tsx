@@ -1,4 +1,5 @@
 "use client";
+import { Select } from "@/components/ui/select";
 import { useEffect, useRef, useState } from "react";
 import { M } from "./model/store";
 import type { Member } from "./model/types";
@@ -266,10 +267,10 @@ export function MembersPage({
           <input type="hidden" name="memberId" value={member.id} />
           <label className="ws-field">
             角色
-            <select name="role" defaultValue={member.role}>
+            <Select name="role" defaultValue={member.role}>
               <option value="member">成员</option>
               <option value="admin">管理员</option>
-            </select>
+            </Select>
           </label>
           <p className="ws-muted">
             管理员可以编辑、管理团队区全部内容，包括会议、通讯录、闪念、日程待办、灵感与记账。

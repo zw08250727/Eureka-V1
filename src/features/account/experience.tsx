@@ -1,4 +1,5 @@
 "use client";
+import { Select } from "@/components/ui/select";
 import { useState, useEffect, useRef } from "react";
 import { ReferenceDialog } from "@/features/reference/dialog";
 import { M } from "@/features/spaces/model/store";
@@ -353,11 +354,11 @@ export function AccountExperience({
             <p>你对录音总结或 Agent 任务的使用体验如何？</p>
             <label>
               满意度
-              <select>
+              <Select>
                 <option>满意</option>
                 <option>一般</option>
                 <option>不满意</option>
-              </select>
+              </Select>
             </label>
             <textarea
               aria-label="反馈内容"

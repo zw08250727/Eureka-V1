@@ -1,10 +1,11 @@
-/* eslint-disable @next/next/no-img-element -- Local avatar upload preview. */
 "use client";
+import { Select } from "@/components/ui/select";
 import { useEffect, useState } from "react";
 import type { SpacesController } from "@/features/spaces/use-spaces";
 import { M } from "@/features/spaces/model/store";
 import PS from "@/features/spaces/model/subscription";
 import { openAccount } from "./experience";
+import { AvatarUpload } from "./avatar-upload";
 import { AccountTabs, AccountStatus } from "./ui";
 import { appUrl } from "@/lib/routes";
 type Profile = {
@@ -111,33 +112,7 @@ export function AccountSettings({
 
           }}
         >
-          <label className="wide">
-            <span className="ex-profile-avatar">
-              {profile.avatar ? (
-                <img src={profile.avatar} alt="头像" />
-              ) : (
-                profile.name[0]
-              )}
-            </span>
-            上传头像
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (!f) return;
-                if (!f.type.startsWith("image/") || f.size > 2e6) {
-                  setStatusError(true); setStatus("请选择小于 2 MB 的图片");
-                  return;
-                }
-                const reader = new FileReader();
-                reader.onload = () =>
-                  setProfile(current => ({ ...current, avatar: String(reader.result) }));
-                reader.onerror = () => { setStatusError(true); setStatus("图片读取失败，请重新选择"); };
-                reader.readAsDataURL(f);
-              }}
-            />
-          </label>
+          <AvatarUpload value={profile.avatar} name={profile.name} onChange={avatar=>setProfile(current=>({...current,avatar}))} onError={message=>{setStatusError(!!message);setStatus(message)}}/>
           <label>
             我的昵称 *
             <input
@@ -158,7 +133,7 @@ export function AccountSettings({
           </label>
           <label>
             社会身份 *
-            <select
+            <Select
               value={profile.identity}
               onChange={(e) =>
                 setProfile({ ...profile, identity: e.target.value })
@@ -167,7 +142,7 @@ export function AccountSettings({
               {["职工", "学生", "自由职业者", "其他"].map((t) => (
                 <option key={t}>{t}</option>
               ))}
-            </select>
+            </Select>
           </label>
           <label>
             职业类型 *
@@ -181,7 +156,7 @@ export function AccountSettings({
           </label>
           <label>
             所在领域 *
-            <select
+            <Select
               value={profile.industry}
               onChange={(e) =>
                 setProfile({ ...profile, industry: e.target.value })
@@ -198,7 +173,7 @@ export function AccountSettings({
               ].map((t) => (
                 <option key={t}>{t}</option>
               ))}
-            </select>
+            </Select>
           </label>
           <label className="wide">
             所属公司

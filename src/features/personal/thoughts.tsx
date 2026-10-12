@@ -1,4 +1,5 @@
 "use client";
+import { Select } from "@/components/ui/select";
 import { useLayoutEffect, useRef, useState } from "react";
 import {AssetSharing,assetOwner,canEditAsset} from "./asset-sharing";
 import { CalendarPage } from "./calendar";
@@ -186,13 +187,13 @@ export function ThoughtsPage({ id, actor = "zhang", space = "personal", controll
                   >
                     <span className="sr-only">筛选归档月份</span>
                     <RefIcon name="clock" className="icon date-icon" />
-                    <select
+                    <Select
                       id="thought-month-select"
                       aria-label="筛选归档月份"
                       defaultValue="all"
                     >
                       <option value="all">全部月份</option>
-                    </select>
+                    </Select>
                     <RefIcon name="chevron" />
                   </label>
                   <ThButton
@@ -286,7 +287,7 @@ export function ThoughtsPage({ id, actor = "zhang", space = "personal", controll
                       }}
                     />
                   </label>
-                  <select
+                  <Select
                     id="th-order"
                     aria-label="排序方式"
                     value={order}
@@ -297,7 +298,7 @@ export function ThoughtsPage({ id, actor = "zhang", space = "personal", controll
                   >
                     <option value="desc">最新记录优先</option>
                     <option value="asc">最早记录优先</option>
-                  </select>
+                  </Select>
                   <ThButton action="clear" className="plain" onClick={clear}>
                     重置
                   </ThButton>

@@ -1,4 +1,5 @@
 "use client";
+import { Select } from "@/components/ui/select";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { RefIcon } from "@/features/reference/symbols";
 import { M } from "@/features/spaces/model/store";
@@ -345,7 +346,7 @@ export function RecordingPage({
             </div>
           </header>
           <div className="recording-tools">
-            <select
+            <Select
               id="recording-source-language"
               aria-label="转写语言"
               onChange={() => setToast("已更新演示转写语言")}
@@ -353,9 +354,9 @@ export function RecordingPage({
               <option>普通话</option>
               <option>粤语</option>
               <option>英语</option>
-            </select>
+            </Select>
             <span className="language-arrow">→</span>
-            <select
+            <Select
               id="recording-target-language"
               aria-label="翻译语言"
               onChange={() => setToast("已更新演示翻译语言")}
@@ -363,7 +364,7 @@ export function RecordingPage({
               <option>英语</option>
               <option>中文</option>
               <option>日语</option>
-            </select>
+            </Select>
             <label className="recording-translation">
               <input id="recording-translation" type="checkbox" />
               显示译文

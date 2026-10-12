@@ -1,4 +1,5 @@
 "use client";
+import { Select } from "@/components/ui/select";
 import {
   useEffect,
   useLayoutEffect,
@@ -176,7 +177,7 @@ export function WsRoot({
             {w.type === "team" ? (
               <label>
                 体验成员视角{" "}
-                <select
+                <Select
                   id="ws-actor"
                   aria-label="体验成员视角"
                   value={actor}
@@ -191,7 +192,7 @@ export function WsRoot({
                         {m.name} · {m.role === "admin" ? "管理员" : "成员"}
                       </option>
                     ))}
-                </select>
+                </Select>
               </label>
             ) : null}
           </footer>

@@ -1,4 +1,5 @@
 "use client";
+import { Select } from "@/components/ui/select";
 import { M } from "./model/store";
 import type { SpacesController } from "./use-spaces";
 import { appUrl } from "@/lib/routes";
@@ -75,10 +76,10 @@ export function InviteMembersDialog({
       </label>
       <label className="ws-field">
         角色
-        <select name="role" defaultValue="member">
+        <Select name="role" defaultValue="member">
           <option value="member">成员 · 使用录音与 AI，管理自己的文件</option>
           <option value="admin">管理员 · 管理成员、设备和账单</option>
-        </select>
+        </Select>
       </label>
       <p className="ws-muted">本地模拟邀请，不会发送真实邮件。</p>
     </Dialog>

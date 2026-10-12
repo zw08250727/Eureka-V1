@@ -1,4 +1,5 @@
 "use client";
+import { Select } from "@/components/ui/select";
 import { useEffect, useRef, useState } from "react";
 import { M } from "./model/store";
 import type { Cycle, Workspace } from "./model/types";
@@ -328,11 +329,11 @@ export function CreateTeamDialog({
         </label>
         <label className="ws-field">
           公司所在地区
-          <select name="country" defaultValue={draft.country}>
+          <Select name="country" defaultValue={draft.country}>
             {["中国", "新加坡", "美国", "其他"].map((c) => (
               <option key={c}>{c}</option>
             ))}
-          </select>
+          </Select>
         </label>
         <div className="ws-two-fields">
           <label className="ws-field">
@@ -349,10 +350,10 @@ export function CreateTeamDialog({
           </label>
           <label className="ws-field">
             计费周期
-            <select name="cycle" defaultValue={draft.cycle}>
+            <Select name="cycle" defaultValue={draft.cycle}>
               <option value="year">年付 · $20 / 席位 / 月（首年 $240）</option>
               <option value="month">月付 · $28 / 席位 / 月（首月优惠）</option>
-            </select>
+            </Select>
           </label>
         </div>
         <p className="ws-muted">
