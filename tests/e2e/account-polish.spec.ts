@@ -6,9 +6,11 @@ test("review tools are separate from product actions and preserve perspective co
   await expect(page.locator('.topbar .team-review-tools')).toHaveCount(0);
   await expect(page.locator('.topbar .prd-review-entry')).toHaveCount(0);
   await expect(page.getByRole('combobox',{name:'评审视角'})).not.toBeVisible();
-  await page.locator('.review-dock summary').click();
+  await expect(page.locator('.main .review-dock')).toHaveCount(0);
+  await page.locator('#user-card').click();
+  await page.getByRole('button',{name:/评审演示/}).click();
   await expect(page.getByRole('combobox',{name:'评审视角'})).toBeVisible();
-  await expect(page.locator('.review-dock').getByRole('link',{name:/需求评审/})).toHaveAttribute('href',/prd\/index.html/);
+  await expect(page.getByRole('dialog',{name:'评审演示',exact:true}).getByRole('link',{name:/需求评审/})).toHaveAttribute('href',/prd\/index.html/);
 });
 
 test("settings support keyboard tabs, independent filters, draft retention and validation", async ({page}) => {
@@ -51,7 +53,7 @@ for (const width of [390,768,1440]) test(`account surfaces fit ${width}px and pr
   await page.setViewportSize({width,height:900});
   for (const view of ['settings','subscription']) {
     await page.goto(url(view));
-    await expect(page.locator('.review-dock')).toBeVisible();
+    await expect(page.locator('.topbar')).toBeVisible();
     await expect.poll(() => page.locator('.main').evaluate(e => e.scrollWidth-e.clientWidth)).toBeLessThanOrEqual(2);
     if(view==='settings') {
       const field=page.getByLabel('我的昵称');await expect(field).toBeVisible();
