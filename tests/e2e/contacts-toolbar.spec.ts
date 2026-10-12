@@ -19,21 +19,19 @@ test('search shares the toolbar with visible filters and reset restores the list
  await expect(page.getByRole('searchbox',{name:'搜索客户'})).toHaveValue('');
  await expect(page.getByLabel('按创建时间排序')).toHaveValue('desc');
 });
-test('CRM guide routes administrators and guides members without importing data',async({page})=>{
- await page.goto(url('team-eureka'));await page.getByRole('button',{name:'导入 CRM',exact:true}).click();
- const dialog=page.getByRole('dialog',{name:'导入 CRM 客户'});
- await expect(dialog).toContainText('尚未连接或拉取 CRM 数据');
- await dialog.getByRole('button',{name:'前往连接器 ↗',exact:true}).click();
- await expect(page).toHaveURL(/view=connectors.*space=team-eureka.*actor=zhang/);
- await page.goto(url('team-eureka','kevin'));await expect(page.locator('.contacts-person-card').first()).toBeVisible();const count=await page.locator('.contacts-person-card').count();
- await page.getByRole('button',{name:'导入 CRM',exact:true}).click();
- await expect(dialog).toContainText('请联系团队管理员：张伟');await expect(dialog.getByRole('button',{name:/前往连接器/})).toHaveCount(0);
- await page.evaluate(()=>Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async()=>{throw Error('denied')}}}));
- await dialog.getByRole('button',{name:'复制对接说明'}).click();await expect(dialog.getByRole('alert')).toContainText('复制失败');
- await expect(dialog.getByLabel('CRM 对接说明')).toContainText('不跨成员合并');
- await page.evaluate(()=>Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async()=>{}}}));
- await dialog.getByRole('button',{name:'复制对接说明'}).click();await expect(dialog.getByRole('status')).toContainText('已复制');
- await dialog.getByRole('button',{name:'知道了'}).click();expect(await page.locator('.contacts-person-card').count()).toBe(count);
+test('CRM guide explains purpose and administrator setup without action buttons',async({page})=>{
+ for(const [space,actor] of [['personal','zhang'],['team-eureka','zhang'],['team-eureka','kevin']]){
+  await page.goto(url(space,actor));
+  const trigger=page.getByRole('button',{name:'导入 CRM',exact:true});await trigger.click();
+  const dialog=page.getByRole('dialog',{name:'导入 CRM 客户'});
+  await expect(dialog.getByRole('heading',{name:'导入目的'})).toBeVisible();
+  await expect(dialog).toContainText('减少重复录入');
+  await expect(dialog.getByRole('heading',{name:'如何导入'})).toBeVisible();
+  await expect(dialog).toContainText('请联系系统管理员完成 CRM 系统对接与授权');
+  await expect(dialog.getByRole('button')).toHaveCount(1);
+  await dialog.getByRole('button',{name:'关闭 CRM 引导'}).click();
+  await expect(dialog).toHaveCount(0);await expect(trigger).toBeFocused();
+ }
 });
 for(const width of [390,768,1080,1440])test(`contacts toolbar and CRM guide fit ${width}px`,async({page})=>{
  await page.setViewportSize({width,height:width===1080?680:900});await page.goto(url());

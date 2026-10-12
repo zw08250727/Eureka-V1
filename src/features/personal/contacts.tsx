@@ -281,7 +281,7 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
         }
       }}
     >
-      {crmGuide && <CrmImportGuide team={team} admin={isAdmin} readonly={!!workspaceReadonly} space={space} actor={actor} admins={workspace?.members.filter(m=>m.status==='active'&&m.role==='admin').map(m=>m.name)||[]} onClose={()=>setCrmGuide(false)}/>}
+      {crmGuide && <CrmImportGuide onClose={()=>setCrmGuide(false)}/>}
       {sharingPerson && workspace && <RecipientDialog key={customerKey(sharingPerson)} w={workspace} actor={actor} owner={sharingPerson.ownerId} initial={sharingPerson.sharedWith} title={`团队共享 · ${sharingPerson.name}`} onClose={() => setSharing(null)} onSave={users => {
         createContacts(localStorage, actor, space, sharingPerson.ownerId || actor).change(s => {
           const current = s.personal.contacts.find(p => p.id === sharingPerson.id);
