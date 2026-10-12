@@ -33,7 +33,7 @@ export function GuestHome({ market, onLogin }: { market: Market; onLogin: (inten
   const [expanded, setExpanded] = useState(false);
   const [download, setDownload] = useState(false);
   function go(view: AppView, id?: string) {
-    setExpanded(false);
+    // Keep mobile navigation mounted so dismissing auth can restore its trigger.
     if (view === "recording") onLogin({ action: "recording" });
     else onLogin({ view, id });
   }

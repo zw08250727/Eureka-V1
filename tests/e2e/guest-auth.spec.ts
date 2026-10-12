@@ -94,6 +94,11 @@ for (const market of ["cn", "global"]) {
     await page.getByRole("button", { name: "关闭登录", exact: true }).click();
     if (width < 1100) {
       await page.getByRole("button", { name: "打开导航" }).click();
+      const calendar = page.getByRole("button", { name: "日程与待办", exact: true });
+      await calendar.click();
+      await expect(page.locator(".auth-overlay")).toBeVisible();
+      await page.keyboard.press("Escape");
+      await expect(calendar).toBeFocused();
       await page.locator("#user-card").click();
       await expect(page.locator(".auth-overlay")).toBeVisible();
     }
