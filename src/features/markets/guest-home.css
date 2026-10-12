@@ -48,7 +48,10 @@ html .app.guest-app { grid-template-columns: 244px minmax(0, 1fr); }
 @media (max-width: 1100px) { .guest-hardware-link { display: none; } }
 
 /* Guests see one quiet content area; account widgets mount only after login. */
-.guest-app .sidebar-quick-nav { margin-top: 24px; }
+.guest-app .ws-switcher { margin: 12px 0; min-height: 56px; }
+html .guest-app .ws-space-copy { display: grid; }
+html .guest-app .ws-switcher > .ws-icon { display: block; }
+.guest-app .sidebar-quick-nav { margin-top: 0; }
 .guest-library { display: flex; flex-direction: column; min-height: calc(100dvh - 140px); }
 .guest-library-top, .guest-library-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
 .guest-library-tabs, .guest-library-actions { display: flex; align-items: center; gap: 12px; }

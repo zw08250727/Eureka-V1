@@ -37,6 +37,11 @@ export function GuestHome({ market, onLogin }: { market: Market; onLogin: (inten
         <Image src={productLogo(market)} alt="" width={34} height={34} unoptimized />
         <div className="workspace-brand-copy"><strong>{productName(market)}</strong></div>
       </div><button className="guest-nav-close" aria-label="收起导航" onClick={() => setExpanded(false)}>×</button></div>
+      <button className="ws-switcher" aria-label="个人工作区" onClick={() => onLogin()}>
+        <span className="ws-space-avatar"><RefIcon name="user" className="ws-icon" /></span>
+        <span className="ws-space-copy"><strong>个人工作区</strong></span>
+        <RefIcon name="chevron" className="ws-icon" />
+      </button>
       <div className="sidebar-body"><nav className="nav sidebar-quick-nav" aria-label="快捷入口">
         {navigation.map(({ view, label, icon }) => <button key={view} className={`nav-item ${view === "home" ? "active" : ""}`} aria-current={view === "home" ? "page" : undefined} title={label} onClick={() => view === "home" ? setExpanded(false) : go(view)}>
           <span className="nav-left"><span className="nav-icon"><RefIcon name={icon} /></span><span className="nav-label">{label}</span></span>

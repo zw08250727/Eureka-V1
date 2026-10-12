@@ -14,9 +14,10 @@ for (const market of ["cn", "global"]) {
     await expect(page.locator(".meeting-row")).toHaveCount(0);
     await expect(page.locator("body")).not.toContainText(/张伟|3,000|5,000/);
     // AUTH-GUEST-01: simplified guest home exposes only navigation and core actions.
-    await expect(page.locator(".today-workbench, .guest-points-guide, .ws-switcher")).toHaveCount(0);
+    await expect(page.locator(".today-workbench, .guest-points-guide")).toHaveCount(0);
     await expect(page.locator(".guest-meeting-empty")).toHaveCount(1);
-    const names = ["开始录音", "通讯录", "日程与待办", "连接器", "上传", "Ask Agent", "我的闪念", "搜索会议", "登录后查看", "登录 / 注册"];
+    await expect(page.getByRole("button", { name: "个人工作区", exact: true })).toBeVisible();
+    const names = ["个人工作区", "开始录音", "通讯录", "日程与待办", "连接器", "上传", "Ask Agent", "我的闪念", "搜索会议", "登录后查看", "登录 / 注册"];
     for (const name of names) {
       const trigger = page.getByRole("button", { name, exact: true }).first();
       await trigger.click();
