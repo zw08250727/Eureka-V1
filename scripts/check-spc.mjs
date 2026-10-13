@@ -1,8 +1,7 @@
-import { readFile, readdir, access } from "node:fs/promises";
+import { readFile, access } from "node:fs/promises";
 import assert from "node:assert/strict";
 const read = async (path) => JSON.parse(await readFile(path, "utf8"));
-const modules = await read("spc/modules.json"),
-  prd = await read("src/prototype/prd/content.json");
+const modules = await read("spc/modules.json");
 const rules = await readFile("spc/business-baseline.md", "utf8");
 const ids = new Set(modules.modules.map((m) => m.id));
 for (const m of modules.modules) {
@@ -13,11 +12,6 @@ for (const m of modules.modules) {
   for (const d of m.dependencies) assert(ids.has(d), `Unknown dependency ${d}`);
   for (const r of m.rules)
     assert(rules.includes(`| ${r} |`), `Missing rule ${r}`);
-  for (const chapter of m.chapters)
-    assert(
-      prd.sections.some((s) => s.id === chapter),
-      `Missing PRD chapter ${chapter}`,
-    );
   for (const source of m.sources) await access(source);
 }
 const configs = [];
@@ -35,25 +29,7 @@ for (const market of ["cn", "global"]) {
 }
 assert.notEqual(configs[0].accountRealm, configs[1].accountRealm);
 assert.notEqual(configs[0].agent.id, configs[1].agent.id);
-async function scan(dir) {
-  for (const entry of await readdir(dir, { withFileTypes: true })) {
-    const path = `${dir}/${entry.name}`;
-    if (entry.isDirectory()) {
-      await scan(path);
-      continue;
-    }
-    if (!/\.(ts|tsx|js)$/.test(path) || path.endsWith("/markets/storage.ts"))
-      continue;
-    const text = await readFile(path, "utf8");
-    assert(
-      !/\b(?:localStorage|sessionStorage)\b/.test(text),
-      `Use market storage adapter: ${path}`,
-    );
-    if (path.includes("/connectors/") || path.endsWith("/account/pages.tsx"))
-      assert(!/<iframe\b/.test(text), `Native connector required: ${path}`);
-  }
-}
-await scan("src/features");
+// Source boundaries are checked by check:architecture using ASTs, including app, UI and lib.
 console.log(
-  `SPC passed: ${modules.modules.length} modules, two account realms, scoped storage and native connectors.`,
+  `SPC passed: ${modules.modules.length} modules and two account realm configurations.`,
 );

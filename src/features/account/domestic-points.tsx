@@ -113,7 +113,7 @@ export function DomesticPointsGuide({ w, actor, onPanel }: PointsProps) {
   const team = w.type === "team", admin = M.admin(w, actor), active = w.status === "active";
   const { rewards, rewardLimits } = marketConfig();
   const monthly = rewards.signin * rewardLimits.signin + rewards.feedback * rewardLimits.feedback;
-  return <button type="button" className="cn-points-guide" onClick={() => {
+  return <button type="button" className="cn-points-guide" aria-label={team ? "团队积分" : "赚积分"} title={team ? "团队积分" : "赚积分"} onClick={() => {
     if (!team) onPanel("tasks");
     else if (admin && active) onPanel("recharge");
     else location.assign(appUrl(admin ? "subscription" : "settings", admin ? "" : "credits", w.id, actor));

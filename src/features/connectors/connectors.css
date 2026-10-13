@@ -1,7 +1,7 @@
 .connectors-page {
   max-width: 1140px;
   margin: 0 auto;
-  padding: 32px 36px 64px;
+  padding: 24px 24px 48px;
   color: var(--ink, #27322d);
   font-size: 14px;
 }
@@ -14,14 +14,14 @@
 }
 .connector-primary,
 .connector-dialog button {
-  min-height: 36px;
+  min-height: 40px;
   border: 1px solid var(--market-border);
   border-radius: 8px;
   background: white;
   padding: 8px 14px;
   cursor: pointer;
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
 }
 .connector-primary,
 .connector-dialog button.primary {
@@ -50,7 +50,7 @@
   margin-top: 24px;
 }
 .connector-group h2 {
-  font-size: 15px;
+  font-size: 18px;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -75,7 +75,7 @@
   color: inherit;
   border: 1px solid var(--market-border);
   border-radius: 12px;
-  padding: 20px;
+  padding: 24px;
   cursor: pointer;
   font: inherit;
   height: auto;
@@ -139,11 +139,11 @@
 }
 .connector-empty {
   margin: 0;
-  padding: 20px;
+  padding: 24px;
   border-radius: 10px;
   background: var(--market-soft);
   color: #778278;
-  font-size: 13px;
+  font-size: 14px;
 }
 .connector-muted {
   color: #79817c;
@@ -163,12 +163,12 @@
   background: #fff1f2;
   padding: 10px 12px;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.7;
 }
 .connector-dialog {
   box-sizing: border-box;
-  width: min(560px, calc(100vw - 32px));
+  width: min(520px, calc(100vw - 32px));
   max-height: calc(100dvh - 32px);
   overflow: auto;
   border: 1px solid var(--market-border);
@@ -212,7 +212,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin: 0 0 18px;
+  margin: 0 0 20px;
 }
 .connector-dialog input:not([type="radio"]),
 .connector-dialog textarea {
@@ -262,7 +262,7 @@
 .connector-mode {
   border: 0;
   padding: 0;
-  margin: 0 0 18px;
+  margin: 0 0 20px;
   display: flex;
   gap: 18px;
 }

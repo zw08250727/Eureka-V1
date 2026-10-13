@@ -11,7 +11,7 @@ html:has([data-market="cn"]) {
   --cn-input: #f2f3f5;
   --cn-sidebar: #f9f9f9;
   --cn-selected: #ededed;
-  --cn-focus: #165dff4d;
+  --cn-focus: #165dff;
   --cn-disabled: #adc6ff;
   --cn-brand-gradient: linear-gradient(135deg, #165dff, #6545ff 60%, #a18bff);
   --primary-50: #f2f5ff;
@@ -38,10 +38,10 @@ html:has([data-market="cn"]) {
   --border-strong: #d9d9d9;
   --text-primary: #262626;
   --text-secondary: #595959;
-  --text-tertiary: #8c8c8c;
+  --text-tertiary: #737373;
   --ink: #262626;
   --sub: #595959;
-  --muted: #8c8c8c;
+  --muted: #737373;
   --line: #ebebeb;
   --soft-line: #0000000f;
   --glass: #fff;
@@ -153,14 +153,14 @@ html:has([data-market="cn"]) body :is(.enterprise-profile button, .enterprise-ta
 
 /* Login keeps the existing full-page composition, with the official form palette. */
 html:has([data-market="cn"]) body .auth {
-  --ink: #262626; --muted: #8c8c8c; --line: #f0f1f4;
+  --ink: #262626; --muted: #737373; --line: #f0f1f4;
   --primary-50: #f2f5ff; --primary-700: #165dff;
   --ai-gradient: var(--cn-brand-gradient);
 }
 html:has([data-market="cn"]) body .auth .input {
   color: var(--ink); background: var(--cn-input); border-color: transparent; box-shadow: none;
 }
-html:has([data-market="cn"]) body .auth .input::placeholder { color: #8c8c8c; }
+html:has([data-market="cn"]) body .auth .input::placeholder { color: #737373; }
 html:has([data-market="cn"]) body .auth .input:focus { border-color: var(--market-accent); box-shadow: 0 0 0 3px #165dff14; }
 html:has([data-market="cn"]) body .auth :is(.primary, button[type="submit"]) {
   background: var(--market-accent); border-color: var(--market-accent); color: #fff; box-shadow: none;
@@ -169,9 +169,9 @@ html:has([data-market="cn"]) body .auth :is(.primary, button[type="submit"]):hov
 html:has([data-market="cn"]) body .auth :is(.primary, button[type="submit"]):disabled { background: var(--cn-disabled); border-color: var(--cn-disabled); opacity: 1; }
 html:has([data-market="cn"]) body .auth .plain { background: var(--cn-input); border-color: transparent; color: var(--market-accent); box-shadow: none; }
 html:has([data-market="cn"]) body .auth .plain:hover:not(:disabled) { background: #e8efff; }
-html:has([data-market="cn"]) body .auth .plain:disabled { color: #8c8c8c; opacity: 1; }
+html:has([data-market="cn"]) body .auth .plain:disabled { color: #737373; opacity: 1; }
 html:has([data-market="cn"]) body .auth-editions { background: #f2f2f4; }
-html:has([data-market="cn"]) body .auth-editions button { color: #8c8c8c; border-radius: 8px; }
+html:has([data-market="cn"]) body .auth-editions button { color: #737373; border-radius: 8px; }
 html:has([data-market="cn"]) body .auth-editions button[aria-pressed="true"] { color: var(--ink); background: #fff; box-shadow: none; }
 html:has([data-market="cn"]) body .auth-methods { border-color: #f2f3f5; }
 html:has([data-market="cn"]) body .auth-methods button { color: var(--ink); }
@@ -218,7 +218,7 @@ html:has([data-market="cn"]) body #today-assets-grid :is(.daily-focus, .daily-in
 html:has([data-market="cn"]) body #today-assets-grid :is(.daily-brief-narrative, .rhythm-event strong, .daily-ledger-total) { color: var(--ink); }
 html:has([data-market="cn"]) body #today-assets-grid .brief-primary { background: var(--cn-input); color: var(--ink); border-color: var(--line); }
 html:has([data-market="cn"]) body :is(#xiaozhi-rail, #pa-agent, #contacts-xiaozhi-rail, .ws-agent, #knowledge-xiaozhi-panel) {
-  --agent-ink: #262626; --agent-copy: #595959; --agent-meta: #8c8c8c;
+  --agent-ink: #262626; --agent-copy: #595959; --agent-meta: #737373;
   background: #fff; border-color: var(--line); box-shadow: var(--shadow-sm);
 }
 html:has([data-market="cn"]) body :is(#xiaozhi-rail, #pa-agent, #contacts-xiaozhi-rail, .ws-agent, #knowledge-xiaozhi-panel) :is(.xiaozhi-composer, .ws-composer, #pa-agent-prompt) { background: #f9f9f9; border-color: var(--line); box-shadow: none; }
@@ -226,7 +226,7 @@ html:has([data-market="cn"]) body :is(#xiaozhi-rail, #pa-agent, #contacts-xiaozh
 html:has([data-market="cn"]) body.app-data-mode .pa-settings .ex-button.primary { background: var(--cn-action); border-color: var(--cn-action); color: #fff; }
 html:has([data-market="cn"]) body.app-data-mode .pa-settings .ex-button.primary:hover { background: var(--cn-action-hover); }
 html:has([data-market="cn"]) body.app-data-mode .pa-settings .ex-form :is(input,select,textarea) { background: var(--cn-input); color: var(--ink); border-color: transparent; }
-html:has([data-market="cn"]) body.app-data-mode .pa-settings .ex-form input:disabled { color: #8c8c8c; }
+html:has([data-market="cn"]) body.app-data-mode .pa-settings .ex-form input:disabled { color: #737373; }
 html:has([data-market="cn"]) body.app-data-mode .pa-settings .ex-settings-tabs>button[aria-selected="true"] { color: var(--ink); border-color: var(--line); }
 
 /* Content typography, tables and filters retain their existing density. */
@@ -268,5 +268,5 @@ html:has([data-market="cn"]) body .credit-recharge-cta:focus-visible {
   outline: 2px solid var(--market-accent); outline-offset: 3px;
 }
 html:has([data-market="cn"]) body .credit-recharge-cta:disabled {
-  background: #f2f3f5; color: #8c8c8c; border-color: #ebebeb; cursor: not-allowed; box-shadow: none;
+  background: #f2f3f5; color: #737373; border-color: #ebebeb; cursor: not-allowed; box-shadow: none;
 }

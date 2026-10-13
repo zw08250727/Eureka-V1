@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "@/features/markets/theme.css";
+import "@/features/markets/ui-foundations.css";
+import "@/features/reference/market-workbench.css";
 
 const title = "百智 / EurekaMind";
 const description = "记录会议、捕捉灵感，与团队协作。";

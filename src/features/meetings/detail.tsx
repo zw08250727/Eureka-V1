@@ -510,7 +510,7 @@ export function MeetingPage({
                             r,
                         )}{" "}
                         ·{" "}
-                        <span style={{ color: "#25b47b" }}>
+                        <span className="md-summary-ready">
                           {file?.status ||
                             personal.data?.meetings.find(
                               (m) => m.id === selected,

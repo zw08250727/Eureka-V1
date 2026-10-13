@@ -1,0 +1,220 @@
+{
+  "version": "architecture-20261013-01",
+  "htmlFiles": [
+    {
+      "file": "output/business-rules-board/index.html",
+      "reason": "保留已存在的历史原型／说明材料，不作为新产品入口",
+      "owner": "前端主责（待认领）",
+      "exitCondition": "完成兼容或归档评审后移除；不得改造成新业务页"
+    },
+    {
+      "file": "public/integrations/connectors.html",
+      "reason": "保留已存在的历史原型／说明材料，不作为新产品入口",
+      "owner": "前端主责（待认领）",
+      "exitCondition": "完成兼容或归档评审后移除；不得改造成新业务页"
+    },
+    {
+      "file": "src/prototype/auth-shell.html",
+      "reason": "保留已存在的历史原型／说明材料，不作为新产品入口",
+      "owner": "前端主责（待认领）",
+      "exitCondition": "完成兼容或归档评审后移除；不得改造成新业务页"
+    },
+    {
+      "file": "src/prototype/index.html",
+      "reason": "保留已存在的历史原型／说明材料，不作为新产品入口",
+      "owner": "前端主责（待认领）",
+      "exitCondition": "完成兼容或归档评审后移除；不得改造成新业务页"
+    },
+    {
+      "file": "src/prototype/one-to-one-reference/agent.html",
+      "reason": "保留已存在的历史原型／说明材料，不作为新产品入口",
+      "owner": "前端主责（待认领）",
+      "exitCondition": "完成兼容或归档评审后移除；不得改造成新业务页"
+    },
+    {
+      "file": "src/prototype/one-to-one-reference/app.html",
+      "reason": "保留已存在的历史原型／说明材料，不作为新产品入口",
+      "owner": "前端主责（待认领）",
+      "exitCondition": "完成兼容或归档评审后移除；不得改造成新业务页"
+    },
+    {
+      "file": "src/prototype/one-to-one-reference/index.html",
+      "reason": "保留已存在的历史原型／说明材料，不作为新产品入口",
+      "owner": "前端主责（待认领）",
+      "exitCondition": "完成兼容或归档评审后移除；不得改造成新业务页"
+    },
+    {
+      "file": "src/prototype/one-to-one-reference/meeting-editor.html",
+      "reason": "保留已存在的历史原型／说明材料，不作为新产品入口",
+      "owner": "前端主责（待认领）",
+      "exitCondition": "完成兼容或归档评审后移除；不得改造成新业务页"
+    },
+    {
+      "file": "src/prototype/one-to-one-reference/team-only-app.html",
+      "reason": "保留已存在的历史原型／说明材料，不作为新产品入口",
+      "owner": "前端主责（待认领）",
+      "exitCondition": "完成兼容或归档评审后移除；不得改造成新业务页"
+    },
+    {
+      "file": "src/prototype/prd/index.html",
+      "reason": "已有非业务文档页面，仅登记 HTML 存量例外",
+      "owner": "前端主责（待认领）",
+      "exitCondition": "该历史文档页面不再使用时移除登记"
+    },
+    {
+      "file": "src/prototype/team-only.html",
+      "reason": "保留已存在的历史原型／说明材料，不作为新产品入口",
+      "owner": "前端主责（待认领）",
+      "exitCondition": "完成兼容或归档评审后移除；不得改造成新业务页"
+    }
+  ],
+  "legacyJavaScript": [
+    {
+      "file": "src/features/agent/registry.js",
+      "reason": "现有 JS 模型兼容，禁止新增同类业务 JS",
+      "owner": "前端主责（待认领）",
+      "exitCondition": "迁移为 TypeScript 并验证行为后移除"
+    },
+    {
+      "file": "src/features/spaces/model/brief.js",
+      "reason": "现有 JS 模型兼容，禁止新增同类业务 JS",
+      "owner": "前端主责（待认领）",
+      "exitCondition": "迁移为 TypeScript 并验证行为后移除"
+    },
+    {
+      "file": "src/features/spaces/model/core.js",
+      "reason": "现有 JS 模型兼容，禁止新增同类业务 JS",
+      "owner": "前端主责（待认领）",
+      "exitCondition": "迁移为 TypeScript 并验证行为后移除"
+    },
+    {
+      "file": "src/features/spaces/model/subscription.js",
+      "reason": "现有 JS 模型兼容，禁止新增同类业务 JS",
+      "owner": "前端主责（待认领）",
+      "exitCondition": "迁移为 TypeScript 并验证行为后移除"
+    }
+  ],
+  "exceptions": [
+    {
+      "rule": "html-write",
+      "file": "src/features/meetings/store.ts",
+      "signature": "template.innerHTML = html",
+      "maxOccurrences": 1,
+      "reason": "sanitizeRichText 清洗器使用离线 template 解析内容",
+      "owner": "会议模块／前端主责（待认领）",
+      "exitCondition": "富文本适配层收敛时重新评审具体写入点；新增写入不可扩大例外"
+    },
+    {
+      "rule": "html-write",
+      "file": "src/features/meetings/content.tsx",
+      "signature": "ref.current.innerHTML = sanitizeRichText(initial.current)",
+      "maxOccurrences": 1,
+      "reason": "现有受控会议富文本渲染／编辑快照，保持清洗和保存边界",
+      "owner": "会议模块／前端主责（待认领）",
+      "exitCondition": "富文本适配层收敛时重新评审具体写入点；新增写入不可扩大例外"
+    },
+    {
+      "rule": "html-write",
+      "file": "src/features/meetings/content.tsx",
+      "signature": "dangerouslySetInnerHTML={{ __html: sanitizeRichText(html || markdown.render(text)) }}",
+      "maxOccurrences": 1,
+      "reason": "现有受控会议富文本渲染／编辑快照，保持清洗和保存边界",
+      "owner": "会议模块／前端主责（待认领）",
+      "exitCondition": "富文本适配层收敛时重新评审具体写入点；新增写入不可扩大例外"
+    },
+    {
+      "rule": "html-write",
+      "file": "src/features/meetings/content.tsx",
+      "signature": "dangerouslySetInnerHTML={{ __html: sanitizeRichText(html) }}",
+      "maxOccurrences": 1,
+      "reason": "现有受控会议富文本渲染／编辑快照，保持清洗和保存边界",
+      "owner": "会议模块／前端主责（待认领）",
+      "exitCondition": "富文本适配层收敛时重新评审具体写入点；新增写入不可扩大例外"
+    },
+    {
+      "rule": "html-write",
+      "file": "src/features/meetings/domestic-inline-editor.tsx",
+      "signature": "root.innerHTML = snapshot.html",
+      "maxOccurrences": 1,
+      "reason": "现有受控会议富文本渲染／编辑快照，保持清洗和保存边界",
+      "owner": "会议模块／前端主责（待认领）",
+      "exitCondition": "富文本适配层收敛时重新评审具体写入点；新增写入不可扩大例外"
+    },
+    {
+      "rule": "html-write",
+      "file": "src/features/meetings/domestic-inline-editor.tsx",
+      "signature": "root.innerHTML = sanitizeRichText(initial.current)",
+      "maxOccurrences": 1,
+      "reason": "现有受控会议富文本渲染／编辑快照，保持清洗和保存边界",
+      "owner": "会议模块／前端主责（待认领）",
+      "exitCondition": "富文本适配层收敛时重新评审具体写入点；新增写入不可扩大例外"
+    },
+    {
+      "rule": "ui-dependency",
+      "file": "src/components/ui/date-filter.tsx",
+      "signature": "import { localDay } from \"@/features/workbench/model/selectors\";",
+      "maxOccurrences": 1,
+      "reason": "现有 DateFilter 引用工作台 localDay 日期函数，非新业务依赖许可",
+      "owner": "前端主责（待认领）",
+      "exitCondition": "将日期纯函数移至公共工具层后移除此单条例外"
+    }
+  ],
+  "frozen": [
+    {
+      "path": "src/prototype/one-to-one-reference",
+      "sha256": "baa38e1a88fcd2a6240a2173690153bb35a005b1a6ca75fd63c483f9830e9ec8",
+      "reason": "2026-10-13 首次登记的历史／生成基线，不承接新产品规则",
+      "owner": "前端主责（待认领）",
+      "exitCondition": "仅历史维护或归档经单独评审后修改登记；禁止自动重建指纹"
+    },
+    {
+      "path": "src/features/reference/prototype.css",
+      "sha256": "706b47e61e45644f70678377574eba903902121ca3fde793ea547078a3da3149",
+      "reason": "2026-10-13 首次登记的历史／生成基线，不承接新产品规则",
+      "owner": "前端主责（待认领）",
+      "exitCondition": "仅历史维护或归档经单独评审后修改登记；禁止自动重建指纹"
+    },
+    {
+      "path": "src/features/reference/symbols.tsx",
+      "sha256": "e65c270bab2d44610719c77a9fc1d5809ac74234d85414dc8d15ae2701934777",
+      "reason": "2026-10-13 首次登记的历史／生成基线，不承接新产品规则",
+      "owner": "前端主责（待认领）",
+      "exitCondition": "仅历史维护或归档经单独评审后修改登记；禁止自动重建指纹"
+    },
+    {
+      "path": "output/business-rules-board/index.html",
+      "sha256": "14b299503274ffaa0f506985b825c73e146a8824429d534327a964942bc8b8d6",
+      "reason": "2026-10-13 首次登记的历史／生成基线，不承接新产品规则",
+      "owner": "前端主责（待认领）",
+      "exitCondition": "仅历史维护或归档经单独评审后修改登记；禁止自动重建指纹"
+    },
+    {
+      "path": "public/integrations/connectors.html",
+      "sha256": "f9061db06cca054035c5927d674ffc4d14d51bd38ce5577f1dd64adc78cdebf7",
+      "reason": "2026-10-13 首次登记的历史／生成基线，不承接新产品规则",
+      "owner": "前端主责（待认领）",
+      "exitCondition": "仅历史维护或归档经单独评审后修改登记；禁止自动重建指纹"
+    },
+    {
+      "path": "src/prototype/auth-shell.html",
+      "sha256": "ebd4e3d305d3ca99516f7ac2e2d90729b5eb16bbb4e0e84bcdd4593314c78d75",
+      "reason": "2026-10-13 首次登记的历史／生成基线，不承接新产品规则",
+      "owner": "前端主责（待认领）",
+      "exitCondition": "仅历史维护或归档经单独评审后修改登记；禁止自动重建指纹"
+    },
+    {
+      "path": "src/prototype/index.html",
+      "sha256": "0860d51d60ad612832e6e7c908c990485c2f08942462a31b7b0bc0fcc2015fb0",
+      "reason": "2026-10-13 首次登记的历史／生成基线，不承接新产品规则",
+      "owner": "前端主责（待认领）",
+      "exitCondition": "仅历史维护或归档经单独评审后修改登记；禁止自动重建指纹"
+    },
+    {
+      "path": "src/prototype/team-only.html",
+      "sha256": "2cb49028e275e00690a8a2afa7d3c21b2a2012841c383c2856008bdbd5ea8711",
+      "reason": "2026-10-13 首次登记的历史／生成基线，不承接新产品规则",
+      "owner": "前端主责（待认领）",
+      "exitCondition": "仅历史维护或归档经单独评审后修改登记；禁止自动重建指纹"
+    }
+  ]
+}

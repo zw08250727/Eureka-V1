@@ -1,6 +1,10 @@
 # 测试口径
 
+UI-CN／UI-GLOBAL：`npm run test:ui` 覆盖两地在 390、768、1080×680、1440 宽度的登录边界、连接器焦点与关闭归还、折叠积分入口、Agent 启用／禁用样式和移动端正文／播放器。没有安装 Playwright Chromium 时使用 `PLAYWRIGHT_CHANNEL=chrome npm run test:ui`。已接入 `test:release`；CN 主题测试以已确认的新尺寸与视口边界为准，不再以删除主题后几何完全相同为验收条件。
+
 当前产品验收以 [SPC 有效基线](../spc/business-baseline.md) 为准。
+
+前端架构：`npm run check:architecture` 先扫描当前仓库，再执行 `tests/architecture/guard.test.mjs` 的临时仓库正反例；覆盖新增 HTML、冻结源变更、iframe、存储、HTML 写入、UI 直接及间接业务依赖和历史 JS 边界。该命令已接入 check:spc／check，不代替 UI、市场隔离或富文本安全测试。两地 UI 目标见 spc/ui-cn.md、spc/ui-global.md；仅文档和工具变化不要求伪造页面截图。
 
 - `ACCOUNT-01`：每个市场账号最多一个 Team；到期或取消订阅不释放成员资格。国内与海外分别执行该限制，不跨市场累计。
 - 创建或接受邀请的成功用例从 `e2e/fixtures/workspace-state.ts` 的 `accountWithoutTeam()` 开始。它表示独立测试账号的初始状态，不是产品中删除团队的操作。

@@ -34,7 +34,7 @@ npm run dev
 
 先读 [spc/README.md](spc/README.md)，包含 UI、前端组件、业务基线和协作规范。主责及依赖维护在 `spc/modules.json`，负责人尚待认领。共用规则由模块 PM 和关联负责人联合评审。
 
-PRD 继续集中维护在 `src/prototype/prd/content.json`，保留稳定章节 ID。网页“保存本地”仅更新该浏览器；发布仍通过完整内容合并到 Git 仓库，再经 CI／Pages 生效。不同 PM 应使用短期分支，合并时保留他人修改。网页不提供多人实时写入服务。
+后续迭代执行已确认的 [前端研发规范](spc/frontend.md)：PM 原型进入现有 React 工程，不新增独立 HTML 产品页。两地分别遵守 [国内 UI](spc/ui-cn.md) 和 [海外 UI](spc/ui-global.md)，共用组件与尺度；新规范目标按模块渐进落地，不表示旧页面已全部改造。需求交接使用 [PM 模板](spc/pm-change-template.md)。
 
 ## 代码与配置
 
@@ -52,6 +52,7 @@ PRD 继续集中维护在 `src/prototype/prd/content.json`，保留稳定章节 
 
 ```sh
 npm run check          # ESLint、类型、历史模型及 SPC 结构检查
+npm run check:architecture # HTML、组件依赖、存储与历史基线门槛及其测试
 npm run build          # 静态导出到 out/
 npm run test:markets   # 两地端到端、隔离、连接器及规范相关验收
 npm run test:e2e       # 全量浏览器与当前模型回归

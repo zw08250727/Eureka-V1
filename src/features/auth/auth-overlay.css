@@ -12,6 +12,7 @@
   overflow: auto;
   overscroll-behavior: contain;
 }
+.auth-overlay.market-surface { min-height: 0; }
 .auth-overlay::backdrop { background: #17212a66; }
 .auth-overlay .auth.auth-centered { min-height: 0; padding: 44px 40px 32px; }
 .auth-overlay .auth-form { margin: 0; }

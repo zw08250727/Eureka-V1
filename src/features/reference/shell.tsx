@@ -217,7 +217,7 @@ export function ReferenceShell({
           </div>
 
           <div className="user-footer">
-          {routeMarket() === "cn" ? <DomesticPointsGuide w={w} actor={actor} onPanel={openAccount}/> : <button className={"ex-top-credits ex-lower-credits" + (team ? " credit-recharge-cta" : "")} disabled={team && !M.admin(w, actor)} onClick={()=>openAccount(team?"recharge":"tasks")}>{team?creditText("充值 Credits"):creditText("✦ 做任务赚 Credits")}<span style={{float:"right"}}>›</span></button>}
+          {routeMarket() === "cn" ? <DomesticPointsGuide w={w} actor={actor} onPanel={openAccount}/> : <button className={"ex-top-credits ex-lower-credits" + (team ? " credit-recharge-cta" : "")} aria-label={team ? "充值 Credits" : "做任务赚 Credits"} title={team ? "充值 Credits" : "做任务赚 Credits"} disabled={team && !M.admin(w, actor)} onClick={()=>openAccount(team?"recharge":"tasks")}><span className="credits-guide-icon" aria-hidden="true">✦</span><span className="credits-guide-copy">{team?creditText("充值 Credits"):creditText("做任务赚 Credits")}</span><span className="credits-guide-chevron" aria-hidden="true">›</span></button>}
             <button
               className="user-card"
               id="user-card"

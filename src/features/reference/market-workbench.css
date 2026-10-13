@@ -1,0 +1,306 @@
+/* Compatibility bridge for the retained React reference shell (FE-09).
+   Does not modify generated prototype.css or user-authored rich text.
+   Scoped to market surfaces, including portals; no global !important rules. */
+html:has(.market-surface[data-market]) body {
+  /* Shell: legible navigation, opaque surfaces and functional collapsed actions. */
+  .topbar { background: var(--ui-canvas); box-shadow: none; backdrop-filter: none; }
+  :is(.sidebar, .main, .main-content, .app-main, .app-body) { box-shadow: none; }
+  .sidebar { background: var(--ui-sidebar); }
+  :is(.workspace-brand-copy > span, .ws-space-copy small, .ws-nav-label) { font-size: 12px; line-height: 18px; color: var(--ui-secondary); }
+  .collapse-btn { width: var(--ui-icon-size); height: var(--ui-icon-size); flex-shrink: 0; }
+  .sidebar :is(.nav-item, .side-sub-item, .side-group-head) { min-height: var(--ui-control-height); font-size: 14px; line-height: 20px; }
+  .ex-lower-credits { display: flex; align-items: center; gap: 8px; color: var(--market-accent); min-height: 40px; }
+  .credits-guide-copy { flex: 1; min-width: 0; }
+  .credits-guide-icon { flex-shrink: 0; }
+  .guest-search { color: var(--ui-meta); }
+
+  /* Common legacy controls. Rows may use the compact 36px variant. */
+  :is(.ws-btn, .ex-button, .th-btn, .pa-btn, .contacts-button, .connector-primary, .connector-dialog button, .recording-command-actions > button, .ex-settings-tabs > button, .ws-tabs > button, .pa-view-tabs > button, .mobile-nav-trigger) {
+    min-height: var(--ui-control-height); height: auto; padding: 8px 16px;
+    font-size: 14px; line-height: 20px; font-weight: 500;
+    border-radius: var(--ui-button-radius); color: var(--ui-text); box-shadow: none;
+  }
+  /* Hidden collapsed workspace labels use font-size:0 in frozen CSS. */
+  .ws-team-nav .ws-btn { font-size: 0; }
+  :is(.ws-table, .th-row) :is(.ws-btn, .th-row-edit) { min-height: var(--ui-compact-height); padding: 4px 8px; opacity: 1; }
+  :is(.ws-btn.primary, .ex-button.primary, .th-btn.primary, .pa-btn.primary, .contacts-button.primary, .connector-primary, .connector-dialog button.primary, .recording-primary, .capture-action.primary, .primary-btn) {
+    background: var(--ui-action); color: #fff; border-color: var(--ui-action);
+  }
+  :is(.ws-btn.primary, .ex-button.primary, .th-btn.primary, .pa-btn.primary, .contacts-button.primary, .connector-primary, .connector-dialog button.primary, .recording-primary, .capture-action.primary, .primary-btn):hover:not(:disabled) {
+    background: var(--ui-action-hover); border-color: var(--ui-action-hover); color: #fff;
+  }
+  :is(.ws-btn.primary, .ex-button.primary, .th-btn.primary, .pa-btn.primary, .contacts-button.primary, .connector-primary):active:not(:disabled) { background: var(--ui-action-active); }
+  :is(.ws-btn, .ex-button, .contacts-button).danger { color: #cf313b; }
+  :is(#contacts-root .contacts-actions, #personal-actions .pa-page-head > div + div, .today-workbench-head-side .recording-command-actions) > button {
+    min-height: var(--ui-control-height); height: auto; padding: 8px 16px; font-size: 14px; line-height: 20px; border-radius: var(--ui-button-radius);
+  }
+  :is(#contacts-root .contacts-actions, #personal-actions .pa-page-head > div + div, .today-workbench-head-side .recording-command-actions) > button:is(.primary, .recording-primary) { background: var(--ui-action); color: #fff; border-color: var(--ui-action); }
+  :is(#contacts-root .contacts-actions, #personal-actions .pa-page-head > div + div, .today-workbench-head-side .recording-command-actions) > button:is(.primary, .recording-primary):hover:not(:disabled) { background: var(--ui-action-hover); }
+  :is(.ws-form, .ex-form, .connector-dialog, .pa-dialog) :is(input:not([type="checkbox"]):not([type="radio"]), select) {
+    box-sizing: border-box; min-height: var(--ui-control-height); height: var(--ui-control-height);
+    padding: 8px 12px; border-radius: 8px; font-size: 14px; line-height: 20px;
+  }
+  :is(.ws-form, .ex-form, .connector-dialog, .pa-dialog) textarea { min-height: 96px; padding: 12px; border-radius: 8px; font-size: 14px; line-height: 22px; }
+  :is(.ws-field, .ex-form label, .connector-dialog-body > label) { font-size: 14px; line-height: 22px; color: var(--ui-secondary); gap: 8px; }
+
+  /* Titles, explanatory copy and table semantics. */
+  :is(.ws-page-head h1, .ws-heading h1, .pa-page-head h1, .contacts-head h1, .settings-float-toolbar-copy strong, .ps-plan-head h2) { font-size: 24px; line-height: 32px; font-weight: 600; color: var(--ui-text); }
+  :is(.ws-section-head h2, .ws-recording-head h2, .pa-calendar-heading h2, .connector-group h2) { font-size: 18px; line-height: 26px; font-weight: 600; }
+  :is(.ws-page-head p, .pa-page-head p, .ws-heading p, .ws-muted, .ws-info, .th-meta, .connector-muted, .connector-empty, .connector-state, .connector-description) { color: var(--ui-secondary); }
+  :is(.ws-table th, .ws-table small, .ws-badge, .ws-info, .ps-saving, .ex-avatar-hint) { font-size: 12px; line-height: 18px; color: var(--ui-secondary); }
+  .ws-table td { font-size: 14px; line-height: 22px; height: 48px; color: var(--ui-secondary); }
+  .ws-table th { height: 40px; }
+  .ws-badge { padding: 2px 8px; }
+  :is(.ws-badge.green, .home-meeting-status.ready) { color: #16803c; background: #f0fdf4; }
+  .ws-badge.amber { color: #b45309; background: #fffbeb; }
+  .ws-badge.blue { color: var(--market-accent); background: var(--market-soft); }
+  :is(.ws-btn.link, .ws-btn.active, .ws-mini-avatar) { color: var(--market-accent); }
+
+  /* Personal overview: stable slots keep data from moving adjacent panels. */
+  #today-workbench-title { font-size: 28px; line-height: var(--ui-hero-line); font-weight: 600; color: var(--ui-text); }
+  #today-date-label { font-size: 12px; line-height: 18px; color: var(--ui-secondary); }
+  #today-assets-grid {
+    :is(.daily-focus, .daily-inspiration, .daily-ledger) { border-radius: 12px; background: #fff; box-shadow: none; }
+    h2 { font-size: 16px; line-height: 24px; color: var(--ui-text); }
+    :is(.daily-brief-narrative, .brief-task, .rhythm-event strong) { font-size: 14px; line-height: 22px; }
+    :is(.brief-primary, .brief-archive, .daily-records header button) { min-height: var(--ui-compact-height); font-size: 14px; line-height: 20px; color: var(--ui-secondary); }
+    :is(.daily-brief-actions, .daily-records header) { gap: 8px; }
+    :is(.rhythm-event time, .rhythm-event em, .daily-records header span, .daily-inspiration > div, .daily-ledger-items, .daily-ledger-items button, .daily-ledger-items span, .daily-ledger-total span) { font-size: 12px; line-height: 18px; color: var(--ui-secondary); }
+    .daily-brief { grid-template-rows: 44px minmax(0, 1fr) var(--ui-compact-height); }
+  }
+  :is(#meeting-view-description, #meeting-load-status, .home-meeting-table-head) { color: var(--ui-secondary); }
+  .home-meeting-tag { font-size: 12px; line-height: 18px; }
+
+  /* Calendar and thoughts. Do not expose visually hidden field labels. */
+  .pa-calendar-heading p { color: var(--ui-secondary); }
+  .pa-calendar h3 { font-size: 16px; line-height: 24px; color: var(--ui-text); }
+  :is(.pa-list-row small, .pa-list-row time, .pa-source) { color: var(--ui-secondary); font-size: 12px; line-height: 18px; }
+  :is(.pa-calendar-edit, .pa-complete) { min-width: var(--ui-icon-size); min-height: var(--ui-icon-size); font-size: 14px; color: var(--ui-secondary); }
+  .pa-calendar-edit span { font-size: 14px; color: inherit; }
+  .pa-calendar-dates input { height: var(--ui-control-height); font-size: 14px; }
+  .pa-view-tabs .selected { background: var(--ui-action); color: #fff; }
+  :is(.th-type, .th-meta, .th-meta > span) { font-size: 12px; line-height: 18px; color: var(--ui-secondary); }
+  .th-summary { font-size: 14px; line-height: 22px; color: var(--ui-secondary); }
+  .th-filters label { color: var(--ui-secondary); }
+  .th-row-edit { opacity: 1; }
+
+  /* Contacts: cards remain buttons; avoid applying toolbar geometry to cards. */
+  #contacts-root {
+    .contacts-breadcrumb { font-size: 12px; line-height: 18px; color: var(--ui-secondary); }
+    .contacts-breadcrumb button { font-size: 12px; min-height: var(--ui-compact-height); color: var(--market-accent); }
+    :is(.contacts-toolbar-hint, .contacts-person small, .contacts-tag, .contacts-person-foot, .contacts-person-foot > span, .customer-card-meta) { font-size: 12px; line-height: 18px; color: var(--ui-secondary); }
+    .contacts-person-card p { font-size: 14px; line-height: 22px; color: var(--ui-secondary); }
+    .contacts-person-card { padding: 16px; border-radius: 12px; }
+    :is(.contacts-toolbar input, .contacts-toolbar select, .contacts-reset) { min-height: var(--ui-control-height); height: var(--ui-control-height); font-size: 14px; }
+    .contacts-toolbar { gap: 16px; }
+  }
+
+  /* Personal settings and subscription; selected cards are flat and explicit. */
+  .pa-settings {
+    .ex-settings-tabs > button { min-height: var(--ui-control-height); font-size: 14px; line-height: 20px; color: var(--ui-secondary); }
+    .ex-button { min-height: var(--ui-control-height); font-size: 14px; line-height: 20px; border-radius: var(--ui-button-radius); }
+    .ex-form :is(input, select) { min-height: var(--ui-control-height); height: var(--ui-control-height); padding: 8px 12px; border-radius: 8px; }
+    .settings-float-section { border-radius: 12px; padding: 24px; }
+  }
+  :is(.ps-account, .ps-plans, .ps-plan-option) { background: #fff; border-radius: 12px; box-shadow: none; backdrop-filter: none; }
+  .ps-plan-option.selected { border-color: var(--market-accent); background: var(--market-soft); box-shadow: none; }
+  .ps-plan-option h3, .ps-plan-details h3 { font-size: 16px; line-height: 24px; }
+  .ps-plan-footer .primary { border-radius: var(--ui-button-radius); box-shadow: none; }
+  :is(.ps-account, .ps-plans) { padding: 24px; }
+  .connector-dialog { font-family: var(--font); }
+
+  /* Top-layer surfaces receive the same tokens outside the market wrapper. */
+  :is(.ws-dialog, .connector-dialog) { width: min(520px, calc(100vw - 32px)); border-radius: 16px; }
+  .ex-dialog.ex-credits-dialog { width: min(720px, calc(100vw - 32px)); border-radius: 16px; }
+  .ws-dialog .ws-btn, .ex-dialog button { min-height: var(--ui-control-height); font-size: 14px; line-height: 20px; border-radius: var(--ui-button-radius); }
+
+  /* Agent: send button has distinct enabled/disabled styles in both markets. */
+  :is(#xiaozhi-rail, #pa-agent, #contacts-xiaozhi-rail, .ws-agent, #knowledge-xiaozhi-panel) {
+    --agent-ink: var(--ui-text); --agent-copy: var(--ui-secondary); --agent-meta: var(--ui-meta);
+    background: #fff; backdrop-filter: none; box-shadow: none;
+    :is(.xiaozhi-head p, .xiaozhi-state) { font-size: 12px; line-height: 18px; color: var(--ui-secondary); }
+    :is(.xiaozhi-send, .pa-composer-tools > [type="submit"], .ws-composer-tools > [type="submit"]) {
+      min-width: var(--ui-icon-size); min-height: var(--ui-icon-size); border-radius: var(--ui-button-radius);
+      background: var(--ui-action); color: #fff;
+      &:hover:not(:disabled) { background: var(--ui-action-hover); }
+      &:disabled { background: var(--ui-disabled); color: var(--ui-disabled-text); opacity: 1; }
+    }
+  }
+}
+/* Collapsed promotion remains an accessible action instead of wrapping its copy. */
+html[data-sidebar-collapsed="true"]:has(.market-surface[data-market]) body .sidebar {
+  :is(.cn-points-guide, .ex-lower-credits) { display: flex; align-items: center; justify-content: center; width: 44px; min-height: 44px; height: 44px; padding: 8px; margin-inline: auto; box-sizing: border-box; }
+  :is(.cn-points-guide-copy, .cn-points-chevron, .credits-guide-copy, .credits-guide-chevron) { display: none; }
+}
+@media (max-width: 760px) {
+  html:has(.market-surface[data-market]) body {
+    .pa-settings .settings-float-section, .ps-account, .ps-plans { padding: 16px; }
+  }
+}
+html:has(.market-surface[data-market]) body {
+  #ws-view {
+    .team-overview-title h1 { font-size: 24px; line-height: 32px; }
+    .team-overview-actions button { min-height: var(--ui-control-height); font-size: 14px; line-height: 20px; padding: 8px 16px; border-radius: var(--ui-button-radius); }
+    .team-overview-actions .team-primary { background: var(--ui-action); border-color: var(--ui-action); color: #fff; }
+    .team-overview-actions .team-primary:hover:not(:disabled) { background: var(--ui-action-hover); color: #fff; }
+    .team-section-heading h2 { font-size: 18px; line-height: 26px; }
+    :is(.team-insight h3, .team-private-column h3) { font-size: 16px; line-height: 24px; }
+    .team-insight-body { font-size: 14px; line-height: 22px; color: var(--ui-secondary); }
+    :is(.team-insight-index, .team-insight-foot, .team-section-heading > span, .team-private-badge, .team-private-column h3 span, .team-private-list time, .ex-owner, .ws-recording-head p, .ws-pager) { font-size: 12px; line-height: 18px; color: var(--ui-secondary); }
+    :is(.team-private-column a, .team-insight-foot button, .team-private-todo > .team-private-todo-title, .ex-share) { font-size: 12px; line-height: 18px; color: var(--market-accent); min-height: var(--ui-compact-height); }
+    .team-private-notes { opacity: 1; }
+    .team-overview-canvas { border-radius: 12px; }
+    :is(.ws-subscription h3, .ws-billing h3) { font-size: 16px; line-height: 24px; }
+    :is(.ws-subscription p, .ws-billing p) { color: var(--ui-secondary); font-size: 12px; line-height: 18px; }
+    .ws-table th { font-size: 12px; line-height: 18px; }
+    .ws-table td { font-size: 14px; line-height: 22px; }
+    .ws-table .ws-btn { font-size: 14px; min-height: var(--ui-compact-height); }
+  }
+  /* Meeting reading typography excludes editable rich text inline formatting. */
+  .md-prose { font-size: 15px; line-height: var(--ui-reading-line); max-width: 760px; }
+  .cn-transcript .md-speech p { font-size: 15px; line-height: var(--ui-reading-line); }
+  :is(#note-detail-meta, .md-edited, .md-panel-tools small, .md-library-head small, .md-feedback small) { font-size: 12px; line-height: 18px; color: var(--ui-secondary); }
+  :is(.md-info-line button, .md-info-toggle, .md-info-extra button) { font-size: 14px; color: var(--ui-secondary); min-height: var(--ui-compact-height); }
+  .md-tabs button:not([aria-selected="true"]) { color: var(--ui-secondary); }
+  .md-reward { font-size: 12px; line-height: 18px; color: #b45309; }
+  :is(.md-feedback-head p, .cn-feedback-reasons > small, .cn-summary-selector label) { color: var(--ui-secondary); }
+  :is(.md-icon-btn, .md-play, .cn-audio-skip, .md-score) { min-width: var(--ui-icon-size); min-height: var(--ui-icon-size); font-size: 12px; }
+  .md-icon-btn { color: var(--ui-secondary); }
+  .cn-audio-player {
+    color: var(--ui-secondary);
+    .md-play { flex-basis: var(--ui-icon-size); }
+    .ui-select select { min-height: var(--ui-control-height); min-width: 80px; max-width: 88px; font-size: 14px; }
+  }
+  .cn-feedback-reasons textarea { min-height: 96px; }
+  #recording-layout {
+    #recording-name { font-size: 24px; line-height: 32px; }
+    #recording-rename { min-width: var(--ui-icon-size); min-height: var(--ui-icon-size); }
+    .recording-header-actions button, .recording-controls button { min-height: var(--ui-control-height); font-size: 14px; line-height: 20px; border-radius: var(--ui-button-radius); padding: 8px 16px; }
+    #recording-assistant-toggle-label { font-size: 14px; line-height: 20px; }
+    :is(.recording-meta, .recording-meta span, .transcript-intro span, .recording-translation) { font-size: 12px; line-height: 18px; color: var(--ui-secondary); }
+    .recording-tools select { min-height: var(--ui-control-height); font-size: 14px; }
+    :is(.language-arrow, .transcript-waiting p, #recording-abandon) { color: var(--ui-secondary); }
+    :is(#recording-abandon, #recording-finish, #recording-mark) { min-height: var(--ui-control-height); font-size: 14px; line-height: 20px; }
+  }
+  .enterprise-workbench { font-family: var(--font); line-height: 22px; }
+  .enterprise-content { padding: 24px; }
+  .enterprise-content h1 { font-size: 24px; line-height: 32px; }
+  .enterprise-workbench nav button { min-height: var(--ui-control-height); padding: 8px 12px; line-height: 20px; }
+  .enterprise-task-form :is(input, button) { height: var(--ui-control-height); min-height: var(--ui-control-height); padding: 8px 12px; font-size: 14px; line-height: 20px; }
+}
+@media (max-width: 760px) {
+  html:has(.market-surface[data-market]) body {
+    .enterprise-content { padding: 24px 16px; }
+    .cn-audio-player.md-player { display: flex; flex-wrap: wrap; gap: 8px; }
+    .cn-audio-player .cn-audio-timeline { order: 5; flex-basis: 100%; height: 44px; }
+    .cn-audio-player input.cn-audio-range { height: 44px; }
+    .cn-audio-player .cn-audio-track { top: 20px; }
+    .cn-audio-player .cn-audio-mark { height: 44px; min-width: 36px; }
+    .cn-audio-player .ui-select { margin-left: auto; }
+  }
+}
+/* Specificity matches the two-ID table rules in the frozen stylesheet. */
+html:has(.market-surface[data-market]) body {
+  .auth {
+    :is(.check, .check a, .check span, .brand small) { font-size: 12px; line-height: 18px; }
+    .divider span { color: var(--ui-secondary); }
+    .auth-editions button { min-height: var(--ui-control-height); color: var(--ui-secondary); }
+  }
+  :is(.guest-nav-toggle, .guest-login-primary, .guest-search, .app-download-btn, .settings-popover-close, .ws-device-purchase-close) { min-height: var(--ui-control-height); }
+  .promo-copy > span { font-size: 12px; line-height: 18px; }
+  .ex-avatar-copy p { color: var(--ui-secondary); }
+  .cn-membership .ps-page-header h1 { font-size: 24px; line-height: 32px; }
+  #recording-card {
+    #meeting-view-description { color: var(--ui-secondary); }
+    #meeting-table-scroll {
+      .home-meeting-table-head > span { color: var(--ui-secondary); font-size: 12px; }
+      .home-meeting-tag { font-size: 12px; line-height: 18px; padding: 2px 8px; }
+    }
+  }
+  :is(#recording-card, #ws-view) :is(.mf-trigger, .mf-search, .mf-control select, .recording-recycle-entry) { min-height: var(--ui-control-height); height: var(--ui-control-height); font-size: 14px; line-height: 20px; border-radius: 8px; }
+  :is(.home-meeting-actions button, #meeting-load-more) { min-height: var(--ui-compact-height); font-size: 14px; }
+  #thought-workspace {
+    .th-day h3 span, .th-filters > span { font-size: 12px; line-height: 18px; color: var(--ui-secondary); }
+    .th-filters label { font-size: 14px; line-height: 20px; }
+  }
+  /* Approved typography needs usable scroll slots, not clipped enlarged copy. */
+  #today-assets-grid {
+    height: 280px; min-height: 280px; max-height: 280px;
+    .daily-rhythm header button { font-size: 12px; line-height: 18px; color: var(--ui-secondary); min-height: var(--ui-compact-height); }
+    .brief-task {
+      /* Frozen today-workbench.css locks 11px/18px with !important. */
+      font-size: 14px !important; line-height: 22px !important;
+      min-height: var(--ui-compact-height);
+    }
+    .daily-idea { min-height: var(--ui-compact-height); font-size: 14px; line-height: 22px; }
+    .daily-idea > span { font-size: 14px; line-height: 22px; }
+    .daily-idea time { font-size: 12px; line-height: 18px; color: var(--ui-secondary); }
+    .daily-ledger-items button { min-height: var(--ui-compact-height); }
+    .daily-brief { grid-template-rows: 66px minmax(0, 1fr) var(--ui-compact-height); }
+  }
+  #ws-view {
+    .team-overview-canvas { height: 280px; min-height: 280px; max-height: 280px; }
+    .team-private-notes { height: 76px; flex-basis: 76px; }
+    :is(.team-overview-title > span, .team-private-list p, .team-private-ledger p) { font-size: 12px; line-height: 18px; color: var(--ui-secondary); }
+    .team-private-todo > button:not(.team-private-todo-title):not(.ex-share) { flex: 0 0 var(--ui-icon-size); width: var(--ui-icon-size); height: var(--ui-icon-size); font-size: 14px; }
+    .ws-pagination > span { font-size: 12px; line-height: 18px; color: var(--ui-secondary); }
+    :is(.ws-plan-current p, .ws-seat-usage small, .ws-seat-usage > span, .ws-team-term small, .ws-plan-amount small) { font-size: 12px; line-height: 18px; color: var(--ui-secondary); }
+    .ws-billing-details h3 { font-size: 16px; line-height: 24px; }
+    .ws-file-link { min-height: var(--ui-compact-height); font-size: 14px; }
+  }
+  #meeting-detail-root {
+    .md-summary-ready { color: #16803c; }
+    :is(.md-library-copy small, .md-page-head p) { color: var(--ui-secondary); font-size: 12px; line-height: 18px; }
+    :is(.md-top-meta button, .md-btn, .md-ask-agent, .md-template-button) { min-height: var(--ui-control-height); font-size: 14px; line-height: 20px; border-radius: var(--ui-button-radius); }
+    .md-top-meta button { color: var(--ui-secondary); }
+    .md-title-button { min-height: var(--ui-icon-size); }
+  }
+  #recording-layout #transcript-live-line p { color: var(--ui-secondary); }
+}
+@media (max-width: 760px) {
+  html:has(.market-surface[data-market]) body {
+    #today-assets-grid { height: 640px; min-height: 640px; max-height: 640px; grid-template-rows: 400px minmax(0, 1fr); }
+    #today-assets-grid .daily-focus { grid-template-rows: 240px minmax(0, 1fr); }
+    #ws-view .team-overview-canvas { height: 640px; min-height: 640px; max-height: 640px; grid-template-rows: 260px minmax(0, 1fr); }
+  }
+}
+html:has(.market-surface[data-market]) body {
+  .ps-plan-option > strong small, .connector-group h2 > span { color: var(--ui-secondary); }
+  :is(#recording-card, #ws-view) .mf-control { min-height: var(--ui-control-height); height: var(--ui-control-height); }
+  #ws-view .team-private-todo > button:not(.team-private-todo-title):not(.ex-share) {
+    position: relative; border: 0; background: transparent; display: grid; place-items: center; color: var(--market-accent);
+    &::before { content: ""; position: absolute; width: 18px; height: 18px; border: 1px solid var(--ui-meta); border-radius: 50%; pointer-events: none; }
+  }
+}
+/* The frozen template chip also has an !important text color. */
+html:has(.market-surface[data-market="global"]) body #meeting-detail-root .md-template-button { color: var(--market-accent) !important; }
+html:has(.market-surface[data-market]) body {
+  .main { background: var(--ui-canvas); }
+  :is(.recording-commandbar, .recording-launcher, .home-meeting-library, .workspace-module, .recording-card, .agent-picker) { background: #fff; box-shadow: none; backdrop-filter: none; }
+  .ps-plan-options .ps-plan-option { padding: 24px; }
+  :is(#xiaozhi-rail, #pa-agent, #contacts-xiaozhi-rail, .ws-agent, #knowledge-xiaozhi-panel) { border-radius: 12px; }
+}
+html:has(.market-surface[data-market]) body {
+  :is(.contacts-workspace, .contacts-person-card, .ws-surface, .settings-float-section) { background: #fff; border-radius: 12px; box-shadow: none; }
+  #contacts-root {
+    .contacts-search { min-height: var(--ui-control-height); height: var(--ui-control-height); }
+    .contacts-toolbar label { font-size: 14px; line-height: 20px; gap: 8px; }
+  }
+}
+@media (max-width: 760px) {
+  html:has(.market-surface[data-market]) body {
+    :is(.guest-nav-toggle, .guest-nav-close, .app-download-btn, .ex-top-credits, .settings-popover-close, .ws-device-purchase-close, .pa-btn, .md-info-toggle, .md-tabs button, .auth-methods button) { min-width: 44px; }
+    #today-assets-grid :is(.daily-rhythm header button, .daily-records header button) { min-width: 44px; }
+    #contacts-root .contacts-breadcrumb button { min-width: 44px; }
+    #ws-view .ex-share { min-width: 44px; }
+    #recording-card .meeting-delete { min-width: 44px; min-height: 44px; }
+  }
+}
+/* The frozen shell also collapses via media queries without changing React state. */
+@media (min-width: 761px) and (max-width: 1100px) {
+  html:has(.market-surface[data-market]) body .app:not(.guest-app) .sidebar {
+    :is(.cn-points-guide, .ex-lower-credits) { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; min-height: 44px; padding: 8px; margin-inline: auto; box-sizing: border-box; }
+    :is(.cn-points-guide-copy, .cn-points-chevron, .credits-guide-copy, .credits-guide-chevron) { display: none; }
+  }
+}
+html:has(.market-surface[data-market]) body .ex-lower-credits { font-size: 14px; line-height: 20px; }

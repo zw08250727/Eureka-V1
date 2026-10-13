@@ -1,0 +1,116 @@
+/* UI-CN / UI-GLOBAL: shared metrics and semantic tokens, including body portals.
+   Two attributes deliberately outrank the frozen reference's :root palette.
+   Keep feature selectors in reference/market-workbench.css, not in primitives. */
+html:has(.market-surface[data-market]) {
+  --font: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --ui-action: #3858b6;
+  --ui-action-hover: #2f4b9c;
+  --ui-accent-hover: #2f4b9c;
+  --ui-action-active: #263e82;
+  --ui-text: #253354;
+  --ui-secondary: #526078;
+  --ui-meta: #697386;
+  --ui-input: #fff;
+  --ui-canvas: #fff;
+  --ui-app: #f6f8fd;
+  --ui-sidebar: #f6f8fd;
+  --ui-hover: #eef1fc;
+  --ui-border: #dce2f0;
+  --ui-button-radius: 8px;
+  --ui-control-height: 40px;
+  --ui-compact-height: 36px;
+  --ui-icon-size: 36px;
+  --ui-reading-line: 24px;
+  --ui-hero-line: 36px;
+  --ui-disabled: #e5e9f3;
+  --ui-disabled-text: #697386;
+  --ink: var(--ui-text);
+  --sub: var(--ui-secondary);
+  --muted: var(--ui-meta);
+  --text-primary: var(--ui-text);
+  --text-secondary: var(--ui-secondary);
+  --text-tertiary: var(--ui-meta);
+  --ui-ink: var(--ui-text);
+  --ui-muted: var(--ui-secondary);
+  --ui-blue: var(--market-accent);
+  --ui-line: var(--ui-border);
+  --ui-soft: var(--ui-hover);
+  --line: var(--ui-border);
+  --border: var(--ui-border);
+  --bg-app: var(--ui-app);
+  --glass: #fff;
+  --glass-strong: #fff;
+}
+html:has(.market-surface[data-market="cn"]) {
+  --font: "MiSans", "HarmonyOS Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --ui-action: #262626;
+  --ui-action-hover: #111;
+  --ui-accent-hover: #0e42d2;
+  --ui-action-active: #000;
+  --ui-text: #262626;
+  --ui-secondary: #595959;
+  --ui-meta: #737373;
+  --ui-input: #f2f3f5;
+  --ui-app: #fff;
+  --ui-sidebar: #f9f9f9;
+  --ui-hover: #ededed;
+  --ui-border: #ebebeb;
+  --ui-button-radius: 6px;
+  --ui-reading-line: 26px;
+  --ui-hero-line: 38px;
+  --ui-disabled: #f2f3f5;
+  --ui-disabled-text: #737373;
+}
+@media (max-width: 760px) {
+  html:has(.market-surface[data-market]) {
+    --ui-control-height: 44px;
+    --ui-compact-height: 44px;
+    --ui-icon-size: 44px;
+  }
+}
+html:has(.market-surface[data-market]) body {
+  font-family: var(--font);
+  color: var(--ui-text);
+  background: var(--ui-app);
+}
+html:has(.market-surface[data-market]) body::before,
+html:has(.market-surface[data-market]) body::after { background: none; }
+html:has(.market-surface[data-market]) body :is(button, input, select, textarea, dialog) { font-family: var(--font); }
+/* Focus is opaque and remains visible on gray fields and white portal panels. */
+html:has(.market-surface[data-market]) body :is(button, a, input, select, textarea, summary, [tabindex]):focus-visible,
+html:has(.market-surface[data-market]) body .ui-select[data-open="true"] > select {
+  /* Frozen prototype.css has an !important focus shorthand. This scoped
+     exception replaces that translucent ring without editing the snapshot. */
+  outline: 2px solid var(--market-accent) !important;
+  outline-offset: 3px;
+}
+html:has(.market-surface[data-market]) body :is(input, select, textarea):focus-visible { border-color: var(--market-accent); }
+html:has(.market-surface[data-market]) body .ui-button {
+  min-height: var(--ui-control-height); padding: 8px 16px;
+  border: 1px solid var(--ui-border); border-radius: var(--ui-button-radius);
+  font-size: 14px; line-height: 20px; font-weight: 500;
+  color: var(--ui-text); background: var(--ui-canvas);
+}
+html:has(.market-surface[data-market]) body .ui-button-primary { background: var(--ui-action); color: #fff; border-color: var(--ui-action); }
+html:has(.market-surface[data-market]) body .ui-button-primary:hover:not(:disabled) { background: var(--ui-action-hover); }
+html:has(.market-surface[data-market]) body .ui-button-ghost { background: transparent; border-color: transparent; }
+html:has(.market-surface[data-market]) body .ui-select-popup[popover] { border-radius: 8px; padding: 8px; background: #fff; color: var(--ui-text); }
+html:has(.market-surface[data-market]) body .ui-select-option { min-height: var(--ui-control-height); border-radius: 6px; }
+html:has(.market-surface[data-market]) body .ui-select-option[aria-selected="true"] { color: var(--market-accent); background: var(--market-soft); }
+html:has(.market-surface[data-market]) body .ui-select-option[data-active="true"] { outline: 2px solid var(--market-accent); outline-offset: -2px; }
+html:has(.market-surface[data-market]) body .ui-select-option[aria-disabled="true"] { color: var(--ui-disabled-text); }
+/* Login is the only 20px dialog; other dialog geometry belongs to its owner. */
+html:has(.market-surface[data-market]) body .auth { font-family: var(--font); --muted: var(--ui-meta); }
+html:has(.market-surface[data-market]) body .auth h1 { font-size: 28px; line-height: var(--ui-hero-line); font-weight: 600; }
+html:has(.market-surface[data-market]) body .auth :is(.input, .primary, .plain) { min-height: 44px; height: 44px; font-size: 14px; line-height: 20px; }
+html:has(.market-surface[data-market]) body .auth :is(.primary, .plain) { border-radius: var(--ui-button-radius); }
+/* Auth uses the shared Button with a legacy .primary class. Keep that variant
+   and its disabled state explicit instead of letting the default button win. */
+html:has(.market-surface[data-market]) body .auth .ui-button.primary {
+  background: var(--market-accent); color: #fff; border-color: var(--market-accent);
+}
+html:has(.market-surface[data-market]) body .auth .ui-button.primary:hover:not(:disabled) { background: var(--ui-accent-hover); }
+html:has(.market-surface[data-market]) body .auth .ui-button.primary:disabled { background: var(--ui-disabled); color: var(--ui-disabled-text); border-color: var(--ui-disabled); }
+html:has(.market-surface[data-market="cn"]) body .auth .ui-button.primary:disabled { background: #adc6ff; border-color: #adc6ff; color: #fff; }
+html:has(.market-surface[data-market]) body .auth .ui-button.plain { background: var(--ui-input); color: var(--market-accent); }
+html:has(.market-surface[data-market]) body .auth .ui-button.plain:disabled { color: var(--ui-disabled-text); }

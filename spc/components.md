@@ -1,10 +1,12 @@
 # 前端组件规范
 
+版本：1.1 / 2026-10-13。依赖和交付边界见 [前端研发规范](frontend.md)，视觉见 [公共 UI](ui.md)、[国内 UI](ui-cn.md)、[海外 UI](ui-global.md)。以下目标约束新增与后续改造，不宣称旧组件已经全部符合。
+
 ## 组织与职责
 
 沿用 React、Next.js App Router、TypeScript，保持现有工程和静态导出。页面只负责组装与路由；业务模块放 `src/features/<module>`；纯展示通用组件放 `src/components/ui`。模型校验与状态变更不放在 DOM 事件拼接或 HTML 字符串中。
 
-连接器参考实现：`card.tsx` 展示、`editor.tsx` 表单、`page.tsx` 交互编排、`model.ts` 校验与序列化。新增业务不使用 iframe、innerHTML 或全局脚本。历史冻结原型仅用于回溯。
+连接器职责参考：`card.tsx` 展示、`editor.tsx` 表单、`page.tsx` 交互编排、`model.ts` 校验与序列化；其旧浏览器确认框等交互仍需渐进收敛。新增业务不使用 iframe、HTML 拼接页面或全局脚本；会议富文本仅允许登记的清洗与内容边界。历史冻结原型仅用于回溯。
 
 ## 公共组件
 
@@ -12,6 +14,20 @@
 - 业务卡片、工具栏、状态反馈与表单可保留模块组件；出现稳定复用后再抽到通用层。
 - Props 必须类型明确，动作使用回调，避免模块之间直接操作对方 DOM；禁止用 `any` 逃避数据契约。
 - Client Component 仅放在需要交互的边界；重型业务页沿用动态加载，不为简单派生值增加 Effect。
+
+### 公共契约与待收敛项
+
+| 组件 | 新增／改造时应具备的契约 | 现状边界 |
+| --- | --- | --- |
+| Button／IconButton | 语义 variant、36/40/44px size、loading、disabled、明确可访问名称 | 当前 Button 只有 default/primary/ghost，尚未补齐统一尺寸和 loading 接口 |
+| Field／Input／Textarea | label、help、error、required、disabled、受控值、关联描述 | 保留现有 Field，按需扩展，不在页面复制校验展示 |
+| Select／Popover | 键盘移动、选中／禁用、Esc、定位和焦点返回 | 复用现有 Select，不新增另一套全局选择器 |
+| Modal／ReferenceDialog | 标题、关闭请求、dirty 保护、初始焦点、焦点返回、短屏滚动 | 暂保留两个接口，后续共用行为底座，不新增第三套实现 |
+| DataTable | columns/rows、稳定 ID、可配置 empty 内容、排序／筛选回调 | 当前“会议”空态文案待抽为参数；基础表格不导入会议模型 |
+| Tabs／StatusBadge／Toast／EmptyState | 展示值、状态和动作；无业务数据访问 | 逐步提取稳定重复，不宣称已有完整独立组件库 |
+| DateFilter | 日期值和回调，日期工具应位于公共层 | 现有 localDay 业务层导入精确登记为遗留例外，后续移出 |
+
+组件 API 目标不等于当前可调用接口；实施时兼容旧调用点，并同步状态展示与测试。状态展示页也必须是 React 路由，不输出新的独立 HTML 页面。
 
 ## 市场、路由与存储
 
@@ -30,7 +46,7 @@
 
 ## 验证
 
-运行 `npm run check`、`npm run build`，再执行受影响 Playwright 用例。修改公共规则需运行两地关键链路；修改 token 需检查登录、工作台、弹窗及移动端。不得以删除失败断言替代产品决策；旧断言修订必须引用规则编号。`npm run check:spc` 检查市场配置与模块依赖、存储访问边界、连接器无 iframe。
+运行 `npm run check`、`npm run build`，再执行受影响 Playwright 用例。修改公共规则需运行两地关键链路；修改 token 需检查登录、工作台、弹窗及移动端。不得以删除失败断言替代产品决策；旧断言修订必须引用规则编号。`npm run check:spc` 检查市场配置与模块依赖，并调用架构检查验证当前源码的存储、iframe、HTML 写入、UI 依赖及冻结边界。
 
 国内积分入口组件位于 `src/features/account/domestic-points.tsx`：`DomesticPointsCard` 复用于顶部浮层、账户菜单与移动导航；`DomesticPointsEntry` 使用原生 Popover 管理顶层展示与关闭；`DomesticPointsGuide` 提供侧栏入口。组件只派生展示状态，任务／支付继续调用既有账户面板，会员跳转使用 `appUrl`，不在入口组件中维护第二份余额或订阅。
 
