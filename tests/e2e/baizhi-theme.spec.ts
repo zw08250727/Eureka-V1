@@ -3,7 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 async function login(page: Page) {
   await page.goto("/cn/");
   await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();
-  if (new URL(page.url()).pathname.startsWith("/cn/")) await page.getByRole("link", { name: "个人/团队版", exact: true }).click();
+  if (new URL(page.url()).pathname.startsWith("/cn/")) await page.getByRole("button", {name:"个人/团队版",exact:true}).click();
   await page.locator("#phone").fill("13800138000");
   await page.locator("#code").fill("123456");
   await page.locator("#terms").check();
@@ -29,7 +29,7 @@ for (const width of [390, 768, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/cn/");
     await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();
-  if (new URL(page.url()).pathname.startsWith("/cn/")) await page.getByRole("link", { name: "个人/团队版", exact: true }).click();
+  if (new URL(page.url()).pathname.startsWith("/cn/")) await page.getByRole("button", {name:"个人/团队版",exact:true}).click();
     await expect(page.locator("#phone")).toHaveCSS("background-color", "rgb(242, 243, 245)");
     await expectResponsiveGeometry(page, [".auth", ".auth-form", ".form", ".auth-methods", "#phone", "#code", "#submit"]);
     await login(page);
@@ -71,7 +71,7 @@ test("CN portals and module surfaces use the theme without losing interactions",
   await expect(pay).toHaveCount(0);
   await page.goto("/global/");
   await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();
-  if (new URL(page.url()).pathname.startsWith("/cn/")) await page.getByRole("link", { name: "个人/团队版", exact: true }).click();
+  if (new URL(page.url()).pathname.startsWith("/cn/")) await page.getByRole("button", {name:"个人/团队版",exact:true}).click();
   await expect(page.locator("#submit")).toHaveCSS("background-color", "rgb(56, 88, 182)");
   await expect(page.locator("#email")).toHaveCSS("background-color", "rgb(255, 255, 255)");
 });

@@ -61,6 +61,6 @@ export function MarketWorkbench({ market }: { market: Market }) {
   return <>
     {session === "member" ? <Application /> : <GuestHome market={market} onLogin={requestLogin} />}
     {error && <p className="guest-storage-error" role="alert">{error}</p>}
-    {target && <AuthOverlay market={market} destination={target} onClose={closeLogin} onSuccess={() => location.replace(target)} />}
+    {target && <AuthOverlay market={market} onClose={closeLogin} onSuccess={() => location.replace(target)} />}
   </>;
 }

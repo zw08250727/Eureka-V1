@@ -150,7 +150,7 @@ export function ReferenceShell({
     setPosition({
       left: Math.min(
         Math.max(12, r.left),
-        innerWidth - Math.min(338, innerWidth - 24) - 12,
+        innerWidth - Math.min(routeMarket() === "cn" && kind === "account" ? 300 : 338, innerWidth - 24) - 12,
       ),
       ...(r.top > innerHeight / 2
         ? { bottom: innerHeight - r.top + 8 }

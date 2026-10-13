@@ -11,6 +11,8 @@ export function personalDestination(value?: string | null) {
     return url.pathname + url.search;
   } catch { return fallback; }
 }
-export function personalLoginUrl(destination?: string) {
-  return marketUrl("cn", "login/?next=" + encodeURIComponent(personalDestination(destination)));
+// Full-page navigation keeps enterprise authentication ready for its own domain.
+// Until a domain is supplied, use the independent local enterprise route.
+export function enterpriseLoginUrl() {
+  return marketUrl("cn", "enterprise/login/");
 }

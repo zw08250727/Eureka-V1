@@ -3,7 +3,7 @@ import { test, expect, type Page } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 const key='eureka:market:cn:eureka:workspaces:v2';
 async function login(page:Page){await page.goto('/cn/');await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();
-  await page.getByRole("link", { name: "个人/团队版", exact: true }).click();await page.locator('#phone').fill('13800138000');await page.locator('#code').fill('111111');await page.locator('#terms').check();await page.locator('#submit').click();await expect(page.locator('.app')).toBeVisible();}
+  await page.getByRole("button", {name:"个人/团队版",exact:true}).click();await page.locator('#phone').fill('13800138000');await page.locator('#code').fill('111111');await page.locator('#terms').check();await page.locator('#submit').click();await expect(page.locator('.app')).toBeVisible();}
 const url='/cn/workbench/?view=meeting&space=personal&id=meeting-1';
 test.beforeEach(async({page})=>{await login(page);const state=M.seed();M.share(M.get(state,'team-eureka'),'team-review',['kevin'],'zhang',[]);await page.evaluate(({key,state})=>localStorage.setItem(key,JSON.stringify(state)),{key,state});await page.goto(url);await expect(page.locator('#note-detail-title')).toBeVisible();});
 for(const team of [false,true])test(`CN ${team?'team':'personal'} speaker scope, highlights and persistence`,async({page})=>{

@@ -38,34 +38,40 @@
 @media(max-width:600px){.cn-points-trigger{height:44px}.cn-points-card{padding:18px}.cn-points-card .cn-points-upgrade,.cn-points-card .cn-points-actions button{min-height:44px}.cn-points-card .cn-points-actions button{font-size:12px}}
 .cn-points-member-label{padding:4px 9px;border-radius:6px;background:#f2f3f5;color:#757575;font-size:12px}
 
-/* Account menu: flat rows, restrained numbers and secondary actions. */
-.cn-account-points { margin: 0 6px 8px; padding: 0 0 16px; border-bottom: 1px solid var(--ui-border); color: var(--ui-text); }
-.cn-account-membership { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+/* Domestic account: preserve the branded card at a compact menu scale. */
+html:has(.market-surface[data-market="cn"]) body .ws-menu[data-mode="account"] { width: min(300px, calc(100vw - 24px)); padding: 10px; border-radius: 12px; }
+html:has(.market-surface[data-market="cn"]) body .ws-menu[data-mode="account"] .ws-menu-head { padding: 6px 4px 10px; gap: 8px; }
+html:has(.market-surface[data-market="cn"]) body .ws-menu[data-mode="account"] .ws-menu-head > div { min-width: 0; }
+html:has(.market-surface[data-market="cn"]) body .ws-menu[data-mode="account"] .ws-menu-head small { margin-top: 4px; overflow-wrap: anywhere; font-size: 12px; }
+html:has(.market-surface[data-market="cn"]) body .ws-menu[data-mode="account"] .ws-space-avatar { width: 32px; height: 32px; flex-shrink: 0; border-radius: 8px; }
+.cn-account-points { margin: 0 0 8px; color: var(--ui-text); }
+.cn-account-membership { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 4px 8px; }
 .cn-account-membership > span { font-size: 12px; line-height: 18px; color: var(--ui-secondary); }
-.cn-account-points .cn-account-membership > button { min-height: 36px; padding: 4px 0 4px 12px; border: 0; border-radius: 6px; background: transparent; color: var(--market-accent); font-size: 12px; line-height: 18px; cursor: pointer; }
+html:has(.market-surface[data-market="cn"]) body .cn-account-points .cn-account-membership > button { min-height: 36px; padding: 4px 0 4px 12px; border: 0; border-radius: 6px; background: transparent; color: var(--market-accent); font-size: 12px; line-height: 18px; cursor: pointer; }
 .cn-account-membership > button span { margin-left: 4px; }
-.cn-signin-card { margin: 0; padding: 0; background: none; }
-.cn-signin-body { padding: 0; }
-.cn-account-points .cn-signin-balance { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 40px; padding: 4px 0; border: 0; border-radius: 6px; background: transparent; text-align: left; cursor: pointer; }
-.cn-signin-balance > span:first-child { flex: 1; color: var(--ui-secondary); font-size: 13px; line-height: 20px; }
-.cn-signin-balance b { color: var(--ui-text); font-size: 20px; line-height: 28px; font-weight: 600; font-variant-numeric: tabular-nums; }
-.cn-signin-balance small { color: var(--ui-secondary); font-size: 12px; font-weight: 400; }
-.cn-signin-balance > span:last-child { color: var(--ui-meta); font-size: 18px; }
-.cn-signin-main { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 4px; }
-.cn-signin-main > div { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; }
-.cn-signin-main p { margin: 0; color: var(--ui-secondary); font-size: 12px; line-height: 18px; }
-.cn-signin-main strong { color: var(--ui-secondary); font-size: 12px; line-height: 18px; font-weight: 500; font-variant-numeric: tabular-nums; }
-.cn-signin-main small { font-size: inherit; font-weight: 400; }
-.cn-account-points .cn-signin-main button { min-height: 36px; padding: 4px 0 4px 8px; border: 0; border-radius: 6px; background: transparent; color: var(--ui-secondary); font-size: 12px; line-height: 18px; white-space: nowrap; cursor: pointer; }
+.cn-signin-card { padding: 1px; border-radius: 12px; background: linear-gradient(115deg, var(--ui-ai-primary), var(--ui-ai-secondary)); }
+.cn-signin-progress { display: flex; align-items: center; gap: 6px; margin: 0; padding: 8px 10px; color: #fff; font-size: 12px; line-height: 18px; }
+.cn-signin-progress > svg { flex-shrink: 0; }
+.cn-signin-body { padding: 12px; border-radius: 10px; background: var(--ui-canvas); }
+.cn-signin-main { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-bottom: 10px; }
+.cn-signin-main p { margin: 0 0 4px; color: var(--ui-meta); font-size: 12px; line-height: 18px; }
+.cn-signin-main strong { color: var(--ui-ai-primary); font-size: 28px; line-height: 34px; font-weight: 600; letter-spacing: -.5px; font-variant-numeric: tabular-nums; }
+.cn-signin-main small { color: var(--ui-text); font-size: 12px; font-weight: 500; letter-spacing: 0; }
+html:has(.market-surface[data-market="cn"]) body .cn-account-points .cn-signin-main button { min-height: 36px; padding: 6px 10px; border: 0; border-radius: 6px; background: var(--ui-input); color: var(--ui-text); font-size: 12px; line-height: 18px; white-space: nowrap; cursor: pointer; }
 .cn-signin-main button span { margin-left: 4px; }
-.cn-signin-progress { margin: 0 0 12px; color: var(--ui-meta); font-size: 12px; line-height: 18px; }
+html:has(.market-surface[data-market="cn"]) body .cn-account-points .cn-signin-balance { display: flex; align-items: center; gap: 6px; width: 100%; min-height: 40px; margin-bottom: 8px; padding: 8px 0; border: 0; border-top: 1px solid var(--ui-border); border-radius: 0; background: transparent; text-align: left; cursor: pointer; }
+.cn-signin-balance > span:first-child { flex: 1; color: var(--ui-meta); font-size: 12px; line-height: 18px; }
+.cn-signin-balance b { color: var(--ui-text); font-size: 14px; line-height: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.cn-signin-balance small { font-size: 12px; font-weight: 400; }
+.cn-signin-balance > span:last-child { color: var(--ui-meta); font-size: 16px; }
 .cn-signin-body footer { display: flex; gap: 8px; }
-.cn-account-points .cn-signin-body footer button { flex: 1; min-height: 36px; padding: 6px 12px; border: 1px solid var(--ui-border); border-radius: 6px; background: var(--ui-canvas); color: var(--ui-text); font-size: 13px; line-height: 20px; font-weight: 500; cursor: pointer; }
-.cn-account-points .cn-signin-body .cn-signin-claim { background: var(--ui-input); color: var(--market-accent); border-color: transparent; }
-.cn-account-points .cn-signin-body footer button:hover:not(:disabled), .cn-account-points .cn-signin-balance:hover { background: var(--ui-hover); }
-.cn-account-points .cn-signin-main button:hover, .cn-account-points .cn-account-membership > button:hover { color: var(--ui-accent-hover); }
-.cn-account-points .cn-signin-body .cn-signin-claim:disabled { color: var(--ui-meta); background: var(--ui-input); cursor: default; }
+html:has(.market-surface[data-market="cn"]) body .cn-account-points .cn-signin-body footer button { flex: 1; min-height: 36px; padding: 6px 8px; border: 0; border-radius: 6px; background: var(--market-accent); color: #fff; font-size: 13px; line-height: 20px; font-weight: 500; cursor: pointer; }
+html:has(.market-surface[data-market="cn"]) body .cn-account-points .cn-signin-body .cn-signin-claim { background: linear-gradient(115deg, var(--ui-ai-primary), var(--ui-ai-secondary)); }
+html:has(.market-surface[data-market="cn"]) body .cn-account-points .cn-signin-body footer button:hover:not(:disabled) { filter: brightness(.94); }
+html:has(.market-surface[data-market="cn"]) body .cn-account-points .cn-signin-main button:hover, html:has(.market-surface[data-market="cn"]) body .cn-account-points .cn-signin-balance:hover { background: var(--ui-hover); }
+html:has(.market-surface[data-market="cn"]) body .cn-account-points .cn-account-membership > button:hover { color: var(--ui-accent-hover); }
+html:has(.market-surface[data-market="cn"]) body .cn-account-points .cn-signin-body .cn-signin-claim:disabled { color: var(--ui-meta); background: var(--ui-input); cursor: default; }
 .cn-account-points button:focus-visible { outline: 2px solid var(--market-accent); outline-offset: 2px; }
 @media (max-width: 600px) {
-  .cn-account-points .cn-signin-body footer button, .cn-account-points .cn-signin-main button, .cn-account-points .cn-account-membership > button, .cn-account-points .cn-signin-balance { min-height: 44px; }
+  html:has(.market-surface[data-market="cn"]) body .cn-account-points .cn-signin-body footer button, html:has(.market-surface[data-market="cn"]) body .cn-account-points .cn-signin-main button, html:has(.market-surface[data-market="cn"]) body .cn-account-points .cn-account-membership > button, html:has(.market-surface[data-market="cn"]) body .cn-account-points .cn-signin-balance { min-height: 44px; }
 }

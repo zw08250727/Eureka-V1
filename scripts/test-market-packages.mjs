@@ -51,7 +51,7 @@ try {
       assert.equal(await page.locator(".auth-overlay").count(), 0);
       await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();
       if (market === "cn") {
-        await page.getByRole("link", { name: "个人/团队版", exact: true }).click();
+        await page.getByRole("button", {name:"个人/团队版",exact:true}).click();
         await page.getByRole("button", { name: "邮箱", exact: true }).click();
       }
       await page.locator("#email").fill("member@example.com");
@@ -95,6 +95,7 @@ try {
       assert.equal(paid.creditOrders[0].currency, market === "cn" ? "CNY" : "USD");
       assert.equal(paid.creditOrders[0].status, "paid");
       if (market === "cn") {
+        await page.getByRole("button", {name:"个人/团队版",exact:true}).click();
         await page.goto(`${origin}/cn/?edition=enterprise`);
         await page.locator("#enterprise-code").fill("100001");
         await page.locator("#submit").click();

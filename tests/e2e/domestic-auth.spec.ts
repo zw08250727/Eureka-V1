@@ -17,7 +17,7 @@ async function enterpriseLogin(page: Page, method: "phone" | "email" = "phone") 
   await expect(page.locator(".enterprise-workbench")).toBeVisible();
 }
 
-test("minimal selector and domestic two-edition entry use correct brands and no explanatory UI", async ({ page }) => {
+test("domestic edition cards open separate personal and Baixiao enterprise dialogs", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator(".review-market-card")).toHaveCount(2);
   await expect(page.getByRole("link", { name: "百智 国内版" })).toBeVisible();
@@ -26,8 +26,8 @@ test("minimal selector and domestic two-edition entry use correct brands and no 
   await page.getByRole("link", { name: "百智 国内版" }).click();
   await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();
   await expect(page.locator(".brand")).toHaveText("百智");
-  await expect(page.getByRole("navigation", { name: "登录版本" }).getByRole("link")).toHaveCount(2);
-  await page.getByRole("link", { name: "个人/团队版", exact: true }).click();
+  await expect(page.getByRole("navigation", { name: "登录版本" }).getByRole("button")).toHaveCount(2);
+  await page.getByRole("button", {name:"个人/团队版",exact:true}).click();
   await expect(page.locator("#phone")).toBeEmpty();
   await expect(page.locator("#terms")).not.toBeChecked();
   await expect(page.locator("#google, #apple")).toHaveCount(0);
@@ -44,7 +44,7 @@ for (const method of ["phone", "email"] as const) {
   test(`domestic ${method} validates, resends, requires agreement and reaches personal workspace`, async ({ page }) => {
     await page.goto("/cn/");
     await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();
-    await page.getByRole("link", { name: "个人/团队版", exact: true }).click();
+    await page.getByRole("button", {name:"个人/团队版",exact:true}).click();
     if (method === "email") await page.getByRole("button", { name: "邮箱", exact: true }).click();
     await page.locator(`#${method}`).fill("bad");
     await page.locator("#send").click();
@@ -75,7 +75,8 @@ for (const method of ["phone", "email"] as const) {
 test("enterprise checks code and membership, supports changing enterprise, and cannot self-register", async ({ page }) => {
   await page.goto("/cn/");
   await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();
-  await page.getByRole("link", { name: "企业版", exact: true }).click();
+  await page.getByRole("button", { name: "企业版", exact: true }).click();
+  await expect(page.getByRole("dialog", {name:"百销企业登录"})).not.toContainText("百智");
   await page.locator("#enterprise-code").fill("wrong");
   await page.locator("#submit").click();
   await expect(page.locator("#status")).toContainText("企业代码无效");
@@ -89,9 +90,9 @@ test("enterprise checks code and membership, supports changing enterprise, and c
   expect(await page.evaluate(k => localStorage.getItem(k), enterpriseSession)).toBeNull();
   await page.getByRole("button", { name: "更换企业" }).click();
   await expect(page.locator("#enterprise-code")).toBeVisible();
-  await page.getByRole("link", { name: "关闭登录", exact: true }).click();
+  await page.getByRole("button", { name: "关闭登录", exact: true }).click();
   await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();
-  await page.getByRole("link", { name: "个人/团队版", exact: true }).click();
+  await page.getByRole("button", {name:"个人/团队版",exact:true}).click();
   await expect(page.locator("#phone")).toBeEmpty();
   await expect(page.locator("#terms")).not.toBeChecked();
 });

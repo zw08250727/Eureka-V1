@@ -1,7 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 async function signIn(page: Page, market: string) {
   if (market === "cn") {
-    await page.getByRole("link", { name: "个人/团队版", exact: true }).click();
+    await page.getByRole("button", {name:"个人/团队版",exact:true}).click();
     await page.locator("#phone").fill("13800138000");
   }
   else await page.locator("#email").fill("guest@example.com");
@@ -129,11 +129,11 @@ test("corrupt credentials show guest home and failed persistence keeps credentia
   await page.goto("/cn/");
   await expect(page.locator(".guest-app")).toBeVisible();
   await page.getByRole("button", {name:"登录 / 注册", exact:true}).last().click();
-  await page.addInitScript(() => { Storage.prototype.setItem = () => { throw new Error("存储空间不足"); }; });
+  await page.evaluate(() => { Storage.prototype.setItem = () => { throw new Error("存储空间不足"); }; });
   await signIn(page,"cn");
   await expect(page.locator("#status")).toContainText("存储空间不足");
   await expect(page.locator("#phone")).toHaveValue("13800138000");
-  await expect(page.locator(".personal-login-page")).toBeVisible();
+  await expect(page.locator(".auth-overlay")).toBeVisible();
 });
 
 for (const market of ["cn", "global"]) test(`${market}: guest sidebar matches the signed-in sidebar geometry and icons`, async ({ page }) => {

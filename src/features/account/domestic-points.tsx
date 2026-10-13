@@ -125,7 +125,7 @@ export function DomesticPointsGuide({ w, actor, onPanel }: PointsProps) {
   </button>;
 }
 
-/** Compact account summary; rewards and actions share the menu's quiet hierarchy. */
+/** Compact branded sign-in card inside the domestic account menu. */
 export function DomesticAccountPoints({ w, actor, onPanel, onSignin }: PointsProps & { onSignin?: () => void }) {
   if (w.type === "team") return <DomesticPointsCard w={w} actor={actor} onPanel={onPanel}/>;
   const day = new Date().toLocaleDateString("sv-SE"), config = marketConfig();
@@ -135,10 +135,10 @@ export function DomesticAccountPoints({ w, actor, onPanel, onSignin }: PointsPro
   return <section className="cn-account-points" aria-label="个人积分与会员">
     <div className="cn-account-membership"><span>{sub.plan}会员</span><button type="button" onClick={() => location.assign(appUrl("subscription", "", w.id, actor))}>{sub.credits ? "管理会员" : "升级"}<span aria-hidden="true"> ›</span></button></div>
     <div className="cn-signin-card">
+      <p className="cn-signin-progress"><AiIcon size={16} tone="inherit"/>本月签到 {entries.length}/{config.rewardLimits.signin} 次，累计 {number(total)} 积分</p>
       <div className="cn-signin-body">
-        <button type="button" className="cn-signin-balance" onClick={() => location.assign(appUrl("settings", "credits", w.id, actor))}><span>当前可用积分</span><b>{number(M.creditBalance(w))}<small> 积分</small></b><span aria-hidden="true">›</span></button>
         <div className="cn-signin-main"><div><p>每日签到</p><strong>+{number(config.rewards.signin)}<small> 积分</small></strong></div><button type="button" onClick={() => onPanel("tasks")}>赚积分 <span aria-hidden="true">›</span></button></div>
-        <p className="cn-signin-progress">本月签到 {entries.length}/{config.rewardLimits.signin} 次，累计 {number(total)} 积分</p>
+        <button type="button" className="cn-signin-balance" onClick={() => location.assign(appUrl("settings", "credits", w.id, actor))}><span>当前可用积分</span><b>{number(M.creditBalance(w))}<small> 积分</small></b><span aria-hidden="true">›</span></button>
         <footer><button type="button" className="credit-recharge-cta" onClick={() => onPanel("recharge")}>充值</button><button type="button" className="cn-signin-claim" disabled={signed || limited} onClick={() => onSignin ? onSignin() : onPanel("signin")}>{signed ? "明日再来" : limited ? "下月再来" : "立即签到"}</button></footer>
       </div>
     </div>

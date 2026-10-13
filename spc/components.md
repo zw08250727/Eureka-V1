@@ -55,8 +55,8 @@
 
 - `MarketWorkbench` 管理市场会话、私有路由校验与登录目标；不接受任意外部跳转 URL。
 - `GuestHome` 使用独立的轻量内容空态，保留默认个人工作区卡片，展示导航、会议／闪念入口及录音、上传、Agent 操作；不挂载今日概览、积分、团队等引导卡片，也不挂载业务控制器或读取已有账号资料。
-- `AuthOverlay` 复用 `ReferenceDialog` 管理关闭、滚动锁、焦点循环与焦点返回。国内挂载 `DomesticEntry` 两张路由卡片，海外挂载 `Auth`。
-- 国内 `/cn/login/` 与 `/cn/enterprise/login/` 为独立页面；`DomesticCredentials` 复用手机／邮箱验证码交互，企业定位和品牌壳由 `EnterpriseLogin` 负责。`login-routes` 仅允许续接国内工作台地址。
+- `AuthOverlay` 复用 `ReferenceDialog` 管理关闭、滚动锁、焦点循环与焦点返回。国内由 `DomesticEntry` 卡片选择后挂载 `DomesticAuth` 或 `EnterpriseLoginForm`，企业表单使用百销品牌；海外挂载 `Auth`。只展示一个 dialog，切换内容不叠加浮层。
+- 国内 `/cn/login/` 与 `/cn/enterprise/login/` 为独立页面；`DomesticCredentials` 复用手机／邮箱验证码交互，企业定位和百销品牌由 `EnterpriseLoginForm` 负责，`EnterpriseLogin` 仅承载直达弹窗。`login-routes` 仅允许续接国内工作台地址。
 - `Workbench` 只消费 upload、agent、recording、notifications 白名单一次性意图；消费后移除参数，刷新不重复唤起。
 
 `reference/sidebar-parts.tsx` 提供 `SidebarBrand`、`WorkspaceCard`、`PrimaryNavigation`，由游客首页和已登录 `ReferenceShell` 共用。只接收展示数据与动作回调，不导入账户模型，避免游客为复用侧栏而初始化私人资料。

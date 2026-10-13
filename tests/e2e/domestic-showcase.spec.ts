@@ -1,13 +1,15 @@
 import { expect, test } from "@playwright/test";
 
-// ENTERPRISE-01 (2026-10-13): edition cards navigate to separate login routes.
-test("domestic cards separate login routes and preserve a protected personal destination", async ({ page }) => {
+// AUTH-UI-04: edition cards open personal or Baixiao enterprise-only dialogs.
+test("domestic personal dialog preserves the protected destination", async ({ page }) => {
   await page.goto("/cn/workbench/?view=connectors&space=personal");
-  await expect(page.getByRole("navigation", { name: "登录版本" }).getByRole("link")).toHaveCount(2);
-  await expect(page.locator("#phone, #enterprise-code")).toHaveCount(0);
-  await page.getByRole("link", { name: "个人/团队版", exact: true }).click();
-  await expect(page).toHaveURL(/\/cn\/login\/\?next=/);
-  await expect(page.locator(".auth-overlay, .auth-editions")).toHaveCount(0);
+  await expect(page.getByRole("navigation", { name: "登录版本" }).getByRole("button")).toHaveCount(2);
+  await page.getByRole("button", {name:"个人/团队版",exact:true}).click();
+  await expect(page.locator("#phone")).toBeVisible();
+  await expect(page.locator("#enterprise-code")).toHaveCount(0);
+  await expect(page).toHaveURL(/\/cn\/workbench\/\?view=connectors&space=personal/);
+  await expect(page.locator(".auth-overlay")).toBeVisible();
+  await expect(page.locator(".auth-editions")).toHaveCount(0);
   await page.locator("#phone").fill("13900139000");
   await page.locator("#send").click();
   await expect(page.locator("#code")).toHaveValue("111111");
@@ -21,8 +23,9 @@ test("domestic cards separate login routes and preserve a protected personal des
 test("bairong matches the verified phone/email flow, resets credentials and completes only an enterprise session", async ({ page }) => {
   await page.goto("/cn/");
   await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();
-  await page.getByRole("link", { name: "企业版", exact: true }).click();
-  await expect(page).toHaveURL(/\/cn\/enterprise\/login\/$/);
+  await page.getByRole("button", { name: "企业版", exact: true }).click();
+  await expect(page).toHaveURL(/\/cn\/$/);
+  await expect(page.getByRole("dialog",{name:"百销企业登录"})).not.toContainText("百智");
   await expect(page.locator("#submit")).toBeDisabled();
   await page.locator("#enterprise-code").fill("bairong");
   await expect(page.locator("#enterprise-code")).toHaveValue("BAIRONG");
@@ -50,13 +53,16 @@ test("bairong matches the verified phone/email flow, resets credentials and comp
   expect(await page.evaluate(() => localStorage.getItem("eureka:market:cn:eureka:auth:v1"))).toBeNull();
 });
 
-for (const width of [320, 390, 768, 1024, 1440]) test(`edition cards and enterprise login fit ${width}px`, async ({ page }) => {
+for (const width of [320, 390, 768, 1024, 1440]) test(`personal and Baixiao enterprise dialogs fit ${width}px`, async ({ page }) => {
   await page.setViewportSize({ width, height: 900 });
   await page.goto("/cn/");
   await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();
-  await expect(page.locator(".domestic-entry-cards")).toBeVisible();
-  await page.screenshot({ path: `test-results/auth/cn-cards-${width}.png`, animations: "disabled" });
-  await page.getByRole("link", { name: "企业版", exact: true }).click();
+  await page.getByRole("button",{name:"个人/团队版",exact:true}).click();
+  await expect(page.locator("#phone")).toBeVisible();
+  await page.screenshot({ path: `test-results/auth/cn-personal-dialog-${width}.png`, animations: "disabled" });
+  await page.getByRole("button",{name:"返回版本选择"}).click();
+  await page.getByRole("button", { name: "企业版", exact: true }).click();
+  await expect(page.getByRole("dialog",{name:"百销企业登录"})).not.toContainText("百智");
   await expect(page.locator("#enterprise-code")).toBeVisible();
   await page.screenshot({ path: `test-results/auth/cn-enterprise-code-${width}.png`, fullPage: true });
   await page.locator("#enterprise-code").fill("bairong");
@@ -103,8 +109,13 @@ for (const [path, input] of [["/cn/login/", "#phone"], ["/cn/enterprise/login/",
     await page.route("**/_next/static/**/*.js", async route => { await scriptsReady; await route.continue(); });
     try {
       await page.goto(path, { waitUntil: "commit" });
-      await expect(page.locator(input)).toBeVisible();
-      await expect(page.locator(input)).toBeDisabled();
+      if (input === "#phone") {
+        await expect(page.locator(input)).toBeVisible();
+        await expect(page.locator(input)).toBeDisabled();
+      } else {
+        await expect(page.getByRole("status")).toHaveText("正在打开百销登录…");
+        await expect(page.locator(input)).toHaveCount(0);
+      }
       if (input === "#phone") await expect(page.getByRole("button", { name: "邮箱", exact: true })).toBeDisabled();
     } finally { resume(); }
     await expect(page.locator(input)).toBeEnabled();

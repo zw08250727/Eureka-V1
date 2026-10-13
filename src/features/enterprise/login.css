@@ -1,17 +1,12 @@
-/* Measured from 100wiser.com on 2026-10-13. Standalone route replaces the shared edition dialog. */
-.enterprise-login-page, .enterprise-login-page *, .enterprise-login-page *::before, .enterprise-login-page *::after { box-sizing: border-box; }
-.enterprise-login-page { min-height: 100dvh; padding: 40px 16px; display: grid; place-items: center; background: #f5f6f8; color: #262626; }
-.login-home-link { position: absolute; top: 16px; left: 24px; color: var(--market-accent); font-size: 14px; line-height: 24px; text-decoration: none; }
-.enterprise-login-shell { position: relative; width: min(1010px, 100%); min-height: 671px; border-radius: 32px; background-size: cover; background-position: center; overflow: hidden; }
-.enterprise-login-logo { position: absolute; left: 60px; top: 48px; }
-.enterprise-login-brand { position: absolute; left: 60px; top: 270px; max-width: 440px; }
-.enterprise-login-brand h1 { margin: 0; font-size: 40px; line-height: 56px; font-weight: 600; letter-spacing: -1.5px; }
-.enterprise-login-brand p { margin: 12px 0 0; color: #565656; font-size: 24px; line-height: 34px; }
-.enterprise-login-card { position: relative; width: 400px; min-height: 591px; margin: 40px 40px 40px auto; padding: 24px; border: 1px solid #f0f1f4; border-radius: 20px; background: white; box-shadow: 0 4px 8px #0000001a; }
-.enterprise-login-controls { display: flex; justify-content: space-between; align-items: center; height: 32px; margin: 0 -8px 16px; }
-.enterprise-login-controls :is(a,button) { display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; background: transparent; color: #262626; text-decoration: none; font-size: 28px; line-height: 1; cursor: pointer; border-radius: 6px; }
-.enterprise-login-controls :is(a,button):hover { background: #f2f3f5; }
-.enterprise-code-form h2 { text-align: center; font-size: 24px; line-height: 34px; font-weight: 500; margin: 32px 0 8px; }
+/* Shared Baixiao enterprise authentication, embedded or directly addressed. */
+.enterprise-login-page { min-height: 100dvh; background: var(--ui-sidebar); }
+.enterprise-login-card, .enterprise-login-card * { box-sizing: border-box; }
+.enterprise-login-card { width: 100%; padding: 56px 40px 32px; color: var(--ui-text); background: #fff; }
+.enterprise-auth-brand { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 24px; }
+.enterprise-auth-brand strong { font-size: 28px; line-height: 36px; font-weight: 650; color: var(--ui-text); }
+.enterprise-auth-brand > span { padding-left: 12px; border-left: 1px solid var(--ui-border); font-size: 13px; line-height: 20px; color: var(--ui-secondary); }
+.enterprise-code-back { min-height: 36px; margin: 0 0 12px; padding: 4px 0; border: 0; background: transparent; color: var(--market-accent); font-size: 13px; cursor: pointer; }
+.enterprise-code-form h2 { text-align: center; font-size: 24px; line-height: 32px; font-weight: 600; margin: 24px 0 8px; }
 .enterprise-login-desc { text-align: center; font-size: 12px; line-height: 18px; color: #737373; margin: 0 0 24px; }
 .enterprise-code-heading { text-align: center; padding: 8px; margin-bottom: 16px; background: #f2f3f5; border-radius: 10px; font-size: 14px; line-height: 24px; }
 .enterprise-login-card .credential-input { display: flex; align-items: center; position: relative; background: #f2f3f5; border-radius: 8px; }
@@ -41,23 +36,10 @@ html:has(.market-surface[data-market="cn"]) body .enterprise-login-card .ui-butt
 .enterprise-login-card .check a { color: #315efb; text-decoration: none; }
 .enterprise-login-card .status,.enterprise-login-error { display: block; height: auto; padding: 0; background: transparent; border: 0; font-size: 12px; line-height: 20px; color: #c33140; margin: 12px 0 0; white-space: normal; }
 .enterprise-login-card .status:empty { margin: 0; }
-@media (min-width: 769px) and (max-width: 1000px) {
-  .enterprise-login-logo { left: 28px; }
-  .enterprise-login-brand { left: 28px; max-width: calc(100% - 440px); }
-  .enterprise-login-brand h1 { font-size: 30px; line-height: 42px; }
-  .enterprise-login-brand p { font-size: 18px; line-height: 28px; }
-  .enterprise-login-card { margin-right: 20px; width: 360px; }
-}
-@media(max-width:768px) {
-  .enterprise-login-page { padding: 56px 12px 24px; }
-  .enterprise-login-shell { min-height: 0; border-radius: 20px; padding: 24px 16px 16px; }
-  .enterprise-login-logo { position: static; width: 88px; height: 40px; }
-  .enterprise-login-brand { position: static; margin: 20px 0 24px; max-width: none; }
-  .enterprise-login-brand h1 { font-size: 24px; line-height: 34px; letter-spacing: -.5px; }
-  .enterprise-login-brand p { font-size: 16px; line-height: 24px; margin-top: 4px; }
-  .enterprise-login-card { width: min(400px,100%); min-height: 480px; margin: 0 auto; padding: 20px; }
-  .enterprise-login-card .auth-methods button, .enterprise-tenant button { min-height: 44px; }
-  .enterprise-login-controls :is(a,button) { width: 44px; height: 44px; }
+
+@media(max-width:520px) {
+  .enterprise-login-card { padding: 56px 24px 28px; }
+  .enterprise-login-card .auth-methods button, .enterprise-tenant button, .enterprise-code-back { min-height: 44px; }
   .enterprise-login-card .input { font-size: 14px; }
   .enterprise-tenant { padding: 10px; gap: 8px; }
 }

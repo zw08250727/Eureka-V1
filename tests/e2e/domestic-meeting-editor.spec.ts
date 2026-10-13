@@ -16,7 +16,7 @@ const prose = (page: Page) => page.locator('#md-content .cn-markdown');
 test.beforeEach(async ({ page }) => {
   await page.goto('/cn/');
   await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();
-  await page.getByRole("link", { name: "个人/团队版", exact: true }).click();
+  await page.getByRole("button", {name:"个人/团队版",exact:true}).click();
   await page.locator('#phone').fill('13800138000');
   await page.locator('#code').fill('111111');
   await page.locator('#terms').check();

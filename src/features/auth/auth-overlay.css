@@ -44,3 +44,7 @@
 /* Shared workbench status badges must not style form validation feedback. */
 .auth-overlay .auth .status { display: block; background: transparent; border: 0; border-radius: 0; height: auto; padding: 6px 0 0; }
 .auth-overlay .auth .status:empty { padding: 0; }
+
+.auth-overlay .auth-overlay-back { position: absolute; top: 14px; left: 20px; z-index: 2; min-height: 36px; border: 0; border-radius: 6px; padding: 4px 8px; background: transparent; color: var(--ui-secondary); font: 13px/20px var(--font); cursor: pointer; }
+.auth-overlay .auth-overlay-back:hover { background: var(--ui-input); }
+@media(max-width:520px) { .auth-overlay .auth-overlay-back { top: 6px; min-height: 44px; } }
