@@ -70,3 +70,7 @@
 ### UI-TYPE-02／UI-NAV-02 · 文字角色与导航
 
 复用ui-foundations的page／section／card／dialog／body／label／caption／micro字号token。Select筛选项12px，主要表单值14px；不改变焦点和触控尺寸。ReferenceShell团队导航以ws-nav-text承载文字，按钮显式提供aria-label和title；仅实际折叠时隐藏文字。两地角色与只读权限不由样式决定。见[公共UI](ui.md)。
+
+### UI-MEETING-03／UI-CONTROL-03／UI-TODO-02
+
+会议展示结构由meeting-detail-ui.css、TemplateContent和DomesticAudioPlayer统一负责；原始SVG来自已核对公开源码。TemplateContent把全局设置作为分类／网格的同级区域，预览按钮与文本分区，默认模板入口位于说明面板。可见待办统一ui-todo-mark，权限和状态仍由所在资产组件负责。复合搜索的focus-within容器承担唯一焦点边框；不取消其他控件键盘焦点。参见[本轮组件与验收](changes/2026-10-13-meeting-density.md)。

@@ -137,9 +137,6 @@ export function DomesticAudioPlayer({
       >
         ↶15
       </B>
-      <time id="md-elapsed" className="cn-audio-time">
-        {formatDomesticAudioTime(elapsed)}
-      </time>
       <div className="cn-audio-timeline">
         <div className="cn-audio-track" aria-hidden="true">
           <span className="cn-audio-buffered" style={{ width: `${cached}%` }} />
@@ -184,9 +181,6 @@ export function DomesticAudioPlayer({
           })}
         </div>
       </div>
-      <time id="md-duration" className="cn-audio-time">
-        {formatDomesticAudioTime(total)}
-      </time>
       <B
         action="forward"
         className="md-icon-btn cn-audio-skip"
@@ -197,6 +191,15 @@ export function DomesticAudioPlayer({
       >
         15↷
       </B>
+      <span className="cn-audio-times">
+      <time id="md-elapsed" className="cn-audio-time">
+        {formatDomesticAudioTime(elapsed)}
+      </time>
+        <span aria-hidden="true"> / </span>
+      <time id="md-duration" className="cn-audio-time">
+        {formatDomesticAudioTime(total)}
+      </time>
+      </span>
       <Select
         id="md-speed"
         aria-label="播放倍速"

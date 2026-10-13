@@ -47,7 +47,7 @@ export function ContactDetail({ person, tab, notes, space, actor, readonly = fal
       {meetings.some((m) => m.todos?.some((t) => t.side === side)) ? meetings.flatMap((m) => (m.todos || []).map((t, i) => t.side !== side ? null : <div className={`contacts-line customer-todo${t.completed ? " is-done" : ""}`} key={`${m.id}:${i}`}>
         <button type="button" className="customer-todo-toggle" aria-pressed={!!t.completed} disabled={readonly}
           aria-label={`完成状态：${t.title}`} onClick={() => onToggleTodo(m.id, i, t)}>
-          <span className="customer-todo-check" aria-hidden="true">{t.completed ? "✓" : ""}</span>
+          <span className="customer-todo-check ui-todo-mark" aria-hidden="true">{t.completed ? "✓" : ""}</span>
           <span className="customer-todo-title">{t.title}</span>
         </button>
         <small><time>{t.due || "时间未约定"}</time><a className="customer-source" href={appUrl("meeting", m.id, space, actor)}>来源：{m.title} ↗</a></small>

@@ -1,7 +1,7 @@
 /* UI-TYPE-02 — missing role mappings for current React surfaces only.
    Metrics live in ui-foundations.css. Rich text/editor content is excluded. */
 html:has(.market-surface[data-market]) body {
-  #meeting-detail-root #note-detail-title { font-size: var(--ui-font-page); line-height: var(--ui-line-page); }
+  #meeting-detail-root #note-detail-title { font-size: 18px; line-height: 28px; }
   .page-crumb { font-size: var(--ui-font-section); line-height: var(--ui-line-section); font-weight: 600; }
   .sidebar :is(.nav-label, .tree-folder-name, .ws-nav-text) { font-size: var(--ui-font-label); line-height: var(--ui-line-label); font-weight: 500; }
 

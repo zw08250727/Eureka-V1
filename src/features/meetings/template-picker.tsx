@@ -10,6 +10,15 @@ import { createActions } from "@/features/personal/store";
 import { templates } from "./templates";
 import { basePath } from "@/lib/routes";
 import { ReferenceDialog } from "@/features/reference/dialog";
+// Labels/descriptions verified in the live MeetingSummaryTemplate panel, 2026-10-13.
+const referenceTemplates: Record<string, {description: string; icon?: string}> = {
+  "智能匹配": {description:"根据会议内容智能推荐模版，无需手动选择"},
+  "通用": {description:"适用于所有会议场景"},
+  "播客访谈": {description:"适配线下面对面访谈、线上视频 / 语音连麦、直播访谈",icon:"📕"},
+  "党课学习教育总结": {description:"适用于专题党课（如：政策理论学习、党史学习教育）",icon:"👱‍♀️"},
+  "商务洽谈合作": {description:"用于商务讨论",icon:"💡"},
+  "学术或产品分享": {description:"适用于讲座和研讨会"},
+};
 type Config = { template: string; language: string; detail: string };
 const defaults: Config = { template: "智能匹配", language: "中文（中国）", detail: "标准" };
 function templateScope() {
@@ -156,15 +165,15 @@ export function TemplateContent({
     community.find((c) => c.name === name) || {
       name,
       category,
-      description:
+      description: referenceTemplates[name]?.description || (
         name === "智能匹配"
           ? "根据会议内容自动匹配适合的总结结构。"
-          : `适用于${category}场景，提炼重点信息、核心结论与行动项。`,
+          : `适用于${category}场景，提炼重点信息、核心结论与行动项。`),
       prompt:
         "会议概览\n关键议题与结论\n行动项：事项、负责人、时间\n风险与待确认",
     };
   return (
-    <div className="ex-template-layout">
+    <div className="ex-template-layout meeting-template-layout">
       <nav className="ex-template-nav" aria-label="模板分类">
         {Object.keys(templates).map((t) => (
           <button
@@ -184,7 +193,7 @@ export function TemplateContent({
           模板社区 ↗
         </button>
       </nav>
-      <div>
+      <div className="meeting-template-main">
         {domestic && error && <p role="alert">{error}</p>}
         <div className="ex-template-community">
           <strong>选择总结模板</strong>
@@ -200,31 +209,12 @@ export function TemplateContent({
                 aria-pressed={value.template === name}
                 onClick={() => onChange({ template: name })}
               >
-                <img
-                  width={24}
-                  height={24}
-                  src={`${basePath}/integrations/icons/GenerateExampleSparkleIcon.svg`}
-                  alt=""
-                />
+                {name === "智能匹配" ? <img className="template-smart-icon" width={24} height={24} src={`${basePath}/integrations/icons/GenerateExampleSparkleIcon.svg`} alt="" /> : <span className="template-reference-icon" aria-hidden="true">{referenceTemplates[name]?.icon || ""}</span>}
                 <strong>{name}</strong>
                 <span className="meeting-template-description">{content(name).description}</span>
-                {defaultName === name && <small>默认模板</small>}
+                {value.template === name && <span className="meeting-template-selected" aria-hidden="true">✓</span>}
               </button>
-              <div className="ex-template-card-actions">
-                <button
-                  className="ex-link"
-                  aria-label={`查看模板说明：${name}`}
-                  onClick={() => setPreview(content(name))}
-                >
-                  ⓘ
-                </button>
-                <button
-                  className="ex-link"
-                  onClick={() => persist({ defaultName: name })}
-                >
-                  {defaultName === name ? "已默认" : "设为默认"}
-                </button>
-              </div>
+              <button type="button" className="meeting-template-preview" aria-label={`查看模板说明：${name}`} onClick={() => setPreview(content(name))}>⛶</button>
             </div>
           ))}
         </div>
@@ -243,41 +233,45 @@ export function TemplateContent({
             ＋ 创建自定义模板
           </button>
         )}
-        <h3 style={{ fontSize: 15, marginTop: 24 }}>全局设置</h3>
-        <div className="ex-form">
-          <label>
-            总结语言
-            <Select
-              value={value.language}
-              onChange={(e) => onChange({ language: e.target.value })}
-            >
-              {[
-                "中文（中国）",
-                "English",
-                "日本語",
-                "한국어",
-                "Deutsch",
-                "Français",
-                "Español",
-              ].map((n) => (
-                <option key={n}>{n}</option>
-              ))}
-            </Select>
-          </label>
-          <label>
-            详细程度
-            <Select
-              value={value.detail}
-              onChange={(e) => onChange({ detail: e.target.value })}
-            >
-              {["精简", "标准", "详细"].map((n) => (
-                <option key={n}>{n}</option>
-              ))}
-            </Select>
-          </label>
-        </div>
-
       </div>
+      <section className="meeting-template-settings">
+        <h3>全局设置</h3>
+        <div className="meeting-generation-config">
+          <h4>生成配置</h4>
+          <div className="ex-form">
+            <label>
+              总结语言
+              <Select
+                value={value.language}
+                onChange={(e) => onChange({ language: e.target.value })}
+              >
+                {[
+                  "中文（中国）",
+                  "English",
+                  "日本語",
+                  "한국어",
+                  "Deutsch",
+                  "Français",
+                  "Español",
+                ].map((n) => (
+                  <option key={n}>{n}</option>
+                ))}
+              </Select>
+            </label>
+            <label>
+              详细程度
+              <Select
+                value={value.detail}
+                onChange={(e) => onChange({ detail: e.target.value })}
+              >
+                {["精简", "标准", "详细"].map((n) => (
+                  <option key={n}>{n}</option>
+                ))}
+              </Select>
+            </label>
+          </div>
+          </div>
+      </section>
       {communityOpen && (
         <ReferenceDialog
           className="ex-dialog"
@@ -407,6 +401,7 @@ export function TemplateContent({
             >
               使用此模板
             </button>
+            <button className="ex-link" onClick={() => persist({ defaultName: preview.name })}>{defaultName === preview.name ? "已默认" : "设为默认"}</button>
             {custom.some((c) => c.name === preview.name) && (
               <button
                 onClick={() => {

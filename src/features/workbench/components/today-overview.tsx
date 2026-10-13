@@ -185,7 +185,7 @@ export function TodayOverview({
                     onClick={() => onToggle(t.id)}
                     title={t.title}
                   >
-                    <span className="brief-task-check">
+                    <span className="brief-task-check ui-todo-mark">
                       {t.done ? "✓" : ""}
                     </span>
                     <span>

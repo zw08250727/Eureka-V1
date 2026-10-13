@@ -306,3 +306,25 @@ html:has(.market-surface[data-market]) body {
   }
 }
 html:has(.market-surface[data-market]) body .ex-lower-credits { font-size: 14px; line-height: 20px; }
+
+/* UI-CONTROL-03: one complete wrapper border and one focus indicator. */
+html:has(.market-surface[data-market]) body {
+  :is(#recording-card,#ws-view) .mf-control { box-sizing: border-box; height: calc(var(--ui-control-height) + 2px); min-height: calc(var(--ui-control-height) + 2px); overflow: visible; border: 1px solid var(--ui-border); padding: 0; }
+  :is(#recording-card,#ws-view) .mf-trigger { height: var(--ui-control-height); min-height: var(--ui-control-height); border: 0; background: transparent; border-radius: inherit; }
+  :is(.meeting-search,.ws-search,.contacts-search,.recording-recycle-search,.mf-control):focus-within { border-color: var(--market-accent); box-shadow: none; }
+  /* The frozen global focus shorthand is !important. Suppress only inner input
+     outlines where the composite parent owns the visible indicator. */
+  :is(.meeting-search,.ws-search,.contacts-search,.recording-recycle-search) input:is(:focus,:focus-visible) { outline: none !important; box-shadow: none !important; border: 0; }
+  :is(.meeting-search,.ws-search,.contacts-search,.recording-recycle-search) input { min-width: 0; }
+  :is(.pa-complete,.th-complete) { box-sizing: border-box; display: grid; place-items: center; flex: 0 0 28px; width: 28px; height: 36px; min-width: 28px; min-height: 36px; padding: 0; margin: 0; border: 0; border-radius: 6px; background: transparent; }
+  .pa-calendar-entry.is-done .pa-complete, .th-row.is-done .th-complete { background: transparent; border: 0; }
+  :is(.pa-complete,.th-complete)::before { content: none; }
+  :is(.ui-todo-mark,.brief-task-check.ui-todo-mark,.customer-todo-check.ui-todo-mark,.team-todo-mark.ui-todo-mark) { box-sizing: border-box; display: grid; place-items: center; flex: 0 0 14px; width: 14px; height: 14px; min-width: 14px; min-height: 14px; margin: 0; padding: 0; border: 1px solid var(--ui-meta); border-radius: 50%; background: var(--ui-canvas); color: var(--market-accent); font-size: 10px; line-height: 12px; }
+  :is([aria-pressed=true],[aria-checked=true],.is-done) > .ui-todo-mark { border-color: var(--market-accent); background: var(--market-soft); color: var(--market-accent); }
+  .pa-calendar-entry .pa-list-row { padding-block: 10px; }
+  .pa-calendar-entry .pa-list-row strong { font-size: 14px; line-height: 22px; }
+  .pa-calendar-entry .pa-list-row small { font-size: 12px; line-height: 18px; }
+}
+@media (max-width:760px) {
+  html:has(.market-surface[data-market]) body :is(.pa-complete,.th-complete) { width: 44px; height: 44px; min-width: 44px; min-height: 44px; flex-basis: 44px; }
+}

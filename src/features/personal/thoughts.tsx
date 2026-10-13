@@ -380,7 +380,7 @@ export function ThoughtsPage({ id, actor = "zhang", space = "personal", controll
                                         }
                                       }}
                                     >
-                                      {r.done ? "✓" : ""}
+                                      <span className="ui-todo-mark" aria-hidden="true">{r.done ? "✓" : ""}</span>
                                     </button>
                                   )}
                                   <button

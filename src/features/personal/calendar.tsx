@@ -206,13 +206,14 @@ export function CalendarPage({
         <button
           type="button"
           className="pa-complete"
+          aria-pressed={r.done}
           data-pa="toggle"
           disabled={readonly||!canEditAsset(space,actor,r)}
           data-id={r.id}
           aria-label={`${r.done ? "重新打开" : "完成"} ${r.title}`}
           onClick={() => toggle(r)}
         >
-          {r.done ? "✓" : "○"}
+          <span className="ui-todo-mark" aria-hidden="true">{r.done ? "✓" : ""}</span>
         </button>
       )}
       <button

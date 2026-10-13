@@ -25,7 +25,7 @@ import { RefIcon } from "@/features/reference/symbols";
 import { M } from "@/features/spaces/model/store";
 import { TeamMeetingAgent } from "./team-agent";
 import type { SpacesController } from "@/features/spaces/use-spaces";
-import { appUrl, assetUrl } from "@/lib/routes";
+import { appUrl, assetUrl, basePath } from "@/lib/routes";
 import { createMeetingDetails } from "./store";
 import type { MeetingDetail } from "./types";
 import {
@@ -415,20 +415,6 @@ export function MeetingPage({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />
-              <B
-                action="ask"
-                className="md-ask-agent"
-                aria-label={agentOpen ? "收起 Agent" : "Ask Agent"}
-                aria-controls="md-agent-host"
-                aria-expanded={agentOpen}
-                onClick={() => setAgentOpen(!agentOpen)}
-              >
-                <span className="md-agent-mark">
-                  <RefIcon name="spark" />
-                </span>
-                <strong>Ask Agent</strong>
-                <RefIcon name="expand" className="icon md-agent-expand" />
-              </B>
             </div>
           </div>
           <div ref={host} className="md-detail-layout">
@@ -481,19 +467,8 @@ export function MeetingPage({
               </aside>
               <section className="md-main">
                 <header className="md-top">
-                  <IB
-                    action="library"
-                    name="library"
-                    label="切换录音列表"
-                    onClick={() => {
-                      if (
-                        matchMedia("(max-width:800px)").matches ||
-                        (agentOpen && matchMedia("(max-width:1799px)").matches)
-                      )
-                        setLibraryMobile(!libraryMobile);
-                      else setLibraryClosed(!libraryClosed);
-                    }}
-                  />
+                  <img className="md-recording-mark" src={`${basePath}/assets/baizhi/meeting/recording-${r.source === "网页录音" ? "mic" : "ear"}-source.svg`} width={48} height={48} alt="" />
+
                   <div className="md-top-copy">
                     <button
                       className="md-title-button"
@@ -508,15 +483,14 @@ export function MeetingPage({
                     </button>
                     <div className="md-top-meta">
                       <p id="note-detail-meta">
+                        <span className="md-summary-ready" data-tone={badge.tone}>{badge.label}</span>
                         {meta(
                           file ||
                             personal.data?.meetings.find(
                               (m) => m.id === selected,
                             ) ||
                             r,
-                        )}{" "}
-                        ·{" "}
-                        <span className="md-summary-ready" data-tone={badge.tone}>{badge.label}</span>
+                        )}
                       </p>
                       <button
                         hidden={enhanced}
@@ -559,6 +533,30 @@ export function MeetingPage({
                     >
                       <I name="trash" /> 删除
                     </B>
+                    <B
+                      action="ask"
+                      className="md-ask-agent"
+                      aria-label={agentOpen ? "收起 Agent" : "Ask Agent"}
+                      aria-controls="md-agent-host"
+                      aria-expanded={agentOpen}
+                      onClick={() => setAgentOpen(!agentOpen)}
+                    >
+                      <span className="md-agent-mark"><RefIcon name="spark" /></span>
+                      <strong>Ask Agent</strong>
+                      <RefIcon name="expand" className="icon md-agent-expand" />
+                    </B>
+                    <IB
+                      action="library"
+                      name="library"
+                      label="切换录音列表"
+                      onClick={() => {
+                        if (
+                          matchMedia("(max-width:800px)").matches ||
+                          (agentOpen && matchMedia("(max-width:1799px)").matches)
+                        ) setLibraryMobile(!libraryMobile);
+                        else setLibraryClosed(!libraryClosed);
+                      }}
+                    />
                     <IB
                       action="close"
                       name="close"
@@ -627,7 +625,7 @@ export function MeetingPage({
                     </Select>
 
                   </div>}
-                  <section className="md-info">
+                  <section className={`md-info${expanded ? " is-expanded" : ""}`}>
                     <div className="md-info-line">
                       <button
                         type="button"
@@ -681,8 +679,8 @@ export function MeetingPage({
                           ＋ 添加标签
                         </B>
                       </div>
-                      <div>
-                        图片（{(r.images || []).length}/50）
+                      <div className="md-image-section">
+                        <span>图片（{(r.images || []).length}/50）</span>
                         <div className="md-images">
                           {(r.images || []).map((im, i) => (
                             <div className="md-image" key={`${im.name}/${i}`}>
@@ -717,7 +715,7 @@ export function MeetingPage({
                           disabled={readonly || uploading}
                           onClick={() => imageInput.current?.click()}
                         >
-                          {uploading ? "上传中…" : <I name="plus" />}
+                          {uploading ? "上传中…" : <><img src={`${basePath}/assets/baizhi/meeting/add-image-source.svg`} width={20} height={20} alt="" /><span>添加图片</span></>}
                         </B>
                         {enhanced && !!r.images?.length && <B onClick={()=>{setImageSelection([]);setModal("image-manager");}}>全部图片（{r.images.length}）</B>}
                       </div>

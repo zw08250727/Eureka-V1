@@ -1,9 +1,9 @@
 /* UI-TEAM-THOUGHTS-01: shared CN/global density; business state stays in React.
    Scope to the current component so frozen and other overview layouts stay intact. */
 html:has(.market-surface[data-market]) body #ws-view .team-overview-refined {
-  .team-overview-canvas { height: 320px; min-height: 320px; max-height: 320px; }
-  .team-private-column { padding: 16px; }
-  .team-section-heading { min-height: 28px; margin-bottom: 12px; gap: 12px; align-items: center; }
+  .team-overview-canvas { height: 296px; min-height: 296px; max-height: 296px; }
+  .team-private-column { padding: 12px 16px; }
+  .team-section-heading { min-height: 28px; margin-bottom: 8px; gap: 12px; align-items: center; }
   .team-section-heading h2 { font-size: var(--ui-font-section, 16px); line-height: var(--ui-line-section, 24px); font-weight: 600; color: var(--ui-text); }
   .team-private-column .team-section-heading h2 { flex-wrap: wrap; gap: 4px 8px; }
   .team-private-badge { font-size: 12px; line-height: 18px; color: var(--ui-meta); font-weight: 400; }
@@ -11,12 +11,12 @@ html:has(.market-surface[data-market]) body #ws-view .team-overview-refined {
   .team-private-column h3 { display: flex; align-items: baseline; gap: 8px; font-size: 14px; line-height: 22px; font-weight: 600; color: var(--ui-text); }
   .team-private-column h3 span { margin: 0; font-size: 12px; line-height: 18px; font-weight: 400; color: var(--ui-meta); }
   .team-private-column :is(header > a, .ex-share) { font-size: 12px; line-height: 18px; font-weight: 400; color: var(--market-accent); min-height: 28px; display: inline-flex; align-items: center; flex-shrink: 0; }
-  .team-private-list { gap: 4px; }
+  .team-private-list { gap: 2px; }
   :is(.ex-daily-row, .team-private-todo) { min-height: 36px; gap: 8px; }
-  .ex-daily-row > a { display: grid; gap: 0; align-content: center; padding-block: 2px; min-height: 40px; }
+  .ex-daily-row > a { display: grid; gap: 0; align-content: center; padding-block: 2px; min-height: 36px; }
   .ex-daily-row > a > span { order: -1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .team-private-column :is(.ex-daily-row > a, .team-private-todo-title, .team-private-idea) {
-    font-size: 14px; line-height: 22px; font-weight: 400; color: var(--ui-text);
+    font-size: 13px; line-height: 20px; font-weight: 400; color: var(--ui-text);
   }
   .team-private-column :is(.ex-daily-row > a, .team-private-idea):hover { color: var(--market-accent); }
   .team-private-column :is(time, .ex-owner, .team-private-list > p, .team-private-ledger p) { font-size: 12px; line-height: 18px; color: var(--ui-meta); }
@@ -32,13 +32,13 @@ html:has(.market-surface[data-market]) body #ws-view .team-overview-refined {
   .team-todo-toggle[aria-pressed="true"] .team-todo-mark { border-color: var(--market-accent); background: var(--market-soft); }
   .team-private-todo > button[aria-pressed="true"] + .team-private-todo-title { color: var(--ui-meta); text-decoration: line-through; }
   .team-private-todo > button:disabled { cursor: default; }
-  .team-private-notes { margin-top: 12px; padding-top: 12px; height: 88px; flex-basis: 88px; gap: 16px; border-color: var(--ui-border); }
+  .team-private-notes { margin-top: 8px; padding-top: 8px; height: 68px; flex-basis: 68px; gap: 12px; border-color: var(--ui-border); }
   .team-private-idea { gap: 8px; min-height: 28px; }
   .team-private-ledger strong { color: var(--ui-text); font-size: 14px; line-height: 22px; font-weight: 500; }
 }
 @container team-overview (max-width: 900px) {
   html:has(.market-surface[data-market]) body #ws-view .team-overview-refined {
-    .team-overview-canvas { height: 680px; min-height: 680px; max-height: 680px; grid-template-columns: minmax(0, 1fr); grid-template-rows: 260px minmax(0, 1fr); }
+    .team-overview-canvas { height: 620px; min-height: 620px; max-height: 620px; grid-template-columns: minmax(0, 1fr); grid-template-rows: 260px minmax(0, 1fr); }
     .team-private-column { border-left: 0; border-top: 1px solid var(--ui-border); }
   }
 }

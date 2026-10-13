@@ -33,13 +33,13 @@ for (const market of ['cn', 'global']) {
           await page.locator('.contacts-person-card').first().click();
           await expect(page.locator('.contacts-profile')).toBeVisible();
         }
-        if (view.startsWith('meeting')) await expect(page.locator('#note-detail-title')).toHaveCSS('font-size','22px');
+        if (view.startsWith('meeting')) await expect(page.locator('#note-detail-title')).toHaveCSS('font-size','18px');
         if (space === 'team-eureka' && view === 'home') {
           // Preserve the separately published UI-TEAM-THOUGHTS-01 while changing global tokens.
           const overview = page.locator('.team-overview-refined');
           await expect(overview.locator('.team-section-heading h2').first()).toHaveCSS('font-size', '16px');
           await expect(overview.locator('.team-private-column h3').first()).toHaveCSS('font-size', '14px');
-          await expect(overview.locator('.team-private-todo-title').first()).toHaveCSS('font-size', '14px');
+          await expect(overview.locator('.team-private-todo-title').first()).toHaveCSS('font-size', '13px');
           await expect(overview.locator('.team-private-column time').first()).toHaveCSS('font-size', '12px');
           await expect(overview.locator('.team-todo-mark').first()).toHaveCSS('width', '14px');
           await expect(overview.locator('.team-todo-mark').first()).toHaveCSS('height', '14px');
