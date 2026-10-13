@@ -6,7 +6,7 @@ import { assertPersonalShare, type ShareScope } from "./share-links";
 
 export function currentShareScope(): ShareScope {
   const market = routeMarket();
-  return { market, space: new URLSearchParams(location.search).get("space") || "personal", identity: market === "cn" ? readIdentity("cn")?.identity || "" : "" };
+  return { market, space: new URLSearchParams(location.search).get("space") || "personal", identity: market ? readIdentity(market)?.identity || "" : "" };
 }
 export function verifyShareScope(expected: ShareScope, meetingId: string) {
   assertPersonalShare(expected);

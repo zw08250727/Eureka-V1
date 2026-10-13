@@ -197,3 +197,6 @@
     width: 100%;
   }
 }
+.cn-editor-color { display: inline-flex; align-items: center; gap: 4px; min-height: var(--ui-compact-height,36px); padding: 4px 8px; font-size: 12px; color: var(--ui-text); }
+.cn-editor-color input { width: 28px; height: var(--ui-compact-height,36px); padding: 4px; border: 1px solid var(--ui-border); border-radius: 6px; background: var(--ui-canvas); cursor: pointer; }
+.cn-inline-editable a { color: var(--market-accent); text-decoration: underline; text-underline-offset: 3px; }

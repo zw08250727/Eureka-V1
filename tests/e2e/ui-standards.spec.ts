@@ -3,6 +3,7 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
 async function login(page: Page, market: string) {
   await page.goto(`/${market}/`);
   await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();
+  if (market === "cn") await page.getByRole("link", { name: "个人/团队版", exact: true }).click();
   await page.locator(market === "cn" ? "#phone" : "#email").fill(market === "cn" ? "13800138000" : "visual@example.com");
   await page.locator("#code").fill("123456");
   await page.locator("#terms").check();
@@ -32,7 +33,7 @@ for (const market of ["cn", "global"]) {
       expect(box.height).toBeLessThanOrEqual(height - 24);
       expect(box.y).toBeGreaterThanOrEqual(12);
       expect(box.y + box.height).toBeLessThanOrEqual(height - 12);
-      expect((await page.locator(".auth-form").boundingBox())!.width).toBeLessThanOrEqual(400);
+      expect((await page.locator(".auth-form").boundingBox())!.width).toBeLessThanOrEqual(market === "cn" ? 520 : 400);
       await page.keyboard.press("Escape");
       await expect(trigger).toBeFocused();
       await login(page, market);
@@ -60,6 +61,7 @@ for (const market of ["cn", "global"]) {
   test(`${market} UI: collapsed rewards remain usable and agent disabled state is distinct`, async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await login(page, market);
+    await expect(page.locator(".brief-task").first()).toHaveCSS("font-size", market === "cn" ? "12px" : "14px");
     const reward = page.locator(market === "cn" ? ".cn-points-guide" : ".ex-lower-credits");
     // CSS can collapse the shell on resize without a route remount.
     for (const width of [1080, 768]) {
@@ -76,6 +78,8 @@ for (const market of ["cn", "global"]) {
     expect(await page.locator(".sidebar").evaluate(e => e.scrollWidth <= e.clientWidth)).toBe(true);
     await reward.click();
     await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(page.locator('[data-ai-artwork="reward"]')).toHaveCount(market === "cn" ? 1 : 0);
+    await page.screenshot({ path: `test-results/ui-standards/${market}-reward-artwork.png`, animations: "disabled" });
     await page.keyboard.press("Escape");
     await page.getByRole("button", { name: "Ask Agent", exact: true }).click();
     const send = page.locator("#xiaozhi-rail .xiaozhi-send");

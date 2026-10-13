@@ -15,3 +15,10 @@
 .auth-entry-toast-icon { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: #165dff; color: #fff; font-size: 12px; font-weight: 600; }
 .auth-entry-toast button { display: grid; place-items: center; width: 28px; height: 28px; border: 0; border-radius: 5px; background: transparent; color: #777; font-size: 20px; }
 .auth-entry-toast button:hover { background: #f2f3f5; }
+
+.personal-login-page { position: relative; min-height: 100dvh; }
+.personal-login-page .login-home-link { position: absolute; z-index: 1; top: 16px; left: 24px; color: var(--market-accent); font-size: 14px; line-height: 24px; text-decoration: none; }
+.domestic-auth .credential-input > .input { width: 100%; }
+
+.personal-login-page .auth-form > h1 { margin: 0; text-align: center; }
+.personal-login-page .auth .form { padding-top: 0; }

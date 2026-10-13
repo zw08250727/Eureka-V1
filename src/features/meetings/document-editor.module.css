@@ -1,0 +1,36 @@
+.surface { position: fixed; inset: 0; width: 100vw; max-width: none; height: 100dvh; max-height: none; margin: 0; padding: 0; border: 0; border-radius: 0; color: var(--ui-text); background: var(--ui-app); font: 14px/22px var(--font); }
+.surface[open] { display: flex; flex-direction: column; }
+.header { flex: 0 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 16px 24px; background: var(--ui-canvas); border-bottom: 1px solid var(--ui-border); }
+.header strong { font-size: 16px; overflow-wrap: anywhere; }
+.header p { margin: 4px 0 0; color: var(--ui-meta); font-size: 12px; }
+.header button { flex-shrink: 0; }
+.layout { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0,1fr); gap: 24px; padding: 24px; overflow: auto; }
+.layout[data-assistant=true] { grid-template-columns: minmax(0,1fr) minmax(300px,420px); }
+.document { min-width: 0; padding: 24px; border: 1px solid var(--ui-border); border-radius: 12px; background: var(--ui-canvas); overflow: auto; }
+.title { width: 100%; padding: 0 0 16px; border: 0; border-radius: 0; font: 600 24px/32px var(--font); color: var(--ui-text); background: transparent; }
+.document :global(.cn-inline-editor) { padding: 0; border: 0; box-shadow: none; }
+.document :global(.cn-inline-editable) { min-height: 420px; font-size: 15px; line-height: var(--ui-reading-line); }
+.document :global(.cn-inline-edit-tools) { position: sticky; top: -24px; z-index: 2; background: var(--ui-canvas); padding: 8px 0; }
+.assistant { display: flex; flex-direction: column; min-height: 400px; min-width: 0; padding: 20px; background: var(--ui-canvas); border: 1px solid var(--ui-border); border-radius: 12px; }
+.assistant header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.assistant strong { display: flex; align-items: center; gap: 8px; }
+.intro { flex: 1; padding: 32px 0; }
+.intro h2 { font-size: 18px; line-height: 26px; }
+.intro p { color: var(--ui-secondary); }
+.assistant form { display: flex; flex-wrap: wrap; gap: 12px; border: 1px solid var(--ui-border); border-radius: 12px; padding: 12px; }
+.attachment { padding: 4px 8px; background: var(--ui-hover); border-radius: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; font-size: 12px; }
+.assistant textarea { border: 0; width: 100%; min-height: 120px; resize: vertical; padding: 8px 0; background: transparent; color: var(--ui-text); font: inherit; }
+.assistant form > button { margin-left: auto; }
+.assistant small, .assistant form p { color: var(--ui-meta); font-size: 12px; line-height: 18px; margin-top: 12px; }
+.selection { display: flex; gap: 8px; font-size: 12px; color: var(--ui-secondary); padding: 8px; background: var(--ui-hover); width: 100%; }
+.selection span { max-height: 72px; overflow: auto; overflow-wrap: anywhere; flex: 1; }
+.selection button { align-self: flex-start; min-width: 36px; min-height: 36px; border: 0; background: transparent; color: inherit; }
+@media(max-width:900px) { .layout[data-assistant=true] { grid-template-columns: minmax(0,1fr); } .assistant { min-height: 360px; } .document { overflow: visible; } }
+@media(max-width:600px) { .header { padding: 12px 16px; gap: 12px; } .layout { padding: 16px; gap: 16px; } .document { padding: 16px; } .title { font-size: 20px; line-height: 28px; } .document :global(.cn-inline-edit-tools) { top: -16px; } }
+/* A full-page surface must not inherit the reference dialog's fade/scale entrance. */
+.surface[open] { animation: none; }
+.surface :global(.md-btn) { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: var(--ui-compact-height); padding: 8px 12px; border: 1px solid var(--ui-border); border-radius: var(--ui-button-radius); font: 500 14px/20px var(--font); color: var(--ui-text); background: var(--ui-canvas); cursor: pointer; }
+.surface :global(.md-primary) { background: var(--ui-action); border-color: var(--ui-action); color: #fff; }
+.surface :global(.md-btn):disabled { background: var(--ui-disabled); border-color: var(--ui-border); color: var(--ui-disabled-text); cursor: not-allowed; }
+.surface :global(.cn-inline-edit-tools) { display: flex; justify-content: space-between; align-items: center; }
+.surface :global(.cn-inline-edit-tools) > div { display: flex; gap: 8px; }

@@ -3,6 +3,7 @@ const key = "eureka:market:cn:eureka:workspaces:v2";
 async function login(page: Page) {
   await page.goto("/cn/");
   await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();
+  await page.getByRole("link", { name: "个人/团队版", exact: true }).click();
   await page.locator("#phone").fill("13800138000");
   await page.locator("#code").fill("111111");
   await page.locator("#terms").check();
@@ -35,6 +36,19 @@ for (const width of [390, 768, 1440]) test(`CN consumer points entry fits ${widt
   await openPoints(page);
   await page.locator(".page-crumb").click();
   await expect(popup).not.toBeVisible();
+  // UI-CN-AI-01: motion is opt-out, including hover and focused controls.
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await openPoints(page);
+  await popup.getByRole("button", { name: "做任务赚积分", exact: true }).click();
+  const artwork = page.locator('[data-ai-artwork="reward"]');
+  await expect(artwork).toBeVisible();
+  await artwork.hover();
+  const animations = await page.locator('[data-ai-icon], [data-ai-artwork]').evaluateAll(elements =>
+    elements.flatMap(element => [...element.querySelectorAll('*')]).filter(element => getComputedStyle(element).animationName !== 'none').length);
+  expect(animations).toBe(0);
+  const tasks = page.getByRole("dialog");
+  expect((await tasks.boundingBox())!.width).toBeLessThanOrEqual(width);
+  await page.screenshot({ path: `test-results/cn-points/ai-rewards-${width}.png` });
 });
 test("CN upgrade is one click from points; paid membership is reflected without changing team rights", async ({ page }) => {
   await login(page);
@@ -97,6 +111,8 @@ test("CN rewards update the entry and account menu uses the same membership card
   await expect(page.getByRole("dialog")).toContainText("用户反馈");
   await page.keyboard.press("Escape");
   await page.locator("#user-card").click();
+  await expect(page.getByRole("dialog", { name: "我的账户", exact: true })).toBeVisible();
+  await page.screenshot({ path: "test-results/cn-points/account-menu-light.png" });
   await expect(page.getByRole("dialog", { name: "我的账户", exact: true })).toContainText("免费版会员");
   await expect(page.getByRole("dialog", { name: "我的账户", exact: true }).getByRole("button", { name: "升级", exact: true })).toBeVisible();
 });

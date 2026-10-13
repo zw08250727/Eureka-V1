@@ -1,6 +1,9 @@
 import { test, expect, type Page } from "@playwright/test";
 async function signIn(page: Page, market: string) {
-  if (market === "cn") await page.locator("#phone").fill("13800138000");
+  if (market === "cn") {
+    await page.getByRole("link", { name: "个人/团队版", exact: true }).click();
+    await page.locator("#phone").fill("13800138000");
+  }
   else await page.locator("#email").fill("guest@example.com");
   await page.locator("#code").fill("123456");
   await page.locator("#terms").check();
@@ -103,7 +106,7 @@ for (const market of ["cn", "global"]) {
     const actions = await page.locator(".guest-library-actions").boundingBox();
     expect(actions!.x + actions!.width).toBeLessThanOrEqual(width - 16);
     await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();
-    await expect(page.locator("#auth-form")).toBeVisible();
+    await expect(page.locator(market === "cn" ? ".domestic-entry-cards" : "#auth-form")).toBeVisible();
     await page.screenshot({ path: `test-results/guest-auth-${market}-${width}.png`, animations: "disabled" });
     const box = await page.locator(".auth-overlay").boundingBox();
     expect(Math.abs(box!.x + box!.width / 2 - width / 2)).toBeLessThan(2);
@@ -126,11 +129,11 @@ test("corrupt credentials show guest home and failed persistence keeps credentia
   await page.goto("/cn/");
   await expect(page.locator(".guest-app")).toBeVisible();
   await page.getByRole("button", {name:"登录 / 注册", exact:true}).last().click();
-  await page.evaluate(() => { Storage.prototype.setItem = () => { throw new Error("存储空间不足"); }; });
+  await page.addInitScript(() => { Storage.prototype.setItem = () => { throw new Error("存储空间不足"); }; });
   await signIn(page,"cn");
   await expect(page.locator("#status")).toContainText("存储空间不足");
   await expect(page.locator("#phone")).toHaveValue("13800138000");
-  await expect(page.locator(".guest-app")).toBeVisible();
+  await expect(page.locator(".personal-login-page")).toBeVisible();
 });
 
 for (const market of ["cn", "global"]) test(`${market}: guest sidebar matches the signed-in sidebar geometry and icons`, async ({ page }) => {

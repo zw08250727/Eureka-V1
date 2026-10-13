@@ -14,6 +14,7 @@
 - 业务卡片、工具栏、状态反馈与表单可保留模块组件；出现稳定复用后再抽到通用层。
 - Props 必须类型明确，动作使用回调，避免模块之间直接操作对方 DOM；禁止用 `any` 逃避数据契约。
 - Client Component 仅放在需要交互的边界；重型业务页沿用动态加载，不为简单派生值增加 Effect。
+- `AiIcon`／`AiRewardArtwork` 位于 `src/components/ui/ai-icon.tsx`，仅负责 SVG 和 CSS 动效，不依赖积分模型；国内积分入口和账户浮层复用，尺寸／动效遵守 UI-CN-AI-01。
 
 ### 公共契约与待收敛项
 
@@ -21,7 +22,7 @@
 | --- | --- | --- |
 | Button／IconButton | 语义 variant、36/40/44px size、loading、disabled、明确可访问名称 | 当前 Button 只有 default/primary/ghost，尚未补齐统一尺寸和 loading 接口 |
 | Field／Input／Textarea | label、help、error、required、disabled、受控值、关联描述 | 保留现有 Field，按需扩展，不在页面复制校验展示 |
-| Select／Popover | 键盘移动、选中／禁用、Esc、定位和焦点返回 | 复用现有 Select，不新增另一套全局选择器 |
+| Select／Popover | 键盘移动、选中／禁用、Esc、定位和焦点返回；鼠标选中与键盘焦点分离，遵守 UI-SELECT-01 | 复用现有 Select，不新增另一套全局选择器 |
 | Modal／ReferenceDialog | 标题、关闭请求、dirty 保护、初始焦点、焦点返回、短屏滚动 | 暂保留两个接口，后续共用行为底座，不新增第三套实现 |
 | DataTable | columns/rows、稳定 ID、可配置 empty 内容、排序／筛选回调 | 当前“会议”空态文案待抽为参数；基础表格不导入会议模型 |
 | Tabs／StatusBadge／Toast／EmptyState | 展示值、状态和动作；无业务数据访问 | 逐步提取稳定重复，不宣称已有完整独立组件库 |
@@ -54,7 +55,14 @@
 
 - `MarketWorkbench` 管理市场会话、私有路由校验与登录目标；不接受任意外部跳转 URL。
 - `GuestHome` 使用独立的轻量内容空态，保留默认个人工作区卡片，展示导航、会议／闪念入口及录音、上传、Agent 操作；不挂载今日概览、积分、团队等引导卡片，也不挂载业务控制器或读取已有账号资料。
-- `AuthOverlay` 复用 `Auth`、`DomesticAuth` 和 `ReferenceDialog`，负责关闭、滚动锁、焦点循环与焦点返回。
+- `AuthOverlay` 复用 `ReferenceDialog` 管理关闭、滚动锁、焦点循环与焦点返回。国内挂载 `DomesticEntry` 两张路由卡片，海外挂载 `Auth`。
+- 国内 `/cn/login/` 与 `/cn/enterprise/login/` 为独立页面；`DomesticCredentials` 复用手机／邮箱验证码交互，企业定位和品牌壳由 `EnterpriseLogin` 负责。`login-routes` 仅允许续接国内工作台地址。
 - `Workbench` 只消费 upload、agent、recording、notifications 白名单一次性意图；消费后移除参数，刷新不重复唤起。
 
 `reference/sidebar-parts.tsx` 提供 `SidebarBrand`、`WorkspaceCard`、`PrimaryNavigation`，由游客首页和已登录 `ReferenceShell` 共用。只接收展示数据与动作回调，不导入账户模型，避免游客为复用侧栏而初始化私人资料。
+
+### MEETING-UI-02 · 会议详情复用
+
+`MeetingDetail` 保持编排职责，播放、转写、生成资产、评价、导出分享与文档编辑使用独立 React 组件。国内／海外的真实市场路由共用这些组件；颜色、正文行高与控件尺寸继承 UI-CN／UI-GLOBAL token。历史无市场路由保留兼容行为。
+
+内容不足由 `contentState.viewType` 决定，不用时长推断：2/3隐藏普通内容标签，3可显示已有零散转写；翻译标签仅在存在翻译内容时出现。多总结的编辑、导出与分享使用稳定总结ID，标题只用于展示。全屏编辑不改变会议原始转写，退出须保留现有草稿确认行为。未接生成服务必须呈现真实未接入或失败状态，不伪造成功内容。

@@ -4,16 +4,18 @@ import "./select.css";
 
 type Choice = { value: string; label: string; disabled: boolean };
 /** Keep native form/label semantics; render the option surface in the top layer. */
-export function Select({ children, onChange, onKeyDown, onPointerDown, onClick, ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
+export function Select({ children, onChange, onKeyDown, onPointerDown, onClick, onBlur, ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
   const id = useId();
   const select = useRef<HTMLSelectElement>(null), popup = useRef<HTMLDivElement>(null);
   const search = useRef({ text: "", time: 0 });
   const [choices, setChoices] = useState<Choice[]>([]), [open, setOpen] = useState(false), [active, setActive] = useState(0), [selected, setSelected] = useState("");
+  const [navigation, setNavigation] = useState<"pointer" | "keyboard">("keyboard");
   function close() { popup.current?.hidePopover(); setOpen(false); }
-  function show() {
+  function show(input: "pointer" | "keyboard" = "keyboard") {
     const node = select.current;
     if (!node || node.disabled) return;
     setChoices(Array.from(node.options, o => ({ value: o.value, label: o.label, disabled: o.disabled || (o.parentElement instanceof HTMLOptGroupElement && o.parentElement.disabled) })));
+    setNavigation(input);
     setSelected(node.value); setActive(Math.max(0, node.selectedIndex)); setOpen(true); node.focus();
   }
   function choose(index: number) {
@@ -65,13 +67,15 @@ export function Select({ children, onChange, onKeyDown, onPointerDown, onClick, 
     else if (option.offsetTop + option.offsetHeight > panel.scrollTop + panel.clientHeight)
       panel.scrollTop = option.offsetTop + option.offsetHeight - panel.clientHeight;
   }, [active, open]);
-  return <span className="ui-select" data-open={open}>
+  return <span className="ui-select" data-open={open} data-navigation={navigation}>
     <select {...props} ref={select} aria-expanded={open} aria-controls={open ? id : undefined} aria-activedescendant={open ? `${id}-${active}` : undefined}
       onChange={event => { onChange?.(event); close(); }}
-      onPointerDown={event => { onPointerDown?.(event); if (!event.defaultPrevented) { event.preventDefault(); if (open) close(); else show(); } }}
+      onBlur={event => { onBlur?.(event); setNavigation("keyboard"); }}
+      onPointerDown={event => { setNavigation("pointer"); onPointerDown?.(event); if (!event.defaultPrevented) { event.preventDefault(); if (open) close(); else show("pointer"); } }}
       onMouseDown={event => event.preventDefault()}
       onClick={event => { onClick?.(event); event.preventDefault(); if (event.detail === 0 && !open) show(); }}
       onKeyDown={event => {
+        setNavigation("keyboard");
         onKeyDown?.(event); if (event.defaultPrevented) return;
         if (event.key === "Tab") { close(); return; }
         if (event.key === "Escape" && open) { event.preventDefault(); event.stopPropagation(); close(); return; }
@@ -90,8 +94,8 @@ export function Select({ children, onChange, onKeyDown, onPointerDown, onClick, 
         }
       }}>{children}</select>
     <svg className="ui-select-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
-    <div ref={popup} id={id} popover="manual" role="listbox" aria-label="可选项" className="ui-select-popup" onPointerDown={e=>e.preventDefault()}>
-      {choices.map((option,index)=><div id={`${id}-${index}`} key={`${index}:${option.value}`} role="option" aria-selected={selected===option.value} aria-disabled={option.disabled} data-index={index} data-active={active===index} className="ui-select-option" onPointerMove={()=>{if(!option.disabled)setActive(index)}} onClick={e=>{e.preventDefault();e.stopPropagation();choose(index)}}>{option.label}</div>)}
+    <div ref={popup} id={id} popover="manual" role="listbox" aria-label="可选项" className="ui-select-popup" data-navigation={navigation} onPointerDown={e=>e.preventDefault()}>
+      {choices.map((option,index)=><div id={`${id}-${index}`} key={`${index}:${option.value}`} role="option" aria-selected={selected===option.value} aria-disabled={option.disabled} data-index={index} data-active={active===index} className="ui-select-option" onPointerMove={()=>{setNavigation("pointer");if(!option.disabled)setActive(index)}} onClick={e=>{e.preventDefault();e.stopPropagation();choose(index)}}><span className="ui-select-option-label">{option.label}</span><svg className="ui-select-check" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12 4 4L19 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg></div>)}
     </div>
   </span>;
 }

@@ -4,8 +4,9 @@ import type { MeetingDetail, TranscriptSegment } from "./types";
 import { linesFor } from "./content";
 import { MdDialog, MdButton, clockTime } from "./reference-ui";
 // Ported from MeetingSpeakerEditDialog and meeting-record-transcript-content.
-export function DomesticTranscript({r,readonly,seek,onSave,time,translation=false}: {r:MeetingDetail;readonly:boolean;seek:(n:number)=>void;onSave:(patch:Partial<MeetingDetail>)=>void;time:number;translation?:boolean}) {
+export function DomesticTranscript({r,readonly,seek,onSave,time,translation=false,compact=false}: {r:MeetingDetail;readonly:boolean;seek:(n:number)=>void;onSave:(patch:Partial<MeetingDetail>)=>void;time:number;translation?:boolean;compact?:boolean}) {
   const segments=linesFor(r), [only,setOnly]=useState(false), [speaker,setSpeaker]=useState<number|null>(null), [name,setName]=useState(""), [scope,setScope]=useState("current"), [error,setError]=useState(""), [selection,setSelection]=useState<{index:number;start:number;end:number}|null>(null);
+  const [copyState,setCopyState]=useState("");
   const host=useRef<HTMLDivElement>(null),manualScroll=useRef<ReturnType<typeof setTimeout>|null>(null),previousActive=useRef<number|null>(null);
   const activeIndex=segments.findIndex((s,i)=>time>=s.at && time<(segments[i+1]?.at ?? Infinity));
   useEffect(()=>{if(previousActive.current!==null && previousActive.current!==activeIndex && !manualScroll.current)host.current?.querySelector(`[data-segment="${activeIndex}"]`)?.scrollIntoView({block:"nearest",behavior:"auto"});previousActive.current=activeIndex;},[activeIndex]);
@@ -25,7 +26,9 @@ export function DomesticTranscript({r,readonly,seek,onSave,time,translation=fals
     return {...s,highlights:(s.highlights||[]).flatMap(range=>range.end<=selection.start || range.start>=selection.end ? [range] : [...(range.start<selection.start?[{start:range.start,end:selection.start}]:[]),...(range.end>selection.end?[{start:selection.end,end:range.end}]:[])])};
   }));
   return <div className="cn-transcript" ref={host} onWheel={pauseFollowing} onTouchMove={pauseFollowing}>
-    {!translation && <label className="cn-mark-filter"><input type="checkbox" role="switch" checked={only} onChange={e=>setOnly(e.target.checked)}/>仅查看重点标记</label>}
+    {translation && <div className="md-panel-tools"><small>以下实时翻译结果，仅供参考</small><button className="md-btn" onClick={async()=>{try{await navigator.clipboard.writeText(segments.filter(s=>s.en.trim()).map(s=>s.en).join("\n\n"));setCopyState("已复制实时翻译全文");}catch{setCopyState("复制失败，请选中文本手动复制");}}}>复制实时翻译全文</button></div>}
+    {copyState && <p role="status">{copyState}</p>}
+    {!translation && !compact && <label className="cn-mark-filter"><input type="checkbox" role="switch" checked={only} onChange={e=>setOnly(e.target.checked)}/>仅查看重点标记</label>}
     {error && <p role="alert">{error}</p>}
     {only && !segments.some(s=>s.highlights?.length) && <p className="cn-transcript-empty">暂无重点标记</p>}
     {(!segments.length || (translation && !segments.some(s=>s.en.trim()))) && <p className="cn-transcript-empty">{translation ? "暂无实时翻译内容" : "暂无转译文本"}</p>}
@@ -36,7 +39,7 @@ export function DomesticTranscript({r,readonly,seek,onSave,time,translation=fals
       const pieces: {text:string;marked:boolean}[]=[];let last=0;
       for(const range of ranges){if(range.start<last)continue;pieces.push({text:text.slice(last,range.start),marked:false},{text:text.slice(range.start,range.end),marked:true});last=range.end;}pieces.push({text:text.slice(last),marked:false});
       return <article className={`md-speech ${active?'cn-speech-active':''}`} key={index} data-segment={index}>
-        <div className="md-speech-head"><button className="md-speaker" disabled={readonly} aria-label={`编辑发言人 ${index+1}`} onClick={()=>{setSpeaker(index);setName(line.speakerName||r.speakers[line.speaker]||'发言人');setScope('current');setError('');}}>{line.speakerName||r.speakers[line.speaker]||'发言人'}</button><button aria-label={`播放第 ${index+1} 段`} onClick={()=>seek(line.at)}><time>{clockTime(line.at)}</time></button></div>
+        <div className="md-speech-head">{!translation && <button className="md-speaker" disabled={readonly} aria-label={`编辑发言人 ${index+1}`} onClick={()=>{setSpeaker(index);setName(line.speakerName||r.speakers[line.speaker]||'发言人');setScope('current');setError('');}}>{line.speakerName||r.speakers[line.speaker]||'发言人'}</button>}<button aria-label={`播放第 ${index+1} 段`} onClick={()=>seek(line.at)}><time>{translation && Number.isFinite(Date.parse(r.created)) ? new Date(Date.parse(r.created)+line.at*1000).toLocaleTimeString("zh-CN",{hour12:false}) : clockTime(line.at)}</time></button></div>
         <p tabIndex={0} role="button" aria-label={`播放文本第 ${index+1} 段`} onKeyDown={e=>{if(e.key==='Enter')seek(line.at);}} onClick={()=>{if(!window.getSelection()?.toString())seek(line.at);}} onMouseUp={e=>{
           const s=window.getSelection();if(readonly || translation || !s?.rangeCount || s.isCollapsed)return;const range=s.getRangeAt(0);if(!e.currentTarget.contains(range.startContainer)||!e.currentTarget.contains(range.endContainer))return;const before=range.cloneRange();before.selectNodeContents(e.currentTarget);before.setEnd(range.startContainer,range.startOffset);setSelection({index,start:before.toString().length,end:before.toString().length+range.toString().length});
         }}>{translation?text:pieces.map((p,i)=>p.marked?<mark key={i}>{p.text}</mark>:<Fragment key={i}>{p.text}</Fragment>)}</p>

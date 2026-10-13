@@ -68,7 +68,7 @@ test("CN export: TXT / JSON / Markdown / HTML contain actual formats and escape 
   expect(html.extension).toBe("html"); expect(html.body).toMatch(/^<!doctype html>/); expect(html.body).toContain("<meta charset=\"utf-8\">"); expect(html.body).not.toContain("<script>"); expect(html.body).toContain("&lt;script&gt;");
 });
 
-test("SHARE-01 / MARKET-01: selected snapshots, expiry and revocation stay confined to domestic personal account", () => {
+test("SHARE-01 / MARKET-01: selected snapshots, expiry and revocation stay confined to each market and personal account", () => {
   const raw = memory(), cn = createMarketStorage(raw, "cn"), global = createMarketStorage(raw, "global");
   const repo = shareRepository(cn), data = input();
   const created = repo.create(scope, data, id, 1000);
@@ -78,7 +78,12 @@ test("SHARE-01 / MARKET-01: selected snapshots, expiry and revocation stay confi
   expect(global.getItem(SHARE_STORAGE_KEY)).toBeNull();
   expect(() => repo.access({ ...scope, identity: "another" }, id, 1000)).toThrow();
   expect(() => repo.access({ ...scope, space: "team" }, id, 1000)).toThrow();
-  expect(() => repo.create({ ...scope, market: "global" }, input(), id, 1000)).toThrow();
+  expect(() => repo.access({ ...scope, market: "global" }, id, 1000)).toThrow();
+  const overseas = shareRepository(global);
+  const globalScope = {...scope, market: "global"};
+  expect(overseas.create(globalScope, input(), id, 1000).market).toBe("global");
+  expect(() => overseas.access(scope, id, 1000)).toThrow();
+  expect(() => repo.create({ ...scope, market: "unknown" }, input(), "another-valid-share-id", 1000)).toThrow();
   expect(() => repo.create({ ...scope, space: "team" }, input(), id, 1000)).toThrow();
   expect(shareStatus(created, created.expiresAt! - 1)).toBe("生效中");
   expect(() => repo.access(scope, id, created.expiresAt!)).toThrow("已过期");

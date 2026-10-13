@@ -3,6 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 async function login(page: Page) {
   await page.goto("/cn/");
   await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();
+  if (new URL(page.url()).pathname.startsWith("/cn/")) await page.getByRole("link", { name: "个人/团队版", exact: true }).click();
   await page.locator("#phone").fill("13800138000");
   await page.locator("#code").fill("123456");
   await page.locator("#terms").check();
@@ -28,8 +29,9 @@ for (const width of [390, 768, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/cn/");
     await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();
+  if (new URL(page.url()).pathname.startsWith("/cn/")) await page.getByRole("link", { name: "个人/团队版", exact: true }).click();
     await expect(page.locator("#phone")).toHaveCSS("background-color", "rgb(242, 243, 245)");
-    await expectResponsiveGeometry(page, [".auth", ".auth-form", ".form", ".auth-editions", "#phone", "#code", "#submit"]);
+    await expectResponsiveGeometry(page, [".auth", ".auth-form", ".form", ".auth-methods", "#phone", "#code", "#submit"]);
     await login(page);
     await expect(page.locator(".recording-primary").first()).toHaveCSS("background-color", "rgb(38, 38, 38)");
     await page.screenshot({ path: `test-results/markets/cn-home-${width}.png`, fullPage: true, animations: "disabled" });
@@ -57,7 +59,11 @@ test("CN portals and module surfaces use the theme without losing interactions",
   await pay.getByLabel("支付方式").click();
   const list = page.locator(".ui-select-popup:popover-open");
   await expect(list).toBeVisible();
-  await expect(list.getByRole("option", { selected: true })).toHaveCSS("color", "rgb(22, 93, 255)");
+  const selected = list.getByRole("option", { selected: true });
+  await expect(selected).toHaveCSS("color", "rgb(38, 38, 38)");
+  await expect(selected).toHaveCSS("background-color", "rgb(242, 243, 245)");
+  await expect(selected).toHaveCSS("outline-style", "none");
+  await expect(selected.locator(".ui-select-check")).toBeVisible();
   await page.screenshot({ path: "test-results/markets/cn-payment-select.png", animations: "disabled" });
   await list.getByRole("option", { name: "支付宝" }).click();
   await expect(pay.getByLabel("支付方式")).toHaveValue("支付宝");
@@ -65,6 +71,7 @@ test("CN portals and module surfaces use the theme without losing interactions",
   await expect(pay).toHaveCount(0);
   await page.goto("/global/");
   await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();
+  if (new URL(page.url()).pathname.startsWith("/cn/")) await page.getByRole("link", { name: "个人/团队版", exact: true }).click();
   await expect(page.locator("#submit")).toHaveCSS("background-color", "rgb(56, 88, 182)");
   await expect(page.locator("#email")).toHaveCSS("background-color", "rgb(255, 255, 255)");
 });

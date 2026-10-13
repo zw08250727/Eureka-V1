@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { routeMarket } from "@/features/markets/config";
 import { marketStorage, scopedKey } from "@/features/markets/storage";
 import { SHARE_STORAGE_KEY, shareRepository, type MeetingShareLink } from "./share-links";
 import { currentShareScope, verifyShareScope } from "./share-browser";
@@ -27,7 +28,7 @@ export function MeetingSharePage() {
       }
     };
     const storageChanged = (event: StorageEvent) => {
-      if (event.key === null || [SHARE_STORAGE_KEY, "eureka:auth:v1", "eureka:meeting-details:v1", "eureka:audio-uploads:v1"].some(key => event.key === scopedKey(key, "cn"))) refresh();
+      if (event.key === null || [SHARE_STORAGE_KEY, "eureka:auth:v1", "eureka:meeting-details:v1", "eureka:audio-uploads:v1"].some(key => event.key === scopedKey(key, routeMarket()))) refresh();
     };
     queueMicrotask(refresh);
     const timer = window.setInterval(refresh, 1000);

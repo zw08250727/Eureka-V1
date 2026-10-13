@@ -1,0 +1,15 @@
+.domestic-entry, .domestic-entry * { box-sizing: border-box; }
+.domestic-entry { padding: 52px 32px 40px; color: var(--ui-text); }
+.domestic-entry .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
+.domestic-entry .brand strong { font-size: 24px; }
+.domestic-entry h1 { font-size: 24px; line-height: 32px; font-weight: 600; margin: 0; }
+.domestic-entry > p { color: var(--ui-secondary); font-size: 14px; line-height: 22px; margin: 8px 0 24px; }
+.domestic-entry-cards { display: grid; gap: 16px; }
+.domestic-entry-cards a { display: flex; align-items: center; gap: 16px; padding: 20px; min-height: 104px; border: 1px solid var(--ui-border); border-radius: 12px; background: #fff; text-decoration: none; color: var(--ui-text); transition: border-color .15s, background .15s; }
+.domestic-entry-cards a:hover { border-color: var(--market-accent); background: #f7faff; }
+.domestic-entry-cards strong { display: block; font-size: 16px; line-height: 24px; font-weight: 600; }
+.domestic-entry-cards small { display: block; font-size: 12px; line-height: 18px; color: var(--ui-secondary); margin-top: 6px; }
+.entry-icon { display: grid; place-items: center; width: 40px; height: 40px; flex-shrink: 0; background: var(--ui-input); border-radius: 10px; }
+.entry-icon svg { width: 24px; height: 24px; }
+.entry-arrow { margin-left: auto; color: var(--ui-secondary); }
+@media(max-width:520px) { .domestic-entry { padding: 52px 24px 28px; } .domestic-entry-cards a { gap: 12px; padding: 16px; } }

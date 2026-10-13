@@ -62,7 +62,7 @@ export function TemplateContent({
   value: Config;
   onChange: (v: Partial<Config>) => void;
 }) {
-  const domestic = routeMarket() === "cn";
+  const domestic = routeMarket() !== null;
   const [origin] = useState(templateScope);
   const session = useRef<string | null | undefined>(undefined);
   const libraryRaw = useRef<string | null | undefined>(undefined);
@@ -207,6 +207,7 @@ export function TemplateContent({
                   alt=""
                 />
                 <strong>{name}</strong>
+                <span className="meeting-template-description">{content(name).description}</span>
                 {defaultName === name && <small>默认模板</small>}
               </button>
               <div className="ex-template-card-actions">
@@ -494,7 +495,7 @@ export function TemplateContent({
   );
 }
 export function TemplatePreferences({ onClose }: { onClose: () => void }) {
-  const domestic = routeMarket() === "cn";
+  const domestic = routeMarket() !== null;
   const [origin] = useState(templateScope);
   const scope = new URLSearchParams(
     typeof location === "undefined" ? "" : location.search,

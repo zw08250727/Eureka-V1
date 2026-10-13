@@ -27,7 +27,7 @@ export function MeetingInfoDialog({
   onClose,
   onSaved,
 }: MeetingInfoDialogProps) {
-  const domestic = routeMarket() === "cn";
+  const domestic = routeMarket() !== null;
   const [market] = useState(routeMarket);
   const identity = `${market}:${space}:${actor}:${id}`;
   const session = useRef<string | null | undefined>(undefined);

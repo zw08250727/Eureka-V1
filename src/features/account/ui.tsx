@@ -1,6 +1,8 @@
 "use client";
 
 import { useId } from "react";
+import { AiRewardArtwork } from "@/components/ui/ai-icon";
+import { routeMarket } from "@/features/markets/config";
 
 /** Shared tabs use automatic keyboard activation and one associated panel. */
 export function AccountTabs({ items, value, onChange, label, panelId, className = "ex-tabs" }: {
@@ -32,6 +34,6 @@ export function CreditsHero({ eyebrow, title, description }: {
 }) {
   return <section className="ex-hero">
     <div className="ex-hero-copy"><span className="ex-eyebrow">{eyebrow}</span><h3>{title}</h3><p>{description}</p>
-    </div><div className="ex-credit-art" aria-hidden="true"><span>✦</span><i>+</i><b>✧</b></div>
+    </div>{routeMarket() === "cn" ? <AiRewardArtwork/> : <div className="ex-credit-art" aria-hidden="true"><span>✦</span><i>+</i><b>✧</b></div>}
   </section>;
 }

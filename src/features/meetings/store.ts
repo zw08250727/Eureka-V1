@@ -91,7 +91,7 @@ export function sanitizeRichText(html: string) {
   const template = document.createElement("template");
   template.innerHTML = html;
   const allowed = new Set([
-    "B", "STRONG", "I", "EM", "U", "S", "STRIKE", "DEL", "SPAN", "FONT",
+    "A", "B", "STRONG", "I", "EM", "U", "S", "STRIKE", "DEL", "SPAN", "FONT",
     "BR", "P", "DIV", "H1", "H2", "H3", "H4", "H5", "H6",
     "UL", "OL", "LI", "TABLE", "THEAD", "TBODY", "TR", "TD", "TH",
     "BLOCKQUOTE", "PRE", "CODE", "HR",
@@ -118,6 +118,14 @@ export function sanitizeRichText(html: string) {
       }
       // Rebuild only editor formatting. Never retain arbitrary CSS, URLs or events.
       const style = document.createElement("span").style;
+      // Only parsed color literals survive; never retain url(), variables or CSS expressions.
+      const color = (value: string) => /^(#[0-9a-f]{3,8}|rgba?\([\d.,%\s]+\))$/i.test(value) ? value : "";
+      style.color = color(n.style.color || (n.tagName === "FONT" ? n.getAttribute("color") || "" : ""));
+      style.backgroundColor = color(n.style.backgroundColor);
+      let href = "";
+      if(n.tagName === "A") {
+        try { const url=new URL(n.getAttribute("href") || "");if(["http:","https:","mailto:"].includes(url.protocol))href=url.href; } catch { /* Unsafe/relative links become ordinary text. */ }
+      }
       const family = n.style.fontFamily.replace(/["']/g, "");
       if (fonts.has(family)) style.fontFamily = family;
       if (/^\d+px$/.test(n.style.fontSize) && sizes.has(Number.parseInt(n.style.fontSize)))
@@ -141,6 +149,10 @@ export function sanitizeRichText(html: string) {
       }
       for (const a of [...n.attributes]) n.removeAttribute(a.name);
       if (style.cssText) n.setAttribute("style", style.cssText);
+      if(n.tagName === "A") {
+        if(href){n.setAttribute("href",href);n.setAttribute("target","_blank");n.setAttribute("rel","noopener noreferrer");}
+        else n.replaceWith(...n.childNodes);
+      }
     }
   }
   walk(template.content);

@@ -18,15 +18,16 @@ export function MarketWorkbench({ market }: { market: Market }) {
       try {
         const params = new URLSearchParams(location.search);
         const enterprise = market === "cn" && params.get("edition") === "enterprise";
+        if (enterprise) { location.replace(marketUrl("cn", "enterprise/login/")); return; }
         const signedIn = !!readIdentity(market);
         setError("");
-        setSession(signedIn && !enterprise ? "member" : "guest");
+        setSession(signedIn ? "member" : "guest");
         const protectedRoute = location.pathname === marketUrl(market, "workbench/") && (
           (params.get("view") || "home") !== "home" ||
           (params.get("space") || "personal") !== "personal" || params.has("action")
         );
-        if (enterprise || (!signedIn && protectedRoute)) {
-          setTarget(enterprise ? marketUrl(market, "workbench/?view=home&space=personal") : location.pathname + location.search);
+        if (!signedIn && protectedRoute) {
+          setTarget(location.pathname + location.search);
         } else if (signedIn) setTarget(null);
       } catch {
         setSession("guest");
@@ -60,6 +61,6 @@ export function MarketWorkbench({ market }: { market: Market }) {
   return <>
     {session === "member" ? <Application /> : <GuestHome market={market} onLogin={requestLogin} />}
     {error && <p className="guest-storage-error" role="alert">{error}</p>}
-    {target && <AuthOverlay market={market} onClose={closeLogin} onSuccess={() => location.replace(target)} />}
+    {target && <AuthOverlay market={market} destination={target} onClose={closeLogin} onSuccess={() => location.replace(target)} />}
   </>;
 }

@@ -16,6 +16,7 @@ const prose = (page: Page) => page.locator('#md-content .cn-markdown');
 test.beforeEach(async ({ page }) => {
   await page.goto('/cn/');
   await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();
+  await page.getByRole("link", { name: "个人/团队版", exact: true }).click();
   await page.locator('#phone').fill('13800138000');
   await page.locator('#code').fill('111111');
   await page.locator('#terms').check();
@@ -180,4 +181,31 @@ test('CN read-only shared team recording hides the rich editor and disables entr
   await expect(toolbar(page)).toHaveCount(0);
   await expect(page.getByRole('button', { name: '保存', exact: true })).toHaveCount(0);
   await page.screenshot({ path: testInfo.outputPath('readonly-team.png'), fullPage: true });
+});
+
+test('CN editor colors and safe links survive while unsafe links from stored rich text are stripped',async({page})=>{
+  await enterEditor(page);
+  await selectText(editor(page),'重点内容');
+  await toolbar(page).getByLabel('文字颜色',{exact:true}).fill('#165dff');
+  await selectText(editor(page),'重点内容');
+  await toolbar(page).getByRole('button',{name:'应用文字背景色',exact:true}).click();
+  await selectText(editor(page),'重点内容');
+  await toolbar(page).getByRole('button',{name:'插入链接',exact:true}).click();
+  const link=page.getByRole('dialog',{name:'插入链接',exact:true});
+  await link.getByRole('textbox',{name:'链接地址'}).fill('javascript:alert(1)');
+  await link.getByRole('button',{name:'插入',exact:true}).click();
+  await expect(link.getByRole('alert')).toContainText('有效');
+  await link.getByRole('textbox',{name:'链接地址'}).fill('https://example.com/meeting');
+  await link.getByRole('button',{name:'插入',exact:true}).click();
+  await expect(editor(page).getByRole('link',{name:'重点内容'})).toHaveAttribute('href','https://example.com/meeting');
+  await page.getByRole('button',{name:'保存',exact:true}).click();
+  await page.reload();
+  await expect(prose(page).getByRole('link',{name:'重点内容'})).toHaveAttribute('href','https://example.com/meeting');
+  expect(await prose(page).evaluate(el=>[...el.querySelectorAll('[style]')].some(node=>(node as HTMLElement).style.color==='rgb(22, 93, 255)'))).toBeTruthy();
+  expect(await prose(page).innerHTML()).toContain('background-color: rgb(255, 242, 172)');
+  await page.evaluate(detailsKey=>localStorage.setItem(detailsKey,JSON.stringify({'meeting-1':{summary:'示例正文',summaryHtml:'<p>安全内容<a href="javascript:alert(1)" onclick="alert(1)">危险链接</a><span style="background:url(https://example.com/track);position:fixed">文字</span><iframe src="https://example.com"></iframe></p>'}})),detailsKey);
+  await page.reload();
+  await expect(prose(page)).toContainText('危险链接');
+  await expect(prose(page).locator('a,iframe,[onclick]')).toHaveCount(0);
+  expect(await prose(page).innerHTML()).not.toContain('url(');
 });

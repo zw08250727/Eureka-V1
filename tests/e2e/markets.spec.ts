@@ -5,6 +5,7 @@ const key = (market: string, k: string) => `eureka:market:${market}:${k}`;
 async function login(page: Page, market: "cn" | "global") {
   await page.goto(`/${market}/`);
   await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();
+  if (market === "cn") await page.getByRole("link", { name: "个人/团队版", exact: true }).click();
   if (market === "cn") await page.getByRole("button", { name: "邮箱", exact: true }).click();
   await page.locator("#terms").check();
   await page.locator("#email").fill("same@example.com");

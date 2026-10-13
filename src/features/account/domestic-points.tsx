@@ -6,13 +6,14 @@ import { M } from "@/features/spaces/model/store";
 import PS from "@/features/spaces/model/subscription";
 import type { Workspace } from "@/features/spaces/model/types";
 import { appUrl } from "@/lib/routes";
+import { AiIcon } from "@/components/ui/ai-icon";
+import { Icon } from "@/components/ui/icon";
 import { countMonthlyFeedbackRewards, rewardState } from "./rewards";
 import type { AccountPanel } from "./experience";
 import "./domestic-points.css";
 
 type PointsProps = { w: Workspace; actor: string; onPanel: (panel: AccountPanel) => void };
 const number = (value: number) => value.toLocaleString("zh-CN");
-function Spark() { return <span className="cn-points-spark" aria-hidden="true">✦</span>; }
 
 /** Shared by the header popover, account menu and mobile navigation. */
 export function DomesticPointsCard({ w, actor, onPanel, onNavigate }: PointsProps & { onNavigate?: () => void }) {
@@ -33,7 +34,7 @@ export function DomesticPointsCard({ w, actor, onPanel, onNavigate }: PointsProp
       <div><h2>{team ? (active ? "团队版" : "团队版已到期") : `${subscription!.plan}会员`}</h2>
         <p>{team ? w.name : paid ? `每月享 ${number(subscription!.credits!)} 积分` : "升级获取更多权益"}</p></div>
       {team && !admin ? <span className="cn-points-member-label">成员</span> : <button type="button" className="cn-points-upgrade" onClick={() => navigate("subscription")}>
-        <span aria-hidden="true">{team || paid ? "♢" : "ϟ"}</span>{team ? (active ? "管理订阅" : "续费") : paid ? "管理会员" : "升级"}
+        <AiIcon variant={team || paid ? "tasks" : "upgrade"} size={16}/>{team ? (active ? "管理订阅" : "续费") : paid ? "管理会员" : "升级"}
       </button>}
     </div>
     <div className="cn-points-rows">
@@ -51,10 +52,10 @@ export function DomesticPointsCard({ w, actor, onPanel, onNavigate }: PointsProp
     </div>
     <div className="cn-points-actions">
       <button type="button" className="cn-points-secondary" onClick={() => team ? navigate("settings", "credits") : onPanel("tasks")}>
-        <span aria-hidden="true">{team ? "≡" : "◇"}</span>{team ? "积分明细" : "做任务赚积分"}
+        {team ? <Icon name="book"/> : <AiIcon variant="tasks" size={16}/>}{team ? "积分明细" : "做任务赚积分"}
       </button>
       <button type="button" className="cn-points-primary credit-recharge-cta" disabled={team && (!admin || !active)} onClick={() => onPanel("recharge")}>
-        <Spark/>{team && !admin ? "联系管理员充值" : team && !active ? "续费后可充值" : "充值积分"}
+        <AiIcon size={16} tone="inherit"/>{team && !admin ? "联系管理员充值" : team && !active ? "续费后可充值" : "充值积分"}
       </button>
     </div>
   </section>;
@@ -96,7 +97,7 @@ export function DomesticPointsEntry(props: PointsProps) {
   }, [open]);
   return <>
     <button type="button" className="cn-points-trigger" ref={trigger} popoverTarget={id} aria-haspopup="dialog" aria-expanded={open} aria-controls={id}>
-      <Spark/><span>积分额度</span><strong>{number(M.creditBalance(props.w))}</strong>
+      <AiIcon/><span>积分额度</span><strong>{number(M.creditBalance(props.w))}</strong>
     </button>
     <div className="cn-points-popover" id={id} ref={panel} popover="auto" role="dialog" aria-label="积分与会员"
       onToggle={event => {
@@ -118,13 +119,13 @@ export function DomesticPointsGuide({ w, actor, onPanel }: PointsProps) {
     else if (admin && active) onPanel("recharge");
     else location.assign(appUrl(admin ? "subscription" : "settings", admin ? "" : "credits", w.id, actor));
   }}>
-    <Spark/><span className="cn-points-guide-copy"><strong>{team ? "团队积分" : "赚积分"}</strong>
+    <AiIcon size={24}/><span className="cn-points-guide-copy"><strong>{team ? "团队积分" : "赚积分"}</strong>
       <span>{team ? <>可用 <b>{number(M.creditBalance(w))}</b> · {admin ? (active ? "去充值" : "去续费") : "查看明细"}</> : <>每月任务最高赚 <b>{number(monthly)} 积分</b></>}</span>
     </span><span className="cn-points-chevron" aria-hidden="true">›</span>
   </button>;
 }
 
-/** Account-menu card ported from the live sign-in card; header popover remains independently complete. */
+/** Compact account summary; rewards and actions share the menu's quiet hierarchy. */
 export function DomesticAccountPoints({ w, actor, onPanel, onSignin }: PointsProps & { onSignin?: () => void }) {
   if (w.type === "team") return <DomesticPointsCard w={w} actor={actor} onPanel={onPanel}/>;
   const day = new Date().toLocaleDateString("sv-SE"), config = marketConfig();
@@ -132,12 +133,13 @@ export function DomesticAccountPoints({ w, actor, onPanel, onSignin }: PointsPro
   const signed = entries.some(e => e.id === `signin:${day}`), limited = entries.length >= config.rewardLimits.signin;
   const total = entries.reduce((sum, e) => sum + e.amount, 0), sub = PS.current(w);
   return <section className="cn-account-points" aria-label="个人积分与会员">
-    <div className="cn-account-membership"><span>{sub.plan}会员</span><button onClick={() => location.assign(appUrl("subscription", "", w.id, actor))}>{sub.credits ? "管理会员" : "升级"}</button></div>
+    <div className="cn-account-membership"><span>{sub.plan}会员</span><button type="button" onClick={() => location.assign(appUrl("subscription", "", w.id, actor))}>{sub.credits ? "管理会员" : "升级"}<span aria-hidden="true"> ›</span></button></div>
     <div className="cn-signin-card">
-      <header><span aria-hidden="true">✦</span> 本月签到 {entries.length}/{config.rewardLimits.signin} 次，累计 {total} 积分</header>
-      <div className="cn-signin-body"><div className="cn-signin-main"><div><p>每日签到</p><strong>+{config.rewards.signin}<small> 积分</small></strong></div><button onClick={() => onPanel("tasks")}>赚积分 <span aria-hidden="true">›</span></button></div>
-        <button className="cn-signin-balance" onClick={() => location.assign(appUrl("settings", "credits", w.id, actor))}><span>当前可用积分</span><b>{M.creditBalance(w).toLocaleString()} 积分</b></button>
-        <footer><button className="credit-recharge-cta" onClick={() => onPanel("recharge")}>充值</button><button className="cn-signin-claim" disabled={signed || limited} onClick={() => onSignin ? onSignin() : onPanel("signin")}>{signed ? "明日再来" : limited ? "下月再来" : "立即签到"}</button></footer>
+      <div className="cn-signin-body">
+        <button type="button" className="cn-signin-balance" onClick={() => location.assign(appUrl("settings", "credits", w.id, actor))}><span>当前可用积分</span><b>{number(M.creditBalance(w))}<small> 积分</small></b><span aria-hidden="true">›</span></button>
+        <div className="cn-signin-main"><div><p>每日签到</p><strong>+{number(config.rewards.signin)}<small> 积分</small></strong></div><button type="button" onClick={() => onPanel("tasks")}>赚积分 <span aria-hidden="true">›</span></button></div>
+        <p className="cn-signin-progress">本月签到 {entries.length}/{config.rewardLimits.signin} 次，累计 {number(total)} 积分</p>
+        <footer><button type="button" className="credit-recharge-cta" onClick={() => onPanel("recharge")}>充值</button><button type="button" className="cn-signin-claim" disabled={signed || limited} onClick={() => onSignin ? onSignin() : onPanel("signin")}>{signed ? "明日再来" : limited ? "下月再来" : "立即签到"}</button></footer>
       </div>
     </div>
   </section>;

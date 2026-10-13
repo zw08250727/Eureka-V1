@@ -1,12 +1,13 @@
 import { test, expect, type Page } from "@playwright/test";
 const key="eureka:market:cn:eureka:workspaces:v2";
 async function login(page:Page){
- await page.goto('/cn/');await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();await page.locator('#phone').fill('13800138000');await page.locator('#code').fill('111111');await page.locator('#terms').check();await page.locator('#submit').click();await expect(page.locator('.app')).toBeVisible();
+ await page.goto('/cn/');await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();
+  await page.getByRole("link", { name: "个人/团队版", exact: true }).click();await page.locator('#phone').fill('13800138000');await page.locator('#code').fill('111111');await page.locator('#terms').check();await page.locator('#submit').click();await expect(page.locator('.app')).toBeVisible();
 }
-async function recharge(page:Page){
- await page.locator('#user-card').click();const button=page.getByRole('dialog', { name: '我的账户', exact: true }).locator('.credit-recharge-cta');await expect(button).toHaveCSS('background-color','rgb(22, 93, 255)');await button.click();await expect(page.getByRole('dialog')).toContainText('充值积分');
+async function recharge(page:Page, background='rgb(255, 255, 255)'){
+ await page.locator('#user-card').click();const button=page.getByRole('dialog', { name: '我的账户', exact: true }).locator('.credit-recharge-cta');await expect(button).toHaveCSS('background-color',background);await button.click();await expect(page.getByRole('dialog')).toContainText('充值积分');
 }
-test('CN: yuan recharge, prominent CTA, payment retry, expiry and classified balance persist',async({page})=>{
+test('CN: yuan recharge, secondary CTA, payment retry, expiry and classified balance persist',async({page})=>{
  await login(page);await page.goto('/cn/workbench/?review=1');await recharge(page);
  const dialog=page.getByRole('dialog');
  for(const price of ['¥59.00','¥109.00','¥149.00'])await expect(dialog).toContainText(price);
@@ -37,7 +38,7 @@ test('CN: professional single-purchase subscription changes only personal rights
 });
 test('CN: ordinary team member cannot recharge; admin uses CNY without changing personal subscription',async({page})=>{
  await login(page);await page.goto('/cn/workbench/?space=team-eureka&actor=kevin');await page.locator('#user-card').click();await expect(page.getByRole('dialog', { name: '我的账户', exact: true }).locator('.credit-recharge-cta')).toBeDisabled();
- await page.goto('/cn/workbench/?space=team-eureka&actor=zhang');await recharge(page);await page.getByRole('button',{name:'确认充值',exact:true}).click();await page.getByRole('button',{name:'确认支付',exact:true}).click();await expect(page.getByRole('dialog')).toContainText('充值成功');
+ await page.goto('/cn/workbench/?space=team-eureka&actor=zhang');await recharge(page,'rgb(22, 93, 255)');await page.getByRole('button',{name:'确认充值',exact:true}).click();await page.getByRole('button',{name:'确认支付',exact:true}).click();await expect(page.getByRole('dialog')).toContainText('充值成功');
  const state=await page.evaluate(k=>JSON.parse(localStorage.getItem(k)!),key);
  expect(state.spaces.find((w:{id:string})=>w.id==='team-eureka').creditOrders[0].currency).toBe('CNY');expect(state.spaces.find((w:{id:string})=>w.id==='personal').creditOrders).toBeUndefined();
 });

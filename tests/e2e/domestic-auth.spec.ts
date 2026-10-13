@@ -6,11 +6,11 @@ const enterpriseSession = "eureka:market:cn:enterprise:auth:v1";
 const forbidden = /独立账号|演示身份|待 PM|本地模拟|场景示意|仅供评审|不会真实扣款|保存在本浏览器|原型仅|演示配置/;
 async function enterpriseLogin(page: Page, method: "phone" | "email" = "phone") {
   await page.goto("/cn/?edition=enterprise");
-  await page.locator("#enterprise-code").fill("100001");
+  await page.locator("#enterprise-code").fill("bairong");
   await page.locator("#submit").click();
-  await expect(page.getByRole("heading", { name: "青禾科技" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "百融智能" })).toBeVisible();
   if (method === "email") await page.getByRole("button", { name: "邮箱", exact: true }).click();
-  await page.locator(`#${method}`).fill(method === "phone" ? "13800138000" : "lin@qinghe.example");
+  await page.locator(`#${method}`).fill(method === "phone" ? "13800138000" : "lin@bairong.example");
   await page.locator("#code").fill("123456");
   await page.locator("#terms").check();
   await page.locator("#submit").click();
@@ -26,7 +26,8 @@ test("minimal selector and domestic two-edition entry use correct brands and no 
   await page.getByRole("link", { name: "百智 国内版" }).click();
   await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();
   await expect(page.locator(".brand")).toHaveText("百智");
-  await expect(page.getByRole("group", { name: "登录版本" }).getByRole("button")).toHaveCount(2);
+  await expect(page.getByRole("navigation", { name: "登录版本" }).getByRole("link")).toHaveCount(2);
+  await page.getByRole("link", { name: "个人/团队版", exact: true }).click();
   await expect(page.locator("#phone")).toBeEmpty();
   await expect(page.locator("#terms")).not.toBeChecked();
   await expect(page.locator("#google, #apple")).toHaveCount(0);
@@ -43,6 +44,7 @@ for (const method of ["phone", "email"] as const) {
   test(`domestic ${method} validates, resends, requires agreement and reaches personal workspace`, async ({ page }) => {
     await page.goto("/cn/");
     await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();
+    await page.getByRole("link", { name: "个人/团队版", exact: true }).click();
     if (method === "email") await page.getByRole("button", { name: "邮箱", exact: true }).click();
     await page.locator(`#${method}`).fill("bad");
     await page.locator("#send").click();
@@ -73,11 +75,11 @@ for (const method of ["phone", "email"] as const) {
 test("enterprise checks code and membership, supports changing enterprise, and cannot self-register", async ({ page }) => {
   await page.goto("/cn/");
   await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();
-  await page.getByRole("button", { name: "企业版", exact: true }).click();
+  await page.getByRole("link", { name: "企业版", exact: true }).click();
   await page.locator("#enterprise-code").fill("wrong");
   await page.locator("#submit").click();
   await expect(page.locator("#status")).toContainText("企业代码无效");
-  await page.locator("#enterprise-code").fill("100001");
+  await page.locator("#enterprise-code").fill("bairong");
   await page.locator("#submit").click();
   await page.locator("#phone").fill("13900139000");
   await page.locator("#code").fill("123456");
@@ -87,7 +89,9 @@ test("enterprise checks code and membership, supports changing enterprise, and c
   expect(await page.evaluate(k => localStorage.getItem(k), enterpriseSession)).toBeNull();
   await page.getByRole("button", { name: "更换企业" }).click();
   await expect(page.locator("#enterprise-code")).toBeVisible();
-  await page.getByRole("button", { name: "个人/团队版" }).click();
+  await page.getByRole("link", { name: "关闭登录", exact: true }).click();
+  await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();
+  await page.getByRole("link", { name: "个人/团队版", exact: true }).click();
   await expect(page.locator("#phone")).toBeEmpty();
   await expect(page.locator("#terms")).not.toBeChecked();
 });
@@ -95,11 +99,11 @@ test("enterprise checks code and membership, supports changing enterprise, and c
 test("enterprise realm is separate from CN personal/team and global; logout preserves both and enterprise work", async ({ page, context }) => {
   await page.goto("/cn/");
   await page.evaluate(({ personalSession, globalSession }) => {
-    localStorage.setItem(personalSession, JSON.stringify({market: "cn", realm: "eureka-cn", identity: "lin@qinghe.example"}));
-    localStorage.setItem(globalSession, JSON.stringify({market: "global", realm: "eureka-global", identity: "lin@qinghe.example"}));
+    localStorage.setItem(personalSession, JSON.stringify({market: "cn", realm: "eureka-cn", identity: "lin@bairong.example"}));
+    localStorage.setItem(globalSession, JSON.stringify({market: "global", realm: "eureka-global", identity: "lin@bairong.example"}));
   }, { personalSession, globalSession });
   await page.goto("/cn/enterprise/");
-  await expect(page).toHaveURL(/\/cn\/\?edition=enterprise/);
+  await expect(page).toHaveURL(/\/cn\/enterprise\/login\//);
   await enterpriseLogin(page, "email");
   await page.getByLabel("新待办").fill("确认企业采购清单");
   await page.getByRole("button", {name: "添加待办"}).click();
@@ -112,7 +116,7 @@ test("enterprise realm is separate from CN personal/team and global; logout pres
   await other.goto("/cn/enterprise/");
   await expect(other.locator(".enterprise-workbench")).toBeVisible();
   await page.getByRole("button", {name: "退出登录"}).click();
-  await expect(other).toHaveURL(/\/cn\/\?edition=enterprise/);
+  await expect(other).toHaveURL(/\/cn\/enterprise\/login\//);
   const states = await page.evaluate(keys => keys.map(k => localStorage.getItem(k)), [personalSession, globalSession, enterpriseSession]);
   expect(states[0]).not.toBeNull(); expect(states[1]).not.toBeNull(); expect(states[2]).toBeNull();
   await enterpriseLogin(page);
@@ -121,10 +125,10 @@ test("enterprise realm is separate from CN personal/team and global; logout pres
 
 test("enterprise cannot reuse an invalid realm and storage failures do not falsely complete login or tasks", async ({ page }) => {
   await page.goto("/cn/");
-  await page.evaluate(k => localStorage.setItem(k, JSON.stringify({realm: "eureka-cn", code: "100001", identity: "lin@qinghe.example"})), enterpriseSession);
+  await page.evaluate(k => localStorage.setItem(k, JSON.stringify({realm: "eureka-cn", code: "bairong", identity: "lin@bairong.example"})), enterpriseSession);
   await page.goto("/cn/enterprise/");
-  await expect(page).toHaveURL(/edition=enterprise/);
-  await page.locator("#enterprise-code").fill("100001"); await page.locator("#submit").click();
+  await expect(page).toHaveURL(/enterprise\/login/);
+  await page.locator("#enterprise-code").fill("bairong"); await page.locator("#submit").click();
   await page.locator("#phone").fill("13800138000"); await page.locator("#code").fill("123456"); await page.locator("#terms").check();
   await page.evaluate(() => { Storage.prototype.setItem = () => { throw new Error("存储空间不足"); }; });
   await page.locator("#submit").click();
@@ -145,7 +149,7 @@ for (const width of [390, 768, 1440]) test(`enterprise forms and workbench fit $
   await expect(page.locator("#enterprise-code")).toBeVisible();
   await page.screenshot({path: `test-results/markets/enterprise-code-${width}.png`, fullPage: true, animations: "disabled"});
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await page.locator("#enterprise-code").fill("100001"); await page.locator("#submit").click();
+  await page.locator("#enterprise-code").fill("bairong"); await page.locator("#submit").click();
   await page.screenshot({path: `test-results/markets/enterprise-member-${width}.png`, fullPage: true, animations: "disabled"});
   await enterpriseLogin(page);
   await page.screenshot({path: `test-results/markets/enterprise-home-${width}.png`, fullPage: true, animations: "disabled"});

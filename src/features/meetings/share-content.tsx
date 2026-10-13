@@ -21,7 +21,7 @@ function SharedAudio({ url }: { url: string }) {
 export function SharedMeetingContent({ title, contents }: { title: string; contents: ExportContent[] }) {
   return <article style={{ overflowWrap: "anywhere" }}>
     <h2>{title}</h2>
-    {contents.map(content => <section key={content.kind} style={{ margin: "24px 0" }}>
+    {contents.map((content, index) => <section key={`${content.kind}:${index}`} style={{ margin: "24px 0" }}>
       <h3>{content.label}</h3>
       {content.kind === "audio" ? isSafeAudioUrl(content.audioUrl) ? <SharedAudio key={content.audioUrl} url={content.audioUrl} /> : <p>此分享缺少可用的原始音频，请重新生成分享链接。</p> : null}
       {content.kind === "mindmap" ? content.sourceMarkdown ? <ShareMindmap key={content.sourceMarkdown} title={title} sourceMarkdown={content.sourceMarkdown} /> : <p>此分享缺少思维导图源内容，请重新生成分享链接。</p> : null}

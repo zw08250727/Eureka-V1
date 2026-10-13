@@ -229,7 +229,7 @@ html:has(.market-surface[data-market]) body {
     .daily-rhythm header button { font-size: 12px; line-height: 18px; color: var(--ui-secondary); min-height: var(--ui-compact-height); }
     .brief-task {
       /* Frozen today-workbench.css locks 11px/18px with !important. */
-      font-size: 14px !important; line-height: 22px !important;
+      font-size: var(--ui-home-task-size, 14px) !important; line-height: var(--ui-home-task-line, 22px) !important;
       min-height: var(--ui-compact-height);
     }
     .daily-idea { min-height: var(--ui-compact-height); font-size: 14px; line-height: 22px; }

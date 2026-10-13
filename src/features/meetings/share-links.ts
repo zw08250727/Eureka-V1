@@ -6,7 +6,7 @@ export interface ShareScope { market: string | null; space: string; identity: st
 export interface MeetingShareLink {
   id: string;
   meetingId: string;
-  market: "cn";
+  market: "cn" | "global";
   space: "personal";
   owner: string;
   title: string;
@@ -16,7 +16,7 @@ export interface MeetingShareLink {
   contents: ExportContent[];
 }
 export function assertPersonalShare(scope: ShareScope) {
-  if (scope.market !== "cn" || scope.space !== "personal" || !scope.identity)
+  if ((scope.market !== "cn" && scope.market !== "global") || scope.space !== "personal" || !scope.identity)
     throw Error("当前账号或工作区无权访问此分享");
 }
 export function shareStatus(link: MeetingShareLink, now = Date.now()) {
@@ -31,7 +31,7 @@ function validContent(v: unknown): v is ExportContent {
 }
 function validLink(v: unknown): v is MeetingShareLink {
   return object(v) && typeof v.id === "string" && /^[a-zA-Z0-9-]{16,100}$/.test(v.id) && typeof v.meetingId === "string" && !!v.meetingId &&
-    v.market === "cn" && v.space === "personal" && typeof v.owner === "string" && !!v.owner && typeof v.title === "string" &&
+    (v.market === "cn" || v.market === "global") && v.space === "personal" && typeof v.owner === "string" && !!v.owner && typeof v.title === "string" &&
     typeof v.createdAt === "number" && Number.isFinite(v.createdAt) &&
     (v.expiresAt === null || typeof v.expiresAt === "number" && Number.isFinite(v.expiresAt)) &&
     (v.revokedAt === null || typeof v.revokedAt === "number" && Number.isFinite(v.revokedAt)) &&
@@ -62,7 +62,7 @@ export function shareRepository(storage: Pick<Storage, "getItem" | "setItem">) {
       if (![0, 3, 7, 30].includes(input.days)) throw Error("请选择有效的分享期限");
       if (input.contents.some(c => c.kind === "audio" && !isSafeAudioUrl(c.audioUrl))) throw Error("暂无可用的原始音频");
       if (input.contents.some(c => c.kind === "mindmap" && !c.sourceMarkdown?.trim() || c.kind === "visual" && !c.images?.some(i => safeVisualUrl(i.url)))) throw Error("分享内容尚未生成完成");
-      const link: MeetingShareLink = { id, meetingId: input.meetingId, title: input.title, market: "cn", space: "personal", owner: scope.identity,
+      const link: MeetingShareLink = { id, meetingId: input.meetingId, title: input.title, market: scope.market as MeetingShareLink["market"], space: "personal", owner: scope.identity,
         createdAt: now, expiresAt: input.days ? now + input.days * 86400000 : null, revokedAt: null, contents: structuredClone(input.contents) };
       if (!validLink(link)) throw Error("请选择有效的分享内容");
       const { raw, links } = read();

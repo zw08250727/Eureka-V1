@@ -2,7 +2,7 @@
 
 import { useEffect, useEffectEvent, useId, useRef, useState } from "react";
 import { Select } from "@/components/ui/select";
-import { MdButton as Button } from "./reference-ui";
+import { MdDialog, MdButton as Button } from "./reference-ui";
 import { sanitizeRichText } from "./store";
 import "./domestic-inline-editor.css";
 
@@ -89,6 +89,17 @@ export function DomesticInlineEditor({ html, onDraft, onExit, onSave }: {
   const [historyState, setHistoryState] = useState({ undo: false, redo: false });
   const [error, setError] = useState("");
   const errorId = useId();
+  const [ink, setInk] = useState("#262626"), [highlight,setHighlight] = useState("#fff2ac");
+  const [linkOpen,setLinkOpen] = useState(false), [link,setLink] = useState(""), [linkError,setLinkError] = useState("");
+  const [brush,setBrush] = useState<Formatting | null>(null);
+  function applyBrush() {
+    if(!brush || !ref.current || !currentRange(ref.current) || window.getSelection()?.isCollapsed)return;
+    command("removeFormat");
+    command("fontName",brush.family);
+    if(brush.size){requestedSize.current=brush.size;command("fontSize","7");}
+    for(const name of brush.active.filter(name=>["bold","italic","underline","strikeThrough"].includes(name)))command(name);
+    setBrush(null);
+  }
 
   function rememberSelection() {
     const root = ref.current;
@@ -172,7 +183,7 @@ export function DomesticInlineEditor({ html, onDraft, onExit, onSave }: {
     const cssMode = document.queryCommandState("styleWithCSS");
     let applied = false;
     try {
-      document.execCommand("styleWithCSS", false, "false");
+      document.execCommand("styleWithCSS", false, name === "hiliteColor" ? "true" : "false");
       applied = document.execCommand(name, false, value);
     } catch (e) {
       setError(e instanceof Error ? e.message : "格式修改失败，请重新选择文本");
@@ -240,6 +251,9 @@ export function DomesticInlineEditor({ html, onDraft, onExit, onSave }: {
           <Button className="cn-editor-tool" aria-label="撤销" title="撤销（Ctrl/⌘ Z）" disabled={!historyState.undo} onMouseDown={e => e.preventDefault()} onClick={() => travel(-1)}>↶</Button>
           <Button className="cn-editor-tool" aria-label="重做" title="重做（Ctrl/⌘ Shift Z）" disabled={!historyState.redo} onMouseDown={e => e.preventDefault()} onClick={() => travel(1)}>↷</Button>
         </div>
+        <div className="cn-editor-tool-group" role="group" aria-label="格式刷">
+          <Button className="cn-editor-tool" aria-label="格式刷" title="复制当前文字格式，再选择要应用的文字" aria-pressed={!!brush} onMouseDown={e=>e.preventDefault()} onClick={()=>setBrush(brush ? null : format)}>格式刷</Button>
+        </div>
         <div className="cn-editor-tool-group cn-editor-selects" role="group" aria-label="字体与段落">
           <Select aria-label="正文与标题" value={format.block} onPointerDown={rememberSelection} onChange={e => command("formatBlock", e.target.value)}>
             <option value="p">正文</option><option value="div">普通段落</option>
@@ -257,14 +271,23 @@ export function DomesticInlineEditor({ html, onDraft, onExit, onSave }: {
         <div className="cn-editor-tool-group" role="group" aria-label="文字与列表">
           {commands.map(([name, label, glyph]) => <Button key={name} className={`cn-editor-tool cn-editor-${name}`} data-command={name} aria-label={label} title={label} aria-pressed={format.active.includes(name)} onMouseDown={e => e.preventDefault()} onClick={() => command(name)}>{glyph}</Button>)}
         </div>
+        <div className="cn-editor-tool-group" role="group" aria-label="文字颜色与背景">
+          <div className="cn-editor-color" title="文字颜色"><Button className="cn-editor-tool" aria-label="应用文字颜色" onMouseDown={e=>e.preventDefault()} onClick={()=>command("foreColor",ink)}>A</Button><input type="color" aria-label="文字颜色" value={ink} onPointerDown={rememberSelection} onChange={e=>{setInk(e.target.value);command("foreColor",e.target.value);}}/></div>
+          <div className="cn-editor-color" title="文字背景色"><Button className="cn-editor-tool" aria-label="应用文字背景色" onMouseDown={e=>e.preventDefault()} onClick={()=>command("hiliteColor",highlight)}>标记</Button><input type="color" aria-label="文字背景色" value={highlight} onPointerDown={rememberSelection} onChange={e=>{setHighlight(e.target.value);command("hiliteColor",e.target.value);}}/></div>
+        </div>
         <div className="cn-editor-tool-group" role="group" aria-label="段落对齐与清除">
           <Select aria-label="对齐方式" value={format.align} onPointerDown={rememberSelection} onChange={e => command(e.target.value === "justify" ? "justifyFull" : `justify${e.target.value[0].toUpperCase()}${e.target.value.slice(1)}`)}>
             <option value="left">左对齐</option><option value="center">居中对齐</option><option value="right">右对齐</option><option value="justify">两端对齐</option>
           </Select>
+          <Button className="cn-editor-tool" aria-label="增加缩进" onMouseDown={e=>e.preventDefault()} onClick={()=>command("indent")}>增加缩进</Button>
+          <Button className="cn-editor-tool" aria-label="减少缩进" onMouseDown={e=>e.preventDefault()} onClick={()=>command("outdent")}>减少缩进</Button>
+          <Button className="cn-editor-tool" aria-label="插入链接" onMouseDown={e=>e.preventDefault()} onClick={()=>{rememberSelection();setLink("");setLinkError("");setLinkOpen(true);}}>链接</Button>
+          <Button className="cn-editor-tool" aria-label="移除链接" onMouseDown={e=>e.preventDefault()} onClick={()=>command("unlink")}>移除链接</Button>
           <Button className="cn-editor-tool" aria-label="清除格式" onMouseDown={e => e.preventDefault()} onClick={() => command("removeFormat")}>清除格式</Button>
         </div>
       </div>
       <div ref={ref} id="md-edit-body" className="md-prose md-inline-editable cn-inline-editable" contentEditable suppressContentEditableWarning role="textbox" aria-label="编辑正文" aria-multiline="true" aria-describedby={error ? errorId : undefined}
+        onMouseUp={applyBrush}
         onInput={() => { if (!composing.current && !executing.current) publish(); }}
         onCompositionStart={() => { beforeChange(); composing.current = true; }}
         onCompositionEnd={() => { composing.current = false; publish(); }}
@@ -286,5 +309,9 @@ export function DomesticInlineEditor({ html, onDraft, onExit, onSave }: {
       />
       <p id={errorId} className="md-inline-edit-status cn-inline-edit-status" role="alert">{error}</p>
     </div>
+    {linkOpen && <MdDialog title="插入链接" onClose={()=>setLinkOpen(false)} footer={<><Button onClick={()=>setLinkOpen(false)}>取消</Button><Button className="md-btn md-primary" disabled={!link.trim()} onClick={()=>{
+      try { const url=new URL(link.trim());if(!["https:","http:","mailto:"].includes(url.protocol))throw Error("请输入 http、https 或 mailto 链接");setLinkOpen(false);requestAnimationFrame(()=>{if(ref.current)command("createLink",url.href);}); }
+      catch {setLinkError("请输入有效的 http、https 或 mailto 链接");}
+    }}>插入</Button></>}><label className="md-field"><span>链接地址</span><input autoFocus type="url" aria-label="链接地址" placeholder="https://" value={link} onChange={e=>setLink(e.target.value)}/></label>{linkError&&<p role="alert">{linkError}</p>}</MdDialog>}
   </>;
 }

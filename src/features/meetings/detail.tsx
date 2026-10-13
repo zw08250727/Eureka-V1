@@ -3,14 +3,17 @@
 
 import { countMonthlyFeedbackRewards } from "@/features/account/rewards";
 import { meetingAudioSource } from "./audio-source";
-import { DomesticInlineEditor } from "./domestic-inline-editor";
+import { MeetingDocumentEditor } from "./document-editor";
+import { meetingBodyHtml } from "./content";
 import { DomesticAudioPlayer, type DomesticAudioStatus } from "./domestic-audio-player";
-import { DomesticContentState } from "./domestic-content-state";
+import { DomesticTranscript } from "./domestic-transcript";
+import { DomesticContentState, meetingStatusBadge } from "./domestic-content-state";
 import { DomesticImageManager } from "./domestic-image-manager";
 import { marketConfig, routeMarket } from "@/features/markets/config";
 import { meetingSummaries, summaryView, updateSummary } from "./summaries";
 import { submitMeetingFeedback } from "./feedback-model";
 import "./domestic-detail.css";
+import "./meeting-detail-ui.css";
 import { marketStorage } from "@/features/markets/storage";
 
 import { Select } from "@/components/ui/select";
@@ -54,7 +57,7 @@ export function MeetingPage({
   space: string;
   actor: string;
 }) {
-  const cn = routeMarket() === "cn";
+  const cn = routeMarket() === "cn", enhanced = routeMarket() !== null;
   const personal = useWorkbench(),
     repo = useRef<ReturnType<typeof createMeetingDetails> | null>(null),
     audio = useRef<HTMLAudioElement>(null),
@@ -68,7 +71,7 @@ export function MeetingPage({
     [error, setError] = useState(""),
     [query, setQuery] = useState(""),
     [tab, setTab] = useState<MeetingTab>("summary"),
-    [expanded, setExpanded] = useState(false),
+    [expanded, setExpanded] = useState(routeMarket() !== null),
     [score, setScore] = useState(0),
     [modal, setModal] = useState(() =>
       typeof window !== "undefined" &&
@@ -108,7 +111,7 @@ export function MeetingPage({
   }
   const loaded = !!record;
   const selectedSummary = record ? meetingSummaries(record).find(s=>s.id===summaryId) || meetingSummaries(record).at(-1)! : null;
-  const r = record && cn ? summaryView(record,selectedSummary!.id) : record;
+  const r = record && enhanced ? summaryView(record,selectedSummary!.id) : record;
   useEffect(() => {
     let active = true;
     Promise.resolve().then(() => {
@@ -160,7 +163,7 @@ export function MeetingPage({
       active = false;
     };
   }, [selected, team, w, file]);
-  const audioSource=record ? (cn ? meetingAudioSource(record) : assetUrl("meeting-demo.wav")) : "";
+  const audioSource=record ? (enhanced ? meetingAudioSource(record) : assetUrl("meeting-demo.wav")) : "";
   useEffect(() => {
     const element = audio.current;
     if (!element) return;
@@ -235,7 +238,7 @@ export function MeetingPage({
   function save(patch: Partial<MeetingDetail>) {
     if (!record) throw Error("会议尚未加载");
     if (readonly) throw Error("此录音为只读，请向所有者申请编辑权限，并确认工作区订阅有效");
-    patch = cn ? updateSummary(record,selectedSummary!.id,patch) : patch;
+    patch = enhanced ? updateSummary(record,selectedSummary!.id,patch) : patch;
     const next = {
       ...record,
       ...patch,
@@ -248,7 +251,7 @@ export function MeetingPage({
           selected,
           {
             ...patch,
-            ...(!cn && "verbatim" in patch ? { transcript: patch.verbatim } : {}),
+            ...(!enhanced && "verbatim" in patch ? { transcript: patch.verbatim } : {}),
           },
           actor,
         ),
@@ -260,8 +263,8 @@ export function MeetingPage({
     setRecord(next);
     setError("");
   }
-  const Editor = cn ? DomesticInlineEditor : InlineEditor;
-  const draftKey = `${selected}/${tab}${cn && tab === "summary" ? `/${selectedSummary?.id}` : ""}`,
+  const Editor = enhanced ? MeetingDocumentEditor : InlineEditor;
+  const draftKey = `${selected}/${tab}${enhanced && tab === "summary" ? `/${selectedSummary?.id}` : ""}`,
     draft = drafts[draftKey];
   function chooseMeeting(next: string) {
     stopParticipant();
@@ -270,7 +273,8 @@ export function MeetingPage({
     setSelected(next);
     setSummaryId("");
     setTab("summary");
-    setExpanded(false);
+    setExpanded(enhanced);
+    root.current?.querySelector(".md-scroll")?.scrollTo({top:0});
     setZoom(1);
     setLibraryMobile(false);
     setModal("");
@@ -300,7 +304,7 @@ export function MeetingPage({
       if (name === "edit") {
         const field = tab === "verbatim" ? "verbatim" : "summary";
         const html =
-          record[`${field}Html`] ||
+          (enhanced ? meetingBodyHtml(currentText(record, tab), record[`${field}Html`]) : record[`${field}Html`]) ||
           currentText(record, tab)
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
@@ -309,11 +313,11 @@ export function MeetingPage({
       } else if (name === "feedback") {
         save({ feedback: score });
         setToast("评价已保存");
-      } else if (cn && (name === "asset-source" || (name === "regenerate" && tab !== "verbatim") || (name === "generate" && tab !== "verbatim"))) {
+      } else if (enhanced && (name === "asset-source" || (name === "regenerate" && tab !== "verbatim") || (name === "generate" && tab !== "verbatim"))) {
         if(readonly)throw Error("此录音为只读");
         setAssetSummaryId(selectedSummary?.id || "default");setModal("asset-source");
-      } else if (name === "generate" || (cn && name === "regenerate" && tab === "verbatim")) {
-        if(cn && tab === "verbatim") {
+      } else if (name === "generate" || (enhanced && name === "regenerate" && tab === "verbatim")) {
+        if(enhanced && tab === "verbatim") {
           const text=linesFor(record).map(l=>l.text).join("\n\n");
           save({verbatim: text, generated:{...record.generated,verbatim:text ? true : "source-empty"}});
         } else save({ generated: { ...record.generated, [tab]: true } });
@@ -345,7 +349,7 @@ export function MeetingPage({
               record.title,
               "image/svg+xml",
             );
-        } else if (cn && tab === "visual") { setModal("export"); }
+        } else if (enhanced && tab === "visual") { setModal("export"); }
         else download(currentText(record, tab), "txt", record.title);
       } else setModal(name);
     } catch (e) {
@@ -356,7 +360,9 @@ export function MeetingPage({
   const visible = list.filter((m) =>
     m.title.toLowerCase().includes(query.toLowerCase()),
   );
-  const tabs = cn && r && !linesFor(r).some(s=>s.en.trim()) ? meetingTabs.filter(([key])=>key!=="translation") : meetingTabs;
+  const badge = meetingStatusBadge(r?.contentState?.recordingStatus ?? file?.status ?? personal.data?.meetings.find(m=>m.id===selected)?.status);
+  const shortContent = enhanced && (r?.contentState?.viewType === 2 || r?.contentState?.viewType === 3);
+  const tabs = enhanced && r && !linesFor(r).some(s=>s.en.trim()) ? meetingTabs.filter(([key])=>key!=="translation") : meetingTabs;
   const meta = (m: {
     created: string;
     duration: string | number;
@@ -368,7 +374,7 @@ export function MeetingPage({
     <section
       ref={root}
       id="meeting-detail-root"
-      className={`md-workspace${cn ? " cn-meeting-detail" : ""}${agentOpen ? " md-agent-open" : ""}`}
+      className={`md-workspace${enhanced ? ` meeting-detail-ui ${cn ? "cn-meeting-detail" : "global-meeting-detail"}` : ""}${agentOpen ? " md-agent-open" : ""}`}
       data-main-view="note-detail"
       aria-label="语音笔记详情"
     >
@@ -464,7 +470,7 @@ export function MeetingPage({
                             {m.id === selected ? r.title : m.title}
                           </strong>
                           <small>{meta(m)}</small>
-                          <em>{m.status}</em>
+                          <em data-tone={m.id===selected ? badge.tone : meetingStatusBadge(m.status).tone}>{m.id===selected ? badge.label : meetingStatusBadge(m.status).label}</em>
                         </span>
                       </button>
                     ))
@@ -510,15 +516,10 @@ export function MeetingPage({
                             r,
                         )}{" "}
                         ·{" "}
-                        <span className="md-summary-ready">
-                          {file?.status ||
-                            personal.data?.meetings.find(
-                              (m) => m.id === selected,
-                            )?.status ||
-                            "已总结"}
-                        </span>
+                        <span className="md-summary-ready" data-tone={badge.tone}>{badge.label}</span>
                       </p>
                       <button
+                        hidden={enhanced}
                         type="button"
                         data-md-action="info"
                         disabled={readonly}
@@ -569,101 +570,7 @@ export function MeetingPage({
                   </div>
                 </header>
                 <div className="md-scroll">
-                  <section className="md-info">
-                    <div className="md-info-line">
-                      <button
-                        type="button"
-                        data-md-action="participants"
-                        disabled={readonly}
-                        onClick={() => action("participants")}
-                      >
-                        参会人 <span>{(cn ? [...new Set([...linesFor(r).map(s=>s.speakerName || r.speakers[s.speaker] || "发言人"),...(r.silentParticipants || [])])] : r.speakers).join("、")}</span>
-                      </button>
-                      <button
-                        type="button"
-                        data-md-action="info"
-                        disabled={readonly}
-                        onClick={() => action("info")}
-                      >
-                        客户名称 <span>{r.customer || "添加客户"}</span>
-                      </button>
-                      <button
-                        type="button"
-                        data-md-action="info"
-                        disabled={readonly}
-                        onClick={() => action("info")}
-                      >
-                        商机项目 <span>{r.project || "添加项目"}</span>
-                      </button>
-                      <B
-                        action="info-toggle"
-                        className="md-info-toggle"
-                        aria-expanded={expanded}
-                        onClick={() => setExpanded(!expanded)}
-                      >
-                        {expanded ? "收起 ⌃" : "展开 ⌄"}
-                      </B>
-                    </div>
-                    <div className="md-info-extra" hidden={!expanded}>
-                      <div>
-                        标签{" "}
-                        {r.tags.map((t) => (
-                          <span className="md-tag" key={t}>
-                            {t}
-                          </span>
-                        ))}
-                        <B
-                          action="info"
-                          className="md-link"
-                          disabled={readonly}
-                          onClick={() => action("info")}
-                        >
-                          ＋ 添加标签
-                        </B>
-                      </div>
-                      <div>
-                        图片（{(r.images || []).length}/50）
-                        <div className="md-images">
-                          {(r.images || []).map((im, i) => (
-                            <div className="md-image" key={`${im.name}/${i}`}>
-                              <img
-                                src={im.url}
-                                loading="lazy"
-                                alt={im.name}
-                                data-md-preview={i}
-                                onClick={() => {
-                                  setPreview(i);
-                                  setModal("image-preview");
-                                }}
-                              />
-                              <button
-                                aria-label={`移除图片 ${im.name}`}
-                                data-md-remove-image={i}
-                                disabled={readonly}
-                                onClick={() => {
-                                  if(cn){setImageSelection([i]);setModal("image-manager");}
-                                  else try { save({ images: r.images!.filter((_, j) => i !== j) }); } catch(e) { setToast((e as Error).message); }
-                                }}
-                              >
-                                ×
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                        <B
-                          action="image"
-                          className="md-image-add"
-                          aria-label="添加图片"
-                          disabled={readonly || uploading}
-                          onClick={() => imageInput.current?.click()}
-                        >
-                          {uploading ? "上传中…" : <I name="plus" />}
-                        </B>
-                        {cn && !!r.images?.length && <B onClick={()=>{setImageSelection([]);setModal("image-manager");}}>全部图片（{r.images.length}）</B>}
-                      </div>
-                    </div>
-                  </section>
-                  {cn ? <DomesticAudioPlayer time={time} duration={duration} speed={speed} playing={playing} marks={r.marks} status={audioStatus} error={!audioSource ? "暂无可播放的原音频" : ""} buffered={buffered} onTogglePlay={()=>playing?audio.current?.pause():play()} onSeek={(n,autoplay)=>{seek(n,autoplay);if(autoplay)setTab("transcript");}} onSpeedChange={n=>{setSpeed(n);if(audio.current)audio.current.playbackRate=n;}} onRetry={audioSource ? ()=>{setAudioStatus("loading");audio.current?.load();} : undefined}/> : <div className="md-player">
+                  {enhanced ? <DomesticAudioPlayer time={time} duration={duration} speed={speed} playing={playing} marks={r.marks} status={audioStatus} error={!audioSource ? "暂无可播放的原音频" : ""} buffered={buffered} onTogglePlay={()=>playing?audio.current?.pause():play()} onSeek={(n,autoplay)=>{seek(n,autoplay);if(autoplay)setTab("transcript");}} onSpeedChange={n=>{setSpeed(n);if(audio.current)audio.current.playbackRate=n;}} onRetry={audioSource ? ()=>{setAudioStatus("loading");audio.current?.load();} : undefined}/> : <div className="md-player">
                     <B
                       action="play"
                       className="md-play"
@@ -720,7 +627,103 @@ export function MeetingPage({
                     </Select>
 
                   </div>}
-                  <nav
+                  <section className="md-info">
+                    <div className="md-info-line">
+                      <button
+                        type="button"
+                        data-md-action="participants"
+                        disabled={readonly}
+                        onClick={() => action("participants")}
+                      >
+                        参会人 <span>{(enhanced ? [...new Set([...linesFor(r).map(s=>s.speakerName || r.speakers[s.speaker] || "发言人"),...(r.silentParticipants || [])])] : r.speakers).join("、")}</span>
+                      </button>
+                      {enhanced && <button type="button" data-md-action="info" disabled={readonly} onClick={()=>action("info")}>位置 <span>{r.location || "添加位置"}</span></button>}
+                      <B
+                        action="info-toggle"
+                        className="md-info-toggle"
+                        aria-expanded={expanded}
+                        onClick={() => setExpanded(!expanded)}
+                      >
+                        {expanded ? "收起 ⌃" : "展开 ⌄"}
+                      </B>
+                    </div>
+                    <div className="md-info-extra" hidden={!expanded}>
+                      {(team || r.customer || r.project) && <div className="md-info-line">                      <button
+                        type="button"
+                        data-md-action="info"
+                        disabled={readonly}
+                        onClick={() => action("info")}
+                      >
+                        客户名称 <span>{r.customer || "添加客户"}</span>
+                      </button>
+                      <button
+                        type="button"
+                        data-md-action="info"
+                        disabled={readonly}
+                        onClick={() => action("info")}
+                      >
+                        商机项目 <span>{r.project || "添加项目"}</span>
+                      </button>
+</div>}
+                      <div>
+                        标签{" "}
+                        {r.tags.map((t) => (
+                          <span className="md-tag" key={t}>
+                            {t}
+                          </span>
+                        ))}
+                        <B
+                          action="info"
+                          className="md-link"
+                          disabled={readonly}
+                          onClick={() => action("info")}
+                        >
+                          ＋ 添加标签
+                        </B>
+                      </div>
+                      <div>
+                        图片（{(r.images || []).length}/50）
+                        <div className="md-images">
+                          {(r.images || []).map((im, i) => (
+                            <div className="md-image" key={`${im.name}/${i}`}>
+                              <img
+                                src={im.url}
+                                loading="lazy"
+                                alt={im.name}
+                                data-md-preview={i}
+                                onClick={() => {
+                                  setPreview(i);
+                                  setModal("image-preview");
+                                }}
+                              />
+                              <button
+                                aria-label={`移除图片 ${im.name}`}
+                                data-md-remove-image={i}
+                                disabled={readonly}
+                                onClick={() => {
+                                  if(enhanced){setImageSelection([i]);setModal("image-manager");}
+                                  else try { save({ images: r.images!.filter((_, j) => i !== j) }); } catch(e) { setToast((e as Error).message); }
+                                }}
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                        <B
+                          action="image"
+                          className="md-image-add"
+                          aria-label="添加图片"
+                          disabled={readonly || uploading}
+                          onClick={() => imageInput.current?.click()}
+                        >
+                          {uploading ? "上传中…" : <I name="plus" />}
+                        </B>
+                        {enhanced && !!r.images?.length && <B onClick={()=>{setImageSelection([]);setModal("image-manager");}}>全部图片（{r.images.length}）</B>}
+                      </div>
+                    </div>
+                  </section>
+                  {!shortContent && <nav
                     className="md-tabs"
                     role="tablist"
                     aria-label="录音详情内容"
@@ -765,15 +768,16 @@ export function MeetingPage({
                         {label}
                       </button>
                     ))}
-                  </nav>
+                  </nav>}
                   <section
                     id="md-content"
                     className="md-panel"
-                    role="tabpanel"
-                    aria-labelledby={`md-tab-${tab}`}
+                    role={shortContent ? "region" : "tabpanel"}
+                    aria-label={shortContent ? "录音内容" : undefined}
+                    aria-labelledby={shortContent ? undefined : `md-tab-${tab}`}
                   >
-                    {cn && tab === "summary" && meetingSummaries(r).length>1 && <div className="cn-summary-selector"><label>全部总结<Select aria-label="全部总结" value={selectedSummary!.id} onChange={e=>setSummaryId(e.target.value)}>{meetingSummaries(r).map(s=><option key={s.id} value={s.id}>{s.title || "新总结"}</option>)}</Select></label>{selectedSummary?.source==="agent_generated" && !readonly && <B onClick={()=>setModal("delete-summary")}>删除总结</B>}</div>}
-                    {cn && (tab==="summary" || tab==="transcript") && (tab==="summary" ? !r.summary.trim() || r.summary==="录音已保存，等待转写处理。" : !linesFor(r).length) ? <DomesticContentState key={`${space}/${actor}/${r.id}/${tab}`} r={r} tab={tab} status={r.contentState?.recordingStatus ?? file?.status ?? personal.data?.meetings.find(m=>m.id===selected)?.status} processingPaused={file?.processingPaused} readonly={readonly} workspaceType={team?"team":"personal"} workspaceActive={w?.status==="active"} canManageSubscription={!!w && M.admin(w,actor)} onAction={(name)=>{
+                    {enhanced && !shortContent && tab === "summary" && meetingSummaries(r).length>1 && <div className="cn-summary-selector"><label>全部总结<Select aria-label="全部总结" value={selectedSummary!.id} onChange={e=>setSummaryId(e.target.value)}>{meetingSummaries(r).map(s=><option key={s.id} value={s.id}>{s.title || "新总结"}</option>)}</Select></label>{selectedSummary?.source==="agent_generated" && !readonly && <B onClick={()=>setModal("delete-summary")}>删除总结</B>}</div>}
+                    {shortContent ? <><DomesticContentState r={r} tab="summary" readonly={readonly} workspaceType={team?"team":"personal"} onAction={()=>{}}/>{r.contentState?.viewType === 3 && <DomesticTranscript r={r} readonly seek={seek} onSave={save} time={time} compact/>}</> : enhanced && (tab==="summary" || tab==="transcript") && (tab==="summary" ? !r.summary.trim() || r.summary==="录音已保存，等待转写处理。" : !linesFor(r).length) ? <DomesticContentState key={`${space}/${actor}/${r.id}/${tab}`} r={r} tab={tab} status={r.contentState?.recordingStatus ?? file?.status ?? personal.data?.meetings.find(m=>m.id===selected)?.status} processingPaused={file?.processingPaused} readonly={readonly} workspaceType={team?"team":"personal"} workspaceActive={w?.status==="active"} canManageSubscription={!!w && M.admin(w,actor)} onAction={(name)=>{
                       if(name==="membership" || name==="time-pack")location.assign(appUrl("subscription",name==="time-pack"?"time-pack":"",space,actor));
                       else if(name==="settings")location.assign(appUrl("settings","recording",space,actor));
                       else if(name==="refresh")location.reload();
@@ -783,14 +787,21 @@ export function MeetingPage({
                       <Editor
                         key={draftKey}
                         html={draft}
+                        title={tab === "summary" ? (record?.summaries?.length ? selectedSummary?.title || r.title : r.title) : `${r.title} · 逐字稿`}
+                        meeting={r}
+                        team={!!team}
                         onDraft={(html) =>
                           setDrafts((prev) => ({ ...prev, [draftKey]: html }))
                         }
-                        onExit={()=>cn?setModal("discard-edit"):dropDraft()}
-                        onSave={(text, html) => {
+                        onExit={()=>enhanced?setModal("discard-edit"):dropDraft()}
+                        onSave={(text, html, title?: string) => {
                           const field =
                             tab === "verbatim" ? "verbatim" : "summary";
-                          save({ [field]: text, [`${field}Html`]: html });
+                          const patch = { [field]: text, [`${field}Html`]: html };
+                          if (enhanced && tab === "summary" && record?.summaries?.length) {
+                            const updated = updateSummary(record, selectedSummary!.id, patch);
+                            save({...updated, summaries: updated.summaries!.map(s=>s.id===selectedSummary!.id?{...s,title:title || s.title}:s)});
+                          } else save({...patch, ...(enhanced && tab === "summary" && title ? {title} : {})});
                           dropDraft();
                         }}
                       />
@@ -964,8 +975,8 @@ export function MeetingPage({
                 location.assign(appUrl("home", "", space, actor));
               }}
               seek={seek}
-              onPlayParticipantSegment={cn ? clip=>{stopParticipant();participantClip.current={key:clip.key,end:clip.end ?? duration,speed};setParticipantKey(clip.key);setSpeed(1);if(audio.current)audio.current.playbackRate=1;seek(clip.start);} : undefined}
-              onStopParticipantSegment={cn ? stopParticipant : undefined}
+              onPlayParticipantSegment={enhanced ? clip=>{stopParticipant();participantClip.current={key:clip.key,end:clip.end ?? duration,speed};setParticipantKey(clip.key);setSpeed(1);if(audio.current)audio.current.playbackRate=1;seek(clip.start);} : undefined}
+              onStopParticipantSegment={enhanced ? stopParticipant : undefined}
               activeParticipantSegmentKey={participantKey}
               workspace={team ? w : undefined}
               copyText={currentText(r, tab)}

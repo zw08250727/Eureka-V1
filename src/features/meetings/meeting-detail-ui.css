@@ -1,0 +1,66 @@
+/* Shared meeting surface. Theme tokens preserve each market's typography and controls. */
+html:has(.market-surface[data-market]) body .meeting-detail-ui {
+  color: var(--ui-text);
+  .md-topbar { background: var(--ui-canvas); padding: 16px 24px; }
+  .md-title-button h1 { font-size: 18px; line-height: 26px; font-weight: 600; }
+  .md-top-meta [hidden] { display: none; }
+  .cn-audio-player.md-player { margin: 0 24px; padding: 16px 0; color: var(--ui-meta); }
+  .cn-audio-progress { background: var(--market-accent); }
+  .cn-meeting-assets { color: var(--ui-text); }
+  .cn-meeting-assets .cn-asset-generate { background: var(--ui-action); font-size: 14px; border-radius: var(--ui-button-radius); }
+  .cn-meeting-assets .cn-asset-generate:hover { background: var(--ui-action-hover); }
+  .cn-meeting-assets .cn-asset-empty p { color: var(--ui-meta); }
+  .md-info { padding: 16px 24px; background: var(--ui-canvas); }
+  .md-info-line { gap: 12px 24px; flex-wrap: wrap; }
+  .md-info-line > button { text-align: left; overflow-wrap: anywhere; }
+  .md-info-line > button > span { color: var(--ui-text); }
+  .md-info-extra { padding-top: 12px; font-size: 14px; line-height: 22px; }
+  .md-info-extra > div { margin-bottom: 12px; }
+  .md-tabs { position: sticky; top: 0; z-index: 3; gap: 24px; min-height: 56px; padding: 0 24px; background: var(--ui-canvas); border-bottom: 1px solid var(--ui-border); overflow-x: auto; }
+  .md-tabs button { font-size: 14px; line-height: 20px; font-weight: 500; padding: 16px 0; white-space: nowrap; flex-shrink: 0; }
+  .md-tabs button[aria-selected=true] { color: var(--market-accent); border-bottom-color: var(--market-accent); }
+  .md-panel { padding: 24px; }
+  .md-panel-tools { gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+  .md-panel-tools > div { display: flex; gap: 12px; flex-wrap: wrap; }
+  .md-panel-tools > div > span { display: none; }
+  .md-template-button { background: var(--market-soft) !important; color: var(--ui-text) !important; border: 0; }
+  .md-prose { max-width: none; font-size: 15px; line-height: var(--ui-reading-line); color: var(--ui-text); overflow-wrap: anywhere; }
+  .md-prose.cn-markdown { white-space: normal; }
+  .md-prose :is(h1,h2,h3) { display: block; color: var(--ui-text); font-size: 18px; line-height: 26px; font-weight: 600; margin: 24px 0 12px; }
+  .md-prose :is(h1,h2,h3)::before { display: none; }
+  .md-prose p { margin: 0 0 16px; }
+  .md-prose :is(ul,ol) { padding-left: 24px; margin: 0 0 16px; }
+  .md-prose strong { color: var(--ui-text); }
+  .md-prose table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; font-size: 14px; }
+  .md-prose :is(td,th) { padding: 8px 12px; border: 1px solid var(--ui-border); text-align: left; }
+  .md-prose pre { overflow-x: auto; padding: 16px; background: var(--ui-sidebar); border-radius: 8px; }
+  .md-library-item { background: var(--ui-canvas); border: 1px solid var(--ui-border); border-radius: 12px; margin: 0 0 12px; padding: 16px !important; }
+  .md-library-item.active, .md-library-item[aria-current=true] { background: var(--market-soft); border-color: var(--market-border); }
+  .md-library-item strong { font-size: 14px; line-height: 22px; color: var(--ui-text); }
+  .md-library-item em { font-size: 12px; line-height: 18px; }
+  .cn-transcript .md-speech { border-color: var(--ui-border); }
+  .cn-transcript .md-speech-head .md-speaker, .cn-transcript .md-speech p { color: var(--ui-text); }
+  .cn-transcript .md-speech-head button { color: var(--ui-meta); min-height: var(--ui-compact-height); }
+  .cn-transcript .cn-speech-active p { background: var(--market-soft); }
+  .cn-meeting-feedback { border-color: var(--ui-border); }
+  .cn-meeting-feedback .md-feedback-head h3 { color: var(--ui-text); }
+  .cn-meeting-feedback .md-score { color: var(--ui-text); background: var(--ui-canvas); border-color: var(--ui-border); }
+  .cn-meeting-feedback .md-score[aria-pressed=true], .cn-meeting-feedback .md-primary { background: var(--ui-action); border-color: var(--ui-action); color: #fff; }
+  .cn-meeting-feedback .md-primary:disabled { background: var(--ui-disabled); color: var(--ui-disabled-text); border-color: var(--ui-disabled); }
+  .cn-feedback-reasons button[aria-pressed=true] { color: var(--market-accent); border-color: var(--market-accent); background: var(--market-soft); }
+  .cn-feedback-reasons textarea { background: var(--ui-input); color: var(--ui-text); border: 1px solid var(--ui-border); }
+}
+html:has(.market-surface[data-market]) body .meeting-template-description { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: var(--ui-meta); font-size: 12px; line-height: 18px; font-weight: 400; }
+@media(max-width:760px) {
+  html:has(.market-surface[data-market]) body .meeting-detail-ui {
+    .md-topbar, .md-info, .md-panel { padding: 16px; }
+    .md-tabs { padding: 0 16px; gap: 20px; }
+    .md-panel-tools > div { gap: 8px; }
+    .cn-summary-selector { flex-wrap: wrap; }
+    .md-info-line { gap: 8px 16px; }
+  }
+}
+
+html:has(.market-surface[data-market]) body #meeting-detail-root :is(.md-summary-ready,.md-library-copy em)[data-tone=failed] { color: #b42318; background: #fef3f2; }
+html:has(.market-surface[data-market]) body #meeting-detail-root :is(.md-summary-ready,.md-library-copy em)[data-tone=processing] { color: var(--market-accent); background: var(--market-soft); }
+html:has(.market-surface[data-market]) body #meeting-detail-root :is(.md-summary-ready,.md-library-copy em)[data-tone=pending] { color: var(--ui-meta); background: var(--ui-sidebar); }

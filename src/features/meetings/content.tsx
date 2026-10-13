@@ -22,7 +22,7 @@ export type MeetingTab = (typeof meetingTabs)[number][0];
 export function linesFor(r: MeetingDetail): TranscriptSegment[] {
   if (r.segments) return r.segments;
   const source = r.transcript;
-  if(routeMarket() === "cn") {
+  if(routeMarket() !== null) {
     return source.split("\n").filter(line=>line.trim()).map((line,i)=>{
       const match=line.match(/^(\d+)s\s+([^：:]+)[：:](.*)$/);
       const speaker=match ? r.speakers.indexOf(match[2]) : i % Math.max(1,r.speakers.length);
@@ -77,8 +77,8 @@ export function transcriptText(r: MeetingDetail, translation = false) {
     .join("\n\n");
 }
 export function currentText(r: MeetingDetail, tab: MeetingTab) {
-  if(routeMarket() === "cn" && tab === "verbatim")return domesticVerbatimText(r);
-  if(routeMarket() === "cn" && tab === "visual")return "";
+  if(routeMarket() !== null && tab === "verbatim")return domesticVerbatimText(r);
+  if(routeMarket() !== null && tab === "visual")return "";
   return tab === "summary"
     ? r.summary
     : tab === "translation"
@@ -276,7 +276,7 @@ export function MeetingContent({
   onFeedback: (value: MeetingFeedback) => void;
   time?: number; reward?: boolean;
 }) {
-  const cn = routeMarket() === "cn";
+  const cn = routeMarket() !== null;
   if (cn && (tab === "transcript" || tab === "translation")) return <DomesticTranscript key={`${r.id}/${tab}`} r={r} readonly={readonly} seek={seek} onSave={onSave} time={time} translation={tab === "translation"}/>;
   if (cn && (tab === "mindmap" || tab === "visual" || tab === "verbatim")) return <DomesticAssets r={r} tab={tab} readonly={readonly} action={action} zoom={zoom}/>;
   if (tab === "summary")
@@ -302,7 +302,7 @@ export function MeetingContent({
         <Prose html={r.summaryHtml} text={r.summary} />
         {(!cn || r.updated) && <p className="md-edited">
           <I name="clock" /> 最后编辑：
-          {r.updated || `${r.created.slice(0, 10)} 15:06`}
+          {r.updated}
         </p>}
         {cn ? <DomesticFeedback key={`${r.id}/${r.feedbackDetail?.time || "new"}`} value={r.feedbackDetail} readonly={readonly} reward={reward} onSubmit={onFeedback}/> : <section className="md-feedback">
           <div className="md-feedback-head">
@@ -501,8 +501,9 @@ export function MeetingContent({
 }
 const markdown = new MarkdownIt({html:false,breaks:true,linkify:false});
 markdown.disable(["image"]);
+export function meetingBodyHtml(text: string, html?: string) { return sanitizeRichText(html || markdown.render(text)); }
 function Prose({ html, text }: { html?: string; text: string }) {
-  if (routeMarket() === "cn") return <div className="md-prose cn-markdown" dangerouslySetInnerHTML={{__html: sanitizeRichText(html || markdown.render(text))}}/>;
+  if (routeMarket() !== null) return <div className="md-prose cn-markdown" dangerouslySetInnerHTML={{__html: sanitizeRichText(html || markdown.render(text))}}/>;
   return html ? (
     <div
       className="md-prose"

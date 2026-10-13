@@ -66,7 +66,7 @@ export function MeetingDialogs({
   activeParticipantSegmentKey?: string;
 }) {
 
-  const domestic = routeMarket() === "cn";
+  const domestic = routeMarket() !== null;
   const previewImages = allImages ?? r.images ?? (previewImage ? [previewImage] : []);
   const [imageIndex, setImageIndex] = useState(() => previewIndex ?? Math.max(0, previewImages.findIndex(image => image.url === previewImage?.url)));
   const [imageZoom, setImageZoom] = useState(1);

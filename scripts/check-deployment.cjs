@@ -24,7 +24,10 @@ const base = (process.env.DEPLOYMENT_URL || "http://127.0.0.1:3135").replace(/\/
       await page.getByRole("button", {name:"关闭登录", exact:true}).click();
       await page.goto(`${base}/${market}/workbench/?view=connectors&space=personal`);
       await page.locator(".auth-overlay").waitFor();
-      if (market === "cn") await page.getByRole("button", {name:"邮箱", exact:true}).click();
+      if (market === "cn") {
+        await page.getByRole("link", {name:"个人/团队版", exact:true}).click();
+        await page.getByRole("button", {name:"邮箱", exact:true}).click();
+      }
       await page.locator("#email").fill("release-check@example.com");
       await page.locator("#code").fill("123456");
       await page.locator("#terms").check();

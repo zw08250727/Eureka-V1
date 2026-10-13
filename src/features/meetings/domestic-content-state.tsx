@@ -69,6 +69,16 @@ const failedTitles: Record<string, string> = {
   PC_MEETING_AUDIO_PROCESS_FAILED: "PC录音处理失败", FAILED: "录音处理失败",
 };
 
+/** Keep header/list status consistent with the explicit source lifecycle. */
+export function meetingStatusBadge(status: string | number = "已总结") {
+  const raw=String(status), key=numericStatus[raw] || aliases[raw] || raw;
+  if(failedTitles[key])return {label:failedTitles[key],tone:"failed"};
+  if(processingTitles[key])return {label:key === "PC_MEETING_IN_SUMMARY" ? "AI总结中" : processingTitles[key].replace(/，.*$/, ""),tone:"processing"};
+  if(["PC_MEETING_PENDING_SUMMARY","QUEUED"].includes(key))return {label:"待总结",tone:"pending"};
+  if(["READY","PC_MEETING_SUMMARY_COMPLETED"].includes(key))return {label:"已总结",tone:"ready"};
+  return {label:raw,tone:"pending"};
+}
+
 /** Resolve an EMPTY panel only. Existing content should keep rendering in MeetingContent. */
 export function resolveDomesticContentState({ r, tab, status, processingPaused, workspaceType, workspaceActive, pending }: Pick<DomesticContentStateProps, "r" | "tab" | "status" | "processingPaused" | "workspaceType" | "workspaceActive" | "pending">): { kind: DomesticContentStateKind; title: string } {
   const context = r.contentState;
