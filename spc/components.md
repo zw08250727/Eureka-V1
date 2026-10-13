@@ -74,3 +74,5 @@
 ### UI-MEETING-03／UI-CONTROL-03／UI-TODO-02
 
 会议展示结构由meeting-detail-ui.css、TemplateContent和DomesticAudioPlayer统一负责；原始SVG来自已核对公开源码。TemplateContent把全局设置作为分类／网格的同级区域，预览按钮与文本分区，默认模板入口位于说明面板。可见待办统一ui-todo-mark，权限和状态仍由所在资产组件负责。复合搜索的focus-within容器承担唯一焦点边框；不取消其他控件键盘焦点。参见[本轮组件与验收](changes/2026-10-13-meeting-density.md)。
+
+2026-10-13补充：同步执行公共UI-DENSITY-04，个人／团队固定首页高度、紧凑会议来源与操作、独立联系人计数行、日历三视图操作统一、工作区标题间距统一。见[范围与验收](changes/2026-10-13-overview-list-density.md)。

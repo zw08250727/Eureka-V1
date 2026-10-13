@@ -464,9 +464,9 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
                       <label className="contacts-filter-field contacts-date-field"><span>创建结束日期</span><input type="date" aria-label="创建结束日期" value={createdTo} min={createdFrom||undefined} onChange={e=>setCreatedTo(e.target.value)}/></label>
                       <label className="contacts-filter-field"><span>排序</span><Select aria-label="按创建时间排序" value={dateOrder} onChange={e=>setDateOrder(e.target.value)}><option value="desc">最新创建</option><option value="asc">最早创建</option></Select></label>
                       <button className="contacts-button contacts-reset" type="button" onClick={()=>{setSubjectFilter('');setSourceFilter('');setOwnerFilter('');setCreatedFrom('');setCreatedTo('');setQuery('');setDateOrder('desc')}}>重置</button>
-                      <span className="contacts-toolbar-hint" aria-live="polite">共 {people.length} 个联系人</span>
                     </div>
                     {createdFrom && createdTo && createdFrom > createdTo && <p role="alert">开始日期不能晚于结束日期</p>}
+                    <h2 className="contacts-list-heading" aria-live="polite">共 {people.length} 个联系人</h2>
                     <div className="contacts-grid">
                       {people.map((p) => (
                         <article className="contact-list-item" key={customerKey(p)}>

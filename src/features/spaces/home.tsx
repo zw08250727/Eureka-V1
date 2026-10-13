@@ -242,7 +242,7 @@ export function TeamHome({
               <thead>
                 <tr>
                   {columns.map((t) => (
-                    <th key={t}>
+                    <th key={t} aria-sort={["录音时间", "更新时间"].includes(t) && sortKey === (t === "录音时间" ? "created" : "updated") ? (sortAsc ? "ascending" : "descending") : undefined}>
                       {["录音时间", "更新时间"].includes(t) ? (
                         <Button
                           action="sort"
@@ -295,7 +295,7 @@ export function TeamHome({
                     <td>{f.size || "—"}</td>
                     {recycle ? (
                       <>
-                        <td>{f.source}<small style={{ display: "block" }}>{f.owner !== actor ? (M.canEdit(w, f, actor) ? "管理员 · 可管理" : "共享给我 · 仅查看") : f.shared.length ? "已邀请成员" : "本人及管理员可见"}</small></td>
+                        <td className="meeting-source">{f.source}</td>
                         <td>{date(f.created)}</td>
                         <td>{date(f.deletedAt)}</td>
                         <td>
@@ -333,7 +333,7 @@ export function TeamHome({
                     ) : (
                       <>
                         <td>{f.creator || userName(f.owner)}</td>
-                        <td>{f.source}<small style={{ display: "block" }}>{f.owner !== actor ? (M.canEdit(w, f, actor) ? "管理员 · 可管理" : "共享给我 · 仅查看") : f.shared.length ? "已邀请成员" : "本人及管理员可见"}</small></td>
+                        <td className="meeting-source">{f.source}</td>
                         <td>
                           {(f.tags || []).map((t, i) => (
                             <Fragment key={`${t}-${i}`}>

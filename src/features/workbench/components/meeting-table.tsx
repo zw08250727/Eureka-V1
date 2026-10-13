@@ -405,7 +405,7 @@ export function MeetingTable({
                 </span>
                 <span className="home-meeting-size">{m.size}</span>
                 <span className="meeting-creator">{m.creator}</span>
-                <span>{m.source}</span>
+                <span className="meeting-source">{m.source}</span>
                 <span className="home-meeting-tag" title={m.tag}>
                   {m.tag}
                 </span>

@@ -77,3 +77,62 @@ for (const market of ['cn','global']) {
     }
   });
 }
+
+for (const market of ['cn', 'global']) {
+  test(`${market} UI-DENSITY-04 fixed overview, compact actions and management spacing`, async ({page}) => {
+    test.setTimeout(120_000);
+    await login(page, market);
+    for (const width of [390,768,1080,1440]) {
+      await page.setViewportSize({width,height:900});
+      await page.goto(`/${market}/workbench/?view=home&space=personal`);
+      const personal = page.locator('#today-assets-grid');
+      await expect(personal).toBeVisible();
+      const height = Math.round((await personal.boundingBox())!.height);
+      await page.goto(`/${market}/workbench/?view=home&space=team-eureka`);
+      const canvas = page.locator('.team-overview-canvas');
+      await expect(canvas).toHaveCSS('height',`${height}px`);
+      await expect(canvas.locator('.ex-share')).toHaveCount(0);
+      await expect(page.locator('.team-insight-body > span:first-child').first()).toHaveCSS('display','inline');
+      await page.screenshot({path:`artifacts/ui-density/${market}-compact-overview-${width}.png`});
+      const evidence = page.locator('.team-insight-foot button[aria-expanded]').first();
+      await evidence.click();
+      await expect(evidence).toHaveAttribute('aria-expanded','true');
+      await expect(canvas).toHaveCSS('height',`${height}px`);
+      await page.screenshot({path:`artifacts/ui-density/${market}-aligned-overview-${width}.png`});
+      await page.goto(`/${market}/workbench/?view=contacts&space=team-eureka`);
+      const count = page.locator('.contacts-list-heading');
+      await expect(count).toBeVisible();
+      expect(await count.evaluate(el=>el.getBoundingClientRect().top >= document.querySelector('.contacts-toolbar')!.getBoundingClientRect().bottom)).toBe(true);
+      expect(await count.evaluate(el=>el.getBoundingClientRect().height<40)).toBe(true);
+    }
+    await page.setViewportSize({width:1440,height:900});
+    await page.goto(`/${market}/workbench/?view=home&space=team-eureka`);
+    await expect(page.locator('.ws-recording-table .meeting-source').first()).toHaveCSS('font-size','12px');
+    await expect(page.locator('.ws-recording-table .meeting-source small')).toHaveCount(0);
+    const sort=page.locator('.ws-recording-table [data-ws-action=sort]').first();
+    expect(await sort.evaluate(el=>{const a=getComputedStyle(el),b=getComputedStyle(el.closest('th')!);return a.fontSize===b.fontSize&&a.color===b.color})).toBe(true);
+    await sort.click(); await expect(sort.locator('..')).toHaveAttribute('aria-sort','ascending');
+    await expect(page.locator('.ws-recording-table td .ws-actions .ws-btn').first()).toHaveCSS('font-size','12px');
+    for(const space of ['personal','team-eureka']) {
+      await page.goto(`/${market}/workbench/?view=calendar&space=${space}`);
+      for(const mode of ['日','周','月']) {
+        await page.locator('.pa-view-tabs').getByRole('button',{name:mode,exact:true}).click();
+        await expect(page.locator('.pa-calendar-edit').first()).toHaveCSS('font-size','12px');
+        expect(await page.locator('.pa-calendar-entry-actions').evaluateAll(nodes=>nodes.every(el=>{
+          const share=el.querySelector('.ex-share'), edit=el.querySelector('.pa-calendar-edit');
+          if(!share||!edit)return true;
+          const a=getComputedStyle(share),b=getComputedStyle(edit);
+          return a.fontSize===b.fontSize&&a.color===b.color&&a.fontWeight===b.fontWeight;
+        }))).toBe(true);
+        expect(await page.locator('.pa-calendar-entry-actions').evaluateAll(nodes=>nodes.every(el=>{const a=el.getBoundingClientRect(),b=el.querySelector('.pa-calendar-edit')!.getBoundingClientRect();return el.scrollWidth<=el.clientWidth+1&&b.left>=a.left&&b.right<=a.right+1&&b.top>=a.top&&b.bottom<=a.bottom+1}))).toBe(true);
+        await page.screenshot({path:`artifacts/ui-density/${market}-${space}-calendar-${mode}.png`});
+      }
+    }
+    for(const view of ['members','devices','space-settings','content-permissions','audit']) {
+      await page.goto(`/${market}/workbench/?view=${view}&space=team-eureka`);
+      await expect(page.locator('.ws-page-head')).toHaveCSS('padding-bottom','12px');
+      await expect(page.locator('#ws-view')).toHaveCSS('margin-top','12px');
+      await page.screenshot({path:`artifacts/ui-density/${market}-compact-${view}.png`});
+    }
+  });
+}

@@ -5,7 +5,7 @@ import { todayRecords } from "@/features/workbench/model/selectors";
 import { appUrl } from "@/lib/routes";
 import type { ActionRecord } from "@/features/workbench/model/types";
 import { createWorkspaceStore, M } from "./model/store";
-import {AssetSharing,assetOwner,canEditAsset} from "@/features/personal/asset-sharing";
+import {assetOwner,canEditAsset} from "@/features/personal/asset-sharing";
 import { useState } from "react";
 
 /** Same private asset stores and date rules as Personal; never feed the team brief. */
@@ -26,10 +26,10 @@ export function PrivateOverview({ space, actor, now, readOnly }: {
     {(error || notice) && <p role="alert">{error || notice}</p>}
     <div className="team-private-agenda">
       <section aria-label="今日日程"><header><h3>今日日程 <span>{r.schedules.length}</span></h3><a href={link("calendar")}>日历 ↗</a></header>
-        <div className="team-private-list">{!r.schedules.length && <p>今天暂无日程</p>}{r.schedules.slice(0, 3).map(s => <div className="ex-daily-row" key={s.id}><a href={link("calendar", s.id)} title={s.title}><time>{scheduleTime(s)}</time><span>{s.title}</span></a><span className="ex-owner">{assetOwner(space,s.ownerId)}</span><AssetSharing {...{space,actor}} record={s} onSaved={refresh}/></div>)}</div>
+        <div className="team-private-list">{!r.schedules.length && <p>今天暂无日程</p>}{r.schedules.slice(0, 3).map(s => <div className="ex-daily-row" key={s.id}><a href={link("calendar", s.id)} title={s.title}><time>{scheduleTime(s)}</time><span>{s.title}</span></a><span className="ex-owner">{assetOwner(space,s.ownerId)}</span></div>)}</div>
       </section>
       <section aria-label="我的待办"><header><h3>待办 <span>{r.todos.filter(t => !t.done).length} 项未完成</span></h3><a href={link("calendar")}>全部 ↗</a></header>
-        <div className="team-private-list">{!r.todos.length && <p>暂无待办</p>}{r.todos.slice(0, 3).map(t => <div className="team-private-todo" key={t.id}><button className="team-todo-toggle" aria-label={`完成状态：${t.title}`} aria-pressed={t.done} disabled={readOnly||!canEditAsset(space,actor,t)} onClick={() => toggle(t)}><span className="team-todo-mark ui-todo-mark" aria-hidden="true">{t.done ? "✓" : ""}</span></button><button className="team-private-todo-title" aria-pressed={t.done} disabled={readOnly||!canEditAsset(space,actor,t)} onClick={() => toggle(t)} title={t.title}>{t.title}</button><span className="ex-owner">{assetOwner(space,t.ownerId)}</span><AssetSharing {...{space,actor}} record={t} onSaved={refresh}/></div>)}</div>
+        <div className="team-private-list">{!r.todos.length && <p>暂无待办</p>}{r.todos.slice(0, 3).map(t => <div className="team-private-todo" key={t.id}><button className="team-todo-toggle" aria-label={`完成状态：${t.title}`} aria-pressed={t.done} disabled={readOnly||!canEditAsset(space,actor,t)} onClick={() => toggle(t)}><span className="team-todo-mark ui-todo-mark" aria-hidden="true">{t.done ? "✓" : ""}</span></button><button className="team-private-todo-title" aria-pressed={t.done} disabled={readOnly||!canEditAsset(space,actor,t)} onClick={() => toggle(t)} title={t.title}>{t.title}</button><span className="ex-owner">{assetOwner(space,t.ownerId)}</span></div>)}</div>
       </section>
     </div>
     <div className="team-private-notes">

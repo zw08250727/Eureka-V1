@@ -241,6 +241,7 @@ export function CalendarPage({
           </span>
         )}
       </button>
+      <div className="pa-calendar-entry-actions">
       <AssetSharing {...{space,actor}} record={r} onSaved={refresh}/>
       <button
         type="button"
@@ -253,8 +254,9 @@ export function CalendarPage({
         onClick={() => setEdit({ record: r, variant: "quick" })}
       >
         <RefIcon name="new-task" />
-        {!compact && <span>编辑</span>}
+        <span>编辑</span>
       </button>
+      </div>
     </div>
   );
   const allMeetings = space !== "personal" ? (controller?.state ? M.visible(M.get(controller.state, space), actor).filter((m) => !m.deleted) : []) : actor === "zhang" ? meetings.data?.meetings.filter((m) => !m.deletedAt) || [] : [];
