@@ -1,3 +1,4 @@
+import "./team-overview-ui.css";
 import { PrivateOverview } from "./private-overview";
 import { useState } from "react";
 import { RefIcon } from "@/features/reference/symbols";
@@ -21,7 +22,7 @@ export function TeamOverview({ now, workspace, actor, insights, readOnly, agentO
     const owner = workspace.files.find(f => f.id === source.fileId)?.owner;
     return workspace.members.find(m => m.id === owner)?.name || "已移除成员";
   }))].join("、");
-  return <div className="team-overview">
+  return <div className="team-overview team-overview-refined">
     <header className="team-overview-head">
       <div className="team-overview-title"><h1>工作概览</h1><span>{now.toLocaleDateString("zh-CN", { month: "long", day: "numeric", weekday: "long" })}</span></div>
       <div className="team-overview-actions">
