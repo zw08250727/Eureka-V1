@@ -34,6 +34,10 @@ for (const market of ['cn','global']) {
     await expect(dialog.getByText('生成配置',{exact:true})).toBeVisible();
     await expect(dialog.getByLabel('总结语言')).toBeVisible();
     await expect(dialog.getByLabel('详细程度')).toBeVisible();
+    expect(await dialog.locator('.meeting-generation-config label').evaluateAll(labels=>labels.every(label=>{
+      const r=label.getBoundingClientRect(),c=label.querySelector('.ui-select')!.getBoundingClientRect();
+      return c.right<=r.right+1 && c.left>=r.left+48;
+    }))).toBe(true);
     await expect(dialog.getByRole('button',{name:'开始重新总结'})).toBeVisible();
     await page.screenshot({animations:"disabled",path:`artifacts/ui-density/${market}-templates-${width}.png`});
     await page.keyboard.press('Escape');

@@ -180,7 +180,7 @@ html:has(.market-surface[data-market]) body .meeting-detail-ui {
 html:has(.market-surface[data-market]) body {
   .meeting-template-layout .template-reference-icon { display: block; flex: 0 0 24px; height: 24px; font-size: 24px; line-height: 24px; margin-bottom: 2px; }
   .meeting-generation-config label { width: auto; white-space: nowrap; font-weight: 400; }
-  .meeting-generation-config .ui-select { flex-shrink: 0; }
+  .meeting-generation-config .ui-select { width: 160px; min-width: 0; flex: 0 0 160px; }
 }
 html:has(.market-surface[data-market]) body .meeting-detail-ui {
   .cn-audio-player > .ui-select { width: 72px; flex-basis: 72px; }
