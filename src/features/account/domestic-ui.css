@@ -1,0 +1,111 @@
+/* UI-CN-ACCOUNT-03. Account content and body-portaled dialogs share the CN
+   semantic palette. Preserve status colors, AI artwork and the compact sign-in card. */
+html:has(.market-surface[data-market="cn"]) body {
+  .ex-dialog,
+  .ex-settings-body {
+    color: var(--ui-text);
+    font: 14px/22px var(--font);
+    border-color: var(--ui-border);
+    border-radius: 16px;
+  }
+
+  .ex-settings-body { padding: 24px; }
+  .ex-dialog .ex-head { border-color: var(--ui-border); }
+  .ex-dialog .ex-head h2 { font-size: 18px; line-height: 26px; font-weight: 600; }
+  .ex-dialog .ex-close { color: var(--ui-secondary); background: var(--ui-input); }
+
+  :is(.ex-dialog, .ex-settings-body) {
+    .ex-hero { padding: 16px; border-radius: 12px; }
+    .ex-hero h3 { color: var(--ui-text); font-size: 18px; line-height: 26px; font-weight: 600; letter-spacing: normal; }
+    .ex-hero p,
+    .ex-task p,
+    .ex-section-intro p { color: var(--ui-secondary); font-size: 14px; line-height: 22px; }
+    .ex-eyebrow { color: var(--ui-meta); font-size: 12px; line-height: 18px; letter-spacing: normal; font-weight: 400; }
+    .ex-muted { color: var(--ui-meta); font-size: 12px; line-height: 18px; }
+    .ex-task { border-color: var(--ui-border); padding: 16px 0; }
+    .ex-task h3 { color: var(--ui-text); font-size: 14px; line-height: 22px; font-weight: 600; }
+    .ex-task > b { color: var(--ui-text); font-size: 16px; line-height: 24px; font-weight: 600; }
+    .ex-task > button:disabled { background: var(--ui-input); color: var(--ui-meta); }
+    .ex-summary { padding: 16px; margin: 16px 0; border-radius: 12px; }
+    .ex-summary strong { color: var(--ui-text); font-size: 24px; line-height: 32px; font-weight: 600; }
+    .ex-summary h3,
+    .ex-section-intro h2 { color: var(--ui-text); font-size: 16px; line-height: 24px; font-weight: 600; }
+    .ex-form label { color: var(--ui-secondary); font-size: 14px; line-height: 20px; font-weight: 500; }
+    .ex-rule { color: var(--ui-secondary); background: var(--ui-sidebar); font-size: 14px; line-height: 22px; }
+    .ex-rule summary { color: var(--ui-text); }
+    .ex-table-scroll { border-color: var(--ui-border); }
+    .ex-table { font-size: 14px; line-height: 22px; }
+    .ex-table th { color: var(--ui-secondary); background: var(--ui-sidebar); font-size: 12px; line-height: 18px; }
+    .ex-table :is(th, td) { border-color: var(--ui-border); }
+    .ex-empty { color: var(--ui-secondary); }
+    .ex-empty span { color: var(--ui-meta); font-size: 12px; line-height: 18px; }
+    .ex-save-bar,
+    .ex-avatar-upload { border-color: var(--ui-border); }
+    .ex-avatar-copy > strong { color: var(--ui-text); }
+    .ex-avatar-copy > p,
+    .ex-avatar-hint { color: var(--ui-meta); font-size: 12px; line-height: 18px; }
+    .ex-avatar-preview { background: var(--ui-input); color: var(--ui-secondary); border-color: var(--ui-border); }
+    .ex-avatar-preview:hover { box-shadow: none; border-color: var(--ui-meta); }
+  }
+
+  :is(.ex-dialog, .pa-settings, .ws-settings) {
+    :is(.ex-tabs[role="tablist"], .ex-settings-tabs) { padding: 4px; gap: 4px; background: var(--ui-input); border-radius: 8px; }
+    :is(.ex-tabs[role="tablist"], .ex-settings-tabs) > button {
+      min-height: var(--ui-compact-height); font-size: 14px; line-height: 20px;
+      font-weight: 500; border-radius: 6px; color: var(--ui-secondary); box-shadow: none;
+    }
+    :is(.ex-tabs[role="tablist"], .ex-settings-tabs) > button[aria-selected="true"] {
+      color: var(--ui-text); background: var(--ui-canvas); border-color: var(--ui-border); box-shadow: none;
+    }
+  }
+
+  .ex-dialog button.ex-sku {
+    border-color: var(--ui-border); border-radius: 12px; box-shadow: none;
+    color: var(--ui-text); background: var(--ui-canvas);
+  }
+  .ex-dialog button.ex-sku[aria-pressed="true"] {
+    border-color: var(--ui-border); background: var(--market-soft); box-shadow: none;
+  }
+  .ex-dialog .ex-sku strong { color: var(--ui-text); font-size: 24px; line-height: 32px; font-weight: 600; letter-spacing: normal; }
+  .ex-dialog .ex-sku b { color: var(--ui-text); font-size: 20px; line-height: 28px; }
+  .ex-dialog .ex-sku :is(small, del, .ex-sku-label) { color: var(--ui-meta); font-size: 12px; line-height: 18px; }
+  .ex-dialog .ex-sku[aria-pressed="true"] .ex-sku-label i { color: var(--market-accent); }
+  .ex-dialog .ex-checkout-steps { color: var(--ui-meta); font-size: 12px; line-height: 18px; }
+  .ex-dialog .ex-checkout-steps li { border-color: var(--ui-border); }
+  .ex-dialog .ex-checkout-steps li[data-active="true"] { color: var(--market-accent); border-color: var(--market-accent); }
+  .ex-dialog :is(.ex-order-scope, .ex-order-kind, .ex-order-meta) { color: var(--ui-secondary); font-size: 12px; line-height: 18px; }
+  .ex-dialog .ex-order { border-color: var(--ui-border); }
+
+  .ex-credit-settings > .ex-summary { margin-top: 0; margin-bottom: 24px; }
+  .ex-credit-settings > .ex-grid { gap: 16px; margin-bottom: 20px; }
+  .ex-credit-settings > .ex-grid .ex-rule { margin: 0; padding: 16px; border-radius: 12px; font-size: 12px; line-height: 18px; }
+  .ex-credit-settings > .ex-grid .ex-rule strong { display: inline-block; margin-top: 8px; color: var(--ui-text); font-size: 14px; line-height: 22px; font-weight: 600; }
+
+  @media (max-width: 600px) {
+    .ex-settings-body { padding: 16px; }
+    .ex-credit-settings > .ex-grid { gap: 12px; }
+  }
+}
+
+/* Recording preferences are rendered by SettingsPage rather than AccountSettings. */
+html:has(.market-surface[data-market="cn"]) body .pa-settings {
+  .settings-float-head h4 { color: var(--ui-text); font-size: 16px; line-height: 24px; font-weight: 600; }
+  :is(.settings-row-copy strong, .settings-profile strong, .settings-usage-top strong, .settings-usage-top b) { color: var(--ui-text); font-size: 14px; line-height: 22px; }
+  :is(.settings-row-copy span, .settings-float-head p, .settings-profile small, .settings-usage-meta) { color: var(--ui-secondary); font-size: 12px; line-height: 18px; }
+  :is(.settings-float-section, .settings-float-row, .settings-profile) { border-color: var(--ui-border); }
+  .settings-usage { background: var(--ui-sidebar); border-color: var(--ui-border); }
+  .settings-popover-close { color: var(--ui-secondary); background: var(--ui-canvas); border-color: var(--ui-border); }
+}
+
+/* Membership payment dialogs also inherit the account hierarchy. */
+html:has(.market-surface[data-market="cn"]) body .ws-dialog {
+  color: var(--ui-text); font-size: 14px; line-height: 22px;
+  .ws-dialog-head { border-color: var(--ui-border); }
+  .ws-dialog-head h2 { font-size: 18px; line-height: 26px; }
+  .ws-dialog-content > p,
+  .ws-order p { color: var(--ui-secondary); font-size: 14px; line-height: 22px; }
+  .ws-order h3 { color: var(--ui-text); font-size: 16px; line-height: 24px; }
+  .ws-order strong { color: var(--ui-text); font-size: 24px; line-height: 32px; }
+  .ws-field { color: var(--ui-secondary); font-size: 14px; line-height: 20px; }
+  .ws-muted { color: var(--ui-meta); font-size: 12px; line-height: 18px; }
+}

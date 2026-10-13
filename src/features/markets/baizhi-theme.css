@@ -137,7 +137,7 @@ html:has([data-market="cn"]) body .connector-card-bottom { border-color: var(--l
 html:has([data-market="cn"]) body :is(.connector-state, .connector-url) { background: var(--cn-input); color: var(--sub); }
 html:has([data-market="cn"]) body :is(.connector-state.connected, .connector-mark) { background: #f2f5ff; color: var(--market-accent); }
 html:has([data-market="cn"]) body .ps-plan-option { background: #fff; border-color: var(--line); box-shadow: none; }
-html:has([data-market="cn"]) body .ps-plan-option.selected { background: #f7f9ff; border-color: var(--market-accent); box-shadow: 0 0 0 1px var(--market-accent); }
+html:has(.market-surface[data-market="cn"]) body .ps-plan-option.selected { background: var(--market-soft); border-color: var(--ui-border); box-shadow: none; }
 html:has([data-market="cn"]) body .ps-plan-footer .primary { box-shadow: none; }
 html:has([data-market="cn"]) body .ps-account progress::-webkit-progress-value { background: var(--market-accent); }
 html:has([data-market="cn"]) body .mobile-nav-links>button[aria-current="page"] { background: var(--cn-selected); color: var(--ink); }
@@ -161,7 +161,7 @@ html:has([data-market="cn"]) body .auth .input {
   color: var(--ink); background: var(--cn-input); border-color: transparent; box-shadow: none;
 }
 html:has([data-market="cn"]) body .auth .input::placeholder { color: #737373; }
-html:has([data-market="cn"]) body .auth .input:focus { border-color: var(--market-accent); box-shadow: 0 0 0 3px #165dff14; }
+html:has([data-market="cn"]) body .auth .input:focus { border-color: transparent; box-shadow: none; }
 html:has([data-market="cn"]) body .auth :is(.primary, button[type="submit"]) {
   background: var(--market-accent); border-color: var(--market-accent); color: #fff; box-shadow: none;
 }

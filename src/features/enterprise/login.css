@@ -12,28 +12,28 @@
 .enterprise-login-card .credential-input { display: flex; align-items: center; position: relative; background: #f2f3f5; border-radius: 8px; }
 .enterprise-login-card .credential-icon { flex: 0 0 16px; width: 16px; margin-left: 16px; color: #000; }
 .credential-icon svg { display: block; width: 16px; height: 16px; stroke: currentColor; stroke-width: 1.5; fill: none; }
-.enterprise-login-card .input { width: 100%; min-width: 0; height: 48px; padding: 12px; border: 0; background: transparent; font-size: 16px; line-height: 24px; color: #262626; border-radius: 8px; box-shadow: none; }
-.enterprise-login-card input::placeholder { color: #8c8c8c; }
+.enterprise-login-card .input { width: 100%; min-width: 0; height: 44px; padding: 10px 12px; border: 0; background: transparent; font-size: 14px; line-height: 22px; color: var(--ui-text); border-radius: 8px; box-shadow: none; }
+.enterprise-login-card input::placeholder { color: var(--ui-meta); }
 .enterprise-code-form #enterprise-code-help { margin: 4px 0 30px; font-size: 12px; line-height: 24px; color: #737373; }
-html:has(.market-surface[data-market="cn"]) body .enterprise-login-card .ui-button:is(.enterprise-login-submit,.primary) { width: 100%; min-height: 48px; padding: 12px; border: 0; border-radius: 8px; color: #fff; background: #315efb; font-size: 16px; font-weight: 400; line-height: 24px; }
-html:has(.market-surface[data-market="cn"]) body .enterprise-login-card .ui-button:is(.enterprise-login-submit,.primary):hover:not(:disabled) { background: #254bd9; }
-html:has(.market-surface[data-market="cn"]) body .enterprise-login-card .ui-button:is(.enterprise-login-submit,.primary):disabled { background: #b2c5f6; opacity: 1; }
+html:has(.market-surface[data-market="cn"]) body .enterprise-login-card .ui-button:is(.enterprise-login-submit,.primary) { width: 100%; min-height: 44px; padding: 10px 12px; border: 0; border-radius: 8px; color: #fff; background: var(--market-accent); font-size: 14px; font-weight: 500; line-height: 20px; }
+html:has(.market-surface[data-market="cn"]) body .enterprise-login-card .ui-button:is(.enterprise-login-submit,.primary):hover:not(:disabled) { background: var(--ui-accent-hover); }
+html:has(.market-surface[data-market="cn"]) body .enterprise-login-card .ui-button:is(.enterprise-login-submit,.primary):disabled { background: #adc6ff; opacity: 1; }
 .enterprise-tenant { display: flex; align-items: center; gap: 12px; min-height: 64px; border: 1px solid #eee; border-radius: 12px; background: #fafafa; padding: 12px 16px; }
 .enterprise-tenant img,.enterprise-tenant-placeholder { width: 40px; height: 40px; object-fit: contain; border: 1px solid #e9eaf0; border-radius: 8px; background: #fff; }
 .enterprise-tenant h2 { margin: 0; font-size: 16px; line-height: 24px; font-weight: 500; }
-.enterprise-tenant button { margin-left: auto; padding: 4px 0; min-height: 36px; border: 0; background: transparent; color: #315efb; font-size: 14px; cursor: pointer; white-space: nowrap; }
+.enterprise-tenant button { margin-left: auto; padding: 4px 0; min-height: 36px; border: 0; background: transparent; color: var(--market-accent); font-size: 14px; cursor: pointer; white-space: nowrap; }
 .enterprise-login-card .auth-methods { margin: 16px 0; gap: 24px; border-color: #eee; }
-.enterprise-login-card .auth-methods button { padding: 4px 0; min-height: 34px; font-size: 16px; line-height: 24px; color: #262626; }
-.enterprise-login-card .auth-methods button[aria-pressed=true] { color: #315efb; border-bottom-color: #315efb; font-weight: 500; }
+.enterprise-login-card .auth-methods button { padding: 4px 0; min-height: 34px; font-size: 14px; line-height: 22px; color: var(--ui-text); }
+.enterprise-login-card .auth-methods button[aria-pressed=true] { color: var(--market-accent); border-bottom-color: var(--market-accent); font-weight: 500; }
 .enterprise-method-help { margin: 0 0 16px; font-size: 12px; line-height: 24px; color: #737373; }
 .enterprise-method-help strong { font-weight: 500; color: #262626; }
 .enterprise-login-card .code-row { margin-top: 20px; gap: 0; grid-template-columns: none; }
 .enterprise-login-card .code-row .input { flex: 1; }
-html:has(.market-surface[data-market="cn"]) body .enterprise-login-card .ui-button.plain { flex-shrink: 0; min-height: 44px; height: auto; padding: 0 16px 0 0; background: transparent; border: 0; color: #315efb; box-shadow: none; font-size: 14px; }
+html:has(.market-surface[data-market="cn"]) body .enterprise-login-card .ui-button.plain { flex-shrink: 0; min-height: 44px; height: auto; padding: 0 16px 0 0; background: transparent; border: 0; color: var(--market-accent); box-shadow: none; font-size: 14px; }
 html:has(.market-surface[data-market="cn"]) body .enterprise-login-card .ui-button.plain:disabled { color: #737373; }
 .enterprise-login-card .check { display: flex; align-items: flex-start; gap: 8px; margin: 20px 0 16px; font-size: 12px; line-height: 20px; color: #737373; }
-.enterprise-login-card .check input { width: 14px; height: 14px; margin-top: 3px; flex-shrink: 0; accent-color: #315efb; }
-.enterprise-login-card .check a { color: #315efb; text-decoration: none; }
+.enterprise-login-card .check input { width: 14px; height: 14px; margin-top: 3px; flex-shrink: 0; accent-color: var(--market-accent); }
+.enterprise-login-card .check a { color: var(--market-accent); text-decoration: none; }
 .enterprise-login-card .status,.enterprise-login-error { display: block; height: auto; padding: 0; background: transparent; border: 0; font-size: 12px; line-height: 20px; color: #c33140; margin: 12px 0 0; white-space: normal; }
 .enterprise-login-card .status:empty { margin: 0; }
 
@@ -42,4 +42,15 @@ html:has(.market-surface[data-market="cn"]) body .enterprise-login-card .ui-butt
   .enterprise-login-card .auth-methods button, .enterprise-tenant button, .enterprise-code-back { min-height: 44px; }
   .enterprise-login-card .input { font-size: 14px; }
   .enterprise-tenant { padding: 10px; gap: 8px; }
+}
+
+/* The icon and field are one control. Keep its single focus line on the wrapper.
+   Scoped exception to the frozen !important outline, as in UI-FOCUS-02. */
+html:has(.market-surface[data-market="cn"]) body .enterprise-login-card .credential-input:has(input:focus) {
+  outline: 1px solid var(--market-accent);
+  outline-offset: -1px;
+}
+html:has(.market-surface[data-market="cn"]) body .enterprise-login-card .credential-input input:focus {
+  outline: none !important;
+  box-shadow: none;
 }

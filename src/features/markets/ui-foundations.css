@@ -93,7 +93,19 @@ html:has(.market-surface[data-market]) body :is(button, a, input, select, textar
   outline: 2px solid var(--market-accent) !important;
   outline-offset: 3px;
 }
-html:has(.market-surface[data-market]) body :is(input, select, textarea):focus-visible { border-color: var(--market-accent); }
+/* UI-FOCUS-02: text fields use one inset line, including pointer/autofocus.
+   Reuses the frozen-outline exception above; no border + ring + glow stack. */
+html:has(.market-surface[data-market]) body :is(input:not([type="checkbox"]):where(:not([type="radio"]):not([type="range"])), textarea):focus {
+  outline: 1px solid var(--market-accent) !important;
+  outline-offset: -1px;
+  box-shadow: none;
+}
+/* The same frozen focus rule also marks border and glow !important.
+   Match only its four legacy field selectors; other status borders stay intact. */
+html:has(.market-surface[data-market]) body :is(.input, .field-input, .xiaozhi-composer textarea, .recording-assistant-composer textarea):focus {
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
 html:has(.market-surface[data-market]) body .ui-button {
   min-height: var(--ui-control-height); padding: 8px 16px;
   border: 1px solid var(--ui-border); border-radius: var(--ui-button-radius);

@@ -6,8 +6,8 @@
 }
 
 .cn-membership .ps-page-header h1 {
-  font-size: 26px;
-  line-height: 1.4;
+  font-size: 24px;
+  line-height: 32px;
   margin: 0 0 8px;
 }
 
@@ -243,14 +243,14 @@
 }
 
 .cn-time-options button[aria-pressed="true"] {
-  border-color: var(--market-accent, #165dff);
-  box-shadow: 0 0 0 1px var(--market-accent, #165dff);
-  background: #f7f9ff;
+  border-color: var(--ui-border);
+  box-shadow: none;
+  background: var(--market-soft);
 }
 
 .cn-time-options strong {
   display: block;
-  font-size: 23px;
+  font-size: 24px;
   margin-bottom: 8px;
 }
 
@@ -348,3 +348,24 @@
     min-width: 0;
   }
 }
+
+/* Selection is also marked without relying on a colored perimeter. */
+.cn-time-options button[aria-pressed="true"]::after {
+  content: "✓";
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  color: var(--market-accent);
+  font-size: 16px;
+}
+
+.cn-membership .cn-member-cycles .ps-plan-option.selected::after {
+  content: "✓";
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  color: var(--market-accent);
+  font-size: 16px;
+}
+.cn-membership .cn-member-cycles .cn-member-total { font-size: 24px; line-height: 32px; font-weight: 600; }
+.cn-membership .cn-member-account h2 { font-size: 18px; line-height: 26px; font-weight: 600; }

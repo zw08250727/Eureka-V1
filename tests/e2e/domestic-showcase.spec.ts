@@ -68,7 +68,7 @@ for (const width of [320, 390, 768, 1024, 1440]) test(`personal and Baixiao ente
   await page.locator("#enterprise-code").fill("bairong");
   await page.locator("#submit").click();
   await expect(page.locator(".enterprise-tenant h2")).toHaveText("百融智能");
-  await expect(page.locator("#submit")).toHaveCSS("background-color", "rgb(49, 94, 251)");
+  await expect(page.locator("#submit")).toHaveCSS("background-color", "rgb(22, 93, 255)");
   await page.screenshot({ path: `test-results/auth/cn-enterprise-phone-${width}.png`, fullPage: true });
   await page.getByRole("button", { name: "邮箱", exact: true }).click();
   await page.screenshot({ path: `test-results/auth/cn-enterprise-email-${width}.png`, fullPage: true });

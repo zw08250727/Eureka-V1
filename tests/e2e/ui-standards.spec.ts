@@ -5,6 +5,9 @@ async function login(page: Page, market: string) {
   await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();
   if (market === "cn") await page.getByRole("button", {name:"个人/团队版",exact:true}).click();
   await page.locator(market === "cn" ? "#phone" : "#email").fill(market === "cn" ? "13800138000" : "visual@example.com");
+  const identity = page.locator(market === "cn" ? "#phone" : "#email");
+  await expect(identity).toHaveCSS("outline-width", "1px");
+  await expect(identity).toHaveCSS("box-shadow", "none");
   await page.locator("#code").fill("123456");
   await page.locator("#terms").check();
   await page.locator("#submit").click();
@@ -47,7 +50,7 @@ for (const market of ["cn", "global"]) {
       const input = form.locator("input").first();
       await input.focus();
       await expect(input).toHaveCSS("outline-color", market === "cn" ? "rgb(22, 93, 255)" : "rgb(56, 88, 182)");
-      await expect(input).toHaveCSS("outline-width", "2px");
+      await expect(input).toHaveCSS("outline-width", "1px");
       expect((await form.boundingBox())!.width).toBeLessThanOrEqual(Math.min(520, width - 32));
       await input.fill("视觉验收");
       await expect(input).toHaveValue("视觉验收");
@@ -119,6 +122,71 @@ for (const market of ["cn", "global"]) {
         expect(rect.x + rect.width).toBeLessThanOrEqual(outer.x + outer.width + 1);
       }
     }
+    await noOverflow(page);
+  });
+}
+
+for (const width of [390, 1440]) {
+  test(`CN account palette, lightweight selection and composite focus at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto('/cn/?edition=enterprise');
+    const code = page.locator('#enterprise-code');
+    await code.click();
+    await expect(code).toHaveCSS('outline-style', 'none');
+    await expect(code).toHaveCSS('box-shadow', 'none');
+    await expect(page.locator('.credential-input')).toHaveCSS('outline-width', '1px');
+    await page.screenshot({ path: `test-results/account-ui/cn-enterprise-${width}.png` });
+    await page.keyboard.press('Tab');
+    await expect(page.locator('.credential-input')).not.toHaveCSS('outline-style', 'solid');
+    await page.goto('/cn/');
+    await page.getByRole('button', { name: '登录 / 注册', exact: true }).last().click();
+    await page.getByRole('button', { name: '个人/团队版', exact: true }).click();
+    await page.locator('#phone').click();
+    await expect(page.locator('#phone')).toHaveCSS('outline-width', '1px');
+    await expect(page.locator('#phone')).toHaveCSS('outline-offset', '-1px');
+    await expect(page.locator('#phone')).toHaveCSS('box-shadow', 'none');
+    await page.screenshot({ path: `test-results/account-ui/cn-personal-${width}.png` });
+    await page.keyboard.press('Escape');
+    await login(page, 'cn');
+    await page.getByRole('button', { name: /积分额度/ }).click();
+    await page.getByRole('button', { name: '做任务赚积分', exact: true }).click();
+    await expect(page.locator('.ex-hero h3')).toHaveCSS('color', 'rgb(38, 38, 38)');
+    await expect(page.locator('.ex-hero h3')).toHaveCSS('font-size', '18px');
+    await expect(page.locator('.ex-task > b').first()).toHaveCSS('color', 'rgb(38, 38, 38)');
+    await expect(page.locator('.ex-task p').first()).toHaveCSS('font-size', '14px');
+    await page.screenshot({ path: `test-results/account-ui/cn-tasks-${width}.png` });
+    await page.keyboard.press('Escape');
+    await page.goto('/cn/workbench/?view=settings&id=recording');
+    await expect(page.locator('.settings-float-head h4').first()).toHaveCSS('color', 'rgb(38, 38, 38)');
+    await expect(page.locator('.settings-row-copy span').first()).toHaveCSS('font-size', '12px');
+    await page.screenshot({ path: `test-results/account-ui/cn-recording-settings-${width}.png` });
+    await page.goto('/cn/workbench/?view=settings&id=credits');
+    await expect(page.locator('.ex-credit-settings .ex-summary strong')).toHaveCSS('color', 'rgb(38, 38, 38)');
+    await expect(page.locator('.ex-credit-settings .ex-grid .ex-rule').first()).toHaveCSS('margin-top', '0px');
+    await expect(page.locator('.ex-credit-settings .ex-table th').first()).toHaveCSS('color', 'rgb(89, 89, 89)');
+    await page.screenshot({ path: `test-results/account-ui/cn-settings-${width}.png` });
+    await page.locator('.ex-credit-settings').getByRole('button', { name: '充值', exact: true }).click();
+    const sku = page.locator('.ex-sku').first();
+    await sku.click();
+    await expect(sku).toHaveAttribute('aria-pressed', 'true');
+    await expect(sku).toHaveCSS('box-shadow', 'none');
+    await expect(sku).toHaveCSS('border-color', 'rgb(235, 235, 235)');
+    await expect(sku).toHaveCSS('background-color', 'rgb(242, 243, 245)');
+    await expect(sku.locator('strong')).toHaveCSS('font-size', '24px');
+    await page.screenshot({ path: `test-results/account-ui/cn-recharge-${width}.png` });
+    await page.keyboard.press('Tab');
+    await expect(page.locator('.ex-sku').nth(1)).toBeFocused();
+    await expect(page.locator('.ex-sku').nth(1)).toHaveCSS('outline-width', '2px');
+    await page.keyboard.press('Escape');
+    await page.goto('/cn/workbench/?view=subscription');
+    await expect(page.locator('.cn-membership h1')).toHaveCSS('font-size', '24px');
+    const cycle = page.locator('.cn-member-cycles .selected');
+    await expect(cycle).toHaveCSS('box-shadow', 'none');
+    await expect(cycle).toHaveCSS('border-color', 'rgb(235, 235, 235)');
+    await page.screenshot({ path: `test-results/account-ui/cn-membership-${width}.png` });
+    await page.getByRole('tab', { name: '加时包', exact: true }).click();
+    await expect(page.locator('.cn-time-options [aria-pressed=true]')).toHaveCSS('box-shadow', 'none');
     await noOverflow(page);
   });
 }

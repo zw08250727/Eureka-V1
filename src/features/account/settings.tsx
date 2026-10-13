@@ -219,7 +219,7 @@ export function AccountSettings({
     );
   if (tab === creditText("Credits 明细"))
     return (
-      <div className="ex-settings-body">
+      <div className="ex-settings-body ex-credit-settings">
         <div className="ex-summary">
           <span>{w.name} · 当前可用</span>
           <br />
