@@ -167,10 +167,13 @@ export function ReferenceShell({
     <button
       type="button"
       className={"ws-btn " + (active ? "active" : "")}
+      aria-label={label}
+      title={label}
+      aria-current={active ? "page" : undefined}
       onClick={() => go(v)}
     >
       <RefIcon name={icon} className="ws-icon" />
-      {label}
+      <span className="ws-nav-text">{label}</span>
     </button>
   );
   return (
@@ -209,7 +212,7 @@ export function ReferenceShell({
                     style={{ textDecoration: "none" }}
                   >
                     <RefIcon name="link" className="ws-icon" />
-                    开放API调用
+                    <span className="ws-nav-text">开放API调用</span>
                   </a>
                 </>
               ) : null}

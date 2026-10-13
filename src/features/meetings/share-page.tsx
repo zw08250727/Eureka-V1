@@ -38,7 +38,7 @@ export function MeetingSharePage() {
     return () => { active = false; clearInterval(timer); window.removeEventListener("storage", storageChanged); window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", refresh); };
   }, []);
   return <main style={{ maxWidth: 900, margin: "32px auto", padding: "0 24px", fontSize: 14, lineHeight: 1.8, color: "var(--market-ink)", overflowWrap: "anywhere" }}>
-    <header><h1 style={{ fontSize: 24 }}>会议分享</h1></header>
+    <header><h1 style={{ fontSize: "var(--ui-font-page)", lineHeight: "var(--ui-line-page)" }}>会议分享</h1></header>
     {state.loading ? <p role="status">加载中…</p> : state.error ? <p role="alert">{state.error}</p> : state.link ? <>
       <p>{state.link.expiresAt ? `有效期至：${new Date(state.link.expiresAt).toLocaleString("zh-CN")}` : "永久有效"}</p>
       <SharedMeetingContent title={state.link.title} contents={state.link.contents} />

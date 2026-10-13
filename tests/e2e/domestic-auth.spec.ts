@@ -90,8 +90,7 @@ test("enterprise checks code and membership, supports changing enterprise, and c
   expect(await page.evaluate(k => localStorage.getItem(k), enterpriseSession)).toBeNull();
   await page.getByRole("button", { name: "更换企业" }).click();
   await expect(page.locator("#enterprise-code")).toBeVisible();
-  await page.getByRole("button", { name: "关闭登录", exact: true }).click();
-  await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();
+  await page.getByRole("button", { name: "返回版本选择", exact: true }).click();
   await page.getByRole("button", {name:"个人/团队版",exact:true}).click();
   await expect(page.locator("#phone")).toBeEmpty();
   await expect(page.locator("#terms")).not.toBeChecked();

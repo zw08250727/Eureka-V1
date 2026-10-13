@@ -36,7 +36,7 @@ export function EnterpriseLoginForm() {
           <label className="sr-only" htmlFor="enterprise-code">企业代码</label>
           <div className="credential-input">
             <span className="credential-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="3"/><path d="M8 7V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v3M2 12a24 24 0 0 0 20 0"/></svg></span>
-            <input disabled={!ready} id="enterprise-code" className="input" autoComplete="organization" autoCapitalize="characters" maxLength={12} placeholder="请输入企业代码" value={code} aria-invalid={!!error} aria-describedby="enterprise-code-help status" onChange={event => { setCode(event.target.value.toUpperCase()); setError(""); }} />
+            <input data-autofocus disabled={!ready} id="enterprise-code" className="input" autoComplete="organization" autoCapitalize="characters" maxLength={12} placeholder="请输入企业代码" value={code} aria-invalid={!!error} aria-describedby="enterprise-code-help status" onChange={event => { setCode(event.target.value.toUpperCase()); setError(""); }} />
           </div>
           <p id="enterprise-code-help">不知道企业代码？请咨询企业管理员</p>
           <Button id="submit" className="enterprise-login-submit" type="submit" disabled={!ready || !code.trim()}>下一步</Button>

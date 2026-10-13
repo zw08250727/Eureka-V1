@@ -20,8 +20,10 @@ html:has(.market-surface[data-market]) body {
     font-size: 14px; line-height: 20px; font-weight: 500;
     border-radius: var(--ui-button-radius); color: var(--ui-text); box-shadow: none;
   }
-  /* Hidden collapsed workspace labels use font-size:0 in frozen CSS. */
-  .ws-team-nav .ws-btn { font-size: 0; }
+  /* UI-NAV-02: visible labels in expanded navigation, explicit hidden spans
+     only when the shell actually collapses. Never hide button text by size. */
+  .ws-team-nav .ws-btn { font-size: var(--ui-font-label); }
+  .ws-nav-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   :is(.ws-table, .th-row) :is(.ws-btn, .th-row-edit) { min-height: var(--ui-compact-height); padding: 4px 8px; opacity: 1; }
   :is(.ws-btn.primary, .ex-button.primary, .th-btn.primary, .pa-btn.primary, .contacts-button.primary, .connector-primary, .connector-dialog button.primary, .recording-primary, .capture-action.primary, .primary-btn) {
     background: var(--ui-action); color: #fff; border-color: var(--ui-action);
@@ -44,8 +46,8 @@ html:has(.market-surface[data-market]) body {
   :is(.ws-field, .ex-form label, .connector-dialog-body > label) { font-size: 14px; line-height: 22px; color: var(--ui-secondary); gap: 8px; }
 
   /* Titles, explanatory copy and table semantics. */
-  :is(.ws-page-head h1, .ws-heading h1, .pa-page-head h1, .contacts-head h1, .settings-float-toolbar-copy strong, .ps-plan-head h2) { font-size: 24px; line-height: 32px; font-weight: 600; color: var(--ui-text); }
-  :is(.ws-section-head h2, .ws-recording-head h2, .pa-calendar-heading h2, .connector-group h2) { font-size: 18px; line-height: 26px; font-weight: 600; }
+  :is(.ws-page-head h1, .ws-heading h1, .pa-page-head h1, .contacts-head h1, .settings-float-toolbar-copy strong, .ps-plan-head h2) { font-size: var(--ui-font-page); line-height: var(--ui-line-page); font-weight: 600; color: var(--ui-text); }
+  :is(.ws-section-head h2, .ws-recording-head h2, .pa-calendar-heading h2, .connector-group h2) { font-size: var(--ui-font-section); line-height: var(--ui-line-section); font-weight: 600; }
   :is(.ws-page-head p, .pa-page-head p, .ws-heading p, .ws-muted, .ws-info, .th-meta, .connector-muted, .connector-empty, .connector-state, .connector-description) { color: var(--ui-secondary); }
   :is(.ws-table th, .ws-table small, .ws-badge, .ws-info, .ps-saving, .ex-avatar-hint) { font-size: 12px; line-height: 18px; color: var(--ui-secondary); }
   .ws-table td { font-size: 14px; line-height: 22px; height: 48px; color: var(--ui-secondary); }
@@ -57,11 +59,11 @@ html:has(.market-surface[data-market]) body {
   :is(.ws-btn.link, .ws-btn.active, .ws-mini-avatar) { color: var(--market-accent); }
 
   /* Personal overview: stable slots keep data from moving adjacent panels. */
-  #today-workbench-title { font-size: 28px; line-height: var(--ui-hero-line); font-weight: 600; color: var(--ui-text); }
+  #today-workbench-title { font-size: var(--ui-font-hero); line-height: var(--ui-hero-line); font-weight: 600; color: var(--ui-text); }
   #today-date-label { font-size: 12px; line-height: 18px; color: var(--ui-secondary); }
   #today-assets-grid {
     :is(.daily-focus, .daily-inspiration, .daily-ledger) { border-radius: 12px; background: #fff; box-shadow: none; }
-    h2 { font-size: 16px; line-height: 24px; color: var(--ui-text); }
+    h2 { font-size: var(--ui-font-card); line-height: var(--ui-line-card); color: var(--ui-text); }
     :is(.daily-brief-narrative, .brief-task, .rhythm-event strong) { font-size: 14px; line-height: 22px; }
     :is(.brief-primary, .brief-archive, .daily-records header button) { min-height: var(--ui-compact-height); font-size: 14px; line-height: 20px; color: var(--ui-secondary); }
     :is(.daily-brief-actions, .daily-records header) { gap: 8px; }
@@ -73,14 +75,14 @@ html:has(.market-surface[data-market]) body {
 
   /* Calendar and thoughts. Do not expose visually hidden field labels. */
   .pa-calendar-heading p { color: var(--ui-secondary); }
-  .pa-calendar h3 { font-size: 16px; line-height: 24px; color: var(--ui-text); }
+  .pa-calendar h3 { font-size: var(--ui-font-card); line-height: var(--ui-line-card); color: var(--ui-text); }
   :is(.pa-list-row small, .pa-list-row time, .pa-source) { color: var(--ui-secondary); font-size: 12px; line-height: 18px; }
   :is(.pa-calendar-edit, .pa-complete) { min-width: var(--ui-icon-size); min-height: var(--ui-icon-size); font-size: 14px; color: var(--ui-secondary); }
   .pa-calendar-edit span { font-size: 14px; color: inherit; }
   .pa-calendar-dates input { height: var(--ui-control-height); font-size: 14px; }
   .pa-view-tabs .selected { background: var(--ui-action); color: #fff; }
   :is(.th-type, .th-meta, .th-meta > span) { font-size: 12px; line-height: 18px; color: var(--ui-secondary); }
-  .th-summary { font-size: 14px; line-height: 22px; color: var(--ui-secondary); }
+  .th-summary { font-size: var(--ui-font-caption); line-height: var(--ui-line-caption); color: var(--ui-secondary); }
   .th-filters label { color: var(--ui-secondary); }
   .th-row-edit { opacity: 1; }
 
@@ -88,10 +90,10 @@ html:has(.market-surface[data-market]) body {
   #contacts-root {
     .contacts-breadcrumb { font-size: 12px; line-height: 18px; color: var(--ui-secondary); }
     .contacts-breadcrumb button { font-size: 12px; min-height: var(--ui-compact-height); color: var(--market-accent); }
-    :is(.contacts-toolbar-hint, .contacts-person small, .contacts-tag, .contacts-person-foot, .contacts-person-foot > span, .customer-card-meta) { font-size: 12px; line-height: 18px; color: var(--ui-secondary); }
-    .contacts-person-card p { font-size: 14px; line-height: 22px; color: var(--ui-secondary); }
+    :is(.contacts-toolbar-hint, .contacts-person small, .contacts-person-foot, .contacts-person-foot > span:not(.contacts-tag), .customer-card-meta) { font-size: 12px; line-height: 18px; color: var(--ui-secondary); }
+    .contacts-person-card p { font-size: var(--ui-font-caption); line-height: var(--ui-line-caption); color: var(--ui-secondary); }
     .contacts-person-card { padding: 16px; border-radius: 12px; }
-    :is(.contacts-toolbar input, .contacts-toolbar select, .contacts-reset) { min-height: var(--ui-control-height); height: var(--ui-control-height); font-size: 14px; }
+    :is(.contacts-toolbar input, .contacts-toolbar select, .contacts-reset) { min-height: var(--ui-control-height); height: var(--ui-control-height); font-size: var(--ui-font-caption); }
     .contacts-toolbar { gap: 16px; }
   }
 
@@ -104,7 +106,7 @@ html:has(.market-surface[data-market]) body {
   }
   :is(.ps-account, .ps-plans, .ps-plan-option) { background: #fff; border-radius: 12px; box-shadow: none; backdrop-filter: none; }
   .ps-plan-option.selected { border-color: var(--market-accent); background: var(--market-soft); box-shadow: none; }
-  .ps-plan-option h3, .ps-plan-details h3 { font-size: 16px; line-height: 24px; }
+  .ps-plan-option h3, .ps-plan-details h3 { font-size: var(--ui-font-card); line-height: var(--ui-line-card); }
   .ps-plan-footer .primary { border-radius: var(--ui-button-radius); box-shadow: none; }
   :is(.ps-account, .ps-plans) { padding: 24px; }
   .connector-dialog { font-family: var(--font); }
@@ -139,18 +141,18 @@ html[data-sidebar-collapsed="true"]:has(.market-surface[data-market]) body .side
 }
 html:has(.market-surface[data-market]) body {
   #ws-view {
-    .team-overview-title h1 { font-size: 24px; line-height: 32px; }
+    .team-overview-title h1 { font-size: var(--ui-font-page); line-height: var(--ui-line-page); }
     .team-overview-actions button { min-height: var(--ui-control-height); font-size: 14px; line-height: 20px; padding: 8px 16px; border-radius: var(--ui-button-radius); }
     .team-overview-actions .team-primary { background: var(--ui-action); border-color: var(--ui-action); color: #fff; }
     .team-overview-actions .team-primary:hover:not(:disabled) { background: var(--ui-action-hover); color: #fff; }
-    .team-section-heading h2 { font-size: 18px; line-height: 26px; }
-    :is(.team-insight h3, .team-private-column h3) { font-size: 16px; line-height: 24px; }
+    .team-section-heading h2 { font-size: var(--ui-font-section); line-height: var(--ui-line-section); }
+    :is(.team-insight h3, .team-private-column h3) { font-size: var(--ui-font-card); line-height: var(--ui-line-card); }
     .team-insight-body { font-size: 14px; line-height: 22px; color: var(--ui-secondary); }
     :is(.team-insight-index, .team-insight-foot, .team-section-heading > span, .team-private-badge, .team-private-column h3 span, .team-private-list time, .ex-owner, .ws-recording-head p, .ws-pager) { font-size: 12px; line-height: 18px; color: var(--ui-secondary); }
     :is(.team-private-column a, .team-insight-foot button, .team-private-todo > .team-private-todo-title, .ex-share) { font-size: 12px; line-height: 18px; color: var(--market-accent); min-height: var(--ui-compact-height); }
     .team-private-notes { opacity: 1; }
     .team-overview-canvas { border-radius: 12px; }
-    :is(.ws-subscription h3, .ws-billing h3) { font-size: 16px; line-height: 24px; }
+    :is(.ws-subscription h3, .ws-billing h3) { font-size: var(--ui-font-card); line-height: var(--ui-line-card); }
     :is(.ws-subscription p, .ws-billing p) { color: var(--ui-secondary); font-size: 12px; line-height: 18px; }
     .ws-table th { font-size: 12px; line-height: 18px; }
     .ws-table td { font-size: 14px; line-height: 22px; }
@@ -173,7 +175,7 @@ html:has(.market-surface[data-market]) body {
   }
   .cn-feedback-reasons textarea { min-height: 96px; }
   #recording-layout {
-    #recording-name { font-size: 24px; line-height: 32px; }
+    #recording-name { font-size: var(--ui-font-page); line-height: var(--ui-line-page); }
     #recording-rename { min-width: var(--ui-icon-size); min-height: var(--ui-icon-size); }
     .recording-header-actions button, .recording-controls button { min-height: var(--ui-control-height); font-size: 14px; line-height: 20px; border-radius: var(--ui-button-radius); padding: 8px 16px; }
     #recording-assistant-toggle-label { font-size: 14px; line-height: 20px; }
@@ -184,7 +186,7 @@ html:has(.market-surface[data-market]) body {
   }
   .enterprise-workbench { font-family: var(--font); line-height: 22px; }
   .enterprise-content { padding: 24px; }
-  .enterprise-content h1 { font-size: 24px; line-height: 32px; }
+  .enterprise-content h1 { font-size: var(--ui-font-page); line-height: var(--ui-line-page); }
   .enterprise-workbench nav button { min-height: var(--ui-control-height); padding: 8px 12px; line-height: 20px; }
   .enterprise-task-form :is(input, button) { height: var(--ui-control-height); min-height: var(--ui-control-height); padding: 8px 12px; font-size: 14px; line-height: 20px; }
 }
@@ -209,7 +211,7 @@ html:has(.market-surface[data-market]) body {
   :is(.guest-nav-toggle, .guest-login-primary, .guest-search, .app-download-btn, .settings-popover-close, .ws-device-purchase-close) { min-height: var(--ui-control-height); }
   .promo-copy > span { font-size: 12px; line-height: 18px; }
   .ex-avatar-copy p { color: var(--ui-secondary); }
-  .cn-membership .ps-page-header h1 { font-size: 24px; line-height: 32px; }
+  .cn-membership .ps-page-header h1 { font-size: var(--ui-font-page); line-height: var(--ui-line-page); }
   #recording-card {
     #meeting-view-description { color: var(--ui-secondary); }
     #meeting-table-scroll {
@@ -217,11 +219,11 @@ html:has(.market-surface[data-market]) body {
       .home-meeting-tag { font-size: 12px; line-height: 18px; padding: 2px 8px; }
     }
   }
-  :is(#recording-card, #ws-view) :is(.mf-trigger, .mf-search, .mf-control select, .recording-recycle-entry) { min-height: var(--ui-control-height); height: var(--ui-control-height); font-size: 14px; line-height: 20px; border-radius: 8px; }
+  :is(#recording-card, #ws-view) :is(.mf-trigger, .mf-search, .mf-control select, .recording-recycle-entry) { min-height: var(--ui-control-height); height: var(--ui-control-height); font-size: var(--ui-font-caption); line-height: 20px; border-radius: 8px; }
   :is(.home-meeting-actions button, #meeting-load-more) { min-height: var(--ui-compact-height); font-size: 14px; }
   #thought-workspace {
     .th-day h3 span, .th-filters > span { font-size: 12px; line-height: 18px; color: var(--ui-secondary); }
-    .th-filters label { font-size: 14px; line-height: 20px; }
+    .th-filters label { font-size: var(--ui-font-caption); line-height: var(--ui-line-caption); }
   }
   /* Approved typography needs usable scroll slots, not clipped enlarged copy. */
   #today-assets-grid {
@@ -245,7 +247,7 @@ html:has(.market-surface[data-market]) body {
     .team-private-todo > button:not(.team-private-todo-title):not(.ex-share) { flex: 0 0 var(--ui-icon-size); width: var(--ui-icon-size); height: var(--ui-icon-size); font-size: 14px; }
     .ws-pagination > span { font-size: 12px; line-height: 18px; color: var(--ui-secondary); }
     :is(.ws-plan-current p, .ws-seat-usage small, .ws-seat-usage > span, .ws-team-term small, .ws-plan-amount small) { font-size: 12px; line-height: 18px; color: var(--ui-secondary); }
-    .ws-billing-details h3 { font-size: 16px; line-height: 24px; }
+    .ws-billing-details h3 { font-size: var(--ui-font-card); line-height: var(--ui-line-card); }
     .ws-file-link { min-height: var(--ui-compact-height); font-size: 14px; }
   }
   #meeting-detail-root {
@@ -284,7 +286,7 @@ html:has(.market-surface[data-market]) body {
   :is(.contacts-workspace, .contacts-person-card, .ws-surface, .settings-float-section) { background: #fff; border-radius: 12px; box-shadow: none; }
   #contacts-root {
     .contacts-search { min-height: var(--ui-control-height); height: var(--ui-control-height); }
-    .contacts-toolbar label { font-size: 14px; line-height: 20px; gap: 8px; }
+    .contacts-toolbar label { font-size: var(--ui-font-caption); line-height: var(--ui-line-caption); gap: 8px; }
   }
 }
 @media (max-width: 760px) {

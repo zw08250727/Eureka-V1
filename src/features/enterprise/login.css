@@ -1,5 +1,4 @@
-/* Shared Baixiao enterprise authentication, embedded or directly addressed. */
-.enterprise-login-page { min-height: 100dvh; background: var(--ui-sidebar); }
+/* Baixiao authentication on the dedicated enterprise guest workbench. */
 .enterprise-login-card, .enterprise-login-card * { box-sizing: border-box; }
 .enterprise-login-card { width: 100%; padding: 56px 40px 32px; color: var(--ui-text); background: #fff; }
 .enterprise-auth-brand { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 24px; }

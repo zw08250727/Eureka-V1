@@ -1,0 +1,64 @@
+/* UI-TYPE-02 — missing role mappings for current React surfaces only.
+   Metrics live in ui-foundations.css. Rich text/editor content is excluded. */
+html:has(.market-surface[data-market]) body {
+  #meeting-detail-root #note-detail-title { font-size: var(--ui-font-page); line-height: var(--ui-line-page); }
+  .page-crumb { font-size: var(--ui-font-section); line-height: var(--ui-line-section); font-weight: 600; }
+  .sidebar :is(.nav-label, .tree-folder-name, .ws-nav-text) { font-size: var(--ui-font-label); line-height: var(--ui-line-label); font-weight: 500; }
+
+  /* Level 1: page identity; hero is reserved for the home greeting / auth. */
+  :is(.feature-head h1, .ps-page-header h1, .ex-product > h1, .contacts-profile h1, .recycle-heading h1, .md-page-head h1) {
+    font-size: var(--ui-font-page); line-height: var(--ui-line-page); font-weight: 600;
+  }
+  #recording-card #recent-meeting-title { font-size: var(--ui-font-section); line-height: var(--ui-line-section); }
+  #recording-card:has(#thought-workspace:not([hidden])) #recent-meeting-title { font-size: var(--ui-font-page); line-height: var(--ui-line-page); }
+  .ex-log > .ex-head h2 { font-size: var(--ui-font-page); line-height: var(--ui-line-page); }
+  #contacts-root .contacts-toolbar .contacts-filter-field { flex-basis: 110px; min-width: 110px; }
+  #contacts-root .contacts-toolbar .contacts-date-field { flex-basis: 136px; min-width: 136px; }
+  /* Level 2: a section or panel, never as large as its owning page. */
+  :is(.home-meeting-head h2, .contacts-card h2, .ex-product-grid h2, .ex-section-intro h2, .settings-float-head h4, .ps-plan-head h2, .ws-plan-current h2, .ws-billing-details h3,
+      .xiaozhi-head h2, .ws-agent-head h2, .recording-assistant-header h2, .recording-assistant-head h2, .ps-account h2, .md-library-head h2, .md-panel-head h2) {
+    font-size: var(--ui-font-section); line-height: var(--ui-line-section); font-weight: 600;
+  }
+  /* Level 3: card / list title, weight distinguishes it from body copy. */
+  :is(.contacts-person strong, .customer-profile-grid h3, .connector-card strong, .thought-file-empty h3, .th-title, .ex-log-card h3, .ws-empty h3,
+      .settings-row-copy strong, .ex-task h3, .ws-order h3, .md-library-copy strong) {
+    font-size: var(--ui-font-card); line-height: var(--ui-line-card); font-weight: 600;
+  }
+  :is(.ws-dialog-head h2, .ex-head h2, .contacts-dialog h2, .pa-dialog h2, .th-dialog h2, .connector-dialog h2, .modal-head h3) {
+    font-size: var(--ui-font-dialog); line-height: var(--ui-line-dialog); font-weight: 600;
+  }
+  :is(.ex-hero h3, .connector-dialog h3, .xiaozhi-empty h3) { font-size: var(--ui-font-section); line-height: var(--ui-line-section); font-weight: 600; }
+
+  /* Secondary copy is shorter and quieter than reading content. */
+  :is(.ws-page-head p, .ws-heading p, .pa-page-head p, .contacts-head p, .ps-page-header p, .connector-description, .connector-state, .ex-task p,
+      .ex-hero p, .ex-section-intro p, .ex-product > p, .settings-float-head p, .settings-row-copy span, .customer-meeting p) {
+    font-size: var(--ui-font-caption); line-height: var(--ui-line-caption); color: var(--ui-secondary);
+  }
+  :is(.ws-nav-label, .ws-badge, .home-meeting-tag, .home-meeting-status, .th-type, .customer-owner-tag, .ex-eyebrow, .ex-owner) {
+    font-size: var(--ui-font-micro); line-height: var(--ui-line-micro);
+  }
+  #contacts-root :is(.contacts-tag, .customer-owner-tag) { font-size: var(--ui-font-micro); line-height: var(--ui-line-micro); }
+  #recording-card #meeting-table-scroll :is(.home-meeting-tag, .home-meeting-status) { font-size: var(--ui-font-micro); line-height: var(--ui-line-micro); }
+
+  /* Filter labels and values use one scale; input hit areas are unchanged. */
+  :is(.th-filters, .pa-calendar-toolbar, .pa-list-tools, .mf-bar, .ws-filters, .ex-order-filters, .agent-history-filters) :is(label, input, select, button),
+  #thought-workspace .th-filters :is(label, input, select, button),
+  #contacts-root .contacts-toolbar :is(label, input, select, button),
+  :is(#recording-card, #ws-view) .mf-control :is(label, input, select, button) {
+    font-size: var(--ui-font-caption); line-height: var(--ui-line-caption);
+  }
+  .ui-select-option { font-size: var(--ui-font-caption); line-height: var(--ui-line-caption); }
+  .pa-calendar .pa-day-section h3 { font-size: var(--ui-font-caption); line-height: var(--ui-line-caption); font-weight: 500; }
+  .pa-calendar-cell .pa-list-row strong { font-size: var(--ui-font-caption); line-height: var(--ui-line-caption); }
+  .pa-calendar-cell .pa-list-row time { font-size: var(--ui-font-micro); line-height: var(--ui-line-micro); }
+}
+/* UI-NAV-02: spans preserve accessible names via the button label, even when
+   CSS (not React state) collapses the shell at intermediate viewport widths. */
+html[data-sidebar-collapsed="true"]:has(.market-surface[data-market]) body .ws-team-nav .ws-nav-text { display: none; }
+@media (min-width: 761px) and (max-width: 1100px) {
+  html:has(.market-surface[data-market]) body .app:not(.guest-app) .ws-team-nav {
+    padding-inline: 9px;
+    .ws-btn { justify-content: center; padding-inline: 11px; }
+    :is(.ws-nav-text, .ws-nav-label) { display: none; }
+  }
+}

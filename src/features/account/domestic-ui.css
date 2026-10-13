@@ -16,10 +16,10 @@ html:has(.market-surface[data-market="cn"]) body {
 
   :is(.ex-dialog, .ex-settings-body) {
     .ex-hero { padding: 16px; border-radius: 12px; }
-    .ex-hero h3 { color: var(--ui-text); font-size: 18px; line-height: 26px; font-weight: 600; letter-spacing: normal; }
+    .ex-hero h3 { color: var(--ui-text); font-size: var(--ui-font-section); line-height: var(--ui-line-section); font-weight: 600; letter-spacing: normal; }
     .ex-hero p,
     .ex-task p,
-    .ex-section-intro p { color: var(--ui-secondary); font-size: 14px; line-height: 22px; }
+    .ex-section-intro p { color: var(--ui-secondary); font-size: var(--ui-font-caption); line-height: var(--ui-line-caption); }
     .ex-eyebrow { color: var(--ui-meta); font-size: 12px; line-height: 18px; letter-spacing: normal; font-weight: 400; }
     .ex-muted { color: var(--ui-meta); font-size: 12px; line-height: 18px; }
     .ex-task { border-color: var(--ui-border); padding: 16px 0; }

@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-// AUTH-UI-04: edition cards open personal or Baixiao enterprise-only dialogs.
+// AUTH-UI-05: enterprise cards navigate to a dedicated guest workbench and dialog.
 test("domestic personal dialog preserves the protected destination", async ({ page }) => {
   await page.goto("/cn/workbench/?view=connectors&space=personal");
   await expect(page.getByRole("navigation", { name: "登录版本" }).getByRole("button")).toHaveCount(2);
@@ -24,7 +24,7 @@ test("bairong matches the verified phone/email flow, resets credentials and comp
   await page.goto("/cn/");
   await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();
   await page.getByRole("button", { name: "企业版", exact: true }).click();
-  await expect(page).toHaveURL(/\/cn\/$/);
+  await expect(page).toHaveURL(/\/cn\/enterprise\/login\/$/);
   await expect(page.getByRole("dialog",{name:"百销企业登录"})).not.toContainText("百智");
   await expect(page.locator("#submit")).toBeDisabled();
   await page.locator("#enterprise-code").fill("bairong");

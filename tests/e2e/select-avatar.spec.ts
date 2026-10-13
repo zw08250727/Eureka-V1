@@ -26,7 +26,8 @@ test('avatar preview validates images, saves, reloads and removes without a visi
  await input.setInputFiles({name:'avatar.png',mimeType:'image/png',buffer:png});await expect(page.getByAltText('当前头像')).toBeVisible();
  await page.getByRole('button',{name:'保存',exact:true}).click();await page.reload();await expect(page.getByAltText('当前头像')).toBeVisible();await page.getByRole('button',{name:'移除',exact:true}).click();await expect(page.getByAltText('当前头像')).toHaveCount(0);await page.getByRole('button',{name:'保存',exact:true}).click();await page.reload();await expect(page.getByAltText('当前头像')).toHaveCount(0);
 });
+// UI-NAV-02: navigation now has the same accessible name; target the filter role.
 test('team meeting member filter uses same surface and preserves filter behavior',async({page})=>{
- await page.goto(url('home','team-eureka'));await page.getByLabel('团队成员',{exact:true}).click();await page.locator('.ui-select-popup:popover-open').getByRole('option',{name:/林晓/}).click();await expect(page.getByLabel('团队成员',{exact:true})).toHaveValue('lin');
+ await page.goto(url('home','team-eureka'));await page.getByRole('combobox',{name:'团队成员',exact:true}).click();await page.locator('.ui-select-popup:popover-open').getByRole('option',{name:/林晓/}).click();await expect(page.getByRole('combobox',{name:'团队成员',exact:true})).toHaveValue('lin');
  await expect(page.locator('.ws-recording-table tbody tr').first()).toContainText('林晓');
 });

@@ -16,3 +16,5 @@ next-env.d.ts
 
 test-results-*/
 artifacts/markets/
+
+artifacts/ui-typography/

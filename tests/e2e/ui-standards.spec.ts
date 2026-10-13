@@ -98,8 +98,8 @@ for (const market of ["cn", "global"]) {
   test(`${market} UI: readable mobile modules and operable audio controls`, async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await login(page, market);
-    await expect(page.locator("#today-workbench-title")).toHaveCSS("font-size", "28px");
-    await expect(page.locator("#today-workbench-title")).toHaveCSS("line-height", market === "cn" ? "38px" : "36px");
+    await expect(page.locator("#today-workbench-title")).toHaveCSS("font-size", "24px");
+    await expect(page.locator("#today-workbench-title")).toHaveCSS("line-height", "32px");
     for (const view of ["calendar", "thoughts", "contacts", "settings", "my-devices", "subscription", "recording"] as const) {
       await page.goto(`/${market}/workbench/?view=${view}`);
       await expect(page.locator(".app:not(.guest-app)")).toBeVisible();
@@ -152,9 +152,9 @@ for (const width of [390, 1440]) {
     await page.getByRole('button', { name: /积分额度/ }).click();
     await page.getByRole('button', { name: '做任务赚积分', exact: true }).click();
     await expect(page.locator('.ex-hero h3')).toHaveCSS('color', 'rgb(38, 38, 38)');
-    await expect(page.locator('.ex-hero h3')).toHaveCSS('font-size', '18px');
+    await expect(page.locator('.ex-hero h3')).toHaveCSS('font-size', '16px');
     await expect(page.locator('.ex-task > b').first()).toHaveCSS('color', 'rgb(38, 38, 38)');
-    await expect(page.locator('.ex-task p').first()).toHaveCSS('font-size', '14px');
+    await expect(page.locator('.ex-task p').first()).toHaveCSS('font-size', '12px');
     await page.screenshot({ path: `test-results/account-ui/cn-tasks-${width}.png` });
     await page.keyboard.press('Escape');
     await page.goto('/cn/workbench/?view=settings&id=recording');
@@ -180,7 +180,7 @@ for (const width of [390, 1440]) {
     await expect(page.locator('.ex-sku').nth(1)).toHaveCSS('outline-width', '2px');
     await page.keyboard.press('Escape');
     await page.goto('/cn/workbench/?view=subscription');
-    await expect(page.locator('.cn-membership h1')).toHaveCSS('font-size', '24px');
+    await expect(page.locator('.cn-membership h1')).toHaveCSS('font-size', '22px');
     const cycle = page.locator('.cn-member-cycles .selected');
     await expect(cycle).toHaveCSS('box-shadow', 'none');
     await expect(cycle).toHaveCSS('border-color', 'rgb(235, 235, 235)');

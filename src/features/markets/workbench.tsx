@@ -26,7 +26,9 @@ export function MarketWorkbench({ market }: { market: Market }) {
           (params.get("view") || "home") !== "home" ||
           (params.get("space") || "personal") !== "personal" || params.has("action")
         );
-        if (!signedIn && protectedRoute) {
+        if (market === "cn" && params.get("login") === "1") {
+          setTarget(marketUrl("cn", "workbench/?view=home&space=personal"));
+        } else if (!signedIn && protectedRoute) {
           setTarget(location.pathname + location.search);
         } else if (signedIn) setTarget(null);
       } catch {

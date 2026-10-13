@@ -21,7 +21,25 @@ html:has(.market-surface[data-market]) {
   --ui-compact-height: 36px;
   --ui-icon-size: 36px;
   --ui-reading-line: 24px;
-  --ui-hero-line: 36px;
+  /* UI-TYPE-02: visual roles, independent of the HTML heading level. */
+  --ui-font-page: 22px;
+  --ui-line-page: 30px;
+  --ui-font-hero: 24px;
+  --ui-hero-line: 32px;
+  --ui-font-section: 16px;
+  --ui-line-section: 24px;
+  --ui-font-card: 14px;
+  --ui-line-card: 22px;
+  --ui-font-dialog: 18px;
+  --ui-line-dialog: 26px;
+  --ui-font-body: 14px;
+  --ui-line-body: 22px;
+  --ui-font-label: 13px;
+  --ui-line-label: 20px;
+  --ui-font-caption: 12px;
+  --ui-line-caption: 18px;
+  --ui-font-micro: 11px;
+  --ui-line-micro: 16px;
   --ui-disabled: #e5e9f3;
   --ui-disabled-text: #697386;
   --ui-ai-primary: var(--market-accent);
@@ -63,7 +81,7 @@ html:has(.market-surface[data-market="cn"]) {
   --ui-border: #ebebeb;
   --ui-button-radius: 6px;
   --ui-reading-line: 26px;
-  --ui-hero-line: 38px;
+
   --ui-disabled: #f2f3f5;
   --ui-disabled-text: #737373;
   --ui-ai-primary: #165dff;
@@ -141,7 +159,7 @@ html:has(.market-surface[data-market]) body .ui-select-popup[popover] { border-c
 html:has(.market-surface[data-market]) body .ui-select-option[aria-disabled="true"] { color: var(--ui-disabled-text); }
 /* Login is the only 20px dialog; other dialog geometry belongs to its owner. */
 html:has(.market-surface[data-market]) body .auth { font-family: var(--font); --muted: var(--ui-meta); }
-html:has(.market-surface[data-market]) body .auth h1 { font-size: 28px; line-height: var(--ui-hero-line); font-weight: 600; }
+html:has(.market-surface[data-market]) body .auth h1 { font-size: var(--ui-font-hero); line-height: var(--ui-hero-line); font-weight: 600; }
 html:has(.market-surface[data-market]) body .auth :is(.input, .primary, .plain) { min-height: 44px; height: 44px; font-size: 14px; line-height: 20px; }
 html:has(.market-surface[data-market]) body .auth :is(.primary, .plain) { border-radius: var(--ui-button-radius); }
 /* Auth uses the shared Button with a legacy .primary class. Keep that variant
