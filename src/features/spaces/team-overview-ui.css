@@ -24,7 +24,8 @@ html:has(.market-surface[data-market]) body #ws-view .team-overview-refined {
   .ex-daily-row > a { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; align-content: center; padding-block: 2px; min-height: 36px; }
   .ex-daily-row .ex-owner { position: absolute; right: 0; bottom: 2px; }
   .ex-daily-row time { padding-right: 44px; white-space: nowrap; }
-  .ex-daily-row > a > span { order: -1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .team-private-column .ex-daily-row > a { padding-block: 0; }
+  .ex-daily-row > a > span { line-height: 18px; order: -1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .team-private-column :is(.ex-daily-row > a, .team-private-todo-title, .team-private-idea) {
     font-size: 13px; line-height: 20px; font-weight: 400; color: var(--ui-text);
   }

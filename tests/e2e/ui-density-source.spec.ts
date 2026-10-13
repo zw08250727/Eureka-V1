@@ -92,6 +92,7 @@ for (const market of ['cn', 'global']) {
       const canvas = page.locator('.team-overview-canvas');
       await expect(canvas).toHaveCSS('height',`${height}px`);
       await expect(canvas.locator('.ex-share')).toHaveCount(0);
+      expect(await canvas.locator('.ex-daily-row').evaluateAll(rows=>rows.every(row=>{const a=row.getBoundingClientRect(),b=row.querySelector('a')!.getBoundingClientRect();return b.top>=a.top-1&&b.bottom<=a.bottom+1}))).toBe(true);
       await expect(page.locator('.team-insight-body > span:first-child').first()).toHaveCSS('display','inline');
       await page.screenshot({path:`artifacts/ui-density/${market}-compact-overview-${width}.png`});
       const evidence = page.locator('.team-insight-foot button[aria-expanded]').first();
