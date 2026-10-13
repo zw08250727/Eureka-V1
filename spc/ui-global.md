@@ -106,3 +106,5 @@ Select鼠标展开保留1px `--ui-border`（#DCE2F0），不加外环或焦点�
 同步执行公共UI-MEETING-03、UI-CONTROL-03、UI-TODO-02及UI-TEAM-THOUGHTS-02：会议18px标题按公开源码还原，两地共用布局；筛选四边完整，组合搜索无重复焦点框，所有待办14px图形，团队条目13px／分组14px／分区16px。保留本市场字体与语义色。来源及验收见[变更记录](changes/2026-10-13-meeting-density.md)。
 
 2026-10-13补充：同步执行公共UI-DENSITY-04，个人／团队固定首页高度、紧凑会议来源与操作、独立联系人计数行、日历三视图操作统一、工作区标题间距统一。见[范围与验收](changes/2026-10-13-overview-list-density.md)。
+
+2026-10-13：同步公共UI-DENSITY-05（日程来源／卡片、hover及键盘操作、无边框表格操作和居中摘要），范围见[变更记录](changes/2026-10-13-calendar-actions.md)。

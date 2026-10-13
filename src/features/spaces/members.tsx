@@ -97,7 +97,7 @@ export function MembersPage({
       />
       <section className="ws-surface">
         <div className="ws-table-scroll">
-          <table className="ws-table">
+          <table className="ws-table ws-member-table">
             <thead>
               <tr>
                 <th>成员</th>

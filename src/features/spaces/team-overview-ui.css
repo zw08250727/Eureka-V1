@@ -20,12 +20,12 @@ html:has(.market-surface[data-market]) body #ws-view .team-overview-refined {
   .team-private-column :is(header > a, .ex-share) { font-size: 12px; line-height: 18px; font-weight: 400; color: var(--market-accent); min-height: 28px; display: inline-flex; align-items: center; flex-shrink: 0; }
   .team-private-list { gap: 0; }
   :is(.ex-daily-row, .team-private-todo) { min-height: 36px; gap: 8px; }
-  .ex-daily-row { position: relative; }
-  .ex-daily-row > a { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; align-content: center; padding-block: 2px; min-height: 36px; }
-  .ex-daily-row .ex-owner { position: absolute; right: 0; bottom: 2px; }
-  .ex-daily-row time { padding-right: 44px; white-space: nowrap; }
-  .team-private-column .ex-daily-row > a { padding-block: 0; }
-  .ex-daily-row > a > span { line-height: 18px; order: -1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ex-daily-row > a { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 8px; padding-block: 6px; align-items: start; min-height: 54px; border-bottom: 1px solid var(--ui-border); }
+  .team-private-column .ex-daily-row > a > time { white-space: normal; overflow-wrap: normal; }
+  .team-schedule-copy { min-width: 0; }
+  .team-schedule-copy strong { display: block; font-size: 13px; line-height: 20px; font-weight: 500; color: var(--ui-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .team-schedule-copy em { display: block; margin-top: 2px; font-size: 12px; line-height: 18px; font-style: normal; color: var(--ui-meta); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ex-daily-row { min-height: 54px; }
   .team-private-column :is(.ex-daily-row > a, .team-private-todo-title, .team-private-idea) {
     font-size: 13px; line-height: 20px; font-weight: 400; color: var(--ui-text);
   }

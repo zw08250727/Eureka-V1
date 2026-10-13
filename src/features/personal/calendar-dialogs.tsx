@@ -17,9 +17,9 @@ import { reminders, createActions, createThoughts } from "./store";
 import { usePersonal } from "./use-personal";
 
 export const actionSource = (r: ActionRecord) =>
-  ({ manual: "手动创建", agent: "Agent 创建", capture: "闪念提取" })[
+  ({ manual: "手动创建", agent: "Agent 创建", capture: "闪念提取", dingtalk: "钉钉", feishu: "飞书", system: "系统" } as Record<string,string>)[
     r.source
-  ] || "闪念提取";
+  ] || "其他来源";
 export function localDate(value: string) {
   if (!value) return "未安排";
   if (

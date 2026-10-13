@@ -61,3 +61,35 @@ export function ensureTeamDailyDemo(
   });
   storage.setItem(key, "1");
 }
+
+/** Add explicit calendar examples without rewriting existing records or grants. */
+export function ensureSharedCalendarDemo(storage: Storage, space: string, now = new Date()) {
+  if (!["team-eureka", "team-growth"].includes(space)) return;
+  const key = `eureka:calendar-examples:${space}:v1`;
+  if (storage.getItem(key)) return;
+  const workspace = M.get(createWorkspaceStore(storage).read(), space);
+  const members = workspace.members.filter(m => m.status === "active");
+  const date = now.toLocaleDateString("sv-SE");
+  const examples = [
+    {owner:"lin", source:"dingtalk", title:"客户联调同步", time:"15:00", end:"15:30", shared:true},
+    {owner:"kevin", source:"feishu", title:"设计方案评审", time:"16:00", end:"16:30", shared:true},
+    {owner:"zhang", source:"system", title:"交付节点提醒", time:"17:00", end:"17:15", shared:false},
+    {owner:"zhang", source:"manual", title:"项目联合周会", time:"14:30", end:"15:00", shared:true},
+  ];
+  for (const example of examples) {
+    if (!members.some(m=>m.id===example.owner)) continue;
+    const storeKey=`eureka:actions:${space}:${example.owner}:v1`;
+    const state: ActionState=JSON.parse(storage.getItem(storeKey)||'{"version":1,"records":[],"meetings":[],"sessions":[],"settings":{}}');
+    const id=`calendar-example-${space}-${example.source}`;
+    if (state.records.some(r=>r.id===id)) continue;
+    state.records.push({id,ownerId:example.owner,type:"schedule",title:example.title,
+      start:`${date}T${example.time}`,end:`${date}T${example.end}`,source:example.source,
+      done:false,notes:"示例日程，用于演示来源与成员共享；未连接外部日历。",reminder:"none",
+      location:example.source==="manual"?"项目会议室":"线上会议",
+      participants:(example.shared?members:members.filter(m=>m.id===example.owner)).map(m=>m.name).join("、"),
+      sharedWith:example.shared?members.filter(m=>m.id!==example.owner).map(m=>m.id):[],
+      created:now.toISOString(),updated:now.toISOString(),revision:1,links:[]});
+    storage.setItem(storeKey,JSON.stringify(state));
+  }
+  storage.setItem(key,"1");
+}

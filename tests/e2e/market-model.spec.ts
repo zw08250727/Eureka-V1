@@ -2,6 +2,8 @@ import { test, expect } from "@playwright/test";
 import { createMarketStorage } from "../../src/features/markets/storage";
 import { routeMarket, markets } from "../../src/features/markets/config";
 import { validateConnector } from "../../src/features/connectors/model";
+import { ensureSharedCalendarDemo } from "../../src/features/personal/team-daily-demo";
+import { createActions } from "../../src/features/personal/store";
 import M from "../../src/features/spaces/model/core";
 import PS from "../../src/features/spaces/model/subscription";
 function memory(): Storage {
@@ -92,4 +94,30 @@ test("CONNECT-01: URL and all JSON servers are validated without executing comma
       },
     ]),
   ).toThrow("名称已存在");
+});
+
+
+test("calendar examples preserve data and only owners can share a single shared schedule", () => {
+  const storage=memory(),now=()=>new Date("2026-10-13T08:00:00+08:00");
+  ensureSharedCalendarDemo(storage,"team-eureka",now());
+  const owner=createActions(storage,now,"zhang","team-eureka");
+  const shared=owner.read().records.find(r=>r.title==="项目联合周会")!;
+  expect(shared.participants).toContain("Kevin");
+  const member=createActions(storage,now,"kevin","team-eureka");
+  expect(member.read().records.filter(r=>r.id===shared.id)).toHaveLength(1);
+  expect(()=>createActions(storage,now,"lin","team-eureka","zhang").share(shared.id,[])).toThrow("只有本人");
+  const incoming=owner.read().records.find(r=>r.source==="dingtalk")!;
+  expect(()=>createActions(storage,now,"zhang","team-eureka","lin").share(incoming.id,[])).toThrow("只有本人");
+  const prior=JSON.stringify(owner.read());
+  ensureSharedCalendarDemo(storage,"team-eureka",now());
+  expect(JSON.stringify(owner.read())).toBe(prior);
+  const windowDescriptor=Object.getOwnPropertyDescriptor(globalThis,"window");
+  Object.defineProperty(globalThis,"window",{configurable:true,value:{dispatchEvent(){}}});
+  try { owner.share(shared.id,[]); } finally {
+    if(windowDescriptor) Object.defineProperty(globalThis,"window",windowDescriptor);
+    else Reflect.deleteProperty(globalThis,"window");
+  }
+  ensureSharedCalendarDemo(storage,"team-eureka",now());
+  expect(member.read().records.filter(r=>r.id===shared.id)).toHaveLength(0);
+  expect(owner.read().records.find(r=>r.id===shared.id)?.sharedWith).toEqual([]);
 });

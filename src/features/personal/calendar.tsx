@@ -201,6 +201,8 @@ export function CalendarPage({
     <div
       key={r.id}
       className={`pa-calendar-entry ${r.type} ${r.done ? "is-done" : ""}`}
+      data-owner={r.ownerId || actor}
+      data-source={r.source}
     >
       {r.type === "todo" && (
         <button
@@ -230,9 +232,10 @@ export function CalendarPage({
               : localDate(r.start)}
         </time>
         <span>
-          <strong>{r.title}</strong>{space!=="personal"&&<span className="ex-owner">{assetOwner(space,r.ownerId)}</span>}
+          <strong>{r.title}</strong>
+          <span className="pa-record-meta"><span>{actionSource(r)}</span>{space!=="personal"&&<span>{assetOwner(space,r.ownerId)}{r.ownerId!==actor && r.sharedWith?.includes(actor) ? " · 共享给我" : ""}</span>}</span>
           {!compact && (
-            <small>{`${r.notes || r.location || r.capture || ""}${r.participants ? " · " + r.participants : ""} · ${actionSource(r)}`}</small>
+            <small>{`${r.notes || r.location || r.capture || ""}${r.participants ? " · " + r.participants : ""}`}</small>
           )}
         </span>
         {!compact && (
@@ -482,6 +485,8 @@ export function CalendarPage({
                       查看来源会话
                     </PaButton>
                   </>
+                ) : record.source !== "capture" ? (
+                  <p className="pa-hint">来自{actionSource(record)}的日程记录。{record.notes}</p>
                 ) : (
                   <>
                     <details open>

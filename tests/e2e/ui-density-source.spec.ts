@@ -44,7 +44,7 @@ for (const market of ['cn','global']) {
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   });
   test(`${market} filters, single focus border and compact todos across surfaces`,async({page})=>{
-    test.setTimeout(90_000); await page.setViewportSize({width:1440,height:900}); await login(page,market);
+    test.setTimeout(90_000); await page.emulateMedia({reducedMotion:"reduce"}); await page.setViewportSize({width:1440,height:900}); await login(page,market);
     for(const space of ['personal','team-eureka']) {
       await page.goto(`/${market}/workbench/?view=home&space=${space}`);
       const controls=page.locator('.mf-control'); await expect(controls.first()).toBeVisible();
@@ -137,3 +137,47 @@ for (const market of ['cn', 'global']) {
     }
   });
 }
+
+
+for(const market of ["cn","global"]) test(`${market} UI-DENSITY-05 calendar sources, own sharing and lightweight actions`,async({page})=>{
+  test.setTimeout(90_000); await page.emulateMedia({reducedMotion:"reduce"}); await page.setViewportSize({width:1440,height:900}); await login(page,market);
+  for(const view of ["home","members"]){
+    await page.goto(`/${market}/workbench/?view=${view}&space=team-eureka`);
+    const actions=page.locator('.ws-table td .ws-actions .ws-btn');
+    await expect(actions.first()).toHaveCSS('border-width','0px');
+    await expect(actions.first()).toHaveCSS('font-size','12px');
+    if(view==='home'){
+      await expect(page.locator('[data-ws-action=sort]').first()).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
+      await expect(page.locator('[data-ws-action=sort]').first()).toHaveCSS('border-width','0px');
+      expect(await page.locator('.ex-daily-row').first().evaluate(el=>el.querySelector('time')!.getBoundingClientRect().right<=el.querySelector('strong')!.getBoundingClientRect().left)).toBe(true);
+    }
+    await page.screenshot({path:`artifacts/ui-density/${market}-light-${view}.png`});
+  }
+  for(const space of ['personal','team-eureka']) {
+    await page.goto(`/${market}/workbench/?view=calendar&space=${space}`);
+    if(space==='team-eureka') {
+      for(const source of ['dingtalk','feishu','system','manual']) await expect(page.locator(`.pa-calendar-entry[data-source=${source}]`).first()).toBeVisible();
+      await expect(page.locator('.pa-calendar-entry:not([data-owner=zhang]) .ex-share')).toHaveCount(0);
+      await expect(page.locator('.pa-calendar-entry[data-owner=zhang] .ex-share').first()).toBeAttached();
+      await expect(page.getByText('项目联合周会',{exact:true})).toHaveCount(1);
+      await expect(page.getByText('林晓 · 共享给我',{exact:true}).first()).toBeVisible();
+    }
+    for(const mode of ['日','周','月']) {
+      await page.locator('.pa-view-tabs').getByRole('button',{name:mode,exact:true}).click();
+      await page.mouse.move(0,0);
+      const card=page.locator('.pa-calendar-entry').first(),actions=card.locator('.pa-calendar-entry-actions');
+      await expect(actions).toHaveCSS('opacity','0');
+      await card.hover(); await expect(actions).toHaveCSS('opacity','1');
+      await page.mouse.move(0,0); await actions.locator('.pa-calendar-edit').focus(); await expect(actions).toHaveCSS('opacity','1');
+      if(mode!=='日') expect((await card.boundingBox())!.height).toBeLessThan(125);
+      await page.screenshot({path:`artifacts/ui-density/${market}-${space}-compact-${mode}.png`});
+    }
+  }
+  await page.goto(`/${market}/workbench/?view=calendar&space=team-eureka&actor=kevin`);
+  await expect(page.getByText('项目联合周会',{exact:true})).toHaveCount(1);
+  await expect(page.locator('.pa-calendar-entry:not([data-owner=kevin]) .ex-share')).toHaveCount(0);
+  await page.goto(`/${market}/workbench/?view=home&space=personal`);
+  expect(await page.locator('.daily-brief').evaluate(el=>{const a=el.querySelector('.daily-brief-narrative')!.getBoundingClientRect(),b=el.querySelector('.brief-todo-line')!.getBoundingClientRect();return b.top-a.bottom<=10})).toBe(true);
+  expect(await page.locator('.daily-brief-narrative').evaluate(el=>{const line=parseFloat(getComputedStyle(el).lineHeight);return Math.abs(el.clientHeight/line-Math.round(el.clientHeight/line))<0.05})).toBe(true);
+  await page.screenshot({path:`artifacts/ui-density/${market}-centered-brief.png`});
+});

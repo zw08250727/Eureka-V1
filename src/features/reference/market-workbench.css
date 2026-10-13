@@ -363,3 +363,41 @@ html:has(.market-surface[data-market]) body {
     #personal-actions :is(.ex-share, .pa-calendar-edit, .pa-page-head [data-pa="edit"]) { min-height: 44px; min-width: 44px; }
   }
 }
+
+/* UI-DENSITY-05: text-only list actions and compact calendar content. */
+html:has(.market-surface[data-market]) body {
+  #ws-view :is(.ws-recording-table, .ws-member-table) :is(th .ws-btn.link, td .ws-actions .ws-btn) {
+    border: 0; background: transparent; box-shadow: none; font-size: 12px; line-height: 18px; font-weight: 400;
+  }
+  #ws-view .ws-recording-table th .ws-btn.link { font-weight: inherit; }
+  #ws-view :is(.ws-recording-table, .ws-member-table) td .ws-actions .ws-btn:hover { text-decoration: underline; }
+  #recording-card .meeting-row-actions button { border: 0; background: transparent; box-shadow: none; }
+  #today-assets-grid .daily-brief { display: flex; flex-direction: column; justify-content: center; gap: 8px; min-height: 0; }
+  #today-assets-grid .daily-brief-narrative { flex: 0 0 auto; margin: 0; max-height: 66px; overflow: auto; }
+  #today-assets-grid .brief-todo-line { flex: 0 1 auto; margin: 0; gap: 0; max-height: 112px; min-height: 0; overflow: auto; }
+  #today-assets-grid .brief-task { min-height: 28px; height: 28px; padding-block: 0; flex-shrink: 0; }
+  #today-assets-grid .daily-brief-actions { flex-shrink: 0; margin: 0; padding: 0; }
+  #personal-actions .pa-calendar-entry { gap: 6px; }
+  #personal-actions .pa-record-meta { display: flex; flex-wrap: wrap; gap: 0 6px; margin-top: 2px; color: var(--ui-meta); font-size: 12px; line-height: 18px; font-weight: 400; }
+  #personal-actions .pa-record-meta > span + span::before { content: "· "; }
+  #personal-actions .pa-calendar-cell .pa-calendar-entry { margin: 4px 0; padding: 6px; gap: 2px 4px; }
+  #personal-actions .pa-calendar-cell .pa-list-row { padding: 0; min-height: 0; }
+  #personal-actions .pa-calendar-cell .pa-list-row strong { font-size: 12px; line-height: 18px; font-weight: 500; }
+  #personal-actions .pa-calendar-cell .pa-list-row time { margin-bottom: 2px; line-height: 16px; }
+  #personal-actions .pa-calendar-cell .pa-calendar-entry-actions { margin: 0; padding: 0; align-self: end; }
+  #personal-actions .pa-calendar-cell .pa-calendar-entry-actions :is(.ex-share,.pa-calendar-edit) { min-height: 24px; padding: 0 4px; }
+}
+@media (hover: hover) and (pointer: fine) {
+  html:has(.market-surface[data-market]) body #personal-actions .pa-calendar-entry-actions { opacity: 0; pointer-events: none; }
+  html:has(.market-surface[data-market]) body #personal-actions .pa-calendar-entry:is(:hover,:focus-within) .pa-calendar-entry-actions { opacity: 1; pointer-events: auto; }
+}
+@media (hover: none), (pointer: coarse), (max-width: 760px) {
+  html:has(.market-surface[data-market]) body #personal-actions .pa-calendar-cell .pa-calendar-entry-actions :is(.ex-share,.pa-calendar-edit) { min-width: 44px; min-height: 44px; }
+}
+
+@media (hover: none), (pointer: coarse), (max-width: 760px) {
+  html:has(.market-surface[data-market]) body #today-assets-grid {
+    .brief-task { min-height: 44px; height: 44px; }
+    .brief-todo-line { max-height: 88px; }
+  }
+}

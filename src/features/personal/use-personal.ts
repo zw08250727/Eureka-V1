@@ -2,7 +2,7 @@
 import { marketStorage, scopedKey } from "@/features/markets/storage";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { ensureTeamDailyDemo } from "./team-daily-demo";
+import { ensureTeamDailyDemo, ensureSharedCalendarDemo } from "./team-daily-demo";
 import { ensureCustomerDetailDemo } from "./customer-detail-demo";
 import { ensureTeamCustomerDemo } from "./team-customer-demo";
 import {
@@ -42,6 +42,7 @@ export function usePersonal(accountId = "zhang", workspaceId = "personal", custo
       try {
         ensureTeamCustomerDemo(marketStorage, workspaceId, accountId);
         ensureTeamDailyDemo(marketStorage, workspaceId);
+        ensureSharedCalendarDemo(marketStorage, workspaceId);
         if (customerDetails) ensureCustomerDetailDemo(marketStorage, workspaceId, accountId);
         repo.current = {
           actions: createActions(marketStorage, () => new Date(), accountId, workspaceId),
