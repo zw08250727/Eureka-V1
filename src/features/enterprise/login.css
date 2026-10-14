@@ -2,6 +2,7 @@
 .enterprise-login-card, .enterprise-login-card * { box-sizing: border-box; }
 .enterprise-login-card { width: 100%; padding: 56px 40px 32px; color: var(--ui-text); background: #fff; }
 .enterprise-auth-brand { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 24px; }
+.enterprise-auth-brand > img { display: block; width: 28px; height: 36px; flex-shrink: 0; object-fit: contain; }
 .enterprise-auth-brand strong { font-size: 28px; line-height: 36px; font-weight: 650; color: var(--ui-text); }
 .enterprise-auth-brand > span { padding-left: 12px; border-left: 1px solid var(--ui-border); font-size: 13px; line-height: 20px; color: var(--ui-secondary); }
 .enterprise-code-back { min-height: 36px; margin: 0 0 12px; padding: 4px 0; border: 0; background: transparent; color: var(--market-accent); font-size: 13px; cursor: pointer; }

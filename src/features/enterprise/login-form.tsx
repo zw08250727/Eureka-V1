@@ -3,6 +3,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { basePath } from "@/lib/routes";
+import { productLogo } from "@/features/markets/brand";
 import { DomesticCredentials } from "@/features/auth/domestic-credentials";
 import { useAuthReady } from "@/features/auth/use-auth-ready";
 import { findEnterprise, type EnterpriseTenant } from "./model";
@@ -17,7 +18,7 @@ export function EnterpriseLoginForm() {
   const [error, setError] = useState("");
   function changeEnterprise() { setTenant(undefined); setError(""); setCode(""); }
   return <section className="enterprise-login-card" aria-label="百销企业认证">
-    <div className="enterprise-auth-brand"><strong>百销</strong><span>企业工作台</span></div>
+    <div className="enterprise-auth-brand"><Image src={productLogo("cn")} alt="" width={28} height={36} unoptimized /><strong>百销</strong><span>企业工作台</span></div>
         {tenant ? <>
           <button type="button" className="enterprise-code-back" aria-label="返回企业代码" onClick={changeEnterprise}>‹ 返回企业代码</button>
           <div className="enterprise-tenant">
@@ -32,7 +33,7 @@ export function EnterpriseLoginForm() {
           if (!match) { setError("企业代码无效，请核对后重试。"); return; }
           setTenant(match); setError("");
         }}>
-          <h2>企业登录</h2><p className="enterprise-login-desc">输入企业代码，进入企业专属工作台</p>
+          <h2>欢迎企业登录</h2><p className="enterprise-login-desc">输入企业代码，进入企业专属工作台</p>
           <label className="sr-only" htmlFor="enterprise-code">企业代码</label>
           <div className="credential-input">
             <span className="credential-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="3"/><path d="M8 7V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v3M2 12a24 24 0 0 0 20 0"/></svg></span>
