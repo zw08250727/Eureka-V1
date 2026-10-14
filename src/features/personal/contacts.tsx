@@ -492,7 +492,7 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
                               <small>{`${p.role} · ${p.company}`}</small>
                             </span>
                           </span>
-                          <div className="customer-card-meta">{team && <span className="customer-owner-tag">所属成员：{ownerName(p.ownerId)}</span>}<ContactTag>{p.subjectType === "enterprise" ? "企业" : "自然人"}</ContactTag><span>{[...new Set((p.sources || []).map((source) => channelNames[source.channel]))].join(" · ") || "来源未记录"}</span></div>
+                          <div className="customer-card-meta">{team && <span className="customer-owner-tag">所属成员：{ownerName(p.ownerId)}</span>}<ContactTag>{p.subjectType === "enterprise" ? "企业" : "自然人"}</ContactTag><ContactTag>{[...new Set((p.sources || []).map((source) => channelNames[source.channel]))].join(" · ") || "来源未记录"}</ContactTag></div>
                           <p>{p.summary}</p>
                           <span className="contacts-person-foot">
                             <ContactTag>{p.tag}</ContactTag>
