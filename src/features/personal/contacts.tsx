@@ -456,13 +456,13 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
                 ) : (
                   <>
                     <div className="contacts-toolbar contacts-toolbar-inline" role="region" aria-label="搜索与筛选联系人">
-                      <label className="contacts-search-field"><span>搜索</span><span className="contacts-search"><RefIcon name="search"/><input id="contacts-search" type="search" aria-label="搜索客户" placeholder="姓名、公司、角色、主题…" value={query} onChange={e=>setQuery(e.target.value)}/></span></label>
-                      <label className="contacts-filter-field"><span>主体类型</span><Select aria-label="筛选主体类型" value={subjectFilter} onChange={e=>setSubjectFilter(e.target.value)}><option value="">全部类型</option><option value="enterprise">企业</option><option value="person">自然人</option></Select></label>
-                      <label className="contacts-filter-field contacts-source-field"><span>客户来源</span><Select aria-label="筛选客户来源" value={sourceFilter} onChange={e=>setSourceFilter(e.target.value)}><option value="">全部来源</option>{Object.entries(customerSourceFilters).map(([value,label])=><option key={value} value={value}>{label}</option>)}</Select></label>
-                      {team&&<label className="contacts-filter-field"><span>所属成员</span><Select aria-label="筛选所属成员" value={ownerFilter} onChange={e=>setOwnerFilter(e.target.value)}><option value="">全部成员</option>{workspace?.members.filter(m=>m.status==='active').map(m=><option key={m.id} value={m.id}>{m.name}{m.id===actor?'（我）':''}</option>)}</Select></label>}
-                      <label className="contacts-filter-field contacts-date-field"><span>创建开始日期</span><input type="date" aria-label="创建开始日期" value={createdFrom} max={createdTo||undefined} onChange={e=>setCreatedFrom(e.target.value)}/></label>
-                      <label className="contacts-filter-field contacts-date-field"><span>创建结束日期</span><input type="date" aria-label="创建结束日期" value={createdTo} min={createdFrom||undefined} onChange={e=>setCreatedTo(e.target.value)}/></label>
-                      <label className="contacts-filter-field"><span>排序</span><Select aria-label="按创建时间排序" value={dateOrder} onChange={e=>setDateOrder(e.target.value)}><option value="desc">最新创建</option><option value="asc">最早创建</option></Select></label>
+                      <label className="contacts-search-field"><span className="contacts-search"><RefIcon name="search"/><input id="contacts-search" type="search" aria-label="搜索客户" placeholder="姓名、公司、角色、主题…" value={query} onChange={e=>setQuery(e.target.value)}/></span></label>
+                      <label className="contacts-filter-field"><Select aria-label="筛选主体类型" value={subjectFilter} onChange={e=>setSubjectFilter(e.target.value)}><option value="">全部类型</option><option value="enterprise">企业</option><option value="person">自然人</option></Select></label>
+                      <label className="contacts-filter-field contacts-source-field"><Select aria-label="筛选客户来源" value={sourceFilter} onChange={e=>setSourceFilter(e.target.value)}><option value="">全部来源</option>{Object.entries(customerSourceFilters).map(([value,label])=><option key={value} value={value}>{label}</option>)}</Select></label>
+                      {team&&<label className="contacts-filter-field"><Select aria-label="筛选所属成员" value={ownerFilter} onChange={e=>setOwnerFilter(e.target.value)}><option value="">全部成员</option>{workspace?.members.filter(m=>m.status==='active').map(m=><option key={m.id} value={m.id}>{m.name}{m.id===actor?'（我）':''}</option>)}</Select></label>}
+                      <label className="contacts-filter-field contacts-date-field"><input type="date" aria-label="创建开始日期" value={createdFrom} max={createdTo||undefined} onChange={e=>setCreatedFrom(e.target.value)}/></label>
+                      <label className="contacts-filter-field contacts-date-field"><input type="date" aria-label="创建结束日期" value={createdTo} min={createdFrom||undefined} onChange={e=>setCreatedTo(e.target.value)}/></label>
+                      <label className="contacts-filter-field"><Select aria-label="按创建时间排序" value={dateOrder} onChange={e=>setDateOrder(e.target.value)}><option value="desc">最新创建</option><option value="asc">最早创建</option></Select></label>
                       <button className="contacts-button contacts-reset" type="button" onClick={()=>{setSubjectFilter('');setSourceFilter('');setOwnerFilter('');setCreatedFrom('');setCreatedTo('');setQuery('');setDateOrder('desc')}}>重置</button>
                     </div>
                     {createdFrom && createdTo && createdFrom > createdTo && <p role="alert">开始日期不能晚于结束日期</p>}
@@ -495,8 +495,8 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
                           <div className="customer-card-meta">{team && <span className="customer-owner-tag">所属成员：{ownerName(p.ownerId)}</span>}<ContactTag>{p.subjectType === "enterprise" ? "企业" : "自然人"}</ContactTag><ContactTag>{[...new Set((p.sources || []).map((source) => channelNames[source.channel]))].join(" · ") || "来源未记录"}</ContactTag></div>
                           <p>{p.summary}</p>
                           <span className="contacts-person-foot">
-                            <ContactTag>{p.tag}</ContactTag>
-                            <span>创建于 {p.createdAt?.slice(0, 10) || "时间未记录"}</span>
+                            {p.tag && p.tag !== "示例客户" && <ContactTag>{p.tag}</ContactTag>}
+                            <span className="contact-created-at">创建时间：{p.createdAt?.slice(0, 10) || "时间未记录"}</span>
                           </span>
                         </button>
                         {team && canShareContact(p, actor) && <button type="button" className="contact-list-share" data-contact-action="share-contact" disabled={workspaceReadonly} onClick={() => setSharing(customerKey(p))}>共享</button>}

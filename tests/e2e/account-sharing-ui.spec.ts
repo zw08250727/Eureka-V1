@@ -33,22 +33,24 @@ async function add(page: Page, name: string, company: string, email = "verified.
   await form.locator('[name="name"]').fill(name);
   await form.locator('[name="company"]').fill(company);
   await form.locator('[name="email"]').fill(email);
-  await form.locator('[name="verifiedEmail"]').check();
-  await form.getByRole("button", { name: "添加客户", exact: true }).click();
+  await expect(form.getByRole("checkbox")).toHaveCount(0);
+  await form.getByRole("button", { name: "添加联系人", exact: true }).click();
   await expect(form).toHaveCount(0);
 }
-test("manual entry and CRM import retain CRM precedence without exposing source or export panels", async ({ page }) => {
+// CONTACT-FORM-02: manual input no longer claims verified identity or merges by email.
+test("manual entry keeps unverified identity separate from an existing CRM contact", async ({ page }) => {
   await go(page, "contacts", "personal");
   await expect(page.locator(".contacts-person-card")).toHaveCount(8);
   await add(page, "John 的手动姓名", "手动公司", "john@abc-energy.example");
-  await expect(page.locator(".contacts-person-card")).toHaveCount(8);
+  await expect(page.locator(".contacts-person-card")).toHaveCount(9);
+  await expect(page.locator(".contacts-person-card").filter({ hasText: "John 的手动姓名" })).toContainText("手动公司");
   const card = page.locator(".contacts-person-card").filter({ hasText: "John Chen" });
   await expect(card).toContainText("ABC Energy");
   await card.click();
   await expect(page.locator(".contacts-main")).not.toContainText("来源冲突（保留候选）");
   await expect(page.locator('[data-contact-action="export-crm"]')).toHaveCount(0);
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("baizhi-v14-contacts")!).personal.contacts.find((p: {id:string}) => p.id === "john"));
-  expect(saved.sourceConflicts.some((c: {value:string}) => c.value === "手动公司")).toBe(true);
+  expect((saved.sourceConflicts || []).some((c: {value:string}) => c.value === "手动公司")).toBe(false);
   await page.reload(); await card.click();
   await expect(page.locator(".contacts-facts")).toContainText("ABC Energy");
 });

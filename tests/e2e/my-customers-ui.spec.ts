@@ -3,9 +3,26 @@ const go = (page: Page, space = "personal", actor = "zhang") => page.goto(`/work
 const cards = (page: Page) => page.locator(".contacts-person-card");
 const openJohn = async (page: Page) => { await go(page); await cards(page).filter({ hasText: "John Chen" }).click(); };
 
-test("customer types, source and creation filters compose; manual and CRM are the only add methods", async ({ page }) => {
-  await go(page);
-  await expect(page.getByRole("heading", { name: "我的客户", exact: true })).toBeVisible();
+async function login(page: Page, market: "cn" | "global") {
+  await page.goto(`/${market}/`);
+  await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();
+  if (market === "cn") {
+    await page.getByRole("button", { name: "个人/团队版", exact: true }).click();
+    await page.getByRole("button", { name: "邮箱", exact: true }).click();
+  }
+  await page.locator("#email").fill("contacts@example.com");
+  await page.locator("#code").fill("123456");
+  await page.locator("#terms").check();
+  await page.locator("#submit").click();
+  await expect(page.locator(".app")).toBeVisible();
+}
+
+// CONTACT-ADD-01: the add dialog exposes manual and phone entry in both markets.
+for (const market of ["cn", "global"] as const) {
+test(`${market}: customer filters and manual/phone add methods persist correctly`, async ({ page }) => {
+  await login(page, market);
+  await page.goto(`/${market}/workbench/?view=contacts&space=personal`);
+  await expect(page.getByRole("heading", { name: "通讯录", exact: true })).toBeVisible();
   await expect(cards(page)).toHaveCount(8);
   await page.getByLabel("筛选主体类型").selectOption("enterprise");
   await expect(cards(page)).toHaveCount(2);
@@ -18,25 +35,27 @@ test("customer types, source and creation filters compose; manual and CRM are th
   await page.getByLabel("按创建时间排序").selectOption("asc");
   await expect(cards(page).first()).toContainText("John Chen");
   await page.locator('[data-contact-action="add"]').click();
-  const dialog = page.getByRole("dialog", { name: "添加客户", exact: true });
+  const dialog = page.getByRole("dialog", { name: "添加联系人", exact: true });
   await expect(dialog.getByRole("group", { name: "录入方式" }).getByRole("button")).toHaveCount(2);
+  await expect(dialog.getByRole("group", { name: "录入方式" }).getByRole("button")).toHaveText(["手动创建", "手机通讯录导入"]);
+  await expect(dialog.getByRole("button", { name: "CRM 系统导入", exact: true })).toHaveCount(0);
   await expect(dialog.locator('[name="sourceId"]')).toBeHidden();
   await dialog.getByLabel("主体类型", { exact: true }).selectOption("enterprise");
   await dialog.getByLabel("企业名称", { exact: true }).fill("测试企业");
-  await dialog.getByRole("button", { name: "添加客户", exact: true }).click();
+  await dialog.getByRole("button", { name: "添加联系人", exact: true }).click();
   await expect(cards(page)).toHaveCount(9);
   await page.reload();
   await expect(cards(page).filter({ hasText: "测试企业" })).toContainText("企业");
   for (let i = 0; i < 2; i++) {
     await page.locator('[data-contact-action="add"]').click();
-    await dialog.getByRole("button", { name: "CRM 系统导入", exact: true }).click();
-    await expect(dialog).toContainText("尚未连接真实 CRM");
-    await dialog.getByLabel("选择 CRM 客户").selectOption("CRM-yuanhang");
+    await dialog.getByRole("button", { name: "手机通讯录导入", exact: true }).click();
+    await dialog.getByLabel("选择手机联系人").selectOption("phone-li");
     await dialog.getByRole("button", { name: "确认导入" }).click();
   }
-  await expect(cards(page).filter({ hasText: "远航智能" })).toHaveCount(1);
+  await expect(cards(page).filter({ hasText: "李嘉禾" })).toHaveCount(1);
   await expect(cards(page)).toHaveCount(10);
 });
+}
 
 test("meeting followups, keywords, source todos and customer profile replace legacy panels", async ({ page }) => {
   await openJohn(page);
@@ -112,25 +131,37 @@ test("deleted meeting invalidates derived profile, keywords and todos", async ({
   await expect(page.locator(".contacts-main")).not.toContainText("提供首批经销商名单");
 });
 
-test("customer list, detail and import dialog fit desktop and phone", async ({ page }) => {
-  for (const width of [1440, 1080, 390]) {
-    await page.setViewportSize({ width, height: 900 });
-    await go(page);
-    await expect(cards(page)).toHaveCount(8);
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    await page.screenshot({ path: `test-results/my-customers-${width}.png`, fullPage: true });
-    await cards(page).filter({ hasText: "John Chen" }).click();
-    await page.getByRole("tab", { name: "记忆", exact: true }).click();
-    await page.screenshot({ path: `test-results/customer-profile-${width}.png`, fullPage: true });
-    await page.locator('[data-contact-action="list"]').click();
-    await page.locator('[data-contact-action="add"]').click();
-    const dialog = page.getByRole("dialog", { name: "添加客户", exact: true });
-    await dialog.getByRole("button", { name: "CRM 系统导入" }).click();
-    await expect(dialog.getByRole("button", { name: "确认导入" })).toBeInViewport();
-    await page.screenshot({ path: `test-results/customer-import-${width}.png`, fullPage: true });
-    await page.keyboard.press("Escape");
+for (const market of ["cn", "global"] as const) {
+test(`${market}: contact add dialog fits desktop and phone in personal and team workspaces`, async ({ page }) => {
+  await login(page, market);
+  for (const space of ["personal", "team-eureka"]) {
+    await page.goto(`/${market}/workbench/?view=contacts&space=${space}`);
+    for (const width of [1440, 1080, 768, 390]) {
+      await page.setViewportSize({ width, height: 900 });
+      if (space === "personal") {
+        await expect(cards(page)).toHaveCount(8);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+        await page.screenshot({ path: `test-results/contact-add/${market}-list-${width}.png`, fullPage: true });
+        await cards(page).filter({ hasText: "John Chen" }).click();
+        await page.getByRole("tab", { name: "记忆", exact: true }).click();
+        await page.screenshot({ path: `test-results/contact-add/${market}-profile-${width}.png`, fullPage: true });
+        await page.locator('[data-contact-action="list"]').click();
+      }
+      await page.locator('[data-contact-action="add"]').click();
+      const dialog = page.getByRole("dialog", { name: "添加联系人", exact: true });
+      await expect(dialog.getByRole("group", { name: "录入方式" }).getByRole("button")).toHaveText(["手动创建", "手机通讯录导入"]);
+      await expect(dialog.getByRole("button", { name: "手动创建", exact: true })).toHaveAttribute("aria-pressed", "true");
+      await dialog.getByRole("button", { name: "手机通讯录导入" }).click();
+      await expect(dialog.getByRole("button", { name: "确认导入" })).toBeInViewport();
+      expect(await dialog.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+      await page.screenshot({ path: `test-results/contact-add/${market}-${space}-${width}.png`, fullPage: true });
+      await page.keyboard.press("Escape");
+      await expect(dialog).toHaveCount(0);
+      await expect(page.locator('[data-contact-action="add"]')).toBeFocused();
+    }
   }
 });
+}
 
 test("followup save failure preserves draft and retry creates a single schedule", async ({ page }) => {
   await openJohn(page);
