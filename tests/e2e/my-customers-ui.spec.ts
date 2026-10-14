@@ -17,9 +17,9 @@ async function login(page: Page, market: "cn" | "global") {
   await expect(page.locator(".app")).toBeVisible();
 }
 
-// CONTACT-ADD-01: the add dialog exposes manual and phone entry in both markets.
+// CONTACT-PHONE-01: phone import guides users to the App without writing contacts.
 for (const market of ["cn", "global"] as const) {
-test(`${market}: customer filters and manual/phone add methods persist correctly`, async ({ page }) => {
+test(`${market}: customer filters and manual creation persist; phone guidance never imports`, async ({ page }) => {
   await login(page, market);
   await page.goto(`/${market}/workbench/?view=contacts&space=personal`);
   await expect(page.getByRole("heading", { name: "通讯录", exact: true })).toBeVisible();
@@ -49,11 +49,17 @@ test(`${market}: customer filters and manual/phone add methods persist correctly
   for (let i = 0; i < 2; i++) {
     await page.locator('[data-contact-action="add"]').click();
     await dialog.getByRole("button", { name: "手机通讯录导入", exact: true }).click();
-    await dialog.getByLabel("选择手机联系人").selectOption("phone-li");
-    await dialog.getByRole("button", { name: "确认导入" }).click();
+    await expect(dialog.getByRole("heading", { name: "请在手机 App 中导入通讯录" })).toBeVisible();
+    await expect(dialog.getByLabel("选择手机联系人")).toHaveCount(0);
+    await expect(dialog.locator('[type="submit"]')).toHaveCount(0);
+    await dialog.locator("form").evaluate(form => (form as HTMLFormElement).requestSubmit());
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("alert")).toBeEmpty();
+    await dialog.getByRole("button", { name: "知道了", exact: true }).click();
   }
-  await expect(cards(page).filter({ hasText: "李嘉禾" })).toHaveCount(1);
-  await expect(cards(page)).toHaveCount(10);
+  await expect(cards(page)).toHaveCount(9);
+  await page.reload();
+  await expect(cards(page)).toHaveCount(9);
 });
 }
 
@@ -152,7 +158,7 @@ test(`${market}: contact add dialog fits desktop and phone in personal and team 
       await expect(dialog.getByRole("group", { name: "录入方式" }).getByRole("button")).toHaveText(["手动创建", "手机通讯录导入"]);
       await expect(dialog.getByRole("button", { name: "手动创建", exact: true })).toHaveAttribute("aria-pressed", "true");
       await dialog.getByRole("button", { name: "手机通讯录导入" }).click();
-      await expect(dialog.getByRole("button", { name: "确认导入" })).toBeInViewport();
+      await expect(dialog.getByRole("button", { name: "知道了" })).toBeInViewport();
       expect(await dialog.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
       await page.screenshot({ path: `test-results/contact-add/${market}-${space}-${width}.png`, fullPage: true });
       await page.keyboard.press("Escape");

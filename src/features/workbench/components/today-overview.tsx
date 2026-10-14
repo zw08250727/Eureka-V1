@@ -221,7 +221,7 @@ export function TodayOverview({
                   onClick={() => onNavigate("calendar")}
                   aria-label="查看日程与待办"
                 >
-                  {guest ? "查看" : `${r.schedules.length} 场`} ↗
+                  {guest ? "查看" : `${r.schedules.length} 场`}
                 </button>
               </header>
               <div className="daily-rhythm-events">
@@ -240,9 +240,6 @@ export function TodayOverview({
                           .join(" · ")}
                       </em>
                     </span>
-                    <span className="rhythm-arrow" aria-hidden="true">
-                      ↗
-                    </span>
                   </button>
                 ))}
                 {!r.schedules.length ? (
@@ -258,8 +255,9 @@ export function TodayOverview({
                 <button
                   type="button"
                   onClick={() => onNavigate("thoughts", "inspiration")}
+                  aria-label="查看全部灵感"
                 >
-                  {guest ? "查看" : `${r.ideas.length} 条`} ↗
+                  {guest ? "查看" : `${r.ideas.length} 条`}
                 </button>
               </header>
               <div>
@@ -285,7 +283,7 @@ export function TodayOverview({
                   onClick={() => onNavigate("thoughts", "ledger")}
                   aria-label="查看全部记账"
                 >
-                  ↗
+                  查看
                 </button>
               </header>
               <div className="daily-ledger-total">

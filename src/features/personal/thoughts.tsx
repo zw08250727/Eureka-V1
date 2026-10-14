@@ -8,6 +8,7 @@ import {
   ActionEditor,
   ActionPreview,
   PersonalToast,
+  actionSource,
   localDate,
   useLivePersonal,
 } from "./calendar-dialogs";
@@ -414,8 +415,8 @@ export function ThoughtsPage({ id, actor = "zhang", space = "personal", controll
                                         {r.detail || "暂无补充内容"}
                                       </span>
                                       <span className="th-meta">
-                                        {r.time} ·{" "}
-                                        {r.source === "manual"
+                                        {!("action" in r) && <>{r.time} · </>}
+                                        {"action" in r ? actionSource(r) : r.source === "manual"
                                           ? "手动创建"
                                           : r.source === "agent"
                                             ? "Agent 创建"

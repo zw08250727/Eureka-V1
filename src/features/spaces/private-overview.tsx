@@ -22,21 +22,21 @@ export function PrivateOverview({ space, actor, now, readOnly }: {
     catch (e) { setNotice((e as Error).message); }
   }
   return <aside className="team-private-column" aria-label="我的闪念与安排">
-    <header className="team-section-heading"><h2>团队日常 <span className="team-private-badge">{adminView ? "管理员可管理" : "按共享权限展示"}</span></h2><a href={link("thoughts", "schedule")}>全部闪念 ↗</a></header>
+    <header className="team-section-heading"><h2>团队日常 <span className="team-private-badge">{adminView ? "管理员可管理" : "按共享权限展示"}</span></h2><a href={link("thoughts", "schedule")}>全部闪念</a></header>
     {(error || notice) && <p role="alert">{error || notice}</p>}
     <div className="team-private-agenda">
-      <section aria-label="今日日程"><header><h3>今日日程 <span>{r.schedules.length}</span></h3><a href={link("calendar")}>日历 ↗</a></header>
+      <section aria-label="今日日程"><header><h3>今日日程 <span>{r.schedules.length}</span></h3><a href={link("calendar")}>日历</a></header>
         <div className="team-private-list">{!r.schedules.length && <p>今天暂无日程</p>}{r.schedules.slice(0, 3).map(s => <div className="ex-daily-row" key={s.id}><a href={link("calendar", s.id)} title={s.title}><time>{scheduleTime(s)}</time><span className="team-schedule-copy"><strong>{s.title}</strong><em>{[s.location, s.participants || assetOwner(space,s.ownerId)].filter(Boolean).join(" · ")}</em></span></a></div>)}</div>
       </section>
-      <section aria-label="我的待办"><header><h3>待办 <span>{r.todos.filter(t => !t.done).length} 项未完成</span></h3><a href={link("calendar")}>全部 ↗</a></header>
+      <section aria-label="我的待办"><header><h3>待办 <span>{r.todos.filter(t => !t.done).length} 项未完成</span></h3><a href={link("calendar")}>全部</a></header>
         <div className="team-private-list">{!r.todos.length && <p>暂无待办</p>}{r.todos.slice(0, 3).map(t => <div className="team-private-todo" key={t.id}><button className="team-todo-toggle" aria-label={`完成状态：${t.title}`} aria-pressed={t.done} disabled={readOnly||!canEditAsset(space,actor,t)} onClick={() => toggle(t)}><span className="team-todo-mark ui-todo-mark" aria-hidden="true">{t.done ? "✓" : ""}</span></button><button className="team-private-todo-title" aria-pressed={t.done} disabled={readOnly||!canEditAsset(space,actor,t)} onClick={() => toggle(t)} title={t.title}>{t.title}</button><span className="ex-owner">{assetOwner(space,t.ownerId)}</span></div>)}</div>
       </section>
     </div>
     <div className="team-private-notes">
-      <section aria-label="今日灵感"><header><h3>灵感 <span>{r.ideas.length}</span></h3><a href={link("thoughts", "inspiration")}>全部 ↗</a></header>
+      <section aria-label="今日灵感"><header><h3>灵感 <span>{r.ideas.length}</span></h3><a href={link("thoughts", "inspiration")}>全部</a></header>
         <div className="team-private-list">{!r.ideas.length && <p>今天暂无灵感</p>}{r.ideas.slice(-2).reverse().map(i => <a className="team-private-idea" key={i.id} href={link("thoughts", i.id)} title={i.title}><span>{i.title}</span><time>{i.time}</time></a>)}</div>
       </section>
-      <section aria-label="今日记账"><header><h3>今日记账</h3><a href={link("thoughts", "ledger")}>查看 ↗</a></header><div className="team-private-ledger">
+      <section aria-label="今日记账"><header><h3>今日记账</h3><a href={link("thoughts", "ledger")}>查看</a></header><div className="team-private-ledger">
         {!r.expenses.length && !r.income.length && <p>今日暂无收支</p>}
         {r.expenses.map(t => <p key={`expense-${t.currency}`}><span>支出</span><strong>{money(t.amount, t.currency)}</strong></p>)}
         {r.income.map(t => <p key={`income-${t.currency}`}><span>收入</span><strong>{money(t.amount, t.currency)}</strong></p>)}

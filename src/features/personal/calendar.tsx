@@ -197,7 +197,16 @@ export function CalendarPage({
       setDate(d.toISOString().slice(0, 10));
     } else setDate(shiftDay(date, n * (mode === "week" ? 7 : 1)));
   };
-  const card = (r: ActionRecord, compact = false) => (
+  const card = (r: ActionRecord, compact = false) => {
+    const source = space !== "personal" && r.ownerId && r.ownerId !== actor && r.sharedWith?.includes(actor)
+      ? assetOwner(space, r.ownerId)
+      : actionSource(r);
+    const start = r.start ? localDate(r.start) : "";
+    const end = r.end ? localDate(r.end) : "";
+    const time = !start ? "未安排" : r.type === "schedule" && end
+      ? `${start.slice(11)}-${start.slice(0, 10) === end.slice(0, 10) ? "" : end.slice(5, 10) + " "}${end.slice(11)}`
+      : compact || start.slice(0, 10) === date ? start.slice(11) : start;
+    return (
     <div
       key={r.id}
       className={`pa-calendar-entry ${r.type} ${r.done ? "is-done" : ""}`}
@@ -224,16 +233,19 @@ export function CalendarPage({
         data-personal-open={r.id}
         onClick={() => open(r)}
       >
-        <time>
-          {!r.start
-            ? "未安排"
-            : r.start.slice(0, 10) === date || compact
-              ? r.start.slice(11, 16)
-              : localDate(r.start)}
-        </time>
+        {compact && r.type === "schedule" ? <>
+          <span className="pa-card-heading">
+            <strong title={r.title}>{r.title}</strong>
+            <span className="pa-card-origin" title={source}>{source}</span>
+          </span>
+          <time title={`${start}${end ? " — " + end : ""}`}>{time}</time>
+        </> : <>
+        <time>{time}</time>
         <span>
-          <strong>{r.title}</strong>
-          <span className="pa-record-meta"><span>{actionSource(r)}</span>{space!=="personal"&&<span>{assetOwner(space,r.ownerId)}{r.ownerId!==actor && r.sharedWith?.includes(actor) ? " · 共享给我" : ""}</span>}</span>
+          <span className={!compact ? "pa-record-heading" : undefined}>
+            <strong>{r.title}</strong>
+            <span className="pa-record-meta"><span>{actionSource(r)}</span>{space!=="personal"&&<span>{assetOwner(space,r.ownerId)}{r.ownerId!==actor && r.sharedWith?.includes(actor) ? " · 共享给我" : ""}</span>}</span>
+          </span>
           {!compact && (
             <small>{`${r.notes || r.location || r.capture || ""}${r.participants ? " · " + r.participants : ""}`}</small>
           )}
@@ -243,6 +255,7 @@ export function CalendarPage({
             {r.type === "schedule" ? "日程" : r.done ? "已完成" : "待办"}
           </span>
         )}
+        </>}
       </button>
       <div className="pa-calendar-entry-actions">
       <AssetSharing {...{space,actor}} record={r} onSaved={refresh}/>
@@ -256,12 +269,12 @@ export function CalendarPage({
         title="编辑"
         onClick={() => setEdit({ record: r, variant: "quick" })}
       >
-        <RefIcon name="new-task" />
         <span>编辑</span>
       </button>
       </div>
     </div>
   );
+  };
   const allMeetings = space !== "personal" ? (controller?.state ? M.visible(M.get(controller.state, space), actor).filter((m) => !m.deleted) : []) : actor === "zhang" ? meetings.data?.meetings.filter((m) => !m.deletedAt) || [] : [];
   return (
     <section

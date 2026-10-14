@@ -10,10 +10,15 @@ test("sharing lives on contact cards and details; settings have no content shari
   await page.getByRole("button", { name: "通讯录", exact: true }).first().click();
   await page.getByRole("button", { name: /添加联系人/ }).click();
   await page.getByRole("button", { name: "手机通讯录导入", exact: true }).click();
-  await expect(page.getByRole("dialog")).toContainText("尚未读取真实手机通讯录");
+  await expect(page.getByRole("dialog")).toContainText("请在手机 App 中导入通讯录");
   await page.screenshot({ path: "test-results/phone-contact-import.png" });
-  await page.getByRole("button", { name: "确认导入", exact: true }).click();
-  const card = page.locator(".contact-list-item").filter({ hasText: "手机通讯录导入" });
+  // CONTACT-PHONE-01: App guidance does not create contacts; use manual entry for sharing.
+  await page.getByRole("button", { name: "知道了", exact: true }).click();
+  await page.getByRole("button", { name: /添加联系人/ }).click();
+  const form = page.getByRole("dialog", { name: "添加联系人", exact: true });
+  await form.getByLabel("客户姓名", { exact: true }).fill("共享验收联系人");
+  await form.getByRole("button", { name: "添加联系人", exact: true }).click();
+  const card = page.locator(".contact-list-item").filter({ hasText: "共享验收联系人" });
   await expect(card).toHaveCount(1);
   await expect(page.locator(".contacts-toast")).toHaveCount(0);
   await page.screenshot({ path: "test-results/contact-list-team-share.png" });
@@ -27,11 +32,11 @@ test("sharing lives on contact cards and details; settings have no content shari
   await page.getByRole("button", { name: "团队共享", exact: true }).click();
   await expect(page.getByRole("dialog").getByLabel("Kevin", { exact: true })).toBeChecked();
   await page.getByRole("dialog").getByRole("button", { name: "取消", exact: true }).click();
-  await page.getByRole("combobox", { name: "评审视角" }).selectOption("member");
+  await page.goto("/workbench/?view=contacts&space=team-eureka&actor=kevin");
   await expect(page).toHaveURL(/actor=kevin/);
   await page.getByRole("button", { name: "通讯录", exact: true }).first().click();
-  await expect(page.locator('.contacts-person-card').filter({ hasText: "手机通讯录导入" })).toHaveCount(1);
-  await page.locator('.contacts-person-card').filter({ hasText: "手机通讯录导入" }).click();
+  await expect(page.locator('.contacts-person-card').filter({ hasText: "共享验收联系人" })).toHaveCount(1);
+  await page.locator('.contacts-person-card').filter({ hasText: "共享验收联系人" }).click();
   await expect(page.getByRole("button", { name: "编辑资料", exact: true })).toBeDisabled();
   await expect(page.getByRole("button", { name: "团队共享", exact: true })).toHaveCount(0);
   await page.screenshot({ path: "test-results/contact-shared-readonly.png" });

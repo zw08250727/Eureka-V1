@@ -38,6 +38,10 @@
 .customer-methods { display: flex; gap: 8px; margin-bottom: 20px; }
 .customer-methods button { flex: 1; min-height: 44px; border: 1px solid #d8e3ef; border-radius: 9px; background: #fff; color: #516981; font: inherit; cursor: pointer; }
 .customer-methods button[aria-pressed=true] { background: #edf4ff; color: #215cac; border-color: #5591e1; }
+.contacts-phone-guide { padding: 16px 0; }
+.contacts-phone-guide h3 { margin: 0 0 16px; color: var(--ui-text); font-size: var(--ui-font-section); line-height: var(--ui-line-section); }
+.contacts-phone-guide p { margin: 0 0 12px; color: var(--ui-secondary); font-size: var(--ui-font-body); line-height: var(--ui-line-body); }
+.contacts-phone-guide p:last-child { margin-bottom: 0; }
 .customer-import-notice { color: #6e7e91; font-size: 12px; }
 .customer-import-preview { background: #f6f9fd; border: 1px solid #e0e8f2; padding: 18px; margin: 16px 0; border-radius: 10px; }
 .customer-import-preview strong { font-size: 18px; color: #253c5b; }

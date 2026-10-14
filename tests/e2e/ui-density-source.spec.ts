@@ -166,7 +166,19 @@ for(const market of ["cn","global"]) test(`${market} UI-DENSITY-05 calendar sour
       await page.locator('.pa-view-tabs').getByRole('button',{name:mode,exact:true}).click();
       await page.mouse.move(0,0);
       const card=page.locator('.pa-calendar-entry').first(),actions=card.locator('.pa-calendar-entry-actions');
-      await expect(actions).toHaveCSS('opacity','0');
+      await expect(actions).toHaveCSS('opacity',mode==='日'?'1':'0');
+      if(mode==='日') {
+        expect(await card.locator('.pa-record-heading').evaluate(el=>{
+          const title=el.querySelector('strong')!.getBoundingClientRect(),meta=el.querySelector('.pa-record-meta')!.getBoundingClientRect();
+          return meta.left>=title.right&&Math.abs(meta.top-title.top)<8;
+        })).toBe(true);
+      } else {
+        await expect(card.locator('.pa-card-origin')).toHaveCSS('text-overflow','ellipsis');
+        expect(await card.evaluate(el=>{
+          const title=el.querySelector('strong')!.getBoundingClientRect(),source=el.querySelector('.pa-card-origin')!.getBoundingClientRect(),time=el.querySelector('time')!.getBoundingClientRect(),actions=el.querySelector('.pa-calendar-entry-actions')!.getBoundingClientRect(),bounds=el.getBoundingClientRect();
+          return source.left>=title.right&&Math.abs(source.top-title.top)<8&&actions.top>=time.bottom&&Math.abs(bounds.right-actions.right-6)<1&&Math.abs(bounds.bottom-actions.bottom-6)<1;
+        })).toBe(true);
+      }
       await card.hover(); await expect(actions).toHaveCSS('opacity','1');
       await page.mouse.move(0,0); await actions.locator('.pa-calendar-edit').focus(); await expect(actions).toHaveCSS('opacity','1');
       if(mode!=='日') expect((await card.boundingBox())!.height).toBeLessThan(125);

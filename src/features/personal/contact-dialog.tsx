@@ -2,10 +2,6 @@ import { Select } from "@/components/ui/select";
 import { useEffect, useRef, useState } from "react";
 import type { Contact } from "./store";
 
-const phoneContacts = [
-  { id: "phone-zhou", name: "周宁", phone: "+8613800001001", email: "zhou.ning@example.com", company: "星海智能科技", role: "业务负责人", region: "上海" },
-  { id: "phone-li", name: "李嘉禾", phone: "+8613900001002", email: "li.jiahe@example.com", company: "云帆制造", role: "采购负责人", region: "杭州" },
-];
 export type ContactDialogKind = "add" | "edit" | "note";
 export function ContactDialog({
   kind,
@@ -25,8 +21,7 @@ export function ContactDialog({
   const [error, setError] = useState("");
   const [channel, setChannel] = useState<"manual" | "phone">("manual");
   const [subjectType, setSubjectType] = useState(person?.subjectType || "person");
-  const [phoneId, setPhoneId] = useState(phoneContacts[0].id);
-  const phoneContact = phoneContacts.find(p => p.id === phoneId)!;
+  const isPhoneGuide = kind === "add" && channel === "phone";
   const [sourceId] = useState(() => crypto.randomUUID());
   useEffect(() => {
     closeRef.current = onClose;
@@ -99,6 +94,7 @@ export function ContactDialog({
             data-contact-form={kind}
             onSubmit={(e) => {
               e.preventDefault();
+              if (isPhoneGuide) return;
               try {
                 onSave(new FormData(e.currentTarget));
               } catch (cause) {
@@ -127,17 +123,18 @@ export function ContactDialog({
                   <div className="customer-methods" role="group" aria-label="录入方式">
                     {([["manual", "手动创建"], ["phone", "手机通讯录导入"]] as const).map(([value, label]) => <button key={value} type="button" aria-pressed={channel === value} onClick={() => { setChannel(value); setError(""); }}>{label}</button>)}
                   </div>
-                  <input type="hidden" name="channel" value={channel} />
-                  <input type="hidden" name="sourceId" value={channel === "phone" ? phoneId : sourceId} />
+                  {!isPhoneGuide && <>
+                    <input type="hidden" name="channel" value="manual" />
+                    <input type="hidden" name="sourceId" value={sourceId} />
+                  </>}
                 </>}
-                {kind === "add" && channel === "phone" ? <>
-
-                  <label>选择手机联系人<Select aria-label="选择手机联系人" value={phoneId} onChange={e => setPhoneId(e.target.value)}>{phoneContacts.map(p => <option key={p.id} value={p.id}>{p.name} · {p.phone}</option>)}</Select></label>
-                  <section className="customer-import-preview" aria-label="导入预览"><strong>{phoneContact.name}</strong><p>{phoneContact.company} · {phoneContact.role}</p><p>{phoneContact.phone} · {phoneContact.email}</p></section>
-                  {Object.entries(phoneContact).filter(([k]) => k !== "id").map(([k,v]) => <input type="hidden" key={k} name={k} value={v} />)}
-                  <input type="hidden" name="subjectType" value="person" /><input type="hidden" name="verifiedPhone" value="yes" />
-                  <p className="contacts-muted">已核实手机号一致时，合并到本人在当前工作区的现有联系人；CRM 已有字段优先。</p>
-                </> : <>
+                {isPhoneGuide ? (
+                  <section className="contacts-phone-guide" aria-label="手机 App 导入指引">
+                    <h3>请在手机 App 中导入通讯录</h3>
+                    <p>打开手机 App，使用与当前网页相同的账号登录。</p>
+                    <p>切换到需要导入的个人或团队工作区，授权访问手机通讯录后，选择联系人完成导入。</p>
+                  </section>
+                ) : <>
                   <div className="contacts-form-grid">
                     <label>主体类型<Select aria-label="主体类型" name="subjectType" value={subjectType} onChange={(e) => setSubjectType(e.target.value as "person" | "enterprise")} disabled={kind === "edit"}>
                       <option value="person">自然人</option><option value="enterprise">企业</option>
@@ -160,6 +157,9 @@ export function ContactDialog({
               {error}
             </p>
             <div className="contacts-dialog-actions">
+              {isPhoneGuide ? (
+                <button className="contacts-button primary" type="button" onClick={onClose}>知道了</button>
+              ) : <>
               <button
                 type="button"
                 className="contacts-button"
@@ -173,11 +173,12 @@ export function ContactDialog({
                 {kind === "note"
                   ? "保存备注"
                   : kind === "add"
-                    ? channel !== "manual" ? "确认导入" : "添加联系人"
+                    ? "添加联系人"
                     : kind === "edit"
                       ? "保存修改"
                       : "创建跟进"}
               </button>
+              </>}
             </div>
           </form>
         </div>
