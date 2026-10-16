@@ -483,7 +483,6 @@ export function ReferenceShell({
                   </button>
                 </>
               ) : null}
-              {reviewToolsEnabled() && menu === "account" && <div className="review-menu-section"><button type="button" className="review-menu-entry" onClick={()=>{setMenu(null);setReviewOpen(true)}}>评审工具</button></div>}
             </div>,
             document.body,
           )
@@ -495,9 +494,15 @@ export function ReferenceShell({
           <div className="mobile-space-actions"><button disabled={!!M.accountTeam(data, data.account.id)} title={M.accountTeam(data, data.account.id) ? "每个账号最多加入或创建一个团队" : "创建团队"} onClick={() => { try { M.assertCanJoinTeam(data); setMobileNav(false); setSetupDialog("create"); } catch(e) { notify((e as Error).message); } }}>创建团队</button><button onClick={() => { setMobileNav(false); setSetupDialog("invitations"); }}>工作空间邀请</button></div>
           <nav className="mobile-nav-links" aria-label="工作区功能">{([["home","首页"],["recording","开始录音"],["contacts","通讯录"],["calendar","日程与待办"],["connectors","连接器"],...(team ? [["members","团队成员"],...(admin ? [["devices","设备查看"],["space-settings","空间设置"]] : [])] : [])] as [AppView,string][]).map(([v,label]) => <button key={v} aria-current={view === v ? "page" : undefined} onClick={() => {setMobileNav(false);go(v)}}>{label}<span aria-hidden="true">→</span></button>)}</nav>
           <div className="mobile-nav-account"><span>我的账户</span><CreditsPromo w={w} actor={actor} onSignin={() => { try { controller.change(st => claimReward(M.get(st, space), actor, "signin")); } catch(e) { notify((e as Error).message); } }}/><nav className="mobile-nav-links" aria-label="账户功能">{([["settings","个人设置"],["subscription",team ? "订阅与席位" : "个人订阅"],["my-devices","我的设备"],["updates","更新日志"],["product","产品介绍"]] as [AppView,string][]).map(([v,label]) => <button key={v} onClick={() => go(v)}>{label}<span aria-hidden="true">→</span></button>)}</nav></div>
-          {reviewToolsEnabled() && <div className="review-menu-section"><button type="button" className="review-menu-entry" onClick={()=>{setMobileNav(false);setReviewOpen(true)}}>评审工具</button></div>}
         </div>
       </ReferenceDialog>}
+      {reviewToolsEnabled() && <button
+        type="button"
+        className="review-floating-entry"
+        aria-haspopup="dialog"
+        aria-expanded={reviewOpen}
+        onClick={() => { setMenu(null); setMobileNav(false); setReviewOpen(true); }}
+      ><RefIcon name="grid" /><span>评审工具</span></button>}
       {reviewOpen && <ReferenceDialog className="ex-dialog review-tools-dialog" label="评审工具" onClose={()=>setReviewOpen(false)}>
         <header className="ex-head"><h2>评审工具</h2><button className="ex-close" aria-label="关闭评审工具" onClick={()=>setReviewOpen(false)}>×</button></header>
         <div className="ex-body review-tools-body">{reviewSwitch}<a className="prd-review-entry" href={prdUrl} target="_blank" rel="noopener">需求评审 <span aria-hidden="true">↗</span></a><a className="prd-review-entry" href={`${basePath}/review/`}>版本与模块评审总览 ↗</a><a className="prd-review-entry" href={`${basePath}/`}>国内／海外演示入口 ↗</a></div>

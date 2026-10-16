@@ -19,6 +19,7 @@ import { OrdersPanel } from "./orders-panel";
 import { AccountTabs, AccountStatus, CreditsHero } from "./ui";
 import "./experience.css";
 import { DomesticAccountPoints } from "./domestic-points";
+import { TeamCreditsCard } from "./team-credits-card";
 export type AccountPanel =
   | "credits"
   | "tasks"
@@ -50,6 +51,7 @@ export function CreditsPromo({
   onSignin?: () => void;
 }) {
   if (routeMarket() === "cn") return <DomesticAccountPoints w={w} actor={actor} onPanel={openAccount} onSignin={onSignin}/>;
+  if (routeMarket() === "global" && w.type === "team") return <TeamCreditsCard w={w} actor={actor} onRecharge={() => openAccount("recharge")}/>;
   const monthly = rewardState(w).entries.filter((e) =>
       e.id.startsWith(
         "signin:" + new Date().toLocaleDateString("sv-SE").slice(0, 7),
