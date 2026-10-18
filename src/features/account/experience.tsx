@@ -77,7 +77,7 @@ export function CreditsPromo({
       )}
       <footer>
         <button className="ex-button credit-recharge-cta" disabled={team && !M.admin(w, actor)} onClick={() => openAccount("recharge")}>
-          {team && !M.admin(w, actor) ? "联系管理员充值" : (routeMarket() === "cn" ? "充值积分" : "充值")}
+          {team && !M.admin(w, actor) ? "联系管理员充值" : (routeMarket() === "cn" ? "充值Credits" : "充值")}
         </button>
         {!team && (
           <button
@@ -235,7 +235,7 @@ export function AccountExperience({
         )}
         {page === "tasks" && (
           <>
-            <CreditsHero eyebrow={routeMarket() === "cn" ? "做任务赚积分" : "GROW WITH EUREKAMIND"} title="记录好习惯，收获新灵感" description={creditText("完成任务获得 Credits，让每一天的积累都有回响。")}/>
+            <CreditsHero eyebrow={routeMarket() === "cn" ? "做任务赚Credits" : "GROW WITH EUREKAMIND"} title="记录好习惯，收获新灵感" description={creditText("完成任务获得 Credits，让每一天的积累都有回响。")}/>
             <AccountTabs items={["新手成长", "活跃互动", "会员升级"]} value={tab} onChange={setTab} label="奖励任务" panelId="reward-tasks"/>
             <div id="reward-tasks" role="tabpanel" aria-labelledby={`reward-tasks-tab-${["新手成长", "活跃互动", "会员升级"].indexOf(tab)}`} tabIndex={0}>
             {tab === "新手成长" ? (
@@ -336,7 +336,7 @@ export function AccountExperience({
                   ))}
                 </div>
                 <p className="ex-muted">
-                  会员积分随会员周期按月发放至个人账户，团队权益单独维护。
+                  会员Credits随会员周期按月发放至个人账户，团队权益单独维护。
                 </p>
                 <button
                   className="primary"
@@ -470,14 +470,14 @@ export function AccountExperience({
                   </strong>
                   <p>订单 {order.id}</p>
                   {order.expiresAt && order.status !== "paid" && <p>请于 {new Date(order.expiresAt).toLocaleString("zh-CN")} 前支付</p>}
-                  {order.creditsExpireAt && <p>积分有效期至 {new Date(order.creditsExpireAt).toLocaleDateString("zh-CN")}</p>}
+                  {order.creditsExpireAt && <p>Credits有效期至 {new Date(order.creditsExpireAt).toLocaleDateString("zh-CN")}</p>}
                   <p>
                     金额 {formatMarketMoney(order.amount, order.currency)} {order.currency} · {w.name}
                   </p>
                 </div>
                 {order.status === "paid" ? (
                   <>
-                    <p>{creditText("Credits 已入账，可在积分明细中查看。")}</p>
+                    <p>{creditText("Credits 已入账，可在Credits明细中查看。")}</p>
                     <button onClick={() => setPage("orders")}>查看订单</button>
                   </>
                 ) : (
@@ -535,7 +535,7 @@ export function AccountExperience({
               id: "expiry",
               icon: "!",
               title: creditText("您的 Credits 即将过期"),
-              text: routeMarket() === "cn" ? `${creditSummary(w).expiring.toLocaleString()} 积分将在本月底到期，请及时查看明细。` : "2,000 Credits 将在本月底到期，请及时查看明细。",
+              text: routeMarket() === "cn" ? `${creditSummary(w).expiring.toLocaleString()} Credits将在本月底到期，请及时查看明细。` : "2,000 Credits 将在本月底到期，请及时查看明细。",
               time: "今天 09:00",
               link: "查看明细",
             },
@@ -631,7 +631,7 @@ export function AccountExperience({
                   .map((row) => (
                     <tr key={row[0]}>
                       {row.map((v, i) => (
-                        <td key={i}>{v}</td>
+                        <td key={i}>{creditText(v)}</td>
                       ))}
                     </tr>
                   ))}
@@ -644,7 +644,7 @@ export function AccountExperience({
             {[
               [
                 "有哪些会员类型？",
-                creditText(`当前 ${productName()} ${routeMarket() === "cn" ? "提供免费版、标准版、专业版与卓越版" : "保留标准版与 Pro"}。会员积分按月发放，团队订阅独立计费。`),
+                creditText(`当前 ${productName()} ${routeMarket() === "cn" ? "提供免费版、标准版、专业版与卓越版" : "保留标准版与 Pro"}。会员Credits按月发放，团队订阅独立计费。`),
               ],
               [
                 "会员权益里的功能具体指什么？",
@@ -656,7 +656,7 @@ export function AccountExperience({
               ],
               [
                 "转写时长和加时包有什么区别？",
-                routeMarket() === "cn" ? "会员转写时长按月刷新；加时包一次性购买，有效期2年，可叠加使用，优先消耗先到期的时长。积分与转写时长分别计算。" : creditText(`会员转写额度随周期刷新，Credits 余额与订阅权益可在个人订阅页查看。`),
+                routeMarket() === "cn" ? "会员转写时长按月刷新；加时包一次性购买，有效期2年，可叠加使用，优先消耗先到期的时长。Credits与转写时长分别计算。" : creditText(`会员转写额度随周期刷新，Credits 余额与订阅权益可在个人订阅页查看。`),
               ],
               [
                 "升级后何时生效？",

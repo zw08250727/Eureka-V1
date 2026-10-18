@@ -1,4 +1,6 @@
 "use client";
+import { ReviewFloatingButton } from "./review-floating-button";
+import { CreditReviewProvider, AgentCreditPreview } from "@/features/agent/credit-preview";
 import { SidebarBrand, WorkspaceCard, PrimaryNavigation } from "./sidebar-parts";
 import { creditText } from "@/features/markets/config";
 import { reviewToolsEnabled } from "@/features/markets/review";
@@ -33,7 +35,8 @@ import { DomesticPointsEntry, DomesticPointsGuide } from "@/features/account/dom
 import { claimReward } from "@/features/account/rewards";
 import { CreditsPromo, openAccount, type AccountPanel } from "@/features/account/experience";
 const TemplatePreferences=dynamic(()=>import("@/features/meetings/template-picker").then(m=>m.TemplatePreferences));
-const AccountExperience = dynamic(() => import("@/features/account/experience").then(m => m.AccountExperience));
+const AccountExperience = dynamic(() => import("@/features/agent/account-panel").then(m => m.AgentAccountPanel));
+import { AgentSettlementSync } from "@/features/agent/settlement-sync";
 import PS from "@/features/spaces/model/subscription";
 import type { SpacesController } from "@/features/spaces/use-spaces";
 export function ReferenceShell({
@@ -181,6 +184,7 @@ export function ReferenceShell({
       value={{ baseTitle: title, setTitle: setPageTitle }}
     >
       <AgentScope.Provider value={{ controller, space, actor }}>
+      <CreditReviewProvider key={`${space}:${actor}:${view}`} workspace={w} actor={actor} onSend={() => setReviewOpen(false)}>
       <Symbols />
       <div className="app">
         <aside className="sidebar" id="workspace-sidebar">
@@ -496,22 +500,18 @@ export function ReferenceShell({
           <div className="mobile-nav-account"><span>我的账户</span><CreditsPromo w={w} actor={actor} onSignin={() => { try { controller.change(st => claimReward(M.get(st, space), actor, "signin")); } catch(e) { notify((e as Error).message); } }}/><nav className="mobile-nav-links" aria-label="账户功能">{([["settings","个人设置"],["subscription",team ? "订阅与席位" : "个人订阅"],["my-devices","我的设备"],["updates","更新日志"],["product","产品介绍"]] as [AppView,string][]).map(([v,label]) => <button key={v} onClick={() => go(v)}>{label}<span aria-hidden="true">→</span></button>)}</nav></div>
         </div>
       </ReferenceDialog>}
-      {reviewToolsEnabled() && <button
-        type="button"
-        className="review-floating-entry"
-        aria-haspopup="dialog"
-        aria-expanded={reviewOpen}
-        onClick={() => { setMenu(null); setMobileNav(false); setReviewOpen(true); }}
-      ><RefIcon name="grid" /><span>评审工具</span></button>}
+      {reviewToolsEnabled() && <ReviewFloatingButton expanded={reviewOpen} onOpen={() => { setMenu(null); setMobileNav(false); setReviewOpen(true); }}/>}
       {reviewOpen && <ReferenceDialog className="ex-dialog review-tools-dialog" label="评审工具" onClose={()=>setReviewOpen(false)}>
         <header className="ex-head"><h2>评审工具</h2><button className="ex-close" aria-label="关闭评审工具" onClick={()=>setReviewOpen(false)}>×</button></header>
-        <div className="ex-body review-tools-body">{reviewSwitch}<a className="prd-review-entry" href={prdUrl} target="_blank" rel="noopener">需求评审 <span aria-hidden="true">↗</span></a><a className="prd-review-entry" href={`${basePath}/review/`}>版本与模块评审总览 ↗</a><a className="prd-review-entry" href={`${basePath}/`}>国内／海外演示入口 ↗</a></div>
+        <div className="ex-body review-tools-body">{reviewSwitch}<AgentCreditPreview /><a className="prd-review-entry" href={prdUrl} target="_blank" rel="noopener">需求评审 <span aria-hidden="true">↗</span></a><a className="prd-review-entry" href={`${basePath}/review/`}>版本与模块评审总览 ↗</a><a className="prd-review-entry" href={`${basePath}/`}>国内／海外演示入口 ↗</a></div>
       </ReferenceDialog>}
       {templatePreferences&&<TemplatePreferences onClose={()=>setTemplatePreferences(false)}/>}
       {accountPanel&&<AccountExperience key={`${space}:${actor}:${accountPanel}`} controller={controller} space={space} actor={actor} panel={accountPanel} onClose={()=>setAccountPanel(null)}/>}
       <div className={"toast " + (toast ? "show" : "")} role="status">
         {toast}
       </div>
+      <AgentSettlementSync />
+      </CreditReviewProvider>
       </AgentScope.Provider>
     </PageTitleContext.Provider>
   );

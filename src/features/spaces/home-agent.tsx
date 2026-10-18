@@ -1,5 +1,8 @@
 "use client";
 
+import { reportAgentAttempt } from "@/features/agent/feedback";
+import { useAgentCreditSimulation, AgentSimulationMessages, AgentSendButton } from "@/features/agent/credit-preview";
+import { AgentCredits } from "@/features/agent/credits";
 import { marketStorage } from "@/features/markets/storage";
 
 import { AgentHistoryButton } from "@/features/agent/history-button";
@@ -27,6 +30,7 @@ export function TeamHomeAgent({
   initialPrompt?: string;
   onClose: () => void;
 }) {
+  const simulation = useAgentCreditSimulation();
   const w = M.get(controller.state!, space),
     insight = M.insights(w, actor).items.find((i) => i.id === insightId);
   const [activeInsight, setActiveInsight] = useState<string | undefined>(
@@ -120,6 +124,9 @@ export function TeamHomeAgent({
     }
   }, [controller.state, answer]);
   function send() {
+    const simulated = simulation.send(draft.trim());
+    if (simulated) { if (simulated === "sent") setDraft(""); return; }
+    reportAgentAttempt(w, actor);
     try {
       const prompt =
         context && draft.trim() && !draft.includes(context.title)
@@ -133,7 +140,7 @@ export function TeamHomeAgent({
         }),
       );
       setDraft("");
-      setAnswer(result.cost ? "" : result.answer);
+      setAnswer(result.threadId ? "" : result.answer);
       setHistoryId(result.threadId || historyId);
       setFileIds([]);
       setError("");
@@ -218,6 +225,7 @@ export function TeamHomeAgent({
               aria-label="新建会话"
               title="新建会话"
               onClick={() => {
+                    simulation.reset();
                 setFresh(true);
                 setHistoryId(undefined);
                 setActiveInsight(undefined);
@@ -276,7 +284,7 @@ export function TeamHomeAgent({
                 ))}
               </div>
             </div>
-          ) : (
+          ) : !simulation.hasMessages && !messages.length ? (
             <>
               <h3>让团队讨论有下一步</h3>
               <p>整理关键结论、拆解行动项，或准备下一次沟通。</p>
@@ -296,16 +304,14 @@ export function TeamHomeAgent({
                 ))}
               </div>
             </>
-          )}
+          ) : null}
           {messages.map((t) => (
             <Fragment key={t.id}>
               <div className="ws-chat-user">{t.prompt}</div>
               <div className="ws-chat-answer">{t.answer}</div>
               {t.usage ? (
                 <div className="ws-agent-usage">
-                  输入 {creditNumber(t.usage.inputTokens)} / 输出{" "}
-                  {creditNumber(t.usage.outputTokens)} tokens ·{" "}
-                  {creditNumber(t.usage.cost)} Credits
+                  {t.usage.status && t.usage.status !== "settled" ? "待结算" : creditNumber(t.usage.cost) + " Credits"}
                 </div>
               ) : null}
             </Fragment>
@@ -315,6 +321,8 @@ export function TeamHomeAgent({
               {answer}
             </div>
           ) : null}
+          <AgentSimulationMessages kind="team" />
+          <AgentCredits />
         </div>
         <form
           className="ws-composer"
@@ -363,14 +371,7 @@ export function TeamHomeAgent({
             >
               {icon("globe")}
             </Button>
-            <button
-              type="submit"
-              className="ws-btn primary"
-              aria-label="发送问题"
-              disabled={!draft.trim()}
-            >
-              {icon("send")}
-            </button>
+            <AgentSendButton className="ws-btn primary" label="发送问题" disabled={!draft.trim()} onSend={() => { void send(); }}>{icon("send")}</AgentSendButton>
           </div>
           <small id="ws-composer-hint">
             {fileIds.length

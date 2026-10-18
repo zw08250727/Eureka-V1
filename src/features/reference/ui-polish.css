@@ -92,7 +92,8 @@ body.app-data-mode #personal-settings .settings-float{gap:16px}body.app-data-mod
 .review-floating-entry {
   position: fixed;
   right: max(24px, env(safe-area-inset-right));
-  bottom: max(24px, env(safe-area-inset-bottom));
+  top: calc(50% - 22px);
+  bottom: auto;
   z-index: 40;
   display: inline-flex;
   align-items: center;
@@ -111,10 +112,9 @@ body.app-data-mode #personal-settings .settings-float{gap:16px}body.app-data-mod
 .review-floating-entry:hover { background: var(--ui-accent-hover, #2f4b9c); }
 .review-floating-entry:focus-visible { outline: 2px solid var(--market-accent, #3858b6); outline-offset: 2px; }
 @media (max-width: 760px) {
-  .review-floating-entry { right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); }
+  .review-floating-entry { right: max(16px, env(safe-area-inset-right)); top: calc(50% - 22px); bottom: auto; }
 }
-/* Keep the review launcher above Agent composers instead of covering Send. */
-body:has(:is(.contacts-xiaozhi-rail.expanded, .xiaozhi-rail.expanded, #pa-agent, .ws-agent, .md-agent-open)) .review-floating-entry {
-  bottom: max(168px, calc(env(safe-area-inset-bottom) + 168px));
-}
-.ex-dialog.review-tools-dialog{width:min(400px,calc(100vw - 32px))}.review-tools-body{display:grid;gap:16px}.review-tools-body>p{margin:0;color:#7b899b;font-size:12px}.review-tools-body .team-review-tools{width:100%;min-width:0;flex-wrap:wrap}.review-tools-body .team-review-switch{width:100%;flex-wrap:wrap}.review-tools-body .ui-select{min-width:0;flex:1}.review-tools-body .prd-review-entry{display:flex;justify-content:space-between;padding:10px 12px;border:1px solid #dce6f4;border-radius:8px;text-decoration:none;color:#4c709f;font-size:13px}
+.ex-dialog.review-tools-dialog{width:min(440px,calc(100vw - 32px))}.review-tools-body{display:grid;gap:16px}.review-tools-body>p{margin:0;color:#7b899b;font-size:12px}.review-tools-body .team-review-tools{width:100%;min-width:0;flex-wrap:wrap}.review-tools-body .team-review-switch{width:100%;flex-wrap:wrap}.review-tools-body .ui-select{min-width:0;flex:1}.review-tools-body .prd-review-entry{display:flex;justify-content:space-between;padding:10px 12px;border:1px solid #dce6f4;border-radius:8px;text-decoration:none;color:#4c709f;font-size:13px}
+
+.review-floating-entry { touch-action: none; user-select: none; cursor: grab; }
+.review-floating-entry:active { cursor: grabbing; }

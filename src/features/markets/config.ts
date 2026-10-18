@@ -27,7 +27,7 @@ export function formatMarketMoney(
 }
 // Translate product terminology at the React boundary, never storage keys or IDs.
 export function creditText(text: string) {
-  return routeMarket() === "cn" ? text.replaceAll("Credits", "积分").replace(/([\u4e00-\u9fff]) +积分/g, "$1积分").replace(/积分 +([\u4e00-\u9fff])/g, "积分$1") : text;
+  return text.replaceAll("积分", "Credits");
 }
 export const personalPlanName = () => routeMarket() === "cn" ? "专业版" : "Pro";
 export const teamMoney = (amount: number) => formatMarketMoney(amount, marketConfig().team.month.currency);

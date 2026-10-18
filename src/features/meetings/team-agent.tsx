@@ -1,5 +1,8 @@
 "use client";
 
+import { reportAgentAttempt } from "@/features/agent/feedback";
+import { useAgentCreditSimulation, AgentSimulationMessages, AgentSendButton } from "@/features/agent/credit-preview";
+import { AgentCredits } from "@/features/agent/credits";
 import { marketStorage } from "@/features/markets/storage";
 
 import { AgentHistoryButton } from "@/features/agent/history-button";
@@ -32,6 +35,7 @@ export function TeamMeetingAgent({
   selectedId: string;
   onClose: () => void;
 }) {
+  const simulation = useAgentCreditSimulation();
   const w = M.get(controller.state!, space),
     insight = M.insights(w, actor).items.find((i) => i.id === insightId);
   const [activeInsight, setActiveInsight] = useState<string | undefined>(
@@ -122,6 +126,9 @@ export function TeamMeetingAgent({
     }
   }, [controller.state, answer]);
   function send() {
+    const simulated = simulation.send(draft.trim());
+    if (simulated) { if (simulated === "sent") setDraft(""); return; }
+    reportAgentAttempt(w, actor);
     try {
       const prompt =
         context && draft.trim() && !draft.includes(context.title)
@@ -135,7 +142,7 @@ export function TeamMeetingAgent({
         }),
       );
       setDraft("");
-      setAnswer(result.cost ? "" : result.answer);
+      setAnswer(result.threadId ? "" : result.answer);
       setHistoryId(result.threadId || historyId);
       setFileIds([]);
       setError("");
@@ -220,6 +227,7 @@ export function TeamMeetingAgent({
               aria-label="新建会话"
               title="新建会话"
               onClick={() => {
+                    simulation.reset();
                 setFresh(true);
                 setHistoryId(undefined);
                 setActiveInsight(undefined);
@@ -276,7 +284,7 @@ export function TeamMeetingAgent({
                 ))}
               </div>
             </div>
-          ) : (
+          ) : !simulation.hasMessages && !messages.length ? (
             <>
               <h3>继续这场会议的工作</h3>
               <p>整理关键结论、拆解行动项，或准备下一次沟通。</p>
@@ -296,16 +304,14 @@ export function TeamMeetingAgent({
                 ))}
               </div>
             </>
-          )}
+          ) : null}
           {messages.map((t) => (
             <Fragment key={t.id}>
               <div className="ws-chat-user">{t.prompt}</div>
               <div className="ws-chat-answer">{t.answer}</div>
               {t.usage ? (
                 <div className="ws-agent-usage">
-                  输入 {creditNumber(t.usage.inputTokens)} / 输出{" "}
-                  {creditNumber(t.usage.outputTokens)} tokens ·{" "}
-                  {creditNumber(t.usage.cost)} Credits
+                  {t.usage.status && t.usage.status !== "settled" ? "待结算" : creditNumber(t.usage.cost) + " Credits"}
                 </div>
               ) : null}
             </Fragment>
@@ -315,6 +321,8 @@ export function TeamMeetingAgent({
               {answer}
             </div>
           ) : null}
+          <AgentSimulationMessages kind="team" />
+          <AgentCredits />
         </div>
         <form
           className="ws-composer"
@@ -363,14 +371,7 @@ export function TeamMeetingAgent({
             >
               {icon("globe")}
             </Button>
-            <button
-              type="submit"
-              className="ws-btn primary"
-              aria-label="发送问题"
-              disabled={!draft.trim()}
-            >
-              {icon("send")}
-            </button>
+            <AgentSendButton className="ws-btn primary" label="发送问题" disabled={!draft.trim()} onSend={() => { void send(); }}>{icon("send")}</AgentSendButton>
           </div>
           <small id="ws-composer-hint">
             {fileIds.length

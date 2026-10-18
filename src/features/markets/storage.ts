@@ -38,6 +38,10 @@ function browserStorage(kind: "localStorage" | "sessionStorage"): Storage {
   };
 }
 export const marketStorage = browserStorage("localStorage");
+/** Capture the initiating market for asynchronous callbacks. No data is copied. */
+export function captureMarketStorage(): Storage {
+  return createMarketStorage(window.localStorage, routeMarket());
+}
 export const marketSessionStorage = browserStorage("sessionStorage");
 export function signIn(market: Market, identity: string, provider: string) {
   createMarketStorage(window.localStorage, market).setItem(

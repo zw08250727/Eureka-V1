@@ -11,8 +11,8 @@ async function login(page: Page) {
   await expect(page.locator(".app")).toBeVisible();
 }
 async function openPoints(page: Page) {
-  await page.getByRole("button", { name: /积分额度/ }).click();
-  const popup = page.getByRole("dialog", { name: "积分与会员", exact: true });
+  await page.getByRole("button", { name: /Credits额度/ }).click();
+  const popup = page.getByRole("dialog", { name: "Credits与会员", exact: true });
   await expect(popup).toBeVisible();
   return popup;
 }
@@ -22,9 +22,9 @@ for (const width of [390, 768, 1440]) test(`CN consumer points entry fits ${widt
   const popup = await openPoints(page);
   await expect(popup).toContainText("免费版会员");
   await expect(popup.getByRole("button", { name: "升级", exact: true })).toBeFocused();
-  await expect(popup).toContainText("+1,000 积分");
-  await expect(popup).toContainText("+500 积分");
-  await expect(popup.getByRole("button", { name: "充值积分", exact: true })).toHaveCSS("background-color", "rgb(22, 93, 255)");
+  await expect(popup).toContainText("+1,000 Credits");
+  await expect(popup).toContainText("+500 Credits");
+  await expect(popup.getByRole("button", { name: "充值Credits", exact: true })).toHaveCSS("background-color", "rgb(22, 93, 255)");
   const rect = await popup.boundingBox();
   expect(rect!.x).toBeGreaterThanOrEqual(0);
   expect(rect!.x + rect!.width).toBeLessThanOrEqual(width);
@@ -32,14 +32,14 @@ for (const width of [390, 768, 1440]) test(`CN consumer points entry fits ${widt
   await page.screenshot({ path: `test-results/cn-points/personal-${width}.png` });
   await page.keyboard.press("Escape");
   await expect(popup).not.toBeVisible();
-  await expect(page.getByRole("button", { name: /积分额度/ })).toBeFocused();
+  await expect(page.getByRole("button", { name: /Credits额度/ })).toBeFocused();
   await openPoints(page);
   await page.locator(".page-crumb").click();
   await expect(popup).not.toBeVisible();
   // UI-CN-AI-01: motion is opt-out, including hover and focused controls.
   await page.emulateMedia({ reducedMotion: "reduce" });
   await openPoints(page);
-  await popup.getByRole("button", { name: "做任务赚积分", exact: true }).click();
+  await popup.getByRole("button", { name: "做任务赚Credits", exact: true }).click();
   const artwork = page.locator('[data-ai-artwork="reward"]');
   await expect(artwork).toBeVisible();
   await artwork.hover();
@@ -53,7 +53,7 @@ for (const width of [390, 768, 1440]) test(`CN consumer points entry fits ${widt
 test("CN upgrade is one click from points; paid membership is reflected without changing team rights", async ({ page }) => {
   await login(page);
   await page.goto("/cn/workbench/?space=team-eureka");
-  const teamBefore = await page.getByRole("button", { name: /积分额度/ }).innerText();
+  const teamBefore = await page.getByRole("button", { name: /Credits额度/ }).innerText();
   await page.goto("/cn/workbench/?space=personal");
   const popup = await openPoints(page);
   await popup.getByRole("button", { name: "升级", exact: true }).click();
@@ -63,29 +63,29 @@ test("CN upgrade is one click from points; paid membership is reflected without 
   await page.getByRole("button", { name: "完成", exact: true }).click();
   const paid = await openPoints(page);
   await expect(paid).toContainText("专业版会员");
-  await expect(paid).toContainText("每月享 5,000 积分");
+  await expect(paid).toContainText("每月享 5,000 Credits");
   await expect(paid.getByRole("button", { name: "管理会员", exact: true })).toBeVisible();
   await page.goto("/cn/workbench/?space=team-eureka");
-  await expect(page.getByRole("button", { name: /积分额度/ })).toHaveText(teamBefore, { useInnerText: true });
+  await expect(page.getByRole("button", { name: /Credits额度/ })).toHaveText(teamBefore, { useInnerText: true });
 });
 test("CN team points share the entry but enforce administrator and expired-team restrictions", async ({ page }) => {
   await login(page);
   await page.goto("/cn/workbench/?space=team-eureka&actor=kevin");
   let popup = await openPoints(page);
-  await expect(popup).toContainText("团队可用积分");
+  await expect(popup).toContainText("团队可用Credits");
   await expect(popup.getByRole("button", { name: "联系管理员充值", exact: true })).toBeDisabled();
-  await expect(popup.getByRole("button", { name: /签到|赚积分|升级|管理订阅/ })).toHaveCount(0);
+  await expect(popup.getByRole("button", { name: /签到|赚Credits|升级|管理订阅/ })).toHaveCount(0);
   await page.screenshot({ path: "test-results/cn-points/team-member.png" });
-  await popup.getByRole("button", { name: "积分明细", exact: true }).click();
+  await popup.getByRole("button", { name: "Credits明细", exact: true }).click();
   await expect(page).toHaveURL(/space=team-eureka/);
-  await expect(page.getByRole("tab", { name: "积分明细", exact: true })).toBeVisible();
+  await expect(page.getByRole("tab", { name: "Credits 明细", exact: true })).toBeVisible();
   await page.goto("/cn/workbench/?space=team-eureka&actor=zhang");
   popup = await openPoints(page);
   await expect(popup.getByRole("button", { name: "管理订阅", exact: true })).toBeVisible();
-  await expect(popup.getByRole("button", { name: "充值积分", exact: true })).toBeEnabled();
+  await expect(popup.getByRole("button", { name: "充值Credits", exact: true })).toBeEnabled();
   await page.screenshot({ path: "test-results/cn-points/team-admin.png" });
-  await popup.getByRole("button", { name: "充值积分", exact: true }).click();
-  await expect(page.getByRole("dialog", { name: "积分与会员", exact: true })).not.toBeVisible();
+  await popup.getByRole("button", { name: "充值Credits", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "Credits与会员", exact: true })).not.toBeVisible();
   await expect(page.getByRole("button", { name: "确认充值", exact: true })).toBeVisible();
   await page.evaluate(k => { const data = JSON.parse(localStorage.getItem(k)!); data.spaces.find((w: { id: string }) => w.id === "team-eureka").status = "expired"; localStorage.setItem(k, JSON.stringify(data)); }, key);
   await page.reload();

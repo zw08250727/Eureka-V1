@@ -67,7 +67,7 @@ export function AccountSettings({
   }, [actor]);
   const cn = routeMarket() === "cn", summary = creditSummary(w);
   const entries = [
-    ...(cn && w.credits.grants ? creditGrants(w).filter(g => g.category === "membership" || (g.category === "gift" && g.id !== "opening")).map(g => ({ id: g.id, label: g.label, amount: g.amount, time: g.time })) : []),
+    ...(cn && w.credits.grants ? creditGrants(w).filter(g => g.category === "membership" || (g.category === "gift" && g.id !== "opening")).map(g => ({ id: g.id, label: creditText(g.label), amount: g.amount, time: g.time })) : []),
     ...(w.rewards?.entries || []).map((e) => ({
       id: e.id,
       label: e.label,
@@ -235,11 +235,11 @@ export function AccountSettings({
         </div>
         <div className="ex-grid">
           {(cn ? [
-            ["会员积分", summary.categories.membership],
-            ["任务积分", summary.categories.task],
-            ["充值积分", summary.categories.recharge],
-            ["赠送积分", summary.categories.gift],
-            ...(summary.categories.legacy ? [["原有积分余额", summary.categories.legacy]] : []),
+            ["会员Credits", summary.categories.membership],
+            ["任务Credits", summary.categories.task],
+            ["充值Credits", summary.categories.recharge],
+            ["赠送Credits", summary.categories.gift],
+            ...(summary.categories.legacy ? [["原有Credits余额", summary.categories.legacy]] : []),
           ] : [
             [
               "任务奖励",
@@ -260,7 +260,7 @@ export function AccountSettings({
             </div>
           ))}
         </div>
-        {cn && <p className="ex-muted">本月将过期积分 {summary.expiring.toLocaleString()} · 已过期 {summary.expired.toLocaleString()} · 累计消耗 {w.credits.used.toLocaleString()}</p>}
+        {cn && <p className="ex-muted">本月将过期Credits {summary.expiring.toLocaleString()} · 已过期 {summary.expired.toLocaleString()} · 累计消耗 {w.credits.used.toLocaleString()}</p>}
         <AccountTabs label={creditText("Credits 筛选")} items={["全部", "获得", "消费"]} value={creditFilter} onChange={setCreditFilter} panelId="credits-history"/>
         <div className="ex-table-scroll" id="credits-history" role="tabpanel" aria-labelledby={`credits-history-tab-${["全部", "获得", "消费"].indexOf(creditFilter)}`} tabIndex={0}>
         <table className="ex-table">

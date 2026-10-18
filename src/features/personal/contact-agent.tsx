@@ -1,3 +1,5 @@
+import { useAgentCreditSimulation, AgentSimulationMessages, AgentSendButton } from "@/features/agent/credit-preview";
+import { AgentCredits } from "@/features/agent/credits";
 import { AgentHistoryButton } from "@/features/agent/history-button";
 import type { RefObject } from "react";
 import { RefIcon } from "@/features/reference/symbols";
@@ -70,6 +72,12 @@ export function ContactAgent({
   onNewTask: () => void;
   inputRef: RefObject<HTMLTextAreaElement | null>;
 }) {
+  const simulation = useAgentCreditSimulation(expanded);
+  function send(question = draft, suggested = false) {
+    const simulated = simulation.send(question.trim());
+    if (simulated) { if (simulated === "sent") onDraft(""); return; }
+    if (suggested) onAsk(question); else onSend();
+  }
   return (
     <aside
       className={`contacts-xiaozhi-rail${expanded ? " expanded" : ""}`}
@@ -97,7 +105,7 @@ export function ContactAgent({
               data-contact-action="new-agent-task"
               aria-label="新建会话"
               title="新建会话"
-              onClick={onNewTask}
+              onClick={() => { simulation.reset(); onNewTask(); }}
             >
               <RefIcon name="new-task" />
             </button>
@@ -113,7 +121,7 @@ export function ContactAgent({
         </div>
         <div className="xiaozhi-body">
           <div className="contacts-xiaozhi-messages">
-            <div className="xiaozhi-intro">
+            <div className="xiaozhi-intro" hidden={simulation.hasMessages}>
               <span className="xiaozhi-state">
                 <i />
                 联系人上下文
@@ -131,17 +139,19 @@ export function ContactAgent({
                     type="button"
                     data-contact-action="ask"
                     data-value={prompt}
-                    onClick={() => onAsk(prompt)}
+                    onClick={() => send(prompt, true)}
                   >
                     {prompt}
                   </button>
                 ))}
               </div>
             </div>
-            <div className="contacts-xiaozhi-answer" aria-live="polite">
+            <div className="contacts-xiaozhi-answer" hidden={simulation.hasMessages} aria-live="polite">
               {answer || person?.summary || "暂无关系摘要"}
             </div>
 
+            <AgentSimulationMessages kind="contacts" />
+            {expanded && <AgentCredits />}
           </div>
           <div className="xiaozhi-composer">
             <textarea
@@ -159,7 +169,7 @@ export function ContactAgent({
                   !e.nativeEvent.isComposing
                 ) {
                   e.preventDefault();
-                  onSend();
+                  send();
                 }
               }}
             />
@@ -171,16 +181,7 @@ export function ContactAgent({
                   {person?.name || "联系人"}
                 </span>
               </div>
-              <button
-                type="button"
-                className="xiaozhi-send"
-                data-contact-action="send-xiaozhi"
-                aria-label="发送给 Ask Agent"
-                disabled={!draft.trim()}
-                onClick={onSend}
-              >
-                <RefIcon name="send" />
-              </button>
+              <AgentSendButton className="xiaozhi-send" data-contact-action="send-xiaozhi" label="发送给 Ask Agent" disabled={!draft.trim()} onSend={() => send()}><RefIcon name="send" /></AgentSendButton>
             </div>
             <span className="agent-context-hint">已引用联系人关系</span>
             <div className="agent-composer-caption">

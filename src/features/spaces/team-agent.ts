@@ -1,3 +1,4 @@
+import { mockUsageReceipt } from "@/features/agent/usage";
 import type { AgentGateway } from "@/features/workbench/model/types";
 import type { SpacesController } from "./use-spaces";
 import { M } from "./model/store";
@@ -14,11 +15,12 @@ export function teamGateway(
       const reply = controller.change((s) =>
         M.ask(M.get(s, space), prompt, file || null, actor, history || null, {
           fileIds: options.fileIds,
+          receipt: mockUsageReceipt(options.runId || crypto.randomUUID()),
           web: options.web,
           appData: options.apps,
         }),
       );
-      return { title: "Ask Agent", text: reply.answer, items: [] };
+      return { title: "Ask Agent", text: reply.answer, items: [], usage: reply.usage };
     },
   };
 }

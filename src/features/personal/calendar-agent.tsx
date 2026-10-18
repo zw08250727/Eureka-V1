@@ -1,5 +1,7 @@
 "use client";
 
+import { useAgentCreditSimulation, AgentSimulationMessages, AgentSendButton } from "@/features/agent/credit-preview";
+import { AgentCredits } from "@/features/agent/credits";
 import { marketStorage } from "@/features/markets/storage";
 
 import { useSceneAgent } from "@/features/agent/session";
@@ -54,6 +56,7 @@ export function CalendarAgent({
   navigationGuardRef: RefObject<((next: () => void) => void) | null>;
 }) {
   const agent = useSceneAgent("calendar", selected?.id || "");
+  const simulation = useAgentCreditSimulation();
   const [prompt, setPrompt] = useState(""),
     [ids, setIds] = useState<string[]>([]),
     [web, setWeb] = useState(false),
@@ -185,6 +188,8 @@ export function CalendarAgent({
   };
   const generate = (text: string) => {
     if (!text.trim() || draft) return;
+    const simulated = simulation.send(text.trim());
+    if (simulated) { if (simulated === "sent") setPrompt(""); return; }
     try { agent.ensureAvailable(); } catch (error) { setError((error as Error).message); return; }
     const wantsCreate =
       /创建|新建|提醒我/.test(text) ||
@@ -196,6 +201,9 @@ export function CalendarAgent({
       const pending = rows
         .filter((r) => !r.done)
         .sort((a, b) => a.start.localeCompare(b.start));
+      try {
+        agent.record(text, pending.length ? pending.slice(0, 8).map((r) => `${r.title} · ${localDate(r.start)}`).join("\n") : "暂无匹配的日程与待办。");
+      } catch (error) { setError((error as Error).message); return; }
       setMessages((m) => [
         ...m,
         {
@@ -227,7 +235,6 @@ export function CalendarAgent({
           ),
         },
       ]);
-      agent.record(text, pending.length ? pending.slice(0, 8).map((r) => `${r.title} · ${localDate(r.start)}`).join("\n") : "暂无匹配的日程与待办。");
       setPrompt("");
       return;
     }
@@ -255,7 +262,6 @@ export function CalendarAgent({
   const confirm = () => {
     if (!draft || !form.current?.reportValidity()) return false;
     try {
-      agent.ensureAvailable();
       const r = repo.confirm(sessionId, actionValues(form.current, draft));
       setDraft(null);
       onRefresh();
@@ -267,7 +273,7 @@ export function CalendarAgent({
       });
       setMessages([]);
       setError("");
-      agent.record("确认保存", `已加入日程与待办：${r?.title || draft.title}`);
+      // Confirming an existing draft is not another Agent invocation.
       setToast("已加入日程与待办");
       return true;
     } catch (e) {
@@ -377,7 +383,7 @@ export function CalendarAgent({
         </span>
         <div
           className="pa-agent-welcome"
-          hidden={!!activeSession || !!messages.length}
+          hidden={!!activeSession || !!messages.length || simulation.hasMessages}
         >
           <h3>让每个安排都有下一步</h3>
           <p>梳理日程、跟进待办，或准备新的安排。</p>
@@ -467,6 +473,8 @@ export function CalendarAgent({
             {error}
           </p>
         )}
+        <AgentSimulationMessages kind="calendar" />
+        <AgentCredits />
       </div>
       <form
         id="pa-agent-prompt"
@@ -525,14 +533,7 @@ export function CalendarAgent({
           >
             <RefIcon name="globe" />
           </PaButton>
-          <button
-            className="pa-btn primary"
-            type="submit"
-            aria-label="发送问题"
-            disabled={!prompt.trim()}
-          >
-            <RefIcon name="send" />
-          </button>
+          <AgentSendButton className="pa-btn primary" label="发送问题" disabled={!prompt.trim()} onSend={() => generate(prompt)}><RefIcon name="send" /></AgentSendButton>
         </div>
         <small id="pa-agent-scope">
           {ids.length

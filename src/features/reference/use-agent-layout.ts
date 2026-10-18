@@ -17,9 +17,8 @@ export function useAgentLayout(
       element.style.scrollMarginTop = `${top + (history ? 4 : 0)}px`;
     };
     fit();
-    const observer = new ResizeObserver(fit);
-    observer.observe(topbar);
-    const frame = requestAnimationFrame(() => {
+    let focusHistory = history;
+    const align = () => {
       if (open && history) {
         const main = element.closest<HTMLElement>(".main");
         const translateY = new DOMMatrixReadOnly(
@@ -32,13 +31,27 @@ export function useAgentLayout(
             parseFloat(element.style.scrollMarginTop);
       } else if (open)
         element.scrollIntoView({ block: "nearest", behavior: "instant" });
-      if (history)
+      if (focusHistory) {
+        focusHistory = false;
         element
           .querySelector<HTMLElement>("#agent-history-title")
           ?.focus({ preventScroll: true });
-    });
+      }
+    };
+    let frame = requestAnimationFrame(align);
+    // At the mobile breakpoint the rail moves below the main content. Keep an
+    // already-open conversation visible after resizing, just as when opened.
+    const resize = () => {
+      fit();
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(align);
+    };
+    const observer = new ResizeObserver(resize);
+    observer.observe(topbar);
+    window.addEventListener("resize", resize);
     return () => {
       observer.disconnect();
+      window.removeEventListener("resize", resize);
       cancelAnimationFrame(frame);
     };
   }, [rail, open, history]);

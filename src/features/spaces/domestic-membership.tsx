@@ -32,7 +32,7 @@ export function DomesticMembership({ w, account, cycle, act }: {
   const unlimited = !Number.isFinite(sub.minutes);
   const benefits = [
     plan.minutes === null ? "无限录音转写时长" : `${plan.minutes}分钟/月录音转写时长`,
-    `${plan.monthlyCredits}积分/月`,
+    `${plan.monthlyCredits}Credits/月`,
     `${plan.storageGB}G的PC端知识库容量`,
     ...cn.memberFeatures,
   ];
@@ -96,7 +96,7 @@ export function DomesticMembership({ w, account, cycle, act }: {
                 </div>
                 <ul className="cn-member-highlights" aria-label="核心权益">
                   <li><strong>{plan.minutes === null ? "无限" : plan.minutes.toLocaleString()}</strong><span>{plan.minutes === null ? "录音转写" : "分钟 / 月"}</span></li>
-                  <li><strong>{plan.monthlyCredits.toLocaleString()}</strong><span>积分 / 月</span></li>
+                  <li><strong>{plan.monthlyCredits.toLocaleString()}</strong><span>Credits / 月</span></li>
                   <li><strong>{plan.storageGB}G</strong><span>知识库空间</span></li>
                 </ul>
               </div>
@@ -119,7 +119,7 @@ export function DomesticMembership({ w, account, cycle, act }: {
                     <p className="ps-price-note">{value === "year" ? `约 ¥${plan.yearMonthly} / 月 · 按年支付` : "单次购买 · 1 个月"}</p>
                     {value === "year" ? <p className="ps-price-note"><del>原价 ¥{plan.originalYear}/年</del></p> : null}
                     <dl>
-                      <dt>每月积分</dt><dd>{plan.monthlyCredits.toLocaleString()} 积分</dd>
+                      <dt>每月Credits</dt><dd>{plan.monthlyCredits.toLocaleString()} Credits</dd>
                       <dt>每月转写时长</dt><dd>{plan.minutes === null ? "无限时长" : `${plan.minutes.toLocaleString()} 分钟`}</dd>
                     </dl>
                   </button>
@@ -135,7 +135,7 @@ export function DomesticMembership({ w, account, cycle, act }: {
 
               <section className="ps-plan-details cn-member-benefits" aria-label={`${plan.name}完整权益`}>
                 <h3>包含的全部权益</h3>
-                <p>年付套餐按年支付，转写额度与会员积分按月刷新。</p>
+                <p>年付套餐按年支付，转写额度与会员Credits按月刷新。</p>
                 <ul>{benefits.map(text => <li key={text}><BenefitCheck/><span>{text}</span></li>)}</ul>
               </section>
             </>
