@@ -7,6 +7,11 @@ import { createAirwallexServer, createCheckoutService, readConfig, validateInput
 
 const config = () => ({ ...readConfig({}), apiKey: "test-secret", successUrl: "https://example.com/success", backUrl: "https://example.com/back" });
 const input = () => validateInput({ requestId: randomUUID(), market: "global", workspaceId: "team-eureka", actor: "zhang", cycle: "year", quantity: 1 });
+test("team creation requires at least two seats and a dedicated workspace", () => {
+  assert.equal(validateInput({ ...input(), kind: "team", quantity: 3 }).quantity, 3);
+  assert.throws(() => validateInput({ ...input(), kind: "team", quantity: 1 }));
+  assert.throws(() => validateInput({ ...input(), kind: "team", quantity: 3, workspaceId: "personal" }));
+});
 function mockApi() {
   const calls: { url: string; options: RequestInit }[] = [];
   const transport: typeof fetch = async (url, options = {}) => {

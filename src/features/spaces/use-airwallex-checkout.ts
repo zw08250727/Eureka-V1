@@ -29,11 +29,12 @@ export function useAirwallexCheckout() {
   const active = useRef(false);
   const mounted = useRef(true);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
-  async function begin(w: Workspace, actor: string, order: Order, onPaid: () => void, kind: "seat" | "credits" | "personal" = "seat") {
+  async function begin(w: Workspace, actor: string, order: Order, onPaid: () => void, kind: "seat" | "credits" | "personal" | "team" = "seat") {
     if (active.current) return;
     const originPage = location.href;
-    const popup = window.open("about:blank", "_blank", "popup,width=560,height=800");
-    if (!popup) { setError("请允许打开支付窗口后重试（错误码：PAY-WINDOW）"); return; }
+    // Omit popup features so checkout opens as a full browser page.
+    const popup = window.open("about:blank", "_blank");
+    if (!popup) { setError("请允许打开支付页面后重试（错误码：PAY-WINDOW）"); return; }
     popup.opener = null;
     active.current = true;
     setPending(true); setError("");
@@ -41,7 +42,8 @@ export function useAirwallexCheckout() {
     const key = `airwallex:${w.id}:${actor}:${order.id}`;
     let errorCode = "PAY-ORDER";
     try {
-      M.govern(w, actor); M.writable(w);
+      if (kind !== "team") { M.govern(w, actor); M.writable(w); }
+      if (kind === "team" && (w.type !== "team" || !Number.isInteger(order.added) || order.added! < 2 || order.added! > 50 || order.amount !== order.added! * M.teamPricing[order.cycle].firstAmount)) throw Error("团队开通报价无效");
       if (!endpoint || (kind === "seat" && w.type !== "team") || (kind === "personal" && w.type !== "personal")) throw Error("当前入口不支持 Airwallex 沙盒结账");
       if (order.status === "cancelled") throw Error("订单已取消，请重新选择");
       if (kind === "seat") {

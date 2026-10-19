@@ -29,7 +29,7 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env) {
   };
 }
 type Config = ReturnType<typeof readConfig>;
-type Input = { kind?: "seat" | "credits" | "personal"; requestId: string; market: "global"; workspaceId: string; actor: string; cycle: "month" | "year"; quantity: number };
+type Input = { kind?: "seat" | "credits" | "personal" | "team"; requestId: string; market: "global"; workspaceId: string; actor: string; cycle: "month" | "year"; quantity: number };
 type Checkout = { id: string; url: string; status: string; expiresAt: string };
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 export function validateInput(value: unknown): Input {
@@ -37,7 +37,7 @@ export function validateInput(value: unknown): Input {
   const p = value as Record<string, unknown>;
   const keys = ["requestId", "market", "workspaceId", "actor", "cycle", "quantity", "kind"];
   if (Object.keys(p).some(k => !keys.includes(k))) throw new CheckoutError(400, "请求包含不支持的字段");
-  if ((p.kind !== undefined && !["seat", "credits", "personal"].includes(String(p.kind))) || (p.kind === "credits" && ![5, 10, 15].includes(Number(p.quantity))) || p.market !== "global" || !["month", "year"].includes(String(p.cycle)) ||
+  if ((p.kind !== undefined && !["seat", "credits", "personal", "team"].includes(String(p.kind))) || (p.kind === "team" && Number(p.quantity) < 2) || (p.kind === "credits" && ![5, 10, 15].includes(Number(p.quantity))) || p.market !== "global" || !["month", "year"].includes(String(p.cycle)) ||
       typeof p.requestId !== "string" || !uuid.test(p.requestId) ||
       typeof p.workspaceId !== "string" || !/^[a-zA-Z0-9_-]{1,100}$/.test(p.workspaceId) || (p.workspaceId === "personal" && !["credits", "personal"].includes(String(p.kind))) || (p.kind === "personal" && (p.workspaceId !== "personal" || p.quantity !== 1)) ||
       typeof p.actor !== "string" || !/^[a-zA-Z0-9_-]{1,100}$/.test(p.actor) ||

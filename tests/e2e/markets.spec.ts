@@ -301,6 +301,20 @@ for (const market of ["cn", "global"] as const) {
   test(`${market}: account without a team creates one through payment and keeps the same login`, async ({
     page,
   }) => {
+    let completed = false;
+    let requestedWorkspace = "";
+    if (market === "global") {
+      await page.context().route("https://checkout.airwallex.com/team-test", route => route.fulfill({ contentType: "text/html", body: "Team checkout" }));
+      await page.route("**/api/airwallex/checkouts**", async route => {
+        if (route.request().method() === "POST") {
+          const body = route.request().postDataJSON();
+          expect(body.kind).toBe("team");
+          expect(body.quantity).toBe(3);
+          requestedWorkspace = body.workspaceId;
+          await route.fulfill({ json: { id: "team-checkout", url: "https://checkout.airwallex.com/team-test" } });
+        } else await route.fulfill({ json: { status: completed ? "COMPLETED" : "OPEN", subscriptionId: completed ? "team-subscription" : null } });
+      });
+    }
     await login(page, market);
     const state = M.seed();
     state.spaces = state.spaces.filter((w) => w.type === "personal");
@@ -314,9 +328,15 @@ for (const market of ["cn", "global"] as const) {
     await page.locator('#ws-dialog [name="name"]').fill(`${market} 评审团队`);
     await page.getByRole("button", { name: "确认订单", exact: true }).click();
     await page
-      .getByRole("button", { name: "支付并开通", exact: true })
+      .getByRole("button", { name: market === "global" ? "前往支付" : "支付并开通", exact: true })
       .click();
+    if (market === "global") {
+      await expect(page.getByRole("button", { name: "等待支付结果" })).toBeDisabled();
+      expect(await page.evaluate(k => JSON.parse(localStorage.getItem(k)!).spaces.filter((w: {type:string}) => w.type === "team").length, key(market, M.KEY))).toBe(0);
+      completed = true;
+    }
     await page.getByRole("button", { name: "进入团队", exact: true }).click();
+    if (market === "global") expect(new URL(page.url()).searchParams.get("space")).toBe(requestedWorkspace);
     await expect(page).toHaveURL(new RegExp(`/${market}/workbench/`));
     await expect(page.locator("#ws-switcher")).toContainText(
       `${market} 评审团队`,
