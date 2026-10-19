@@ -127,7 +127,7 @@ export function createCheckoutService(config: Config, transport: typeof fetch = 
     return { id, status: result.status, subscriptionId: result.subscription_id || null, completedAt: result.completed_at || null, expiresAt: result.expires_at || null };
   }
   async function invoices(workspaceId: string, requestId?: string) {
-    if (!/^[a-zA-Z0-9_-]{1,100}$/.test(workspaceId) || workspaceId === "personal") throw new CheckoutError(400, "INV-SCOPE");
+    if (!/^[a-zA-Z0-9_-]{1,100}$/.test(workspaceId) || (workspaceId === "personal" && !requestId)) throw new CheckoutError(400, "INV-SCOPE");
     const token = await auth();
     async function list(path: string) {
       const rows: Record<string, unknown>[] = [];
@@ -142,24 +142,24 @@ export function createCheckoutService(config: Config, transport: typeof fetch = 
       throw new CheckoutError(502, "INV-PAGE-LIMIT");
     }
     const checkouts = await list("/billing/billing_checkouts");
-    const creditCheckout = requestId ? checkouts.find(c => {
+    const orderCheckout = requestId ? checkouts.find(c => {
       const metadata = c.metadata as Record<string, unknown> | undefined;
-      return c.legal_entity_id === config.legalEntityId && metadata?.market === "global" && metadata.workspace_id === workspaceId && metadata.purpose === "sandbox-credits-checkout" && metadata.local_request_id === requestId;
+      return c.legal_entity_id === config.legalEntityId && metadata?.market === "global" && metadata.workspace_id === workspaceId && ["sandbox-credits-checkout", "sandbox-personal-checkout"].includes(String(metadata.purpose)) && metadata.local_request_id === requestId;
     }) : undefined;
-    const creditDetail = creditCheckout && !creditCheckout.invoice_id
-      ? await api(`/billing/billing_checkouts/${encodeURIComponent(String(creditCheckout.id))}`, { headers: { Authorization: `Bearer ${token}` } })
-      : creditCheckout;
+    const orderDetail = orderCheckout && !orderCheckout.invoice_id && !orderCheckout.subscription_id
+      ? await api(`/billing/billing_checkouts/${encodeURIComponent(String(orderCheckout.id))}`, { headers: { Authorization: `Bearer ${token}` } })
+      : orderCheckout;
     const subscriptions = new Set(checkouts.filter(c => {
       const metadata = c.metadata as Record<string, unknown> | undefined;
       return c.legal_entity_id === config.legalEntityId && metadata?.market === "global" && metadata.workspace_id === workspaceId && c.subscription_id;
     }).map(c => c.subscription_id));
-    if (!subscriptions.size && !creditCheckout) return { items: [] };
+    if (!subscriptions.size && !orderCheckout) return { items: [] };
     const rows = await list("/billing/invoices");
     const safeUrl = (value: unknown) => {
       try { const u = new URL(String(value)); return u.protocol === "https:" && u.hostname.endsWith(".airwallex.com") && !u.username && !u.password ? u.href : null; } catch { return null; }
     };
     return { items: rows.filter(i => i.legal_entity_id === config.legalEntityId && (requestId
-      ? creditCheckout && (i.id === creditDetail?.invoice_id || i.billing_checkout_id === creditCheckout.id)
+      ? orderCheckout && (i.id === orderDetail?.invoice_id || i.billing_checkout_id === orderCheckout.id || (!!orderDetail?.subscription_id && i.subscription_id === orderDetail.subscription_id))
       : subscriptions.has(i.subscription_id))).map(i => ({
       id: String(i.id), number: String(i.number || i.id), date: String(i.created_at || ""),
       amount: typeof i.total_amount === "number" ? i.total_amount : null, currency: String(i.currency || ""),

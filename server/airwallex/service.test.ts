@@ -156,6 +156,24 @@ test("Credits invoice lookup uses the original checkout request and workspace", 
   assert.deepEqual(await service.invoices('team-eureka', randomUUID()), { items: [] });
 });
 
+test("personal subscription invoice lookup follows only its checkout subscription", async () => {
+  const requestId = randomUUID();
+  const service = createCheckoutService(config(), async url => {
+    const path = new URL(String(url)).pathname;
+    if (path.endsWith('/login')) return Response.json({ token: 'test' });
+    if (path.endsWith('/billing_checkouts')) return Response.json({ items: [
+      { id: 'bco_personal', subscription_id: 'sub_personal', legal_entity_id: config().legalEntityId, metadata: { market: 'global', workspace_id: 'personal', purpose: 'sandbox-personal-checkout', local_request_id: requestId } },
+      { id: 'bco_team', subscription_id: 'sub_team', legal_entity_id: config().legalEntityId, metadata: { market: 'global', workspace_id: 'team-eureka', purpose: 'sandbox-seat-checkout' } },
+    ] });
+    return Response.json({ items: [
+      { id: 'inv_personal', subscription_id: 'sub_personal', legal_entity_id: config().legalEntityId, pdf_url: 'https://invoice.sandbox.airwallex.com/personal' },
+      { id: 'inv_team', subscription_id: 'sub_team', legal_entity_id: config().legalEntityId, pdf_url: 'https://invoice.sandbox.airwallex.com/team' },
+    ] });
+  });
+  assert.deepEqual((await service.invoices('personal', requestId)).items.map(i => i.id), ['inv_personal']);
+  assert.deepEqual(await service.invoices('personal', randomUUID()), { items: [] });
+});
+
 test("personal subscriptions select their own recurring prices and cannot target teams or multiple units", async () => {
   for (const cycle of ["month", "year"] as const) {
     const mock = mockApi();
