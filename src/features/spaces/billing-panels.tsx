@@ -174,7 +174,7 @@ export function PersonalBilling({
             分钟转写与摘要时长。年付套餐按年支付，权益按月刷新。
           </p>
           <p>{cn ? "免费版" : "标准版"}每月包含 {marketConfig().benefits.standardMinutes} 分钟。</p>
-          {cn && <p>标准版每月 3,000 积分，专业版每月 5,000 积分，卓越版每月 10,000 积分。标准版与卓越版可在 App 内查看开通方式。</p>}
+          {cn && <p>标准版每月 3,000 Credits，专业版每月 5,000 Credits，卓越版每月 10,000 Credits。标准版与卓越版可在 App 内查看开通方式。</p>}
         </div>
         <div className="ps-plan-footer">
           <Button

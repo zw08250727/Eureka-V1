@@ -44,7 +44,7 @@ export function grantCredits(w: Workspace, grant: CreditGrant) {
   w.credits.total = round(w.credits.total + grant.amount);
 }
 export function debitCredits(w: Workspace, amount: number, now = new Date()) {
-  if (creditSummary(w, now).balance < amount) throw Error("积分不足，请充值后重试");
+  if (creditSummary(w, now).balance < amount) throw Error("Credits不足，请充值后重试");
   w.credits.grants ||= creditGrants(w);
   const eligible = w.credits.grants.filter(g => !g.expires || g.expires > now.toISOString())
     .sort((a, b) => (a.expires || "9999").localeCompare(b.expires || "9999") || a.time.localeCompare(b.time));

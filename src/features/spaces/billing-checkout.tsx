@@ -96,7 +96,7 @@ export function CheckoutDialog({
           <h3>支付成功</h3>
           <strong>+{creditNumber(o.credits)}{creditText(" Credits")}</strong>
           <p>已加入「{w.name}」共享池</p>
-          {o.creditsExpireAt && <p>积分有效期至 {date(o.creditsExpireAt)}</p>}
+          {o.creditsExpireAt && <p>Credits有效期至 {date(o.creditsExpireAt)}</p>}
           <p>当前可用 {creditNumber(M.creditBalance(w))}{creditText(" Credits")}</p>
         </div>
         <div className="ws-order">
@@ -171,7 +171,7 @@ export function CheckoutDialog({
           </Select>
         </label>}
         <p className="ws-muted">
-          {cn ? "单次购买，支付成功后立即生效，不自动续费。年付会员积分仍随会员周期按月发放至个人账户。" : creditText(`支付成功后立即生效，随后每${o.cycle === "year" ? "年" : "月"}按 ${dollars(o.amount)} 自动续费，可随时取消续费并保留已购期间权益。年付的分钟数与 Credits 仍按月刷新。`)}
+          {cn ? "单次购买，支付成功后立即生效，不自动续费。年付会员Credits仍随会员周期按月发放至个人账户。" : creditText(`支付成功后立即生效，随后每${o.cycle === "year" ? "年" : "月"}按 ${dollars(o.amount)} 自动续费，可随时取消续费并保留已购期间权益。年付的分钟数与 Credits 仍按月刷新。`)}
         </p>
         {o.status === "failed" && <p className="ws-seat-payment-error" role="alert">支付失败，未扣款、未开通权益。可重试或取消。</p>}
         <input type="hidden" name="orderId" value={o.id} />

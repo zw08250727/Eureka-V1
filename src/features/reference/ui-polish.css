@@ -88,7 +88,33 @@ body.app-data-mode .ps-plan-head h2{font-size:24px;margin:10px 0 6px}body.app-da
 body.app-data-mode #personal-settings .settings-float{gap:16px}body.app-data-mode .ex-settings-body{padding:20px}body.app-data-mode .ex-section-intro{margin-bottom:16px}body.app-data-mode .ex-settings-body .ex-form{gap:16px 20px}body.app-data-mode .pa-settings .settings-float-section{padding:16px 20px}body.app-data-mode .pa-settings .settings-float-row{padding:12px 0;min-height:62px}
 @media(max-width:600px){body.app-data-mode .ps-plans,body.app-data-mode .ex-settings-body{padding:18px 16px}body.app-data-mode .ps-plan-head h2{font-size:22px}body.app-data-mode .ps-plan-options{gap:24px}}
 
-.review-menu-section{border-top:1px solid #e8edf3;margin-top:8px;padding-top:6px}
-.review-menu-entry,.ws-menu .review-menu-entry{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:36px;padding:8px 10px;border:0;border-radius:8px;background:transparent;color:#718197;font:12px/1.5 system-ui;cursor:pointer;text-align:left}
-.review-menu-entry>span{font-size:10px;color:#96a2b2}.review-menu-entry:hover{background:#f4f7fb;color:#41658f}.review-menu-entry:focus-visible{outline:2px solid #81a6e1;outline-offset:2px}
-.ex-dialog.review-tools-dialog{width:min(400px,calc(100vw - 32px))}.review-tools-body{display:grid;gap:16px}.review-tools-body>p{margin:0;color:#7b899b;font-size:12px}.review-tools-body .team-review-tools{width:100%;min-width:0;flex-wrap:wrap}.review-tools-body .team-review-switch{width:100%;flex-wrap:wrap}.review-tools-body .ui-select{min-width:0;flex:1}.review-tools-body .prd-review-entry{display:flex;justify-content:space-between;padding:10px 12px;border:1px solid #dce6f4;border-radius:8px;text-decoration:none;color:#4c709f;font-size:13px}
+/* Review launcher stays below native modal surfaces and outside navigation menus. */
+.review-floating-entry {
+  position: fixed;
+  right: max(24px, env(safe-area-inset-right));
+  top: calc(50% - 22px);
+  bottom: auto;
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--market-accent, #3858b6);
+  border-radius: 24px;
+  background: var(--market-accent, #3858b6);
+  color: #fff;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 8%);
+  font: 500 13px/20px var(--font, system-ui);
+  cursor: pointer;
+}
+.review-floating-entry svg { width: 16px; height: 16px; }
+.review-floating-entry:hover { background: var(--ui-accent-hover, #2f4b9c); }
+.review-floating-entry:focus-visible { outline: 2px solid var(--market-accent, #3858b6); outline-offset: 2px; }
+@media (max-width: 760px) {
+  .review-floating-entry { right: max(16px, env(safe-area-inset-right)); top: calc(50% - 22px); bottom: auto; }
+}
+.ex-dialog.review-tools-dialog{width:min(440px,calc(100vw - 32px))}.review-tools-body{display:grid;gap:16px}.review-tools-body>p{margin:0;color:#7b899b;font-size:12px}.review-tools-body .team-review-tools{width:100%;min-width:0;flex-wrap:wrap}.review-tools-body .team-review-switch{width:100%;flex-wrap:wrap}.review-tools-body .ui-select{min-width:0;flex:1}.review-tools-body .prd-review-entry{display:flex;justify-content:space-between;padding:10px 12px;border:1px solid #dce6f4;border-radius:8px;text-decoration:none;color:#4c709f;font-size:13px}
+
+.review-floating-entry { touch-action: none; user-select: none; cursor: grab; }
+.review-floating-entry:active { cursor: grabbing; }

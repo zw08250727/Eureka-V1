@@ -174,10 +174,14 @@ test("team history remains scoped to actor and excludes personal conversations",
 test("PRD revision replaces obsolete rules and retains stable sections", async ({ page }) => {
   const response = await page.request.get("/prototype/prd/content.json");
   const prd = await response.json();
-  expect(prd.version).toBe("1.4");
+  // PRD 1.6: preserve shared contracts while splitting independently owned markets.
+  expect(prd.version).toBe("1.6");
+  expect(prd.sections).toHaveLength(51);
+  expect(prd.sections.filter((s: { id: string }) => s.id.startsWith("cn-"))).toHaveLength(6);
+  expect(prd.sections.filter((s: { id: string }) => s.id.startsWith("global-"))).toHaveLength(7);
   expect(new Set(prd.sections.map((s: { id: string }) => s.id)).size).toBe(prd.sections.length);
   const content = JSON.stringify(prd.sections);
-  expect(content).toContain("全站只有一个 Agent");
+  expect(content).toContain("AGENT-01：每个市场内只有一个 Agent");
   expect(content).toContain("MARKET-01");
   expect(content).toContain("TEAM-06");
   expect(content).not.toContain("统一账号切换多个团队");

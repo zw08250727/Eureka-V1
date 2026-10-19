@@ -1,5 +1,8 @@
 "use client";
 
+import { reportAgentAttempt } from "@/features/agent/feedback";
+import { useAgentCreditSimulation, AgentSimulationMessages, AgentSendButton } from "@/features/agent/credit-preview";
+import { AgentCredits } from "@/features/agent/credits";
 import { marketStorage } from "@/features/markets/storage";
 
 import { readSessions, useSceneAgent } from "@/features/agent/session";
@@ -157,6 +160,7 @@ export function TeamHistoryAgent({
     );
   const textarea = useRef<HTMLTextAreaElement>(null),
     log = useRef<HTMLDivElement>(null);
+  const simulation = useAgentCreditSimulation();
   const w = M.get(controller.state!, space),
     thread = M.history(w, actor).find((t) => t.id === selected),
     conversation = thread ? M.conversation(w, thread.id, actor) : [];
@@ -164,6 +168,9 @@ export function TeamHistoryAgent({
     if (log.current) log.current.scrollTop = 0;
   }, [id]);
   function send() {
+    const simulated = simulation.send(input.trim());
+    if (simulated) { if (simulated === "sent") setInput(""); return; }
+    reportAgentAttempt(w, actor);
     try {
       const result = controller.change((s) =>
         M.ask(M.get(s, space), input, null, actor, thread?.id, {
@@ -174,7 +181,7 @@ export function TeamHistoryAgent({
       );
       setInput("");
       setSelected(result.threadId || selected);
-      setAnswer(result.cost ? "" : result.answer);
+      setAnswer(result.threadId ? "" : result.answer);
       setFileIds([]);
       setError("");
       requestAnimationFrame(() => {
@@ -205,6 +212,7 @@ export function TeamHistoryAgent({
             aria-label="新建会话"
             title="新建会话"
             onClick={() => {
+                    simulation.reset();
               setSelected("");
               setInput("");
               setAnswer("");
@@ -263,12 +271,9 @@ export function TeamHistoryAgent({
             <div className="ws-chat-answer">{t.answer}</div>
             {t.usage ? (
               <div className="ws-agent-usage">
-                输入 {t.usage.inputTokens.toLocaleString("zh-CN")} / 输出{" "}
-                {t.usage.outputTokens.toLocaleString("zh-CN")} tokens ·{" "}
-                {t.usage.cost.toLocaleString("zh-CN", {
+                {t.usage.status && t.usage.status !== "settled" ? "待结算" : t.usage.cost.toLocaleString("zh-CN", {
                   maximumFractionDigits: 3,
-                })}{" "}
-                Credits
+                }) + " Credits"}
               </div>
             ) : null}
           </Fragment>
@@ -278,6 +283,8 @@ export function TeamHistoryAgent({
             {answer}
           </div>
         ) : null}
+        <AgentSimulationMessages kind="team" />
+        <AgentCredits />
       </div>
       <form
         className="ws-composer"
@@ -326,14 +333,7 @@ export function TeamHistoryAgent({
           >
             <Icon name="globe" />
           </Button>
-          <button
-            className="ws-btn primary"
-            type="submit"
-            aria-label="发送问题"
-            disabled={!input.trim()}
-          >
-            <Icon name="send" />
-          </button>
+          <AgentSendButton className="ws-btn primary" label="发送问题" disabled={!input.trim()} onSend={() => { void send(); }}><Icon name="send" /></AgentSendButton>
         </div>
         <small id="ws-composer-hint">
           {fileIds.length
@@ -429,6 +429,7 @@ export function PersonalHistoryAgent({
     next: "基于这条会话继续梳理下一步",
     followup: "这条历史会话已恢复。可继续补充问题。",
   } : personalHistory[index] || { ...personalHistory[0], messages: [], source: "不可用", next: "", followup: "会话不存在或已删除。" };
+  const simulation = useAgentCreditSimulation();
   const agent = useSceneAgent(saved?.scene || "home", saved?.sourceId || "", saved?.id || (index >= 0 ? "seed:" + id : undefined), { title: personalHistoryTitles[index] || id, messages: seed.messages });
   const [fresh, setFresh] = useState(false);
   const [messages, setMessages] = useState(seed.messages),
@@ -450,9 +451,12 @@ export function PersonalHistoryAgent({
   }, []);
   function send() {
     if (!input.trim() || (!fresh && !saved && index < 0)) return;
+    const simulated = simulation.send(input.trim());
+    if (simulated) { if (simulated === "sent") setInput(""); return; }
     const text = agent.run(input.trim(), () => fresh
       ? `已收到：${input.trim()}。`
       : `收到你的补充：“${input.trim()}”\n\n${seed.followup}\n\n${web ? "" : ""}`);
+    if (text === undefined) return;
     setMessages((rows) => [...rows, { role: "user", text: input.trim() }, { role: "assistant", text }]);
     setInput("");
     requestAnimationFrame(() => {
@@ -488,6 +492,7 @@ export function PersonalHistoryAgent({
               aria-label="新建会话"
               title="新建会话"
               onClick={() => {
+                    simulation.reset();
                 agent.reset();
                 setFresh(true);
                 setMessages([]);
@@ -512,6 +517,7 @@ export function PersonalHistoryAgent({
         </div>
         <div className="xiaozhi-body">
           <div className="xiaozhi-intro" hidden={!fresh}>
+            {!simulation.hasMessages && !messages.length && <>
             <span className="xiaozhi-state">
               <i />
               资料准备好后
@@ -536,23 +542,21 @@ export function PersonalHistoryAgent({
                 </button>
               ))}
             </div>
+            </>}
             {fresh
               ? messages
-                  .filter((m) => m.role === "assistant")
                   .map((m, i) => (
                     <article
-                      className="agent-history-message assistant"
+                      className={`agent-history-message ${m.role}`}
                       key={i}
                     >
-                      <span>Ask Agent</span>
+                      <span>{m.role === "user" ? "你" : "Ask Agent"}</span>
                       <p>{m.text}</p>
-                      <p>
-                        已收到你的问题，可以继续补充背景，或引用资料展开讨论。
-                      </p>
 
                     </article>
                   ))
               : null}
+            {fresh && <><AgentSimulationMessages /><AgentCredits /></>}
           </div>
           <section
             id="agent-history-session"
@@ -585,6 +589,7 @@ export function PersonalHistoryAgent({
                   <p>{m.text}</p>
                 </article>
               ))}
+              {!fresh && <><AgentSimulationMessages /><AgentCredits /></>}
             </div>
             <button
               type="button"
@@ -598,7 +603,7 @@ export function PersonalHistoryAgent({
             </button>
           </section>
           <div className="agent-composer-wrap">
-            <div className="xiaozhi-composer">
+                <div className="xiaozhi-composer">
               <textarea
                 ref={textarea}
                 id="xiaozhi-input"
@@ -678,15 +683,7 @@ export function PersonalHistoryAgent({
                 >
                   <RefIcon name="globe" />
                 </button>
-                <button
-                  className="xiaozhi-send"
-                  id="xiaozhi-send"
-                  aria-label="发送给 Ask Agent"
-                  disabled={!input.trim()}
-                  onClick={send}
-                >
-                  <RefIcon name="send" />
-                </button>
+                <AgentSendButton className="xiaozhi-send" id="xiaozhi-send" label="发送给 Ask Agent" disabled={!input.trim()} onSend={() => { void send(); }}><RefIcon name="send" /></AgentSendButton>
               </div>
               <span
                 id="xiaozhi-context-hint"

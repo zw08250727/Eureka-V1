@@ -1,3 +1,4 @@
+import { mockUsageReceipt, tokenCost, validateReceipt, sameReceipt } from "../../agent/usage";
 import { allocateMinutes } from "./time-packs";
 import { marketConfig, routeMarket, creditText } from "../../markets/config";
 const market = marketConfig();
@@ -730,23 +731,52 @@ function payCreditOrder(w, orderId, outcome, actor = SELF, method = market.payme
   log(w, `Credits 到账 · +${order.credits.toLocaleString()}`, actor);
   return order;
 }
-// Token counters are local estimates only. Production must use provider-returned usage.
-function simulatedTokenUsage(input, output) {
-  const count = (text) =>
-    Math.max(1, Math.ceil(new TextEncoder().encode(String(text)).length / 4));
-  return {
-    inputTokens: count(input),
-    outputTokens: count(output),
-    source: "simulated",
-    model: market.brand + " Agent",
-    rateVersion: "token-demo-v1",
-  };
+// Legacy API retained for callers; values now come from a fixed mock platform receipt.
+function simulatedTokenUsage() {
+  return mockUsageReceipt("local-fixture");
+}
+function assertAgentAvailable(w, uid = SELF) {
+  assertEntitlement(w, uid);
+  if ((w.agentRuns || []).some(r => r.actor === uid && r.status !== "settled"))
+    fail("有待结算的 Agent 用量，请先查看用量与余额");
+  if (creditBalance(w) <= 0) fail(w.type === "team"
+    ? "Credits 不足，请联系团队管理员充值；输入已保留"
+    : "Credits 不足，请充值后重试；输入已保留");
+}
+function recordAgentUsage(w, runId, prompt, receipt, uid = SELF, scene = "home") {
+  assertEntitlement(w, uid);
+  if (!runId) fail("缺少 Agent 运行标识");
+  const runs = w.agentRuns ||= [];
+  const prior = runs.find(r => r.runId === runId);
+  if (prior && prior.actor !== uid) fail("无权读取其他成员的用量");
+  if (prior?.status === "settled") {
+    if (!sameReceipt(prior.receipt, receipt)) fail("同一运行的用量回执冲突，请核对");
+    return prior;
+  }
+  const run = prior || { runId, actor: uid, scene, task: prompt.slice(0, 80), time: stamp(), status: "pending", receipt: null, cost: null, reason: "" };
+  if (!prior) runs.unshift(run);
+  // A final receipt cannot be silently replaced with a different amount on retry.
+  if (run.receipt && !sameReceipt(run.receipt, receipt)) fail("同一运行的用量回执冲突，请核对");
+  try { run.cost = validateReceipt(receipt, runId, market.rates); }
+  catch (error) { run.status = "pending"; run.reason = error.message; return run; }
+  run.receipt = receipt;
+  if (creditUnits(creditBalance(w)) < creditUnits(run.cost)) {
+    run.status = "insufficient"; run.reason = "余额不足，回答已保留；充值后结算本次用量，不会重新生成"; return run;
+  }
+  const charge = settleCredits(w, runId, prompt, receipt, uid);
+  run.cost = charge.amount; run.status = "settled"; run.reason = "";
+  for (const thread of w.threads) if (thread.runId === runId && thread.usage) {
+    thread.usage.cost = run.cost; thread.usage.status = "settled";
+  }
+  return run;
 }
 function settleCredits(w, runId, prompt, usage, uid = SELF) {
   assertEntitlement(w, uid);
   const prior = w.credits.logs.find((l) => l.runId === runId);
   if (prior) {
     if (prior.user !== uid) fail("无权读取其他成员的用量");
+    if (prior.inputTokens !== usage?.inputTokens || prior.outputTokens !== usage?.outputTokens)
+      fail("同一运行的用量回执冲突，请核对");
     return prior;
   }
   if (
@@ -757,9 +787,7 @@ function settleCredits(w, runId, prompt, usage, uid = SELF) {
     usage.outputTokens < 0
   )
     fail("Token 用量无效");
-  // 1 Credit / 1000 input tokens, 2 Credits / 1000 output tokens; demo rates only.
-  const units = Math.round((usage.inputTokens * market.rates.input + market.rates.output * usage.outputTokens) * 1000 / market.rates.perTokens);
-  if (!Number.isSafeInteger(units) || units <= 0) fail("Token 用量无效");
+  const units = Math.round(tokenCost(usage, market.rates) * 1000);
   if (creditUnits(creditBalance(w)) < units)
     fail("Credits 不足，请联系管理员购买后重试");
   const record = {
@@ -771,9 +799,9 @@ function settleCredits(w, runId, prompt, usage, uid = SELF) {
     time: stamp(),
     inputTokens: usage.inputTokens,
     outputTokens: usage.outputTokens,
-    source: "simulated",
-    model: market.brand + " Agent",
-    rateVersion: "token-demo-v1",
+    source: usage.source || "simulated",
+    model: usage.model || "AgentPlatform · 模拟回执",
+    rateVersion: usage.rateVersion || "token-demo-v1",
   };
   if (market.id === "cn") debitCredits(w, units / 1000);
   w.credits.used = (creditUnits(w.credits.used) + units) / 1000;
@@ -1263,8 +1291,7 @@ function runTask(w, tid, uid = SELF) {
   return result;
 }
 function ask(w, prompt, fid, uid = SELF, historyId = null, options = {}) {
-  access(w, uid);
-  writable(w);
+  assertAgentAvailable(w, uid);
   prompt = String(prompt).trim();
   if (!prompt) fail("请输入问题");
   const previous = historyId ? getThread(w, historyId, uid) : null;
@@ -1347,26 +1374,16 @@ function ask(w, prompt, fid, uid = SELF, historyId = null, options = {}) {
   if (options.web)
     answer +=
       "\n\n本次回答引用的来源见上方会议记录。";
-  const runId = id("run"),
-    usage = simulatedTokenUsage(
-      prompt +
-        "\n" +
-        files.map((f) => f.summary || f.transcript || "").join("\n") +
-        (previous
-          ? "\n" +
-            conversation(w, previous.id, uid)
-              .map((t) => t.prompt + "\n" + t.answer)
-              .join("\n")
-          : ""),
-      answer,
-    );
-  const charge = settleCredits(w, runId, prompt, usage, uid);
+  const runId = options.receipt?.runId || id("run");
+  const usage = options.receipt === undefined ? mockUsageReceipt(runId) : options.receipt;
+  const settled = recordAgentUsage(w, runId, prompt, usage, uid, fid ? "meeting" : "team");
+  const charge = { amount: settled.status === "settled" ? settled.cost : 0 };
   const thread = {
     ...agentRoute(fid ? "meeting" : "team"),
     dataMcp: w.type === "team" ? ["team-meetings"] : ["meetings"],
     id: id("chat"),
     runId,
-    usage: { ...usage, cost: charge.amount },
+    usage: usage ? { ...usage, cost: charge.amount, status: settled.status } : undefined,
     user: uid,
     prompt,
     answer,
@@ -1786,16 +1803,17 @@ function saveContacts(w, data, uid = SELF) {
 function askContact(w, prompt, cid, uid = SELF) {
   if (w.type === "team") fail("请在本人账号的联系人中查看客户信息");
   access(w, uid);
-  writable(w);
+  assertAgentAvailable(w, uid);
   const c = w.contacts.find((c) => c.id === cid) || fail("请先选择联系人");
   const answer = `基于${c.name}的团队联系人记录：\n\n${c.summary}\n\n开放承诺：${(c.commitments || []).map((x) => x[0]).join("；") || "暂无"}。\n下一步：确认负责人和截止时间，在沟通后更新备注与跟进任务。\n\n仅引用当前联系人。`;
   const runId = id("run"),
-    usage = simulatedTokenUsage(prompt + "\n" + c.summary, answer),
-    charge = settleCredits(w, runId, prompt, usage, uid);
+    usage = mockUsageReceipt(runId),
+    run = recordAgentUsage(w, runId, prompt, usage, uid, "contacts"),
+    charge = { amount: run.status === "settled" ? run.cost : 0 };
   w.threads.unshift({
     id: id("chat"),
     runId,
-    usage: { ...usage, cost: charge.amount },
+    usage: { ...usage, cost: charge.amount, status: run.status },
     user: uid,
     prompt,
     answer,
@@ -1871,6 +1889,8 @@ const workspaceModel = {
   cancelCreditOrder,
   payCreditOrder,
   simulatedTokenUsage,
+  assertAgentAvailable,
+  recordAgentUsage,
   settleCredits,
   advanceCycle,
   addFile,

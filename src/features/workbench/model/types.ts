@@ -133,6 +133,7 @@ export interface AgentContext {
   lines: string[];
 }
 export interface AgentReply {
+  usage?: import("@/features/agent/usage").UsageReceipt;
   title: string;
   text: string;
   items: string[];
@@ -146,6 +147,8 @@ export interface AgentGateway {
       audio: boolean;
       apps: boolean;
       fileIds?: string[];
+      runId?: string;
+      onProgress?: (progress: import("@/features/agent/demo-stream").AgentProgress) => void;
     },
     signal: AbortSignal,
   ): Promise<AgentReply>;

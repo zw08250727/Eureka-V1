@@ -1,13 +1,18 @@
 "use client";
 
+import { useAgentCreditSimulation, AgentSimulationMessages, AgentSendButton } from "@/features/agent/credit-preview";
+import { AgentCredits } from "@/features/agent/credits";
 import { useSceneAgent } from "@/features/agent/session";
 import { AgentHistoryButton } from "@/features/agent/history-button";
-import { useEffect, useRef, useState, type RefObject } from "react";
+import { Fragment, useEffect, useRef, useState, type RefObject } from "react";
 import { RefIcon as Icon } from "@/features/reference/symbols";
 import {useAgentLayout} from "@/features/reference/use-agent-layout";
 import { useAgentWidth } from "../hooks/use-agent-width";
 import { mockAgent } from "../model/mock-agent";
 import type { AgentContext, AgentGateway, AgentReply } from "../model/types";
+import { AgentWaiting } from "@/features/agent/waiting";
+import type { AgentProgress, AgentProcess } from "@/features/agent/demo-stream";
+import styles from "@/features/agent/credits.module.css";
 export interface AgentDraft {
   context: AgentContext;
   text: string;
@@ -27,13 +32,15 @@ export function AgentPanel({
   gateway?: AgentGateway;
   files?: { id: string; title: string }[];
 }) {
+  const simulation = useAgentCreditSimulation(open);
   const agent = useSceneAgent(draft.context.widget === "thoughts" ? "thoughts" : "home");
   const rail=useRef<HTMLElement>(null);
+  const messageEnd = useRef<HTMLDivElement>(null);
   useAgentLayout(rail,open);
   const sizing = useAgentWidth(host),
     [input, setInput] = useState(draft.text),
     [context, setContext] = useState(draft.context),
-    [messages, setMessages] = useState<{ prompt: string; reply: AgentReply }[]>(
+    [messages, setMessages] = useState<{ prompt: string; reply: AgentReply; runId: string; stopped?: boolean; process?: AgentProcess; failed?: boolean }[]>(
       [],
     ),
     [error, setError] = useState(""),
@@ -43,6 +50,8 @@ export function AgentPanel({
     [apps, setApps] = useState(false),
     [web, setWeb] = useState(false),
     [widget, setWidget] = useState(!!draft.context.widget);
+  const [pending, setPending] = useState<{ prompt: string; progress: AgentProgress } | null>(null);
+  const progress = useRef<AgentProgress | null>(null);
   const request = useRef<AbortController | null>(null),
     textarea = useRef<HTMLTextAreaElement>(null);
   const [last, setLast] = useState(draft.sequence);
@@ -54,6 +63,7 @@ export function AgentPanel({
     setWidget(!!draft.context.widget);
   }
   useEffect(() => () => request.current?.abort(), []);
+  useEffect(() => { if (messages.length || pending) messageEnd.current?.scrollIntoView({ block: "nearest" }); }, [messages, pending]);
   useEffect(() => {
     function close(e: MouseEvent) {
       if (!(e.target as Element).closest(".agent-source-wrap"))
@@ -74,14 +84,20 @@ export function AgentPanel({
     return () => document.body.classList.remove("xiaozhi-open");
   }, [open]);
   async function send() {
-    if (!input.trim() || busy) return;
+    if (!input.trim() || busy || request.current) return;
+    const simulated = simulation.send(input.trim());
+    if (simulated) { if (simulated === "sent") setInput(""); return; }
     const prompt = input.trim();
     const controller = new AbortController();
     request.current = controller;
     setBusy(true);
     setError("");
+    let execution: ReturnType<typeof agent.begin> | undefined;
     try {
-      agent.ensureAvailable();
+      execution = agent.begin(prompt);
+      progress.current = null;
+      setInput("");
+      setPending({ prompt, progress: { text: "", process: { kind: "thinking", label: "梳理问题" } } });
       const reply = await gateway.send(
         prompt,
         {
@@ -96,27 +112,44 @@ export function AgentPanel({
               ? draft.context.lines
               : context.lines,
         },
-        { audio, apps, web },
+        { audio, apps, web, runId: execution.runId, onProgress: value => {
+          if (controller.signal.aborted) return;
+          progress.current = value;
+          setPending({ prompt, progress: value });
+        } },
         controller.signal,
       );
+      const runId = execution.runId;
+      execution.complete([reply.title, reply.text, ...reply.items].join("\n"), reply.usage ?? null);
       if (!controller.signal.aborted) {
-        agent.record(prompt, [reply.title, reply.text, ...reply.items].join("\n"));
         setMessages((m) =>
           context.widget && widget
-            ? [{ prompt, reply }]
-            : [...m, { prompt, reply }],
+            ? [{ prompt, reply, runId, process: progress.current?.process }]
+            : [...m, { prompt, reply, runId, process: progress.current?.process }],
         );
         setInput((current) => (current.trim() === prompt ? "" : current));
       }
     } catch (e) {
-      if (!controller.signal.aborted) setError((e as Error).message);
+      try { execution?.pending(); } catch { /* Preserve the original error and input. */ }
+      if (request.current === controller) {
+        if (execution) {
+          const runId = execution.runId;
+          const text = progress.current?.text || "";
+          setMessages(rows => [...rows, { prompt, runId, reply: { title: "Ask Agent", text, items: [] }, stopped: controller.signal.aborted, failed: !controller.signal.aborted, process: progress.current?.process }]);
+        }
+        setInput(current => current || prompt);
+        if (!controller.signal.aborted) setError((e as Error).message);
+      }
     } finally {
-      if (!controller.signal.aborted) setBusy(false);
+      if (request.current === controller) { request.current = null; setPending(null); setBusy(false); }
     }
   }
   function reset() {
+    simulation.reset();
     agent.reset();
     request.current?.abort();
+    request.current = null;
+    setPending(null);
     setBusy(false);
     setSources(false);
     setMessages([]);
@@ -204,6 +237,7 @@ export function AgentPanel({
         </div>
         <div className="xiaozhi-body">
           <div className="xiaozhi-intro">
+            {!simulation.hasMessages && !messages.length && !pending && <>
             <span className="xiaozhi-state">
               <i />
               资料准备好后
@@ -228,6 +262,7 @@ export function AgentPanel({
                 </button>
               ))}
             </div>
+            </>}
             {messages.map((m, i) =>
               context.widget && widget ? (
                 <section
@@ -249,14 +284,29 @@ export function AgentPanel({
                   <small>基于已引用的记录整理，仅供参考。</small>
                 </section>
               ) : (
-                <article key={i} className="agent-history-message assistant">
-                  <span>Ask Agent</span>
-                  <p>{m.prompt}</p>
-                  <p>已收到你的问题，可以继续补充背景，或引用资料展开讨论。</p>
-
-                </article>
+                <Fragment key={m.runId}>
+                  <article className="agent-history-message user"><span>你</span><p>{m.prompt}</p></article>
+                  <article className="agent-history-message assistant">
+                    <span>Ask Agent</span>
+                    <p className={styles.answer}>{m.reply.text}</p>
+                    {m.process && <AgentWaiting process={m.process} state={m.stopped ? "stopped" : m.failed ? "failed" : "completed"} />}
+                    {m.stopped && <div className={styles.systemNote} role="status">已停止生成，已保留当前回答。</div>}
+                    <AgentCredits runId={m.runId} />
+                  </article>
+                </Fragment>
               ),
             )}
+            {pending && <>
+              <article className="agent-history-message user"><span>你</span><p>{pending.prompt}</p></article>
+              <article className="agent-history-message assistant" aria-busy="true">
+                <span>Ask Agent</span>
+                {pending.progress.text && <p className={styles.streamingAnswer} data-testid="native-stream-answer">{pending.progress.text}</p>}
+                <AgentWaiting process={pending.progress.process} />
+              </article>
+            </>}
+            <AgentSimulationMessages />
+            {open && !pending && (!messages.length || widget) && <AgentCredits runId={widget ? messages.at(-1)?.runId : undefined} />}
+            <div ref={messageEnd} />
           </div>
           {error ? <p role="alert">{error}</p> : null}
           <div className="agent-composer-wrap">
@@ -371,15 +421,7 @@ export function AgentPanel({
                 >
                   <Icon name="globe" />
                 </button>
-                <button
-                  className="xiaozhi-send"
-                  id="xiaozhi-send"
-                  aria-label="发送给 Ask Agent"
-                  disabled={!input.trim() || busy}
-                  type="submit"
-                >
-                  <Icon name="send" />
-                </button>
+                <AgentSendButton className="xiaozhi-send" id="xiaozhi-send" label={busy ? "停止生成" : "发送给 Ask Agent"} disabled={!busy && !input.trim()} onSend={() => { if (busy) request.current?.abort(); else void send(); }}>{busy ? <span aria-hidden="true">■</span> : <Icon name="send" />}</AgentSendButton>
               </div>
               <span
                 id="xiaozhi-context-hint"

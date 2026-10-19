@@ -1,8 +1,10 @@
 "use client";
-import { marketStorage } from "@/features/markets/storage";
+import { marketStorage, captureMarketStorage } from "@/features/markets/storage";
 
 import { M, createWorkspaceStore } from "@/features/spaces/model/store";
 import { CREATION_DEMO_KEY } from "@/features/spaces/creation-demo";
+import { mockUsageReceipt, type UsageReceipt } from "./usage";
+import { reportAgentAttempt } from "./feedback";
 import { AgentScope } from "./scope";
 import { useContext, useRef } from "react";
 import { agentRoute, SCENES } from "./registry";
@@ -19,6 +21,7 @@ export interface AgentSession {
   title: string;
   time: string;
   messages: { role: string; text: string }[];
+  runIds?: string[];
 }
 export const SESSION_KEY = "eureka:agent-sessions:v1";
 export function readSessions(storage: Storage): AgentSession[] {
@@ -27,13 +30,15 @@ export function readSessions(storage: Storage): AgentSession[] {
     throw Error("会话记录无法读取，请保留浏览器数据后重试");
   return value;
 }
-export function appendSession(storage: Storage, context: Omit<AgentSession, "title" | "time" | "messages">, prompt: string, answer: string, initial?: { title: string; messages: AgentSession["messages"] }) {
+export function appendSession(storage: Storage, context: Omit<AgentSession, "title" | "time" | "messages">, prompt: string, answer: string, initial?: { title: string; messages: AgentSession["messages"] }, runId?: string) {
   const sessions = readSessions(storage);
   const previous = sessions.find((s) => s.id === context.id);
   if (previous && (previous.space !== context.space || previous.actor !== context.actor))
     throw Error("无法访问此会话");
+  if (runId && previous?.runIds?.includes(runId)) return previous;
   const next = {
     ...context,
+    runIds: [...(previous?.runIds || []), ...(runId ? [runId] : [])],
     title: previous?.title || initial?.title || prompt.slice(0, 60),
     time: new Date().toISOString(),
     messages: [...(previous?.messages || initial?.messages || []), { role: "user", text: prompt }, { role: "assistant", text: answer }],
@@ -49,35 +54,53 @@ export function useSceneAgent(scene: AgentScene, sourceId = "", resumeId?: strin
   const storageKey = query.get("demo") === "create-team" ? CREATION_DEMO_KEY : M.KEY;
   function ensureAvailable() {
     const w = M.get(createWorkspaceStore(marketStorage, () => new Date(), { key: storageKey }).read(), space);
-    M.assertEntitlement(w, actor);
+    reportAgentAttempt(w, actor);
+    M.assertAgentAvailable(w, actor);
     if (w.type === "team" && scene === "meeting" && sourceId) M.getFile(w, sourceId, actor);
   }
   const current = useRef({ id: resumeId || "", sourceId, scene });
   function reset() { current.current = { id: "", sourceId, scene }; }
-  function record(prompt: string, answer: string) {
-    if (current.current.sourceId !== sourceId || current.current.scene !== scene) reset();
-    if (!current.current.id) current.current.id = crypto.randomUUID();
-    ensureAvailable();
-    createWorkspaceStore(marketStorage, () => new Date(), { key: storageKey }).change(s => {
+  type Origin = { runId: string; sessionId: string; storage: Storage; route: ReturnType<typeof agentRoute> };
+  function record(prompt: string, answer: string, receipt: UsageReceipt | null = mockUsageReceipt(crypto.randomUUID()), origin?: Origin) {
+    if (!origin) {
+      if (current.current.sourceId !== sourceId || current.current.scene !== scene) reset();
+      if (!current.current.id) current.current.id = crypto.randomUUID();
+    }
+    const runId = origin?.runId || receipt?.runId || crypto.randomUUID();
+    const storage = origin?.storage || marketStorage, sessionId = origin?.sessionId || current.current.id;
+    createWorkspaceStore(storage, () => new Date(), { key: storageKey }).change(s => {
       const w = M.get(s, space);
-      const usage = M.simulatedTokenUsage(prompt, answer);
-      M.settleCredits(w, crypto.randomUUID(), prompt, usage, actor);
+      M.assertEntitlement(w, actor);
+      M.recordAgentUsage(w, runId, prompt, receipt, actor, scene);
     });
-    const route = agentRoute(scene);
     try {
-      appendSession(marketStorage, {
-        ...route, id: current.current.id, scene, sourceId,
-        space, actor,
-      }, prompt, answer, current.current.id === resumeId ? initial : undefined);
+      appendSession(storage, {
+        ...(origin?.route || agentRoute(scene)), id: sessionId, scene, sourceId, space, actor,
+      }, prompt, answer, sessionId === resumeId ? initial : undefined, runId);
       window.dispatchEvent(new Event("eureka:agent-history"));
     } catch (error) {
       window.dispatchEvent(new CustomEvent("eureka:notice", { detail: "回答已生成，但历史会话保存失败：" + (error as Error).message }));
     }
     return answer;
   }
+  function begin(prompt: string) {
+    ensureAvailable();
+    if (current.current.sourceId !== sourceId || current.current.scene !== scene) reset();
+    if (!current.current.id) current.current.id = crypto.randomUUID();
+    const origin: Origin = { sessionId: current.current.id, storage: captureMarketStorage(), runId: crypto.randomUUID(), route: agentRoute(scene) };
+    return {
+      runId: origin.runId,
+      complete: (answer: string, receipt: UsageReceipt | null) => record(prompt, answer, receipt, origin),
+      pending: () => createWorkspaceStore(origin.storage, () => new Date(), { key: storageKey }).change(s => {
+        const w = M.get(s, space);
+        // A failed transport does not prove zero token usage. Never replace a final receipt.
+        if (!w.agentRuns?.some(r => r.runId === origin.runId)) M.recordAgentUsage(w, origin.runId, prompt, null, actor, scene);
+      }),
+    };
+  }
   function run(prompt: string, adapter: (route: ReturnType<typeof agentRoute>) => string) {
     try { ensureAvailable(); return record(prompt, adapter(agentRoute(scene))); }
-    catch (error) { const message = (error as Error).message; window.dispatchEvent(new CustomEvent("eureka:notice", { detail: message })); return message; }
+    catch (error) { const message = (error as Error).message; window.dispatchEvent(new CustomEvent("eureka:notice", { detail: message })); return undefined; }
   }
-  return { record, run, reset, ensureAvailable };
+  return { record, run, reset, ensureAvailable, begin };
 }

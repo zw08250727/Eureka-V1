@@ -1,7 +1,10 @@
 "use client";
 
+import { useAgentCreditSimulation, AgentSimulationMessages, AgentSendButton } from "@/features/agent/credit-preview";
+import { AgentCredits } from "@/features/agent/credits";
 import { marketStorage } from "@/features/markets/storage";
 
+import { mockUsageReceipt } from "@/features/agent/usage";
 import { useSceneAgent } from "@/features/agent/session";
 import { AgentHistoryButton } from "@/features/agent/history-button";
 import { useEffect, useRef, useState, type RefObject } from "react";
@@ -22,6 +25,7 @@ export function MeetingAgent({
   host: RefObject<HTMLDivElement | null>;
   gateway?: AgentGateway;
 }) {
+  const simulation = useAgentCreditSimulation(open);
   const agent = useSceneAgent("meeting", r.id);
   const [sessions, setSessions] = useState<Record<string, Session>>({}),
     [sources, setSources] = useState(false),
@@ -102,26 +106,31 @@ export function MeetingAgent({
   }
   async function send() {
     if (!session.input.trim() || busy) return;
+    const simulated = simulation.send(session.input.trim());
+    if (simulated) { if (simulated === "sent") setSessions(prev => ({ ...prev, [r.id]: { ...session, input: "" } })); return; }
     const id = r.id,
       prompt = session.input.trim();
     setBusy(true);
     setError("");
     const controller = new AbortController();
     abort.current = controller;
+    let execution: ReturnType<typeof agent.begin> | undefined;
     try {
-      agent.ensureAvailable();
+      execution = agent.begin(prompt);
       let text = `这场会议的主要内容：\n${r.summary}\n\n可以继续按负责人、截止时间整理后续行动。\n\n${web ? "" : ""}`;
+      let usage = gateway ? null : mockUsageReceipt(execution.runId);
       if (gateway) {
         const reply = await gateway.send(
           prompt,
           { kind: "daily", title: r.title, lines: [r.summary, r.transcript] },
-          { audio, apps, web, fileIds: audio ? [id] : undefined },
+          { audio, apps, web, fileIds: audio ? [id] : undefined, runId: execution.runId },
           controller.signal,
         );
         text = [reply.text, ...reply.items].join("\n");
+        usage = reply.usage ?? null;
       }
+      execution.complete(text, usage);
       if (!controller.signal.aborted) {
-        agent.record(prompt, text);
         setSessions((prev) => ({
           ...prev,
           [id]: {
@@ -138,9 +147,10 @@ export function MeetingAgent({
         });
       }
     } catch (e) {
+      try { execution?.pending(); } catch { /* Preserve the original error and input. */ }
       if (!controller.signal.aborted) setError((e as Error).message);
     } finally {
-      setBusy(false);
+      if (abort.current === controller) setBusy(false);
     }
   }
   return (
@@ -212,8 +222,10 @@ export function MeetingAgent({
               aria-label="新建会话"
               title="新建会话"
               onClick={() => {
+                    simulation.reset();
                 agent.reset();
                 abort.current?.abort();
+                setBusy(false);
                 change({ input: "", messages: [] });
                 setError("");
               }}
@@ -251,10 +263,12 @@ export function MeetingAgent({
                 </article>
               ))}
             </div>
+            <AgentSimulationMessages />
+          {open && <AgentCredits busy={busy} onStop={() => { abort.current?.abort(); setBusy(false); setError("已停止生成，输入已保留；消耗将在确认后更新。"); }} />}
             {error ? <p role="alert">{error}</p> : null}
           </div>
           <div className="agent-composer-wrap">
-            <div className="xiaozhi-composer">
+                <div className="xiaozhi-composer">
               <textarea
                 ref={input}
                 id="xiaozhi-input"
@@ -321,18 +335,7 @@ export function MeetingAgent({
                 >
                   <Icon name="globe" />
                 </button>
-                <button
-                  className="xiaozhi-send"
-                  id="xiaozhi-send"
-                  aria-label="发送给 Ask Agent"
-                  disabled={!session.input.trim() || busy}
-                  onClick={() => {
-                    setSources(false);
-                    void send();
-                  }}
-                >
-                  <Icon name="send" />
-                </button>
+                <AgentSendButton className="xiaozhi-send" id="xiaozhi-send" label="发送给 Ask Agent" disabled={!session.input.trim() || busy} onSend={() => { void send(); }}><Icon name="send" /></AgentSendButton>
               </div>
             </div>
           </div>

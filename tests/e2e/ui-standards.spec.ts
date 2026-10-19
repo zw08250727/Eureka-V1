@@ -75,7 +75,7 @@ for (const market of ["cn", "global"]) {
     }
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.locator(".collapse-btn").click();
-    await expect(reward).toHaveAccessibleName(market === "cn" ? "赚积分" : "做任务赚 Credits");
+    await expect(reward).toHaveAccessibleName(market === "cn" ? "赚Credits" : "做任务赚 Credits");
     await targetSize(reward, 44);
     expect(await reward.evaluate(e => e.scrollWidth <= e.clientWidth)).toBe(true);
     expect(await page.locator(".sidebar").evaluate(e => e.scrollWidth <= e.clientWidth)).toBe(true);
@@ -149,8 +149,8 @@ for (const width of [390, 1440]) {
     await page.screenshot({ path: `test-results/account-ui/cn-personal-${width}.png` });
     await page.keyboard.press('Escape');
     await login(page, 'cn');
-    await page.getByRole('button', { name: /积分额度/ }).click();
-    await page.getByRole('button', { name: '做任务赚积分', exact: true }).click();
+    await page.getByRole('button', { name: /Credits额度/ }).click();
+    await page.getByRole('button', { name: '做任务赚Credits', exact: true }).click();
     await expect(page.locator('.ex-hero h3')).toHaveCSS('color', 'rgb(38, 38, 38)');
     await expect(page.locator('.ex-hero h3')).toHaveCSS('font-size', '16px');
     await expect(page.locator('.ex-task > b').first()).toHaveCSS('color', 'rgb(38, 38, 38)');

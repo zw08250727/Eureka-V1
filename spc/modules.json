@@ -1,7 +1,42 @@
 {
-  "version": "1.0",
-  "rulesVersion": "rules-20261012-05",
+  "version": "1.2",
+  "rulesVersion": "rules-20261018-05",
   "modules": [
+    {
+      "id": "architecture-ui",
+      "name": "产品架构与 UI 视觉体验",
+      "view": "home",
+      "owner": "张伟（国内／海外）",
+      "status": "负责人已指派；待模块评审",
+      "chapters": [
+        "product-collaboration",
+        "cn-ui",
+        "global-ui",
+        "architecture",
+        "edition-matrix"
+      ],
+      "sources": [
+        "spc/frontend.md",
+        "spc/ui.md",
+        "spc/ui-cn.md",
+        "spc/ui-global.md",
+        "src/components/ui"
+      ],
+      "dependencies": [
+        "identity",
+        "calendar",
+        "subscription",
+        "credits",
+        "contacts",
+        "connectors",
+        "agent"
+      ],
+      "rules": [
+        "MARKET-01",
+        "SPACE-01",
+        "ACCESS-01"
+      ]
+    },
     {
       "id": "identity",
       "name": "账号与工作区",
@@ -10,6 +45,8 @@
       "status": "待模块 PM 评审",
       "chapters": [
         "auth",
+        "cn-auth",
+        "global-auth",
         "workspaces",
         "members"
       ],
@@ -36,10 +73,12 @@
       "id": "subscription",
       "name": "订阅与席位",
       "view": "subscription",
-      "owner": "待认领",
-      "status": "待模块 PM 评审",
+      "owner": "唐娅（国内）；鹤飞（海外）",
+      "status": "负责人已指派；待模块评审",
       "chapters": [
         "personal-subscription",
+        "cn-subscription",
+        "global-subscription",
         "billing",
         "team-create"
       ],
@@ -65,10 +104,12 @@
       "id": "credits",
       "name": "Credits",
       "view": "credits",
-      "owner": "待认领",
-      "status": "待模块 PM 评审",
+      "owner": "唐娅（国内）；海外待认领",
+      "status": "负责人已指派；待模块评审",
       "chapters": [
-        "credits"
+        "credits",
+        "cn-credits",
+        "global-credits"
       ],
       "sources": [
         "src/features/account/rewards.ts",
@@ -85,17 +126,24 @@
         "ASYNC-01",
         "CN-POINTS-01",
         "CN-POINTS-02",
-        "CN-POINTS-03"
+        "CN-POINTS-03",
+        "AGENT-CREDITS-01",
+        "AGENT-CREDITS-02",
+        "AGENT-CREDITS-03",
+        "AGENT-CREDITS-04",
+        "AGENT-CREDITS-05"
       ]
     },
     {
       "id": "agent",
       "name": "Agent",
       "view": "home",
-      "owner": "待认领",
-      "status": "待模块 PM 评审",
+      "owner": "高璐璐（国内／海外）",
+      "status": "负责人已指派；待模块评审",
       "chapters": [
         "agent",
+        "cn-integrations",
+        "global-integrations",
         "agent-process"
       ],
       "sources": [
@@ -109,17 +157,24 @@
       ],
       "rules": [
         "ASYNC-01",
-        "ACCESS-01"
+        "ACCESS-01",
+        "AGENT-CREDITS-01",
+        "AGENT-CREDITS-02",
+        "AGENT-CREDITS-03",
+        "AGENT-CREDITS-04",
+        "AGENT-CREDITS-05"
       ]
     },
     {
       "id": "connectors",
       "name": "连接器",
       "view": "connectors",
-      "owner": "待认领",
-      "status": "待模块 PM 评审",
+      "owner": "高璐璐（国内）；李鹤飞（海外）",
+      "status": "负责人已指派；待模块评审",
       "chapters": [
-        "connectors"
+        "connectors",
+        "cn-integrations",
+        "global-integrations"
       ],
       "sources": [
         "src/features/connectors"
@@ -160,15 +215,19 @@
     },
     {
       "id": "calendar",
-      "name": "日程与待办",
+      "name": "闪念、日程与待办",
       "view": "calendar",
-      "owner": "待认领",
-      "status": "待模块 PM 评审",
+      "owner": "佳音（国内／海外）",
+      "status": "负责人已指派；待模块评审",
       "chapters": [
-        "thoughts"
+        "thoughts",
+        "home"
       ],
       "sources": [
-        "src/features/personal/calendar.tsx"
+        "src/features/personal/calendar.tsx",
+        "src/features/personal/thoughts.tsx",
+        "src/features/workbench/components/today-overview.tsx",
+        "src/features/spaces/team-overview.tsx"
       ],
       "dependencies": [
         "meetings",
@@ -178,6 +237,86 @@
       "rules": [
         "SHARE-01",
         "SPACE-01"
+      ]
+    },
+    {
+      "id": "contacts",
+      "name": "通讯录",
+      "view": "contacts",
+      "owner": "杨斌（国内／海外）",
+      "status": "负责人已指派；待模块评审",
+      "chapters": [
+        "contacts"
+      ],
+      "sources": [
+        "src/features/personal/contacts.tsx",
+        "src/features/personal/contact-dialog.tsx",
+        "src/features/personal/contact-identity.ts"
+      ],
+      "dependencies": [
+        "identity",
+        "connectors",
+        "agent",
+        "meetings",
+        "calendar"
+      ],
+      "rules": [
+        "MARKET-01",
+        "SHARE-01",
+        "ACCESS-01",
+        "ASYNC-01"
+      ]
+    },
+    {
+      "id": "localization",
+      "name": "海外语言化",
+      "view": "home",
+      "owner": "鹤飞（海外）",
+      "status": "负责人已指派；语种及专项方案待确认",
+      "chapters": [
+        "global-localization",
+        "edition-matrix"
+      ],
+      "sources": [
+        "src/features/markets/global.json",
+        "spc/ui-global.md"
+      ],
+      "dependencies": [
+        "architecture-ui",
+        "subscription",
+        "connectors",
+        "agent"
+      ],
+      "rules": [
+        "MARKET-01",
+        "SPACE-01"
+      ]
+    },
+    {
+      "id": "payments",
+      "name": "支付通道接入",
+      "view": "subscription",
+      "owner": "待确认（负责人及市场范围）",
+      "status": "待确认范围与通道；真实服务待联调",
+      "chapters": [
+        "cn-payments",
+        "global-payments",
+        "release"
+      ],
+      "sources": [
+        "src/features/markets/cn.json",
+        "src/features/markets/global.json",
+        "src/features/spaces/billing.tsx"
+      ],
+      "dependencies": [
+        "identity",
+        "subscription",
+        "credits"
+      ],
+      "rules": [
+        "MARKET-01",
+        "ASYNC-01",
+        "RIGHTS-01"
       ]
     }
   ]

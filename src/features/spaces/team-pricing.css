@@ -3,3 +3,36 @@
 .ws-pricing .ws-price-offer { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 12px; }
 .ws-price-offer span { padding: 3px 7px; border-radius: 6px; background: #e9f4ec; color: #247144; }
 .ws-order .ws-price-discount { color: #7560bb; }
+
+/* UI-TEAM-DIALOG-01: the two-column introduction must not inherit form width. */
+#ws-dialog.ws-dialog-wide:has(.ws-plan-intro) {
+  width: min(980px, calc(100vw - 48px));
+  max-width: calc(100vw - 48px);
+  max-height: calc(100dvh - 48px);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+#ws-dialog.ws-dialog-wide:has(.ws-plan-intro)[open] { display: flex; flex-direction: column; }
+#ws-dialog:has(.ws-plan-intro) .ws-dialog-head { flex: none; padding: 16px 24px; }
+#ws-dialog:has(.ws-plan-intro) .ws-dialog-content { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 24px; }
+#ws-dialog .ws-plan-intro { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 32px; padding: 0; }
+#ws-dialog .ws-plan-intro > * { min-width: 0; }
+#ws-dialog .ws-plan-intro h1 { font-size: 24px; line-height: 32px; margin: 12px 0 16px; letter-spacing: normal; color: var(--ui-text, #253354); }
+#ws-dialog .ws-plan-intro p { font-size: 12px; line-height: 20px; color: var(--ui-secondary, #526078); }
+#ws-dialog .ws-plan-intro ul { margin-top: 20px; }
+#ws-dialog .ws-plan-intro > div li { gap: 12px; padding: 16px 0; }
+#ws-dialog .ws-plan-intro > div li > .ws-icon { flex-shrink: 0; padding: 10px; }
+#ws-dialog .ws-plan-intro li strong { color: var(--ui-text, #253354); }
+#ws-dialog .ws-plan-intro li span { font-size: 12px; line-height: 18px; color: var(--ui-meta, #697386); }
+#ws-dialog .ws-pricing { align-self: start; padding: 24px; border-radius: 12px; }
+#ws-dialog .ws-cycle { margin: 16px 0; }
+#ws-dialog .ws-pricing .ws-price { white-space: normal; font-size: 32px; line-height: 40px; letter-spacing: -.02em; }
+#ws-dialog .ws-pricing .ws-price small { font-size: 12px; line-height: 18px; }
+#ws-dialog .ws-pricing li { margin: 12px 0; color: var(--ui-secondary, #526078); }
+@media (max-width: 760px) {
+  #ws-dialog.ws-dialog-wide:has(.ws-plan-intro) { width: calc(100vw - 24px); max-width: calc(100vw - 24px); max-height: calc(100dvh - 24px); }
+  #ws-dialog:has(.ws-plan-intro) .ws-dialog-head { padding: 12px 16px; }
+  #ws-dialog:has(.ws-plan-intro) .ws-dialog-content { padding: 16px; }
+  #ws-dialog .ws-plan-intro { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  #ws-dialog .ws-pricing { padding: 20px; }
+}
