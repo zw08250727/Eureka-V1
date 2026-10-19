@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element -- Shared reference brand preserves intrinsic asset sizing. */
 import type { ButtonHTMLAttributes } from "react";
 import { productName, productLogo } from "@/features/markets/brand";
-import { marketConfig, type Market } from "@/features/markets/config";
+import { marketConfig, routeMarket, type Market } from "@/features/markets/config";
 import type { AppView } from "@/lib/routes";
 import { RefIcon } from "./symbols";
 
@@ -138,6 +138,6 @@ export function PrimaryNavigation({view, onNavigate}: {view: string; onNavigate:
                     </span>
                   </button>}
               </>
-              <button type="button" aria-label="连接器" title="连接器" className={"nav-item " + (view === "connectors" ? "active" : "")} onClick={()=>onNavigate("connectors")}><span className="nav-left"><span className="nav-icon"><RefIcon name="link"/></span><span className="nav-label">连接器</span></span></button>
+              <button type="button" aria-label={routeMarket() === "global" ? "AI Connections" : "连接器"} title={routeMarket() === "global" ? "AI Connections" : "连接器"} className={"nav-item " + (view === "connectors" ? "active" : "")} onClick={()=>onNavigate("connectors")}><span className="nav-left"><span className="nav-icon"><RefIcon name="link"/></span><span className="nav-label">{routeMarket() === "global" ? "AI Connections" : "连接器"}</span></span></button>
             </nav>);
 }

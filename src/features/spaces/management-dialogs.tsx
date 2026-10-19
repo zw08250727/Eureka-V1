@@ -44,9 +44,10 @@ export function InviteMembersDialog({
           <Button
             action="page"
             value="billing"
-            onClick={() =>
-              location.assign(appUrl("subscription", "", space, actor))
-            }
+            disabled={w.seats >= 50 || w.status !== "active"}
+            onClick={() => {
+              location.assign(appUrl("subscription", "", space, actor) + "&addSeats=1");
+            }}
           >
             增加席位
           </Button>

@@ -42,7 +42,10 @@ export function readConnectors(storage: Storage, key: string): ConnectorState {
   const allowed = new Set(marketConfig().connectors.map((c) => c.id));
   return {
     version: 1,
-    items: state.items.filter((c: Connector) => c.custom || allowed.has(c.id)),
+    items: [
+      ...state.items.filter((c: Connector) => c.custom || allowed.has(c.id)),
+      ...connectorSeed().items.filter(c => !state.items.some((saved: Connector) => saved.id === c.id)),
+    ],
   };
 }
 export function validateConnector(

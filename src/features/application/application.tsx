@@ -11,6 +11,7 @@ import { Workbench } from "@/features/workbench/workbench";
 
 
 import { appUrl } from "@/lib/routes";
+import { routeMarket } from "@/features/markets/config";
 const Companion = dynamic(() => import("@/features/account/pages").then(m => m.CompanionPage));
 const Calendar = dynamic(() =>
   import("@/features/personal/calendar").then((m) => m.CalendarPage),
@@ -122,7 +123,7 @@ export function Application() {
       <p role="alert">此入口不属于当前工作空间。</p>
     );
   const titles: Record<string, string> = {
-    connectors: "连接器", updates: "更新日志", product: "产品介绍",
+    connectors: routeMarket() === "global" ? "AI Connections" : "连接器", updates: "更新日志", product: "产品介绍",
     home: team ? w.name : "我的 AI 工作台",
     calendar: "日程与待办",
     contacts: "通讯录",

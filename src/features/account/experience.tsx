@@ -18,6 +18,7 @@ import { claimReward, countMonthlyFeedbackRewards, rewardState } from "./rewards
 import { OrdersPanel } from "./orders-panel";
 import { AccountTabs, AccountStatus, CreditsHero } from "./ui";
 import "./experience.css";
+import { useAirwallexCheckout, usesAirwallexSandbox } from "@/features/spaces/use-airwallex-checkout";
 import { DomesticAccountPoints } from "./domestic-points";
 export type AccountPanel =
   | "credits"
@@ -141,6 +142,21 @@ export function AccountExperience({
     sharedMeeting =
       M.visible(w, actor).find((f) => f.owner !== actor) ||
       M.visible(w, actor)[0];
+  const airwallex = useAirwallexCheckout();
+  const sandboxCredits = usesAirwallexSandbox();
+  function purchaseCredits() {
+    perform(() => {
+      const o = controller.change(st => M.createCreditOrder(M.get(st, space), sku, actor));
+      setOrderId(o.id);
+      if (sandboxCredits) {
+        setNotice("");
+        void airwallex.begin(w, actor, o, () => {
+          controller.change(st => M.payCreditOrder(M.get(st, space), o.id, "success", actor));
+          setActivePage("recharge"); setOrderId(o.id);
+        }, "credits");
+      }
+    });
+  }
   const titles: Record<string, string> = {
     credits: creditText("Credits"),
     tasks: creditText("做任务赚 Credits"),
@@ -407,8 +423,9 @@ export function AccountExperience({
         {page === "recharge" && (
           <>
             <CreditsHero eyebrow={`充值至 ${w.name} · ${marketConfig().currency}`} title="为下一个好想法，蓄满能量" description={creditText("选择适合你的 Credits 包，按需补充，随用随取。")}/>
-            <ol className="ex-checkout-steps" aria-label="充值进度"><li data-active={!order || order.status === "cancelled"}>1 选择套餐</li><li data-active={!!order && ["pending", "failed"].includes(order.status)}>2 确认支付</li><li data-active={order?.status === "paid"}>3 充值完成</li></ol>
-            {!order || order.status === "cancelled" ? (
+            {sandboxCredits ? <ol className="ex-checkout-steps" aria-label="充值进度"><li data-active={order?.status !== "paid"}>1 选择套餐</li><li data-active={order?.status === "paid"}>2 充值完成</li></ol> : <ol className="ex-checkout-steps" aria-label="充值进度"><li data-active={!order || order.status === "cancelled"}>1 选择套餐</li><li data-active={!!order && ["pending", "failed"].includes(order.status)}>2 确认支付</li><li data-active={order?.status === "paid"}>3 充值完成</li></ol>}
+            {sandboxCredits && airwallex.error && <p role="alert" className="ws-form-error">{airwallex.error}</p>}
+            {!order || order.status === "cancelled" || (sandboxCredits && order.status !== "paid") ? (
               <>
                 <div className="ex-grid">
                   {packs.map((p, i) => (
@@ -416,15 +433,16 @@ export function AccountExperience({
                       className="ex-sku"
                       aria-pressed={sku === p.id}
                       key={p.id}
+                      disabled={sandboxCredits && airwallex.pending}
                       onClick={() => setSku(p.id)}
                     >
-                      <span className="ex-sku-label">{i === 2 ? "✦ 最划算" : creditText("Credits 充值包")}<i aria-hidden="true">{sku === p.id ? "✓" : "○"}</i></span>
+                      <span className="ex-sku-label">{i === 2 && originals[i] > p.amount ? "✦ 最划算" : creditText("Credits 充值包")}<i aria-hidden="true">{sku === p.id ? "✓" : "○"}</i></span>
                       <strong>
                         {format(p.credits)}{" "}
                         <small style={{ fontSize: 12 }}>{creditText("Credits")}</small>
                       </strong>
                       <b>
-                        {formatMarketMoney(p.amount)} <del>{formatMarketMoney(originals[i])}</del>
+                        {formatMarketMoney(p.amount)} {originals[i] > p.amount && <del>{formatMarketMoney(originals[i])}</del>}
                       </b>
                       <small>
                         {formatMarketMoney(1)} ≈ {Math.round(p.credits / p.amount)}{creditText(" Credits")}</small>
@@ -433,27 +451,20 @@ export function AccountExperience({
                 </div>
                 <div className="ex-summary">
                   应付 <strong>{formatMarketMoney(selected.amount)}</strong>{" "}
-                  <del>{formatMarketMoney(originals[packs.indexOf(selected)])}</del> · 已优惠{" "}
-                  {formatMarketMoney(originals[packs.indexOf(selected)] - selected.amount)}
+                  {originals[packs.indexOf(selected)] > selected.amount && <><del>{formatMarketMoney(originals[packs.indexOf(selected)])}</del> · 已优惠 {formatMarketMoney(originals[packs.indexOf(selected)] - selected.amount)}</>}
+                  {marketConfig().id === "global" && <small> · 每 1,000 Credits $9.99，税费另计</small>}
                 </div>
 
                 <div className="ex-footer">
                   <button onClick={() => setPage("rules")}>充值规则</button>
                   <button
                     className="primary credit-recharge-cta"
-                    disabled={team && !M.admin(w, actor)}
-                    onClick={() =>
-                      perform(() => {
-                        const o = controller.change((st) =>
-                          M.createCreditOrder(M.get(st, space), sku, actor),
-                        );
-                        setOrderId(o.id);
-                      })
-                    }
+                    disabled={(team && !M.admin(w, actor)) || airwallex.pending}
+                    onClick={purchaseCredits}
                   >
                     {team && !M.admin(w, actor)
                       ? "请联系管理员充值"
-                      : "确认充值"}
+                      : airwallex.pending ? "等待支付" : "确认充值"}
                   </button>
                 </div>
               </>
@@ -476,7 +487,9 @@ export function AccountExperience({
                 {order.status === "paid" ? (
                   <>
                     <p>{creditText("Credits 已入账，可在积分明细中查看。")}</p>
+                    {sandboxCredits && <p>本次充值 +{format(order.credits || 0)} Credits · 当前余额 {format(M.creditBalance(w))} Credits</p>}
                     <button onClick={() => setPage("orders")}>查看订单</button>
+                    {sandboxCredits && <button className="primary" onClick={onClose}>完成</button>}
                   </>
                 ) : (
                   <>

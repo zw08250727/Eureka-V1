@@ -19,6 +19,7 @@ import {
   WsButton as Button,
   WsHeading,
 } from "./billing-ui";
+import { AirwallexInvoices } from "./airwallex-invoices";
 export type BillingAction = (action: string, value?: string) => void;
 export type BillingOrder = Order & {
   unitPrice?: number;
@@ -205,10 +206,14 @@ export function TeamBilling({
   w,
   actor,
   act,
+  checkoutPending = false,
+  checkoutError = "",
 }: {
   w: Workspace;
   actor: string;
   act: BillingAction;
+  checkoutPending?: boolean;
+  checkoutError?: string;
 }) {
   const order = (w.seatOrders || []).find((o) =>
     ["pending", "failed"].includes(o.status),
@@ -273,7 +278,7 @@ export function TeamBilling({
           </div>
         </div>
       ) : null}
-      <div className="ws-billing-grid">
+      <div className="ws-billing-grid" style={{ gridTemplateColumns: "1fr" }}>
         <section className="ws-surface ws-plan-current">
           <div className="ws-section-head">
             <h2>Team Unlimited</h2>
@@ -305,7 +310,7 @@ export function TeamBilling({
             <Button
               action="add-seats"
               className="primary"
-              disabled={w.seats >= 50 || w.status !== "active"}
+              disabled={checkoutPending || w.seats >= 50 || w.status !== "active"}
               title={
                 w.seats >= 50
                   ? "已达50席位上限"
@@ -316,7 +321,7 @@ export function TeamBilling({
               onClick={() => act("add-seats")}
             >
               <RefIcon name="plus" className="ws-icon" />
-              增加席位
+              {checkoutPending ? "正在打开支付页面…" : "增加席位"}
             </Button>
             <Button action="seats" onClick={() => act("seats")}>
               管理席位
@@ -325,9 +330,10 @@ export function TeamBilling({
               切换{w.cycle === "year" ? "月付" : "年付"}
             </Button>
           </div>
+          {checkoutError && <p className="ws-form-error" role="alert">{checkoutError}</p>}
           {w.pendingCycle ? (
             <div className="ws-info">
-              下周期改为 {w.pendingCycle === "year" ? "年付" : "月付"}{" "}
+              自 {w.nextDate} 起改为{w.pendingCycle === "year" ? "年付" : "月付"}：{w.pendingSeats ?? w.seats} 席位 × {teamMoney(M.price(w.pendingCycle))} / 席位 / {w.pendingCycle === "year" ? "年" : "月"} = {teamMoney((w.pendingSeats ?? w.seats) * M.price(w.pendingCycle))} / {w.pendingCycle === "year" ? "年" : "月"}，税费另计。{" "}
               <Button
                 action="cancel-cycle"
                 className="link"
@@ -350,21 +356,6 @@ export function TeamBilling({
             </div>
           ) : null}
           <TeamTerm w={w} />
-        </section>
-        <section className="ws-surface ws-billing-details">
-          <h3>账单信息</h3>
-          <dl>
-            <dt>公司名称</dt>
-            <dd>{w.billing.company}</dd>
-            <dt>账单邮箱</dt>
-            <dd>{w.billing.email}</dd>
-            <dt>支付方式</dt>
-            <dd>{w.billing.method}</dd>
-          </dl>
-          <Button action="billing-info" onClick={() => act("billing-info")}>
-            编辑账单信息
-          </Button>
-          <div className="ws-plan-divider" />
           <div className="ws-actions">
             <Button
               action="renew"
@@ -395,7 +386,7 @@ export function TeamBilling({
 
         </section>
       </div>
-      <section className="ws-surface">
+      {routeMarket() === "global" ? <AirwallexInvoices workspaceId={w.id} revision={w.invoices.length} /> : <section className="ws-surface">
         <div className="ws-section-head">
           <h2>账单历史</h2>
         </div>
@@ -435,7 +426,7 @@ export function TeamBilling({
             </tbody>
           </table>
         </div>
-      </section>
+      </section>}
     </>
   );
 }

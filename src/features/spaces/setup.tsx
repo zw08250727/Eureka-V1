@@ -250,7 +250,7 @@ export function CreateTeamDialog({
             </div>
             <div className="ws-price">
               {money(M.teamPricing[draft.cycle].monthly)}
-              <s>{money(M.teamPricing[draft.cycle].originalMonthly)}</s>
+              {M.teamPricing[draft.cycle].originalMonthly > M.teamPricing[draft.cycle].monthly && <s>{money(M.teamPricing[draft.cycle].originalMonthly)}</s>}
               <small>/ 席位 / 月</small>
             </div>
             <p>
@@ -258,7 +258,7 @@ export function CreateTeamDialog({
                 ? `按年计费，每席位 ${money(M.teamPricing.year.firstAmount)} · 税费另计`
                 : "按月计费 · 税费另计"}
             </p>
-            <p className="ws-price-offer">首次订阅 {Math.round(M.teamPricing[draft.cycle].firstAmount / M.teamPricing[draft.cycle].renewalAmount * 100) / 10} 折{draft.cycle === "year" && <span>年付比月付节省 {Math.round((1 - M.price("year") / (M.price("month") * 12)) * 100)}%</span>}</p>
+            <p className="ws-price-offer">{M.teamPricing[draft.cycle].firstAmount < M.teamPricing[draft.cycle].renewalAmount && <>首次订阅 {Math.round(M.teamPricing[draft.cycle].firstAmount / M.teamPricing[draft.cycle].renewalAmount * 100) / 10} 折</>}{draft.cycle === "year" && <span>年付比月付节省 {Math.round((1 - M.price("year") / (M.price("month") * 12)) * 100)}%</span>}</p>
             <p className="ws-muted">首期后按 {money(M.price(draft.cycle))} / 席位 / {draft.cycle === "year" ? "年" : "月"}续费</p>
             <Button
               action="setup"
@@ -442,16 +442,16 @@ export function CreateTeamDialog({
           </span>
           <strong>{money(draft.seats * M.price(draft.cycle))}</strong>
         </div>
-        <div className="ws-price-discount">
-          <span>首次优惠 · 每席位享 8 折</span>
+        {M.teamPricing[draft.cycle].firstAmount < M.price(draft.cycle) && <div className="ws-price-discount">
+          <span>首次优惠 · 每席位享 {Math.round(M.teamPricing[draft.cycle].firstAmount / M.price(draft.cycle) * 100) / 10} 折</span>
           <strong>−{money(draft.seats * (M.price(draft.cycle) - M.teamPricing[draft.cycle].firstAmount))}</strong>
-        </div>
+        </div>}
         <div>
           <span>本次支付</span>
           <strong>{money(draft.seats * M.teamPricing[draft.cycle].firstAmount)}</strong>
         </div>
       </div>
-      <p className="ws-muted">税费另计。首次优惠仅用于开通首期；之后按 {money(draft.seats * M.price(draft.cycle))} / {draft.cycle === "year" ? "年" : "月"}续费。</p>
+      <p className="ws-muted">税费另计。{M.teamPricing[draft.cycle].firstAmount < M.price(draft.cycle) ? "首次优惠仅用于开通首期；之后按" : "按"} {money(draft.seats * M.price(draft.cycle))} / {draft.cycle === "year" ? "年" : "月"}续费。</p>
 
     </Dialog>
   );
