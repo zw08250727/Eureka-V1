@@ -307,3 +307,6 @@
 .connectors-page .connector-mark::after { content: none; }
 .connectors-page .connector-mark,
 .connectors-page .connector-card:hover .connector-mark { box-shadow: none; transform: none; }
+.connector-mark.connector-brand { background:transparent; border-color:transparent; }
+.connector-brand img { display:block; width:32px; height:32px; object-fit:contain; }
+.connector-brand.large img { width:40px; height:40px; }

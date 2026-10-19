@@ -7,6 +7,7 @@ import { createWorkspaceStore, M } from "@/features/spaces/model/store";
 import type { SpacesController } from "@/features/spaces/use-spaces";
 import { marketStorage } from "@/features/markets/storage";
 import { marketConfig } from "@/features/markets/config";
+import { ConnectorLogo } from "./logo";
 import { ConnectorCard } from "./card";
 import { ConnectorEditor } from "./editor";
 import {
@@ -207,9 +208,7 @@ export function ConnectorsPage({
           <div className="connector-dialog-body">
             {step === "detail" ? (
               <>
-                <span className="connector-mark large" aria-hidden="true">
-                  {current.name.slice(0, 1)}
-                </span>
+                <ConnectorLogo connector={current} large />
                 <p>{current.description}</p>
                 <dl>
                   <dt>当前状态</dt>

@@ -1,3 +1,4 @@
+import { ConnectorLogo } from "./logo";
 import type { Connector } from "./model";
 export function ConnectorCard({
   connector,
@@ -14,9 +15,7 @@ export function ConnectorCard({
       aria-label={`查看 ${connector.name}`}
     >
       <span className="connector-card-top">
-        <span className="connector-mark" aria-hidden="true">
-          {connector.name.slice(0, 1)}
-        </span>
+        <ConnectorLogo connector={connector} />
         <strong>{connector.name}</strong>
         <span
           className={
