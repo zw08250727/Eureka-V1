@@ -46,6 +46,7 @@ for (const market of ["cn", "global"] as const) {
     await expect(page.locator(".auth-overlay")).toBeVisible();
     await login(page, market);
     await page.goto(`/${market}/workbench/?view=connectors&review=1`);
+    if (market === "global") await page.getByRole("tab", { name: "接入其他应用", exact: true }).click();
     await expect(page.locator("iframe")).toHaveCount(0);
     const name = market === "cn" ? "飞书" : "Google Workspace";
     await page
@@ -73,6 +74,7 @@ for (const market of ["cn", "global"] as const) {
       .fill('{"mcpServers":{"demo":{"url":"https://example.com/mcp"}}}');
     await page.getByRole("button", { name: "保存连接器" }).click();
     await page.reload();
+    if (market === "global") await page.getByRole("tab", { name: "接入其他应用", exact: true }).click();
     await expect(
       page.getByRole("button", { name: "查看 Test MCP" }),
     ).toBeVisible();
@@ -89,6 +91,7 @@ for (const market of ["cn", "global"] as const) {
       page.getByRole("button", { name: `查看 ${name}`, exact: true }),
     ).toContainText("未连接");
     await page.goto(`/${market}/workbench/?view=connectors&space=team-eureka`);
+    if (market === "global") await page.getByRole("tab", { name: "接入其他应用", exact: true }).click();
     await expect(
       page.getByRole("button", { name: "查看 Test MCP" }),
     ).toHaveCount(0);
@@ -110,6 +113,20 @@ for (const market of ["cn", "global"] as const) {
   test(`${market}: subscription purchase and credit recharge stay in market`, async ({
     page,
   }) => {
+    // The local overseas UI now opens the sandbox service. Supply deterministic
+    // service receipts; never make external checkout requests in browser tests.
+    const checkoutKinds: string[] = [];
+    if (market === "global") {
+      await page.context().route("https://checkout.airwallex.com/eureka-test-checkout", route => route.fulfill({contentType:"text/html",body:"<p>Test checkout</p>"}));
+      await page.route("**/api/airwallex/checkouts**", async route => {
+        if (route.request().method() === "POST") {
+          const body = route.request().postDataJSON();
+          expect(body.market).toBe("global"); expect(body.workspaceId).toBe("personal");
+          checkoutKinds.push(body.kind);
+          await route.fulfill({json:{id:`test-${body.kind}`,url:"https://checkout.airwallex.com/eureka-test-checkout"}});
+        } else await route.fulfill({json:{status:"COMPLETED",subscriptionId:"test-subscription"}});
+      });
+    }
     await login(page, market);
     await page.goto(`/${market}/workbench/?view=subscription`);
     await page
@@ -117,7 +134,7 @@ for (const market of ["cn", "global"] as const) {
       .click();
     await expect(page.getByRole("dialog")).toBeVisible();
     await page
-      .getByRole("button", { name: /确认支付/ })
+      .getByRole("button", { name: market === "global" ? "前往支付" : /确认支付/ })
       .last()
       .click();
     await expect(page.getByRole("dialog")).toContainText(market === "cn" ? "专业版 已生效" : "Pro 已生效");
@@ -129,6 +146,7 @@ for (const market of ["cn", "global"] as const) {
       state.spaces.find((w: { id: string }) => w.id === "personal")
         .personalOrders[0].status,
     ).toBe("paid");
+    if (market === "global") expect(state.spaces.find((w: { id: string }) => w.id === "personal").personalOrders[0].method).toBe("Airwallex");
     const other = market === "cn" ? "global" : "cn";
     expect(
       await page.evaluate((k) => localStorage.getItem(k), key(other, M.KEY)),
@@ -137,8 +155,9 @@ for (const market of ["cn", "global"] as const) {
     await page.locator("#user-card").click();
     await page.getByRole("button", { name: "充值", exact: true }).click();
     await page.getByRole("button", { name: "确认充值", exact: true }).click();
-    await page.getByRole("button", { name: /确认支付/ }).click();
+    if (market === "cn") await page.getByRole("button", { name: /确认支付/ }).click();
     await expect(page.getByRole("dialog")).toContainText("充值成功");
+    if (market === "global") expect(checkoutKinds).toEqual(["personal", "credits"]);
   });
 }
 test("same email has two independent sessions; logout is local to its market", async ({
@@ -230,6 +249,7 @@ for (const width of [390, 768, 1440])
       ).toBe(true);
       await login(page, market);
       await page.goto(`/${market}/workbench/?view=connectors`);
+      if (market === "global") await page.getByRole("tab", { name: "接入其他应用", exact: true }).click();
       await expect(page.locator(".connector-card").first()).toBeVisible();
       expect(
         await page.evaluate(

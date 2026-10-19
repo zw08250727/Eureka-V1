@@ -42,6 +42,7 @@ for (const market of ["cn", "global"]) {
       await login(page, market);
       await noOverflow(page);
       await page.goto(`/${market}/workbench/?view=connectors`);
+      if (market === "global") await page.getByRole("tab", { name: "接入其他应用", exact: true }).click();
       const add = page.getByRole("button", { name: "＋ 添加自定义连接器" });
       await targetSize(add, width <= 760 ? 44 : 40);
       await add.click();
