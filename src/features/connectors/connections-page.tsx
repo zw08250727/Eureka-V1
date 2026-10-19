@@ -7,7 +7,7 @@ import "./connections-page.css";
 
 const tabs = [
   { id: "agents", label: "连接 AI 助手" },
-  { id: "services", label: "连接其他应用" },
+  { id: "services", label: "接入其他应用" },
 ] as const;
 
 export function ConnectionsPage({ space, actor, controller }: {
