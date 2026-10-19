@@ -5,7 +5,6 @@ import { Select } from "@/components/ui/select";
 import { M } from "@/features/spaces/model/store";
 import type { Workspace } from "@/features/spaces/model/types";
 import { marketConfig } from "@/features/markets/config";
-import { reviewToolsEnabled } from "@/features/markets/review";
 import { mockUsageReceipt, tokenCost, type AgentRun } from "./usage";
 import { openAccount } from "@/features/account/experience";
 import { appUrl } from "@/lib/routes";
@@ -104,7 +103,7 @@ export function CreditReviewProvider({ workspace, actor, onSend, children }: { w
     setSnapshot(structuredClone(current.workspace)); setRunning(false);
   }
   function send(prompt: string): SendResult {
-    if (!armed || !reviewToolsEnabled()) return null;
+    if (!armed) return null;
     if (running || active.current || !prompt.trim()) return "blocked";
     const target = structuredClone(snapshot || workspace);
     if (!snapshot) { target.agentRuns = []; target.credits = { total: opening(scenario), used: 0, logs: [] }; if (scenario === "expired") target.status = "expired"; }

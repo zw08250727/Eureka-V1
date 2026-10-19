@@ -311,7 +311,7 @@ for (const market of ["cn", "global"]) {
     await expect(page.getByTestId("preview-answer")).toContainText("行动清单草案");
   });
   test(`${market}: ordinary home chat streams distinct roles and keeps charges with their reply`, async ({page}) => {
-    await login(page,market); await openHome(page,market); await page.clock.install();
+    await login(page,market); await openHome(page,market,"personal","zhang",false); await page.clock.install();
     await page.locator("#xiaozhi-input").fill("分析近期客户会议中的重点需求");
     await page.locator("#xiaozhi-send").click(); await page.clock.runFor(400);
     await expect(page.locator(".agent-history-message.user")).toContainText("分析近期客户会议中的重点需求");
@@ -339,7 +339,7 @@ for (const market of ["cn", "global"]) {
     await expect(page.getByTestId("preview-usage")).toHaveCount(1);
   });
   for (const width of [390,1440]) test(`${market}: native streaming and draggable review at ${width}px`, async ({page})=>{
-    await login(page,market);await page.setViewportSize({width,height:900});await openHome(page,market);
+    await login(page,market);await page.setViewportSize({width,height:900});await openHome(page,market,"personal","zhang",false);
     const button=launcher(page), box=(await button.boundingBox())!;
     await page.mouse.move(box.x+20,box.y+20);await page.mouse.down();await page.mouse.move(40,180,{steps:10});await page.mouse.up();
     await expect(page.getByRole("dialog",{name:"评审工具",exact:true})).toHaveCount(0);
