@@ -3,7 +3,6 @@ import { ReviewFloatingButton } from "./review-floating-button";
 import { CreditReviewProvider, AgentCreditPreview } from "@/features/agent/credit-preview";
 import { SidebarBrand, WorkspaceCard, PrimaryNavigation } from "./sidebar-parts";
 import { creditText } from "@/features/markets/config";
-import { reviewToolsEnabled } from "@/features/markets/review";
 
 import { productName } from "@/features/markets/brand";
 
