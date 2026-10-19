@@ -34,6 +34,7 @@ import { TimeCheckout } from "./time-checkout";
 import { createTimeOrder, payTimeOrder, cancelTimeOrder } from "./model/time-packs";
 import { CheckoutDialog, type OrderKind } from "./billing-checkout";
 import { useAirwallexCheckout, usesAirwallexSandbox } from "./use-airwallex-checkout";
+import { marketSessionStorage } from "@/features/markets/storage";
 type Dialog =
   | { type: "checkout"; kind: OrderKind; id: string }
   | { type: "time"; id: string }
@@ -118,6 +119,39 @@ export function BillingPage({
   }
   function act(action: string, value = "") {
     guard(() => {
+      if (action === "credit-resume") {
+        M.govern(w, actor);
+        const creditOrder = w.creditOrders?.find(o => o.id === value);
+        if (!creditOrder || !["pending", "failed"].includes(creditOrder.status)) throw Error("订单已无法继续支付");
+        if (usesAirwallexSandbox()) {
+          void airwallex.begin(w, actor, creditOrder, () => {
+            mutate(current => M.payCreditOrder(current, value, "success", actor));
+            setModal({ type: "checkout", kind: "credit", id: value });
+          }, "credits");
+        } else checkout("credit", value);
+        return;
+      }
+      if (action === "credit-airwallex-invoice") {
+        M.govern(w, actor);
+        if (!w.creditOrders?.some(o => o.id === value && o.status === "paid")) throw Error("已支付订单不存在");
+        const requestId = marketSessionStorage.getItem(`airwallex:${w.id}:${actor}:${value}`);
+        if (!usesAirwallexSandbox() || !requestId) throw Error("该订单暂无可查看的 Airwallex invoice");
+        const popup = window.open("about:blank", "_blank");
+        if (!popup) throw Error("请允许打开账单窗口后重试");
+        popup.opener = null;
+        const endpoint = (process.env.NEXT_PUBLIC_AIRWALLEX_CHECKOUT_API || "http://127.0.0.1:3101/api/airwallex/checkouts").replace(/\/checkouts\/?$/, "/invoices");
+        void fetch(`${endpoint}?market=global&workspaceId=${encodeURIComponent(w.id)}&requestId=${encodeURIComponent(requestId)}`, { headers: { "X-Eureka-Checkout": "1" }, signal: AbortSignal.timeout(45000) })
+          .then(async response => { if (!response.ok) throw Error("INV-LOAD"); return response.json(); })
+          .then(data => {
+            const pdf = data.items?.find((item: { pdfUrl?: string }) => item.pdfUrl)?.pdfUrl;
+            if (!pdf) throw Error("INV-MISSING");
+            const url = new URL(pdf);
+            if (url.protocol !== "https:" || !url.hostname.endsWith(".airwallex.com")) throw Error("INV-URL");
+            popup.location.replace(url.href);
+          })
+          .catch(() => { popup.close(); setToast("Airwallex invoice 暂不可用，请稍后重试"); });
+        return;
+      }
       if (action === "personal-cycle") {
         setCycle(value as Cycle);
         return;
@@ -383,7 +417,7 @@ export function BillingPage({
             </Button>
           </div>
         ) : credits ? (
-          <CreditsBilling w={w} actor={actor} act={act} />
+          <><CreditsBilling w={w} actor={actor} act={act} />{airwallex.error && <p role="alert" className="ws-form-error">{airwallex.error}</p>}</>
         ) : (
           <TeamBilling w={w} actor={actor} act={act} checkoutPending={airwallex.pending} checkoutError={airwallex.error} />
         )}

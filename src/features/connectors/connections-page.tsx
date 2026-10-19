@@ -6,7 +6,7 @@ import { SkillsLandingPage } from "./skills-landing";
 import "./connections-page.css";
 
 const tabs = [
-  { id: "agents", label: "连接 AI 助手" },
+  { id: "agents", label: "连接到 AI 助手" },
   { id: "services", label: "接入其他应用" },
 ] as const;
 

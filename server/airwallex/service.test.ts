@@ -138,6 +138,24 @@ test("invoice history follows scoped checkout subscriptions across pages and exp
   await assert.rejects(service.invoices('personal'));
 });
 
+test("Credits invoice lookup uses the original checkout request and workspace", async () => {
+  const requestId = randomUUID();
+  const service = createCheckoutService(config(), async url => {
+    const path = new URL(String(url)).pathname;
+    if (path.endsWith('/login')) return Response.json({ token: 'test' });
+    if (path.endsWith('/billing_checkouts')) return Response.json({ items: [
+      { id: 'bco_owned', invoice_id: 'inv_owned', legal_entity_id: config().legalEntityId, metadata: { market: 'global', workspace_id: 'team-eureka', purpose: 'sandbox-credits-checkout', local_request_id: requestId } },
+      { id: 'bco_other', invoice_id: 'inv_other', legal_entity_id: config().legalEntityId, metadata: { market: 'global', workspace_id: 'other-team', purpose: 'sandbox-credits-checkout', local_request_id: requestId } },
+    ] });
+    return Response.json({ items: [
+      { id: 'inv_owned', legal_entity_id: config().legalEntityId, pdf_url: 'https://invoice.sandbox.airwallex.com/owned' },
+      { id: 'inv_other', legal_entity_id: config().legalEntityId, pdf_url: 'https://invoice.sandbox.airwallex.com/other' },
+    ] });
+  });
+  assert.deepEqual((await service.invoices('team-eureka', requestId)).items.map(i => i.id), ['inv_owned']);
+  assert.deepEqual(await service.invoices('team-eureka', randomUUID()), { items: [] });
+});
+
 test("personal subscriptions select their own recurring prices and cannot target teams or multiple units", async () => {
   for (const cycle of ["month", "year"] as const) {
     const mock = mockApi();

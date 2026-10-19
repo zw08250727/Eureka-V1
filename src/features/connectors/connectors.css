@@ -122,8 +122,13 @@
   border-radius: 6px;
 }
 .connector-state.connected {
-  background: var(--market-soft);
-  color: var(--market-accent);
+  background: var(--ui-success-surface);
+  color: var(--ui-success-text);
+}
+.connector-state.connected::before {
+  content: "✓";
+  margin-right: 4px;
+  font-weight: 700;
 }
 .connector-card-top > strong {
   flex: 1;

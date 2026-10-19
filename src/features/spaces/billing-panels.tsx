@@ -438,33 +438,18 @@ export function CreditOrderActions({
   act: BillingAction;
 }) {
   return o.status === "paid" ? (
-    <>
-      <Button
-        action="credit-checkout"
-        value={o.id}
-        className="link"
-        onClick={() => act("credit-checkout", o.id)}
-      >
-        查看结果
-      </Button>
-      <Button
-        action="invoice"
-        value={o.invoiceId}
-        className="link"
-        onClick={() => act("invoice", o.invoiceId)}
-      >
-        下载账单
-      </Button>
-    </>
+    routeMarket() === "global" ? <Button action="credit-airwallex-invoice" value={o.id} className="link" onClick={() => act("credit-airwallex-invoice", o.id)}>
+      查看 invoice
+    </Button> : <Button action="invoice" value={o.invoiceId} className="link" onClick={() => act("invoice", o.invoiceId)}>下载账单</Button>
   ) : o.status === "cancelled" ? (
     <span className="ws-muted">已关闭</span>
   ) : (
     <>
       <Button
-        action="credit-checkout"
+        action="credit-resume"
         value={o.id}
         className="link"
-        onClick={() => act("credit-checkout", o.id)}
+        onClick={() => act("credit-resume", o.id)}
       >
         {o.status === "failed" ? "重试支付" : "继续支付"}
       </Button>
