@@ -10,8 +10,15 @@ import { marketConfig } from "@/features/markets/config";
 import { ConnectorLogo } from "./logo";
 import { ConnectorCard } from "./card";
 import { ConnectorEditor } from "./editor";
+import { SystemConnectorDetail } from "./system-detail";
+import { CustomConnectorDetail } from "./custom-detail";
+import { domesticCustomPresets, domesticPresetTools, exampleCustomTools } from "./catalog";
+import { readEnterpriseIdentity, type EnterpriseIdentity } from "@/features/enterprise/model";
 import {
   readConnectors,
+  hasUsableTools,
+  connectorStorageKey,
+  persistedConnectorState,
   validateConnector,
   type Connector,
   type ConnectorState,
@@ -21,18 +28,18 @@ export function ConnectorsPage({
   space,
   actor,
   controller,
-}: {
-  space: string;
-  actor: string;
-  controller: SpacesController;
-}) {
-  const key = `eureka:connectors:native:v1:${space}:${actor}`;
+  enterprise,
+}: { space: string; actor: string; controller: SpacesController; enterprise?: never } | { enterprise: EnterpriseIdentity; space?: never; actor?: never; controller?: never }) {
+  const key = enterprise
+    ? `enterprise:${enterprise.code}:${enterprise.identity}:connectors:v1`
+    : connectorStorageKey(space!, actor!);
   const [state, setState] = useState<ConnectorState | null>(null),
-    [search, setSearch] = useState(""),
     [error, setError] = useState(""),
     [notice, setNotice] = useState(""),
     [selected, setSelected] = useState<string | null>(null),
     [editing, setEditing] = useState<string | null>(null),
+    [pendingOpen, setPendingOpen] = useState(false),
+    [previewConnected, setPreviewConnected] = useState<string[]>([]),
     [step, setStep] = useState<
       "detail" | "authorize" | "disconnect" | "delete"
     >("detail");
@@ -53,23 +60,41 @@ export function ConnectorsPage({
       active = false;
     };
   }, [key]);
-  const w = controller.state!.spaces.find((w) => w.id === space)!;
-  const readonly = w.type === "team" && w.status !== "active";
-  function change(update: (items: Connector[]) => Connector[]) {
+  useEffect(() => {
+    if (!state) return;
+    const url = new URL(location.href);
+    const requested = url.searchParams.get("connector");
+    if (!requested) return;
+    url.searchParams.delete("connector");
+    history.replaceState(null, "", url.pathname + url.search + url.hash);
+    if (state.items.some(item => item.id === requested)) {
+      let active = true;
+      queueMicrotask(() => { if (active) { setSelected(requested); setStep("detail"); } });
+      return () => { active = false; };
+    }
+  }, [state]);
+  const w = enterprise ? null : controller!.state!.spaces.find((item) => item.id === space)!;
+  const readonly = !!w && w.type === "team" && w.status !== "active";
+  function change(update: (items: Connector[]) => Connector[], dismissDemoId?: string) {
     if (!state) throw Error("连接器尚未加载。");
-    const current = M.get(createWorkspaceStore(marketStorage).read(), space);
-    if (
-      !M.member(current, actor) ||
-      (current.type === "team" && current.status !== "active")
-    )
-      throw Error("工作区权限已变化，当前无法修改连接器。");
+    if (enterprise) {
+      const session = readEnterpriseIdentity();
+      if (!session || session.realm !== enterprise.realm || session.identity !== enterprise.identity)
+        throw Error("企业登录状态已变化，请重新登录后重试。");
+    } else {
+      const current = M.get(createWorkspaceStore(marketStorage).read(), space!);
+      if (!M.member(current, actor!) || (current.type === "team" && current.status !== "active"))
+        throw Error("工作区权限已变化，当前无法修改连接器。");
+    }
     if (marketStorage.getItem(key) !== snapshot.current)
       throw Error("连接器已在其他页面修改，请刷新后重试。当前输入已保留。");
     const next = {
+      ...state,
       version: 1 as const,
       items: update(structuredClone(state.items)),
+      dismissedDemoIds: dismissDemoId ? [...new Set([...(state.dismissedDemoIds || []), dismissDemoId])] : state.dismissedDemoIds,
     };
-    const raw = JSON.stringify(next);
+    const raw = JSON.stringify(persistedConnectorState(next));
     marketStorage.setItem(key, raw);
     snapshot.current = raw;
     setState(next);
@@ -82,34 +107,22 @@ export function ConnectorsPage({
       setError((e as Error).message);
     }
   }
-  const current = state?.items.find((c) => c.id === selected);
-  const filtered =
-    state?.items.filter((c) =>
-      c.name.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()),
-    ) || [];
+  const savedCurrent = state?.items.find((c) => c.id === selected);
+  const current = savedCurrent && previewConnected.includes(savedCurrent.id) ? { ...savedCurrent, connected: true } : savedCurrent;
+  const pending = state?.items.filter(item => item.custom && !hasUsableTools(item)) || [];
   function close() {
     setSelected(null);
     setStep("detail");
   }
+  function card(c: Connector) {
+    return <ConnectorCard key={c.id} connector={previewConnected.includes(c.id) ? { ...c, connected: true } : c} onOpen={() => {
+      setSelected(c.id);
+      setStep("detail");
+      setError("");
+    }} />;
+  }
   return (
     <section className="connectors-page">
-      <div className="connectors-toolbar">
-        <input
-          className="connector-search"
-          type="search"
-          aria-label="搜索连接器"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="搜索连接器"
-        />
-        <button
-          className="connector-primary"
-          disabled={readonly || !state}
-          onClick={() => setEditing("new")}
-        >
-          ＋ 添加自定义连接器
-        </button>
-      </div>
       {readonly && (
         <p className="connector-banner" role="status">
           当前团队已到期，仅可查看连接器。
@@ -127,38 +140,24 @@ export function ConnectorsPage({
       )}
       {!state && !error && <p role="status">正在读取连接器…</p>}
       {state &&
-        ([false, true] as const).filter(custom => !search.trim() || filtered.some(c => c.custom === custom)).map((custom) => (
+        ([false, true] as const).map((custom) => (
           <section className="connector-group" key={String(custom)}>
-            <h2>
-              {custom ? "自定义连接器" : "系统连接器"}
-              <span>{filtered.filter((c) => c.custom === custom).length}</span>
-            </h2>
+            <h2>{custom ? "自定义连接器" : "系统连接器"}{custom && pending.length > 0 && <button type="button" className="connector-pending-entry" onClick={() => setPendingOpen(true)}>待接入配置 {pending.length}</button>}</h2>
             <div className="connector-grid">
-              {filtered
-                .filter((c) => c.custom === custom)
-                .map((c) => (
-                  <ConnectorCard
-                    key={c.id}
-                    connector={c}
-                    onOpen={() => {
-                      setSelected(c.id);
-                      setStep("detail");
-                      setError("");
-                    }}
-                  />
-                ))}
+              {custom && <button type="button" className="connector-add-card" disabled={readonly} onClick={() => setEditing("new")}><span aria-hidden="true">＋</span><strong>新增连接器</strong><small>通过 JSON 配置或服务 URL 接入</small></button>}
+              {state.items
+                .filter((c) => c.custom === custom && (!custom || hasUsableTools(c)))
+                .sort((a, b) => custom ? (domesticCustomPresets.findIndex(item => item.name === a.name) + 1 || 99) - (domesticCustomPresets.findIndex(item => item.name === b.name) + 1 || 99) : marketConfig().connectors.findIndex(item => item.id === a.id) - marketConfig().connectors.findIndex(item => item.id === b.id))
+                .map(card)}
             </div>
-            {!filtered.some((c) => c.custom === custom) && (
-              <p className="connector-empty">
-                暂无自定义连接器
-              </p>
-            )}
           </section>
         ))}
-
-      {state && search.trim() && filtered.length === 0 && (
-        <p className="connector-empty" role="status">没有找到相关连接器</p>
-      )}
+      {pendingOpen && <ReferenceDialog className="connector-dialog connector-pending-dialog" label="待接入配置" onClose={() => setPendingOpen(false)}>
+        <header><h2>待接入配置</h2><button type="button" aria-label="关闭对话框" onClick={() => setPendingOpen(false)}>×</button></header>
+        <div className="connector-dialog-body"><p className="connector-muted">这些配置尚无可用工具。完成配置后会出现在自定义连接器列表中。</p>
+          <div className="connector-pending-list">{pending.map(item => <div className="connector-pending-row" key={item.id}><span><strong>{item.name}</strong><small>{item.url || "JSON 配置"}</small></span><button type="button" disabled={readonly} onClick={() => { setPendingOpen(false); setEditing(item.id); }}>继续配置</button></div>)}</div>
+        </div>
+      </ReferenceDialog>}
       {editing && (
         <ConnectorEditor
           connector={state?.items.find((c) => c.id === editing)}
@@ -171,29 +170,36 @@ export function ConnectorsPage({
               state!.items,
               editing,
             );
+            const discovered = domesticPresetTools[name] || { provider: "自定义 MCP", tools: exampleCustomTools(name) };
+            const connection = { ...data, tools: discovered.tools.length, provider: discovered.provider, toolDefinitions: discovered.tools, connected: true, enabled: true, connectedAt: new Date().toISOString() };
             change((items) =>
               editing === "new"
                 ? [
                     ...items,
                     {
-                      ...data,
+                      ...connection,
                       id: crypto.randomUUID(),
                       description: "通过 MCP 配置接入的自定义工具。",
-                      tools: 3,
                       custom: true,
-                      connected: false,
                     },
                   ]
                 : items.map((c) =>
-                    c.id === editing ? { ...c, ...data, connected: false } : c,
+                    c.id === editing ? { ...c, ...connection, catalog: undefined, demo: false } : c,
                   ),
             );
             setEditing(null);
-            setNotice("连接器配置已保存，请完成授权后使用。");
+            setPendingOpen(false);
+            setNotice(`连接器已接入，已发现 ${discovered.tools.length} 个工具。`);
           }}
         />
       )}
-      {current && (
+      {current && !current.custom && (
+        <SystemConnectorDetail connector={current} readonly={readonly} enterprise={!!enterprise} error={error} onClose={close} onAuthorize={(scopes) => act(() => { change(items => items.map(item => item.id === current.id ? { ...item, connected: true, enabled: true, connectedAt: new Date().toISOString(), authorizedScopes: scopes, catalog: undefined } : item)); setNotice(`${current.name}已连接。`); })} onReviewAuthorize={() => { setPreviewConnected(ids => [...ids, current.id]); close(); }} onDisconnect={() => act(() => { if (previewConnected.includes(current.id) && !savedCurrent?.connected) setPreviewConnected(ids => ids.filter(id => id !== current.id)); else change(items => items.map(item => item.id === current.id ? {...item, connected: false, connectedAt: undefined, authorizedScopes: undefined} : item)); setNotice("连接器已断开。"); close(); })} />
+      )}
+      {current && current.custom && current.connected && (
+        <CustomConnectorDetail connector={current} readonly={readonly} error={error} onClose={close} onEdit={() => { close(); setEditing(current.id); }} onDelete={() => act(() => { change(items => items.filter(item => item.id !== current.id), current.demo ? current.id : undefined); setNotice("连接器已卸载。"); close(); })} />
+      )}
+      {current && current.custom && !current.connected && (
         <ReferenceDialog
           className="connector-dialog"
           label={`${current.name} · ${step === "detail" ? "连接器详情" : step === "authorize" ? "授权" : "确认操作"}`}
@@ -215,7 +221,7 @@ export function ConnectorsPage({
                   <dd>{current.connected ? "已连接" : "未连接"}</dd>
                   <dt>授权归属</dt>
                   <dd>
-                    {marketConfig().label} / {w.name} / 当前成员
+                    {marketConfig().label} / {w?.name || enterprise?.code} / 当前成员
                   </dd>
                   <dt>可用工具</dt>
                   <dd>{current.tools} 项工具 · 仅限已授权资料</dd>
@@ -306,9 +312,10 @@ export function ConnectorsPage({
                           ? items.filter((c) => c.id !== current.id)
                           : items.map((c) =>
                               c.id === current.id
-                                ? { ...c, connected: step === "authorize" }
+                                ? { ...c, connected: step === "authorize", connectedAt: step === "authorize" ? new Date().toISOString() : undefined }
                                 : c,
                             ),
+                        step === "delete" && current.demo ? current.id : undefined,
                       );
                       setNotice(
                         step === "authorize"

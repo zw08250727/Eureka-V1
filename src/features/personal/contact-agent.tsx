@@ -1,8 +1,10 @@
 import { useAgentCreditSimulation, AgentSimulationMessages, AgentSendButton } from "@/features/agent/credit-preview";
 import { AgentCredits } from "@/features/agent/credits";
 import { AgentHistoryButton } from "@/features/agent/history-button";
-import type { RefObject } from "react";
+import { useContext, useMemo, useState, type RefObject } from "react";
 import { RefIcon } from "@/features/reference/symbols";
+import { AgentMaterialPicker, AgentMaterialSummary, readMaterials, type AgentMaterial } from "@/features/agent/material-picker";
+import { AgentScope } from "@/features/agent/scope";
 import type { Contact } from "./store";
 import { ContactResizeHandle } from "./contact-resize";
 
@@ -78,6 +80,13 @@ export function ContactAgent({
     if (simulated) { if (simulated === "sent") onDraft(""); return; }
     if (suggested) onAsk(question); else onSend();
   }
+  const [materials, setMaterials] = useState<AgentMaterial[]>([]);
+  const scope = useContext(AgentScope);
+  const contactCount = useMemo(() => {
+    if (!scope) return 0;
+    try { return readMaterials(scope).filter(item => item.category === "contacts").length; } catch { return 0; }
+  }, [scope]);
+  const compactContacts = contactCount > 0 && materials.length === contactCount;
   return (
     <aside
       className={`contacts-xiaozhi-rail${expanded ? " expanded" : ""}`}
@@ -105,7 +114,7 @@ export function ContactAgent({
               data-contact-action="new-agent-task"
               aria-label="新建会话"
               title="新建会话"
-              onClick={() => { simulation.reset(); onNewTask(); }}
+              onClick={() => { simulation.reset(); setMaterials([]); onNewTask(); }}
             >
               <RefIcon name="new-task" />
             </button>
@@ -154,6 +163,7 @@ export function ContactAgent({
             {expanded && <AgentCredits />}
           </div>
           <div className="xiaozhi-composer">
+            <AgentMaterialSummary compact={compactContacts} compactLabel={`通讯录 · ${materials.length}个联系人`} selected={materials} onRemove={(id) => setMaterials(items => items.filter(item => item.id !== id))} />
             <textarea
               ref={inputRef}
               name="question"
@@ -174,6 +184,7 @@ export function ContactAgent({
               }}
             />
             <div className="xiaozhi-composer-foot">
+              <AgentMaterialPicker autoSelectCategory="contacts" selected={materials} onChange={setMaterials} triggerClassName={`agent-tool-button${materials.length ? " has-sources" : ""}`} />
               <div className="xiaozhi-context">
                 <span>引用资料</span>
                 <span className="selected">
@@ -183,7 +194,7 @@ export function ContactAgent({
               </div>
               <AgentSendButton className="xiaozhi-send" data-contact-action="send-xiaozhi" label="发送给 Ask Agent" disabled={!draft.trim()} onSend={() => send()}><RefIcon name="send" /></AgentSendButton>
             </div>
-            <span className="agent-context-hint">已引用联系人关系</span>
+            <span className="agent-context-hint">{materials.length ? `已引用联系人关系和 ${materials.length} 项素材` : "已引用联系人关系"}</span>
             <div className="agent-composer-caption">
               <span>Enter 发送 / Shift+Enter 换行</span>
 

@@ -98,27 +98,27 @@ test("team daily ownership, share-only own records, no reward or note entry", as
     fullPage: true,
   });
 });
-test("native connectors add, edit, search, delete and isolate workspaces", async ({ page }) => {
+test("native connectors add, edit, delete and isolate workspaces without a search bar", async ({ page }) => {
   await page.goto("/workbench/?view=connectors&space=personal&actor=zhang");
   await expect(page.locator("iframe")).toHaveCount(0);
-  await page.getByRole("button", { name: "＋ 添加自定义连接器" }).click();
-  await page.getByLabel("连接器名称").fill("Demo MCP");
+  await page.getByRole("button", { name: "新增连接器" }).click();
+  await page.getByPlaceholder("请输入连接器名称").fill("Demo MCP");
   await page.getByLabel("服务地址").fill("not-a-url");
-  await page.getByRole("button", { name: "保存连接器" }).click();
+  await page.getByRole("button", { name: "确定" }).click();
   await expect(page.getByRole("dialog").getByRole("alert")).toContainText("HTTP");
   await page.getByLabel("服务地址").fill("https://example.com/mcp");
-  await page.getByRole("button", { name: "保存连接器" }).click();
+  await page.getByRole("button", { name: "确定" }).click();
   await page.reload();
   await page.getByRole("button", { name: "查看 Demo MCP" }).click();
-  await page.getByRole("button", { name: "编辑", exact: true }).click();
-  await page.getByLabel("连接器名称").fill("Edited MCP");
-  await page.getByRole("button", { name: "保存连接器" }).click();
-  await page.getByRole("searchbox").fill("Edited MCP");
-  await expect(page.locator(".connector-card")).toHaveCount(1);
+  await page.getByRole("button", { name: "去编辑", exact: true }).click();
+  await page.getByPlaceholder("请输入连接器名称").fill("Edited MCP");
+  await page.getByRole("button", { name: "保存" }).click();
+  await expect(page.locator(".connectors-page .connector-search")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "查看 Edited MCP" })).toBeVisible();
   await page.getByRole("button", { name: "查看 Edited MCP" }).click();
-  await page.getByRole("button", { name: "删除", exact: true }).click();
-  await page.getByRole("button", { name: "确认删除", exact: true }).click();
-  await expect(page.locator(".connector-card")).toHaveCount(0);
+  await page.getByRole("button", { name: "卸载", exact: true }).click();
+  await page.getByRole("button", { name: "确认卸载", exact: true }).click();
+  await expect(page.locator(".connector-card.is-custom")).toHaveCount(0);
   await page.goto("/workbench/?view=connectors&space=team-eureka&actor=zhang");
   await expect(page.locator(".connectors-page")).not.toContainText("Edited MCP");
 });

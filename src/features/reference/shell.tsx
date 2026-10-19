@@ -9,6 +9,7 @@ import { productName } from "@/features/markets/brand";
 import { routeMarket } from "@/features/markets/config";
 import { signOut } from "@/features/markets/storage";
 import { Select } from "@/components/ui/select";
+import { ChainLinkIcon } from "@/components/ui/chain-icon";
 import "./workspace-navigation.css";
 import "./ui-polish.css";
 import {
@@ -214,7 +215,7 @@ export function ReferenceShell({
                     title="开放API调用 · 在新标签页打开 API 文档"
                     style={{ textDecoration: "none" }}
                   >
-                    <RefIcon name="link" className="ws-icon" />
+                    <ChainLinkIcon className="ws-icon" />
                     <span className="ws-nav-text">开放API调用</span>
                   </a>
                 </>
@@ -499,8 +500,8 @@ export function ReferenceShell({
           <div className="mobile-nav-account"><span>我的账户</span><CreditsPromo w={w} actor={actor} onSignin={() => { try { controller.change(st => claimReward(M.get(st, space), actor, "signin")); } catch(e) { notify((e as Error).message); } }}/><nav className="mobile-nav-links" aria-label="账户功能">{([["settings","个人设置"],["subscription",team ? "订阅与席位" : "个人订阅"],["my-devices","我的设备"],["updates","更新日志"],["product","产品介绍"]] as [AppView,string][]).map(([v,label]) => <button key={v} onClick={() => go(v)}>{label}<span aria-hidden="true">→</span></button>)}</nav></div>
         </div>
       </ReferenceDialog>}
-      <ReviewFloatingButton expanded={reviewOpen} onOpen={() => { setMenu(null); setMobileNav(false); setReviewOpen(true); }}/>
-      {reviewOpen && <ReferenceDialog className="ex-dialog review-tools-dialog" label="评审工具" onClose={()=>setReviewOpen(false)}>
+      {view !== "connectors" && reviewToolsEnabled() && <ReviewFloatingButton expanded={reviewOpen} onOpen={() => { setMenu(null); setMobileNav(false); setReviewOpen(true); }}/>}
+      {view !== "connectors" && reviewOpen && <ReferenceDialog className="ex-dialog review-tools-dialog" label="评审工具" onClose={()=>setReviewOpen(false)}>
         <header className="ex-head"><h2>评审工具</h2><button className="ex-close" aria-label="关闭评审工具" onClick={()=>setReviewOpen(false)}>×</button></header>
         <div className="ex-body review-tools-body">{reviewSwitch}<AgentCreditPreview /><a className="prd-review-entry" href={prdUrl} target="_blank" rel="noopener">需求评审 <span aria-hidden="true">↗</span></a><a className="prd-review-entry" href={`${basePath}/review/`}>版本与模块评审总览 ↗</a><a className="prd-review-entry" href={`${basePath}/`}>国内／海外演示入口 ↗</a></div>
       </ReferenceDialog>}

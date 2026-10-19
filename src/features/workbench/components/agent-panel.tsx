@@ -6,6 +6,9 @@ import { useSceneAgent } from "@/features/agent/session";
 import { AgentHistoryButton } from "@/features/agent/history-button";
 import { Fragment, useEffect, useRef, useState, type RefObject } from "react";
 import { RefIcon as Icon } from "@/features/reference/symbols";
+import { AgentConnectorPicker } from "@/features/connectors/agent-picker";
+import { AgentActiveConnectorChips } from "@/features/connectors/active-chips";
+import { AgentMaterialPicker, AgentMaterialSummary, type AgentMaterial } from "@/features/agent/material-picker";
 import {useAgentLayout} from "@/features/reference/use-agent-layout";
 import { useAgentWidth } from "../hooks/use-agent-width";
 import { mockAgent } from "../model/mock-agent";
@@ -45,7 +48,7 @@ export function AgentPanel({
     ),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
-  const [sources, setSources] = useState(false),
+  const [materials, setMaterials] = useState<AgentMaterial[]>([]),
     [audio, setAudio] = useState(false),
     [apps, setApps] = useState(false),
     [web, setWeb] = useState(false),
@@ -64,14 +67,6 @@ export function AgentPanel({
   }
   useEffect(() => () => request.current?.abort(), []);
   useEffect(() => { if (messages.length || pending) messageEnd.current?.scrollIntoView({ block: "nearest" }); }, [messages, pending]);
-  useEffect(() => {
-    function close(e: MouseEvent) {
-      if (!(e.target as Element).closest(".agent-source-wrap"))
-        setSources(false);
-    }
-    document.addEventListener("click", close);
-    return () => document.removeEventListener("click", close);
-  }, []);
   useEffect(() => {
     if (open && draft.sequence)
       textarea.current?.focus({ preventScroll: true });
@@ -151,7 +146,7 @@ export function AgentPanel({
     request.current = null;
     setPending(null);
     setBusy(false);
-    setSources(false);
+    setMaterials([]);
     setMessages([]);
     setInput("");
     setContext(draft.context);
@@ -317,6 +312,8 @@ export function AgentPanel({
                 void send();
               }}
             >
+              <AgentMaterialSummary selected={materials} onRemove={(id) => { const next = materials.filter(item => item.id !== id); setMaterials(next); setAudio(next.some(item => item.category === "meetings")); setApps(next.some(item => item.category !== "meetings")); }} />
+              <AgentActiveConnectorChips />
               <textarea
                 id="xiaozhi-input"
                 ref={textarea}
@@ -337,76 +334,7 @@ export function AgentPanel({
                 }}
               />
               <div className="agent-composer-toolbar">
-                <div className="agent-source-wrap">
-                  <button
-                    type="button"
-                    className={
-                      "agent-tool-button " +
-                      (audio || apps || widget ? "has-sources" : "")
-                    }
-                    id="agent-sources-toggle"
-                    aria-label="引用资料"
-                    title="引用资料"
-                    aria-expanded={sources}
-                    aria-controls="agent-sources-popover"
-                    onClick={() => setSources(!sources)}
-                  >
-                    <Icon name="book" />
-                  </button>
-                  <div
-                    id="agent-sources-popover"
-                    hidden={!sources}
-                    onKeyDown={(e) => {
-                      if (e.key === "Escape") {
-                        e.stopPropagation();
-                        setSources(false);
-                        document
-                          .getElementById("agent-sources-toggle")
-                          ?.focus();
-                      }
-                    }}
-                  >
-                    <strong>引用资料</strong>
-                    <div className="xiaozhi-context">
-                      <button
-                        id="xiaozhi-audio"
-                        className={audio ? "selected" : ""}
-                        aria-pressed={audio}
-                        type="button"
-                        onClick={() => setAudio(!audio)}
-                      >
-                        <Icon name="mic" />
-                        音频文件
-                      </button>
-                      <button
-                        id="xiaozhi-knowledge"
-                        className={apps ? "selected" : ""}
-                        aria-pressed={apps}
-                        type="button"
-                        onClick={() => setApps(!apps)}
-                      >
-                        <Icon name="book" />
-                        应用数据
-                      </button>
-                      {context.widget ? (
-                        <button
-                          type="button"
-                          id="xiaozhi-widget-context"
-                          aria-label={
-                            "引用" +
-                            (context.widget === "thoughts" ? " " : "") +
-                            context.title
-                          }
-                          className={widget ? "selected" : ""}
-                          onClick={() => setWidget(!widget)}
-                        >
-                          {context.title}
-                        </button>
-                      ) : null}
-                    </div>
-                    <p>选择资料，补充对话上下文</p>
-                  </div>
-                </div>
+                <AgentMaterialPicker selected={materials} onChange={(next) => { setMaterials(next); setAudio(next.some(item => item.category === "meetings")); setApps(next.some(item => item.category !== "meetings")); }} triggerClassName={`agent-tool-button${materials.length ? " has-sources" : ""}`} />
                 <button
                   type="button"
                   className="agent-tool-button"
@@ -416,11 +344,11 @@ export function AgentPanel({
                   aria-pressed={web}
                   onClick={() => {
                     setWeb(!web);
-                    setSources(false);
                   }}
                 >
                   <Icon name="globe" />
                 </button>
+                <AgentConnectorPicker />
                 <AgentSendButton className="xiaozhi-send" id="xiaozhi-send" label={busy ? "停止生成" : "发送给 Ask Agent"} disabled={!busy && !input.trim()} onSend={() => { if (busy) request.current?.abort(); else void send(); }}>{busy ? <span aria-hidden="true">■</span> : <Icon name="send" />}</AgentSendButton>
               </div>
               <span
@@ -428,8 +356,8 @@ export function AgentPanel({
                 className="agent-context-hint"
                 aria-live="polite"
               >
-                {audio || apps || widget
-                  ? `已引用 ${Number(audio) + Number(apps) + Number(widget)} 类资料`
+                {materials.length || widget
+                  ? `已引用 ${materials.length + Number(widget)} 项素材`
                   : "基于当前页面继续对话"}
               </span>
               <div className="agent-composer-caption">
