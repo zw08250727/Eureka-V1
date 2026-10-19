@@ -11,7 +11,7 @@ import { payTimeOrder, cancelTimeOrder } from "@/features/spaces/model/time-pack
 import PS from "@/features/spaces/model/subscription";
 import type { SpacesController } from "@/features/spaces/use-spaces";
 import { CheckoutDialog } from "@/features/spaces/billing-checkout";
-import { useAirwallexCheckout, usesAirwallexSandbox } from "@/features/spaces/use-airwallex-checkout";
+import { useAirwallexCheckout, usesAirwallexCheckout } from "@/features/spaces/use-airwallex-checkout";
 import { openAirwallexInvoice } from "@/features/spaces/open-airwallex-invoice";
 import { downloadText } from "@/features/spaces/billing-ui";
 import { ReferenceDialog } from "@/features/reference/dialog";
@@ -47,7 +47,7 @@ export function OrdersPanel({controller, space, actor, resumeCredit}: {
   function resume(o: AccountOrder) {
     run(() => {
       if (o.kind === "time") { setCheckout(o.id); return; }
-      if (!usesAirwallexSandbox()) {
+      if (!usesAirwallexCheckout()) {
         if (o.kind === "credit") { resumeCredit(o.id); return; }
         setCheckout(o.id);
         return;
@@ -66,7 +66,7 @@ export function OrdersPanel({controller, space, actor, resumeCredit}: {
   function viewInvoice(o: AccountOrder) {
     run(() => {
       if (routeMarket() !== "global" || o.kind === "time") { receipt(o); return; }
-      if (!usesAirwallexSandbox()) throw Error("当前环境暂不支持查看 Airwallex invoice");
+      if (!usesAirwallexCheckout()) throw Error("当前环境暂不支持查看 Airwallex invoice");
       void openAirwallexInvoice(space, actor, o.id).catch(cause => setError((cause as Error).message));
     });
   }

@@ -5,10 +5,23 @@ import { marketSessionStorage } from "@/features/markets/storage";
 import { M } from "./model/store";
 import type { Order, Workspace } from "./model/types";
 
-// Local sandbox only. Static deployments never call a visitor's loopback service.
-export function usesAirwallexSandbox() {
-  return typeof location !== "undefined" && routeMarket() === "global" &&
-    ["localhost", "127.0.0.1"].includes(location.hostname);
+const configuredEndpoint = process.env.NEXT_PUBLIC_AIRWALLEX_CHECKOUT_API?.trim();
+
+export function airwallexCheckoutEndpoint() {
+  if (typeof location === "undefined" || routeMarket() !== "global") return null;
+  const local = ["localhost", "127.0.0.1"].includes(location.hostname);
+  const value = configuredEndpoint || (local ? "http://127.0.0.1:3101/api/airwallex/checkouts" : "");
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    if (url.username || url.password || url.search || url.hash || !url.pathname.endsWith("/api/airwallex/checkouts")) return null;
+    if (url.protocol !== "https:" && !(local && url.protocol === "http:")) return null;
+    return url.href.replace(/\/$/, "");
+  } catch { return null; }
+}
+
+export function usesAirwallexCheckout() {
+  return airwallexCheckoutEndpoint() !== null;
 }
 export function useAirwallexCheckout() {
   const [pending, setPending] = useState(false);
@@ -24,12 +37,12 @@ export function useAirwallexCheckout() {
     popup.opener = null;
     active.current = true;
     setPending(true); setError("");
-    const endpoint = process.env.NEXT_PUBLIC_AIRWALLEX_CHECKOUT_API || "http://127.0.0.1:3101/api/airwallex/checkouts";
+    const endpoint = airwallexCheckoutEndpoint();
     const key = `airwallex:${w.id}:${actor}:${order.id}`;
     let errorCode = "PAY-ORDER";
     try {
       M.govern(w, actor); M.writable(w);
-      if (!usesAirwallexSandbox() || (kind === "seat" && w.type !== "team") || (kind === "personal" && w.type !== "personal")) throw Error("当前入口不支持 Airwallex 沙盒结账");
+      if (!endpoint || (kind === "seat" && w.type !== "team") || (kind === "personal" && w.type !== "personal")) throw Error("当前入口不支持 Airwallex 沙盒结账");
       if (order.status === "cancelled") throw Error("订单已取消，请重新选择");
       if (kind === "seat") {
         const quote = M.seatQuote(w, order.targetSeats!, actor);

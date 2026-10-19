@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { once } from "node:events";
 import { request } from "node:http";
-import { createCheckoutService, createLocalServer, readConfig, validateInput, SANDBOX_API } from "./service.ts";
+import { createAirwallexServer, createCheckoutService, readConfig, validateInput, SANDBOX_API } from "./service.ts";
 
 const config = () => ({ ...readConfig({}), apiKey: "test-secret", successUrl: "https://example.com/success", backUrl: "https://example.com/back" });
 const input = () => validateInput({ requestId: randomUUID(), market: "global", workspaceId: "team-eureka", actor: "zhang", cycle: "year", quantity: 1 });
@@ -77,7 +77,7 @@ test("failed requests retain scope while allowing a retry", async () => {
   assert.ok((await service.create(value)).url);
 });
 test("HTTP health, CORS, host validation, content type and body size guards", async t => {
-  const mock = mockApi(); const server = createLocalServer(config(), mock.transport);
+  const mock = mockApi(); const server = createAirwallexServer(config(), mock.transport);
   server.listen(0, "127.0.0.1"); await once(server, "listening");
   t.after(() => new Promise<void>(resolve => { server.closeAllConnections(); server.close(() => resolve()); }));
   const address = server.address(); assert.ok(address && typeof address !== "string");
@@ -99,6 +99,28 @@ test("HTTP health, CORS, host validation, content type and body size guards", as
   assert.equal((await post(" ".repeat(5000), headers)).status, 413);
   const result = await post(JSON.stringify(input()), headers);
   assert.equal(result.status, 200); assert.equal((await result.json()).id, "bchk_test");
+});
+
+test("Render hostname and GitHub Pages origin are accepted only when configured", async t => {
+  const hosted = readConfig({
+    AIRWALLEX_API_KEY: "test-secret",
+    AIRWALLEX_SUCCESS_URL: "https://zw08250727.github.io/Eureka-V1/global/workbench/",
+    AIRWALLEX_BACK_URL: "https://zw08250727.github.io/Eureka-V1/global/workbench/",
+    AIRWALLEX_ALLOWED_ORIGINS: "https://zw08250727.github.io",
+    RENDER_EXTERNAL_HOSTNAME: "eureka-airwallex.onrender.com",
+  });
+  const server = createAirwallexServer(hosted, mockApi().transport);
+  server.listen(0, "127.0.0.1"); await once(server, "listening");
+  t.after(() => new Promise<void>(resolve => { server.closeAllConnections(); server.close(() => resolve()); }));
+  const address = server.address(); assert.ok(address && typeof address !== "string");
+  const status = await new Promise<number | undefined>((resolve, reject) => {
+    const req = request(`http://127.0.0.1:${address.port}/api/airwallex/checkouts`, {
+      method: "OPTIONS",
+      headers: { Host: "eureka-airwallex.onrender.com", Origin: "https://zw08250727.github.io" },
+    }, res => { res.resume(); resolve(res.statusCode); });
+    req.on("error", reject); req.end();
+  });
+  assert.equal(status, 204);
 });
 
 test("personal and team Credits use PAYMENT and raw credit quantity for the 1000-credit lot", async () => {

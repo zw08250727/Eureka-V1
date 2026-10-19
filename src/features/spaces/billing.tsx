@@ -33,7 +33,7 @@ import { DomesticMembership } from "./domestic-membership";
 import { TimeCheckout } from "./time-checkout";
 import { createTimeOrder, payTimeOrder, cancelTimeOrder } from "./model/time-packs";
 import { CheckoutDialog, type OrderKind } from "./billing-checkout";
-import { useAirwallexCheckout, usesAirwallexSandbox } from "./use-airwallex-checkout";
+import { useAirwallexCheckout, usesAirwallexCheckout } from "./use-airwallex-checkout";
 import { openAirwallexInvoice } from "./open-airwallex-invoice";
 type Dialog =
   | { type: "checkout"; kind: OrderKind; id: string }
@@ -123,7 +123,7 @@ export function BillingPage({
         M.govern(w, actor);
         const creditOrder = w.creditOrders?.find(o => o.id === value);
         if (!creditOrder || !["pending", "failed"].includes(creditOrder.status)) throw Error("订单已无法继续支付");
-        if (usesAirwallexSandbox()) {
+        if (usesAirwallexCheckout()) {
           void airwallex.begin(w, actor, creditOrder, () => {
             mutate(current => M.payCreditOrder(current, value, "success", actor));
             setModal({ type: "checkout", kind: "credit", id: value });
@@ -134,7 +134,7 @@ export function BillingPage({
       if (action === "credit-airwallex-invoice") {
         M.govern(w, actor);
         if (!w.creditOrders?.some(o => o.id === value && o.status === "paid")) throw Error("已支付订单不存在");
-        if (!usesAirwallexSandbox()) throw Error("该订单暂无可查看的 Airwallex invoice");
+        if (!usesAirwallexCheckout()) throw Error("该订单暂无可查看的 Airwallex invoice");
         void openAirwallexInvoice(w.id, actor, value).catch(error => setToast((error as Error).message));
         return;
       }
@@ -418,18 +418,18 @@ export function BillingPage({
           order={order}
           act={act}
           error={error || (modal.kind !== "credit" ? airwallex.error : "")}
-          sandbox={modal.kind !== "credit" && usesAirwallexSandbox()}
+          sandbox={modal.kind !== "credit" && usesAirwallexCheckout()}
           pending={airwallex.pending}
           method={method}
           setMethod={setMethod}
           onClose={() => { if (!airwallex.pending) close(); }}
           onSubmit={(e) => {
             e.preventDefault();
-            if (modal.kind === "personal" && usesAirwallexSandbox()) {
+            if (modal.kind === "personal" && usesAirwallexCheckout()) {
               void airwallex.begin(w, actor, order, () => {
                 mutate(current => PS.pay(current, modal.id, "success", "Airwallex"));
               }, "personal");
-            } else if (modal.kind === "seat" && usesAirwallexSandbox()) {
+            } else if (modal.kind === "seat" && usesAirwallexCheckout()) {
               void airwallex.begin(w, actor, order, () => {
                 mutate(current => {
                   const paid = M.paySeatOrder(current, modal.id, "success", actor);

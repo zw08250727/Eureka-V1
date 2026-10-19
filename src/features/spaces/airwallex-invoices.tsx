@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { usesAirwallexSandbox } from "./use-airwallex-checkout";
+import { airwallexCheckoutEndpoint, usesAirwallexCheckout } from "./use-airwallex-checkout";
 import { WsButton as Button, Badge } from "./billing-ui";
 
 type Invoice = { id: string; number: string; date: string; amount: number | null; currency: string; status: string; paymentStatus: string; pdfUrl: string | null };
@@ -13,8 +13,8 @@ export function AirwallexInvoices({ workspaceId, revision }: { workspaceId: stri
     async function read() {
       setState({ scope: workspaceId, items: [], loading: true, error: "" });
       try {
-        if (!usesAirwallexSandbox()) throw Error("INV-UNAVAILABLE");
-        const endpoint = (process.env.NEXT_PUBLIC_AIRWALLEX_CHECKOUT_API || "http://127.0.0.1:3101/api/airwallex/checkouts").replace(/\/checkouts\/?$/, "/invoices");
+        if (!usesAirwallexCheckout()) throw Error("INV-UNAVAILABLE");
+        const endpoint = airwallexCheckoutEndpoint()!.replace(/\/checkouts\/?$/, "/invoices");
         const response = await fetch(`${endpoint}?market=global&workspaceId=${encodeURIComponent(workspaceId)}`, { headers: { "X-Eureka-Checkout": "1" }, signal: AbortSignal.any([abort.signal, AbortSignal.timeout(45000)]) });
         if (!response.ok) throw Error(`INV-${response.status}`);
         const data = await response.json();

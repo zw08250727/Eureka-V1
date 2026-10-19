@@ -18,7 +18,7 @@ import { claimReward, countMonthlyFeedbackRewards, rewardState } from "./rewards
 import { OrdersPanel } from "./orders-panel";
 import { AccountTabs, AccountStatus, CreditsHero } from "./ui";
 import "./experience.css";
-import { useAirwallexCheckout, usesAirwallexSandbox } from "@/features/spaces/use-airwallex-checkout";
+import { useAirwallexCheckout, usesAirwallexCheckout } from "@/features/spaces/use-airwallex-checkout";
 import { DomesticAccountPoints } from "./domestic-points";
 import { TeamCreditsCard } from "./team-credits-card";
 export type AccountPanel =
@@ -145,7 +145,7 @@ export function AccountExperience({
       M.visible(w, actor).find((f) => f.owner !== actor) ||
       M.visible(w, actor)[0];
   const airwallex = useAirwallexCheckout();
-  const sandboxCredits = usesAirwallexSandbox();
+  const sandboxCredits = usesAirwallexCheckout();
   function purchaseCredits() {
     perform(() => {
       const o = controller.change(st => M.createCreditOrder(M.get(st, space), sku, actor));
