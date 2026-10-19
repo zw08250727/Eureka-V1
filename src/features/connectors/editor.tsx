@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ReferenceDialog } from "@/features/reference/dialog";
+import { RefIcon } from "@/features/reference/symbols";
 import type { Connector } from "./model";
 export function ConnectorEditor({
   connector,
@@ -28,7 +29,7 @@ export function ConnectorEditor({
   };
   return (
     <ReferenceDialog
-      className="connector-dialog"
+      className="connector-dialog connector-editor-dialog"
       label={connector ? "编辑自定义连接器" : "添加自定义连接器"}
       onClose={close}
     >
@@ -42,64 +43,63 @@ export function ConnectorEditor({
           }
         }}
       >
-        <header>
-          <h2>{connector ? "编辑" : "添加"}自定义连接器</h2>
-          <button type="button" aria-label="关闭对话框" onClick={close}>
-            ×
-          </button>
-        </header>
+        <header><h2>{connector ? "编辑" : "添加"}自定义连接器</h2></header>
         <div className="connector-dialog-body">
+          <p className="connector-editor-intro">将 MCP 服务接入百智，为 Agent 扩展数据连接与工具调用能力 <a href="https://www.yuque.com/bairongbaizhi/xp2skr/stutwdfq1lr3t4dt?singleDoc#" target="_blank" rel="noopener noreferrer" aria-label="配置教程：百融百智自定义 MCP 操作指南（在新窗口打开）">配置教程 <RefIcon name="book" /></a></p>
+          <fieldset className="connector-mode">
+            <legend className="sr-only">配置方式</legend>
+            <label className={mode === "url" ? "active" : ""}>
+              <input
+                type="radio"
+                name="mode"
+                aria-label="直接URL接入"
+                checked={mode === "url"}
+                onChange={() => setMode("url")}
+              />
+              直接URL接入
+            </label>
+            <label className={mode === "json" ? "active" : ""}>
+              <input
+                type="radio"
+                name="mode"
+                aria-label="通过JSON导入"
+                checked={mode === "json"}
+                onChange={() => setMode("json")}
+              />
+              通过JSON导入
+            </label>
+          </fieldset>
           <label>
-            连接器名称
+            <span>名称 <b aria-hidden="true">*</b></span>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
+              placeholder="请输入连接器名称"
               maxLength={60}
               data-autofocus
               required
             />
           </label>
-          <fieldset className="connector-mode">
-            <legend>配置方式</legend>
-            <label>
-              <input
-                type="radio"
-                name="mode"
-                checked={mode === "url"}
-                onChange={() => setMode("url")}
-              />
-              URL 地址
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="mode"
-                checked={mode === "json"}
-                onChange={() => setMode("json")}
-              />
-              JSON 配置
-            </label>
-          </fieldset>
           {mode === "url" ? (
             <label>
-              服务地址
+              <span>服务地址 <b aria-hidden="true">*</b></span>
               <input
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
-                placeholder="https://example.com/mcp"
+                placeholder="请输入 MCP 服务地址（https://...）"
                 required
               />
             </label>
           ) : (
             <label>
-              MCP JSON 配置
+              <span>JSON 配置 <b aria-hidden="true">*</b></span>
               <textarea
                 value={json}
                 onChange={(e) => setJson(e.target.value)}
                 placeholder={
-                  '{"mcpServers":{"example":{"url":"https://example.com/mcp"}}}'
+                  '{"mcpServers": {"my-mcp": {"url": "https://example.com/mcp"}}}'
                 }
-                rows={7}
+                rows={8}
                 required
               />
             </label>
@@ -116,7 +116,7 @@ export function ConnectorEditor({
             取消
           </button>
           <button className="primary" type="submit">
-            保存连接器
+            {connector ? "保存" : "确定"}
           </button>
         </footer>
       </form>

@@ -1,5 +1,5 @@
 {
-  "revision": "market-20261012-04",
+  "revision": "market-20261016-connectors-01",
   "status": "会员与加时包已核对当前网页在售界面及前端源码；团队定价保留既有独立基线",
   "currency": "CNY",
   "personal": {
@@ -88,16 +88,22 @@
   },
   "connectors": [
     {
+      "id": "dingtalk",
+      "name": "钉钉",
+      "description": "通过命令行管理钉钉全产品能力：AI 表格、考勤、日历、群聊与机器人、通讯录、开放平台文档等。",
+      "tools": 8
+    },
+    {
       "id": "feishu",
       "name": "飞书",
-      "description": "连接文档、日历与团队协作资料。",
+      "description": "通过命令行管理飞书/Lark 全产品能力：即时通讯、邮箱、日历、云文档、电子表格、多维表格（Base）、幻灯片、画板、知识库、云空间、妙记、视频会议、任务、审批、考勤、通讯录、OKR 等。",
       "tools": 30
     },
     {
-      "id": "dingtalk",
-      "name": "钉钉",
-      "description": "连接通讯录、日程、待办与办公资料。",
-      "tools": 8
+      "id": "tencent-meeting",
+      "name": "腾讯会议",
+      "description": "连接自己的腾讯会议账号，同步会议列表并选择导入百智。授权后可读取会议列表、会议详情、云录制与智能纪要。",
+      "tools": 4
     }
   ],
   "payments": {

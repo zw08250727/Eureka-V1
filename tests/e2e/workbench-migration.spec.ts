@@ -174,13 +174,10 @@ test("Agent drafts, keyboard, local responses and panel width survive UI changes
     .click();
   await page.getByRole("button", { name: "Ask Agent", exact: true }).click();
   await expect(input).toHaveValue("保留草稿");
-  await panel.getByRole("button", { name: "引用资料", exact: true }).click();
-  await panel.getByRole("button", { name: "音频文件" }).click();
-  await expect(panel.getByRole("button", { name: "音频文件" })).toHaveAttribute(
-    "aria-pressed",
-    "true",
-  );
-  await panel.getByRole("button", { name: "引用资料", exact: true }).click();
+  await panel.getByRole("button", { name: "添加素材文件" }).click();
+  const materials = page.getByRole("dialog", { name: "选择知识库文件" });
+  await expect(materials.getByRole("button", { name: /我的会议/ })).toBeVisible();
+  await materials.getByRole("button", { name: "取消" }).click();
   await panel.getByRole("button", { name: "新建会话" }).click();
   await expect(input).toHaveValue("");
   await expect(panel.locator(".xiaozhi-intro")).toBeVisible();

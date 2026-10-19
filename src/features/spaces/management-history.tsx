@@ -7,6 +7,8 @@ import { marketStorage } from "@/features/markets/storage";
 
 import { readSessions, useSceneAgent } from "@/features/agent/session";
 import { AgentHistoryButton } from "@/features/agent/history-button";
+import { AgentConnectorPicker } from "@/features/connectors/agent-picker";
+import { AgentActiveConnectorChips } from "@/features/connectors/active-chips";
 import { Fragment, useLayoutEffect, useEffect, useRef, useState } from "react";
 import { useAgentLayout } from "@/features/reference/use-agent-layout";
 import { M } from "./model/store";
@@ -294,6 +296,7 @@ export function TeamHistoryAgent({
           send();
         }}
       >
+        <AgentActiveConnectorChips />
         <textarea
           ref={textarea}
           name="question"
@@ -333,6 +336,7 @@ export function TeamHistoryAgent({
           >
             <Icon name="globe" />
           </Button>
+          <AgentConnectorPicker />
           <AgentSendButton className="ws-btn primary" label="发送问题" disabled={!input.trim()} onSend={() => { void send(); }}><Icon name="send" /></AgentSendButton>
         </div>
         <small id="ws-composer-hint">
@@ -603,7 +607,8 @@ export function PersonalHistoryAgent({
             </button>
           </section>
           <div className="agent-composer-wrap">
-                <div className="xiaozhi-composer">
+            <div className="xiaozhi-composer">
+              <AgentActiveConnectorChips />
               <textarea
                 ref={textarea}
                 id="xiaozhi-input"
@@ -683,6 +688,7 @@ export function PersonalHistoryAgent({
                 >
                   <RefIcon name="globe" />
                 </button>
+                <AgentConnectorPicker />
                 <AgentSendButton className="xiaozhi-send" id="xiaozhi-send" label="发送给 Ask Agent" disabled={!input.trim()} onSend={() => { void send(); }}><RefIcon name="send" /></AgentSendButton>
               </div>
               <span

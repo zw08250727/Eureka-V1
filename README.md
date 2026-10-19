@@ -41,7 +41,7 @@ npm run dev
 ## 代码与配置
 
 - `src/features/markets/`：国内、海外独立配置、路由识别、存储适配、登录门禁和主题。
-- `src/features/connectors/`：React 连接器目录、卡片、授权演示及自定义配置；不再使用 iframe。
+- `src/features/connectors/`：React 连接器目录、卡片、详情、自定义配置及 Agent 入口；国内个人／团队与企业各自保存状态，不使用 iframe。品牌 SVG 来源见 [素材记录](public/assets/connectors/README.md)。系统“连接”可打开官方登录页，配置公开应用 ID 与回调 URI 后可进入授权页；令牌兑换与真实连接状态仍需服务端接入，详见 [连接器变更与接入条件](spc/changes/2026-10-16-connector-catalog.md)。
 - `src/features/`：个人、团队、会议、日程、订阅、Credits、Agent 的共享交互与模型。
 - `src/components/ui/`：共享控件；新增模块遵循 SPC。
 - `src/prototype/prd/`：现有 PRD 站点、内容及配图。

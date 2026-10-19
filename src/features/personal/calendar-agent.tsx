@@ -21,6 +21,9 @@ import type {
   ActionState,
 } from "@/features/workbench/model/types";
 import { RefIcon } from "@/features/reference/symbols";
+import { AgentConnectorPicker } from "@/features/connectors/agent-picker";
+import { AgentActiveConnectorChips } from "@/features/connectors/active-chips";
+import { AgentMaterialPicker, AgentMaterialSummary, type AgentMaterial } from "@/features/agent/material-picker";
 import { createActions, parseSchedule } from "./store";
 import { newAction } from "./calendar";
 import {
@@ -59,8 +62,8 @@ export function CalendarAgent({
   const simulation = useAgentCreditSimulation();
   const [prompt, setPrompt] = useState(""),
     [ids, setIds] = useState<string[]>([]),
-    [web, setWeb] = useState(false),
-    [sources, setSources] = useState(false);
+    [materials, setMaterials] = useState<AgentMaterial[]>([]),
+    [web, setWeb] = useState(false);
   const [draft, setDraft] = useState<ActionRecord | null>(null),
     [sessionId, setSessionId] = useState(session?.id || ""),
     [activeSession, setActiveSession] = useState(session);
@@ -79,6 +82,7 @@ export function CalendarAgent({
     body = useRef<HTMLDivElement>(null),
     continuation = useRef<(() => void) | null>(null),
     bypassNavigation = useRef(false);
+  const compactCalendar = materials.length > 0 && materials.length >= records.filter(record => !record.deleted).length;
   const min = Math.min(300, max);
   useLayoutEffect(() => {
     const root = host.current;
@@ -356,6 +360,7 @@ export function CalendarAgent({
                 setPrompt("");
                 setSessionId("");
                 setIds([]);
+                setMaterials([]);
                 setWeb(false);
                 input.current?.focus();
               })
@@ -485,6 +490,8 @@ export function CalendarAgent({
           generate(prompt);
         }}
       >
+        <AgentMaterialSummary compact={compactCalendar} compactLabel={`日程与待办 · ${materials.length}个明细`} selected={materials} onRemove={(id) => { const next = materials.filter(item => item.id !== id); setMaterials(next); setIds(next.filter(item => item.category === "calendar").map(item => item.sourceId)); }} />
+        <AgentActiveConnectorChips />
         <label className="sr-only" htmlFor="pa-prompt">
           给 Agent 的要求
         </label>
@@ -509,15 +516,7 @@ export function CalendarAgent({
           }}
         />
         <div className="pa-composer-tools">
-          <PaButton
-            action="agent-sources"
-            className={`pa-tool${ids.length ? " selected" : ""}`}
-            aria-label="引用日程与待办"
-            title="引用日程与待办"
-            onClick={() => setSources(true)}
-          >
-            <RefIcon name="book" />
-          </PaButton>
+          <AgentMaterialPicker autoSelectCategory="calendar" selected={materials} onChange={(next) => { setMaterials(next); setIds(next.filter(item => item.category === "calendar").map(item => item.sourceId)); }} triggerClassName={`pa-btn pa-tool${materials.length ? " selected" : ""}`} />
           <PaButton
             action="agent-web"
             className={`pa-tool${web ? " selected" : ""}`}
@@ -533,6 +532,7 @@ export function CalendarAgent({
           >
             <RefIcon name="globe" />
           </PaButton>
+          <AgentConnectorPicker />
           <AgentSendButton className="pa-btn primary" label="发送问题" disabled={!prompt.trim()} onSend={() => generate(prompt)}><RefIcon name="send" /></AgentSendButton>
         </div>
         <small id="pa-agent-scope">
@@ -547,38 +547,6 @@ export function CalendarAgent({
 
         </div>
       </form>
-      {sources && (
-        <PaModal
-          title="引用日程与待办"
-          confirm="确认引用"
-          onClose={() => setSources(false)}
-          onSave={(f) => {
-            setIds(new FormData(f).getAll("agentSources").map(String));
-            setSources(false);
-          }}
-        >
-          <p>选择当前个人空间中的记录。不选择时使用当前日历视图。</p>
-          <div className="pa-agent-sources">
-            {records.map((r) => (
-              <label key={r.id}>
-                <input
-                  type="checkbox"
-                  name="agentSources"
-                  value={r.id}
-                  defaultChecked={ids.includes(r.id)}
-                />
-                <span>
-                  {r.title}
-                  <small>
-                    {r.type === "schedule" ? "日程" : "待办"} ·{" "}
-                    {localDate(r.start)}
-                  </small>
-                </span>
-              </label>
-            ))}
-          </div>
-        </PaModal>
-      )}
       {guard && (
         <PaModal
           title="保留这次修改？"

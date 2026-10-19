@@ -5,6 +5,7 @@ import { productName, productLogo } from "@/features/markets/brand";
 import { marketConfig, routeMarket, type Market } from "@/features/markets/config";
 import type { AppView } from "@/lib/routes";
 import { RefIcon } from "./symbols";
+import { ChainLinkIcon } from "@/components/ui/chain-icon";
 
 export function SidebarBrand({market, collapsed, onCollapse}: {market?: Market; collapsed: boolean; onCollapse: () => void}) {
   return (<div className="brand-row">
@@ -138,6 +139,6 @@ export function PrimaryNavigation({view, onNavigate}: {view: string; onNavigate:
                     </span>
                   </button>}
               </>
-              <button type="button" aria-label={routeMarket() === "global" ? "AI Connections" : "连接器"} title={routeMarket() === "global" ? "AI Connections" : "连接器"} className={"nav-item " + (view === "connectors" ? "active" : "")} onClick={()=>onNavigate("connectors")}><span className="nav-left"><span className="nav-icon"><RefIcon name="link"/></span><span className="nav-label">{routeMarket() === "global" ? "AI Connections" : "连接器"}</span></span></button>
+              <button type="button" aria-label={routeMarket() === "global" ? "AI Connections" : "连接器"} title={routeMarket() === "global" ? "AI Connections" : "连接器"} className={"nav-item " + (view === "connectors" ? "active" : "")} onClick={()=>onNavigate("connectors")}><span className="nav-left"><span className="nav-icon"><ChainLinkIcon /></span><span className="nav-label">{routeMarket() === "global" ? "AI Connections" : "连接器"}</span></span></button>
             </nav>);
 }
