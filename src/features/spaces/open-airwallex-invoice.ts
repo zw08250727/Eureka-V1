@@ -1,4 +1,5 @@
 import { marketSessionStorage } from "@/features/markets/storage";
+import { airwallexCheckoutEndpoint } from "./use-airwallex-checkout";
 
 /** Open a paid order's official invoice while the click still has popup permission. */
 export async function openAirwallexInvoice(workspaceId: string, actor: string, orderId: string) {
@@ -8,7 +9,9 @@ export async function openAirwallexInvoice(workspaceId: string, actor: string, o
   if (!popup) throw Error("请允许打开账单窗口后重试");
   popup.opener = null;
   try {
-    const endpoint = (process.env.NEXT_PUBLIC_AIRWALLEX_CHECKOUT_API || "http://127.0.0.1:3101/api/airwallex/checkouts").replace(/\/checkouts\/?$/, "/invoices");
+    const checkoutEndpoint = airwallexCheckoutEndpoint();
+    if (!checkoutEndpoint) throw Error("当前环境暂不支持查看 Airwallex invoice");
+    const endpoint = checkoutEndpoint.replace(/\/checkouts\/?$/, "/invoices");
     const response = await fetch(`${endpoint}?market=global&workspaceId=${encodeURIComponent(workspaceId)}&requestId=${encodeURIComponent(requestId)}`, {
       headers: { "X-Eureka-Checkout": "1" }, signal: AbortSignal.timeout(45000),
     });

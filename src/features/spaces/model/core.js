@@ -258,7 +258,7 @@ function create(s, { name, country, cycle, seats, orderId }) {
   if (done) return get(s, done.spaceId);
   assertCanJoinTeam(s);
   const w = baseTeam(
-    id("team"),
+    `team-${orderId}`,
     name,
     [person(SELF, s.account.name, s.account.email, "admin")],
     seats,

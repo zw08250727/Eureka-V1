@@ -6,6 +6,8 @@ export class CheckoutError extends Error {
   constructor(status: number, message: string) { super(message); this.status = status; }
 }
 export function readConfig(env: NodeJS.ProcessEnv = process.env) {
+  const origins = (env.AIRWALLEX_ALLOWED_ORIGINS || "http://localhost:3000,http://127.0.0.1:3000").split(",").map(s => s.trim()).filter(Boolean);
+  const hosts = ["localhost", "127.0.0.1", ...(env.AIRWALLEX_ALLOWED_HOSTS || "").split(","), env.RENDER_EXTERNAL_HOSTNAME || ""].map(s => s.trim().toLowerCase()).filter(Boolean);
   return {
     clientId: env.AIRWALLEX_CLIENT_ID || "-SKsRMNmQMmVW92h7Du0Ow",
     apiKey: env.AIRWALLEX_API_KEY || "",
@@ -22,11 +24,12 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env) {
     paymentAccountId: env.AIRWALLEX_LINKED_PAYMENT_ACCOUNT_ID || "",
     successUrl: env.AIRWALLEX_SUCCESS_URL || "",
     backUrl: env.AIRWALLEX_BACK_URL || "",
-    origins: (env.AIRWALLEX_ALLOWED_ORIGINS || "http://localhost:3000,http://127.0.0.1:3000").split(",").map(s => s.trim()),
+    origins: [...new Set(origins)],
+    hosts: [...new Set(hosts)],
   };
 }
 type Config = ReturnType<typeof readConfig>;
-type Input = { kind?: "seat" | "credits" | "personal"; requestId: string; market: "global"; workspaceId: string; actor: string; cycle: "month" | "year"; quantity: number };
+type Input = { kind?: "seat" | "credits" | "personal" | "team"; requestId: string; market: "global"; workspaceId: string; actor: string; cycle: "month" | "year"; quantity: number };
 type Checkout = { id: string; url: string; status: string; expiresAt: string };
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 export function validateInput(value: unknown): Input {
@@ -34,7 +37,7 @@ export function validateInput(value: unknown): Input {
   const p = value as Record<string, unknown>;
   const keys = ["requestId", "market", "workspaceId", "actor", "cycle", "quantity", "kind"];
   if (Object.keys(p).some(k => !keys.includes(k))) throw new CheckoutError(400, "请求包含不支持的字段");
-  if ((p.kind !== undefined && !["seat", "credits", "personal"].includes(String(p.kind))) || (p.kind === "credits" && ![5, 10, 15].includes(Number(p.quantity))) || p.market !== "global" || !["month", "year"].includes(String(p.cycle)) ||
+  if ((p.kind !== undefined && !["seat", "credits", "personal", "team"].includes(String(p.kind))) || (p.kind === "team" && Number(p.quantity) < 2) || (p.kind === "credits" && ![5, 10, 15].includes(Number(p.quantity))) || p.market !== "global" || !["month", "year"].includes(String(p.cycle)) ||
       typeof p.requestId !== "string" || !uuid.test(p.requestId) ||
       typeof p.workspaceId !== "string" || !/^[a-zA-Z0-9_-]{1,100}$/.test(p.workspaceId) || (p.workspaceId === "personal" && !["credits", "personal"].includes(String(p.kind))) || (p.kind === "personal" && (p.workspaceId !== "personal" || p.quantity !== 1)) ||
       typeof p.actor !== "string" || !/^[a-zA-Z0-9_-]{1,100}$/.test(p.actor) ||
@@ -80,7 +83,7 @@ export function createCheckoutService(config: Config, transport: typeof fetch = 
   }
   async function create(input: Input): Promise<Checkout> {
     const missing = missingConfig(config);
-    if (missing.length) throw new CheckoutError(503, `请在 .env.airwallex.local 配置：${missing.join(", ")}`);
+    if (missing.length) throw new CheckoutError(503, `结账服务缺少配置：${missing.join(", ")}`);
     checkReturnUrl(config.successUrl); checkReturnUrl(config.backUrl);
     for (const [key, entry] of entries) if (entry.expires <= Date.now()) { if (entry.checkout) knownIds.delete(entry.checkout.id); entries.delete(key); }
     const fingerprint = JSON.stringify(input);
@@ -121,7 +124,7 @@ export function createCheckoutService(config: Config, transport: typeof fetch = 
     catch (error) { entry.promise = undefined; throw error; }
   }
   async function retrieve(id: string) {
-    if (!knownIds.has(id)) throw new CheckoutError(404, "仅可查询本次本地服务创建的 Checkout；重启后请在 Airwallex 后台查询");
+    if (!knownIds.has(id)) throw new CheckoutError(404, "仅可查询本次服务进程创建的 Checkout；服务重启后请在 Airwallex 后台查询");
     const token = await auth();
     const result = await api(`/billing/billing_checkouts/${encodeURIComponent(id)}`, { headers: { Authorization: `Bearer ${token}` } });
     return { id, status: result.status, subscriptionId: result.subscription_id || null, completedAt: result.completed_at || null, expiresAt: result.expires_at || null };
@@ -176,16 +179,17 @@ async function readBody(req: IncomingMessage) {
   }
   try { return JSON.parse(body) as unknown; } catch { throw new CheckoutError(400, "JSON 格式错误"); }
 }
-export function createLocalServer(config: Config, transport: typeof fetch = fetch) {
+export function createAirwallexServer(config: Config, transport: typeof fetch = fetch) {
   const service = createCheckoutService(config, transport);
   return createServer(async (req, res) => {
     res.setHeader("Content-Type", "application/json; charset=utf-8");
     res.setHeader("Cache-Control", "no-store");
     const send = (status: number, data: unknown) => { res.writeHead(status); res.end(JSON.stringify(data)); };
     try {
-      if (!/^(127\.0\.0\.1|localhost)(:\d+)?$/.test(req.headers.host || "")) throw new CheckoutError(403, "仅允许本机访问");
+      const host = (req.headers.host || "").replace(/:\d+$/, "").toLowerCase();
+      if (!config.hosts.includes(host)) throw new CheckoutError(403, "不允许此主机访问结账服务");
       const origin = req.headers.origin;
-      if (origin && !config.origins.includes(origin)) throw new CheckoutError(403, "不允许此来源访问本地服务");
+      if (origin && !config.origins.includes(origin)) throw new CheckoutError(403, "不允许此来源访问结账服务");
       if (origin) { res.setHeader("Access-Control-Allow-Origin", origin); res.setHeader("Vary", "Origin"); }
       if (req.method === "OPTIONS") {
         res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
@@ -210,6 +214,6 @@ export function createLocalServer(config: Config, transport: typeof fetch = fetc
         send(200, await service.retrieve(path.split("/").at(-1)!)); return;
       }
       throw new CheckoutError(404, "接口不存在");
-    } catch (error) { send(error instanceof CheckoutError ? error.status : 500, { error: error instanceof CheckoutError ? error.message : "本地结账服务发生错误" }); }
+    } catch (error) { send(error instanceof CheckoutError ? error.status : 500, { error: error instanceof CheckoutError ? error.message : "结账服务发生错误" }); }
   });
 }

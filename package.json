@@ -28,6 +28,7 @@
     "test:release": "playwright test --config=playwright.cn-model.config.ts && playwright test tests/e2e/guest-auth.spec.ts tests/e2e/auth-entry.spec.ts tests/e2e/domestic-auth.spec.ts tests/e2e/domestic-showcase.spec.ts tests/e2e/markets.spec.ts tests/e2e/baizhi-theme.spec.ts tests/e2e/domestic-points.spec.ts tests/e2e/domestic-billing.spec.ts tests/e2e/domestic-membership.spec.ts tests/e2e/domestic-meeting-detail.spec.ts tests/e2e/domestic-meeting-editor.spec.ts tests/e2e/domestic-meeting-export-share.spec.ts tests/e2e/market-model.spec.ts tests/e2e/single-team-agent.spec.ts tests/e2e/ui-standards.spec.ts tests/e2e/meeting-parity.spec.ts tests/e2e/select-states.spec.ts tests/e2e/select-avatar.spec.ts tests/e2e/enterprise-entry.spec.ts tests/e2e/typography-navigation.spec.ts tests/e2e/ui-density-source.spec.ts",
     "test:ui": "playwright test tests/e2e/ui-standards.spec.ts tests/e2e/baizhi-theme.spec.ts",
     "dev:airwallex": "node --experimental-strip-types --env-file-if-exists=.env.airwallex.local server/airwallex/start.ts",
+    "start:airwallex": "node --experimental-strip-types server/airwallex/start.ts",
     "test:airwallex": "node --experimental-strip-types --test server/airwallex/service.test.ts",
     "typecheck:airwallex": "tsc --project server/airwallex/tsconfig.json"
   },

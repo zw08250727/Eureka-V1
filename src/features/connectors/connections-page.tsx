@@ -16,16 +16,16 @@ export function ConnectionsPage({ space, actor, controller }: {
   const [selected, setSelected] = useState<"agents" | "services">("agents");
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
   return <div className="connections-layout">
-    <div className="connections-nav" role="tablist" aria-label="AI Connections 分类" aria-orientation="vertical">
+    <div className="connections-nav" role="tablist" aria-label="AI Connections 分类" aria-orientation="horizontal">
       {tabs.map((tab, index) => <button key={tab.id} ref={node => { buttons.current[index] = node; }}
         id={`connections-tab-${tab.id}`} role="tab" type="button"
         aria-selected={selected === tab.id} aria-controls={`connections-panel-${tab.id}`}
         tabIndex={selected === tab.id ? 0 : -1}
         onClick={() => setSelected(tab.id)}
         onKeyDown={event => {
-          if (!["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+          if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
           event.preventDefault();
-          const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : (index + 1) % tabs.length;
+          const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : (index + (event.key === "ArrowLeft" ? -1 : 1) + tabs.length) % tabs.length;
           setSelected(tabs[next].id); buttons.current[next]?.focus();
         }}>
         <strong>{tab.label}</strong>

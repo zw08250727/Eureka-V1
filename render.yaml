@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: eureka-airwallex-sandbox
+    runtime: node
+    branch: develop
+    buildCommand: npm ci
+    startCommand: npm run start:airwallex
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    envVars:
+      - key: AIRWALLEX_API_KEY
+        sync: false
+      - key: AIRWALLEX_ALLOWED_ORIGINS
+        value: https://zw08250727.github.io
+      - key: AIRWALLEX_SUCCESS_URL
+        value: https://zw08250727.github.io/Eureka-V1/global/workbench/?view=home&space=personal&actor=zhang
+      - key: AIRWALLEX_BACK_URL
+        value: https://zw08250727.github.io/Eureka-V1/global/workbench/?view=home&space=personal&actor=zhang
