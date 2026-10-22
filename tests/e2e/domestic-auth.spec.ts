@@ -165,7 +165,8 @@ for (const market of ["cn", "global"]) test(`${market} ordinary workbench links 
     await page.goto(`/${market}/workbench/?view=${view}`);
     await expect(page.locator(".app")).toBeVisible();
     await expect(page.locator("body")).not.toContainText(forbidden);
-    await expect(page.getByRole("button", {name:"评审工具",exact:true})).toBeVisible();
+    if (view === "connectors") await expect(page.getByRole("button", {name:"评审工具",exact:true})).toHaveCount(0);
+    else await expect(page.getByRole("button", {name:"评审工具",exact:true})).toBeVisible();
     await expect(page.getByRole("dialog", {name:"评审工具",exact:true})).toHaveCount(0);
     await expect(page.getByRole("button", {name:/模拟支付失败|模拟授权失败|模拟到期/})).toHaveCount(0);
   }

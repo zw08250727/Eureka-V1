@@ -10,7 +10,7 @@ test("enterprise connectors keep a separate catalog and authorization state", as
   await expect(page.locator(".connectors-page .connector-search")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "查看 钉钉" })).toHaveAttribute("data-connected", "true");
   await page.getByRole("button", { name: "查看 飞书" }).click();
-  await expect(page.getByRole("dialog")).toContainText("为你推荐");
+  await expect(page.getByRole("dialog")).toContainText("快速查看已连接数据");
   await page.getByRole("button", { name: "关闭对话框" }).click();
   await page.getByRole("button", { name: "新增连接器" }).click();
   await page.getByPlaceholder("请输入连接器名称").fill("企业 MCP");
