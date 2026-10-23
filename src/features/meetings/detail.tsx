@@ -3,6 +3,7 @@
 
 import { countMonthlyFeedbackRewards } from "@/features/account/rewards";
 import { meetingAudioSource } from "./audio-source";
+import { RecordingModeIcon } from "./recording-mode-icon";
 import { MeetingDocumentEditor } from "./document-editor";
 import { meetingBodyHtml } from "./content";
 import { DomesticAudioPlayer, type DomesticAudioStatus } from "./domestic-audio-player";
@@ -126,6 +127,7 @@ export function MeetingPage({
             transcript: file.transcript,
             verbatim: "",
             source: file.source,
+            recordingMode: file.recordingMode,
             created: file.created,
             duration: file.duration,
             template: "通用",
@@ -467,7 +469,7 @@ export function MeetingPage({
               </aside>
               <section className="md-main">
                 <header className="md-top">
-                  <img className="md-recording-mark" src={`${basePath}/assets/baizhi/meeting/recording-${r.source === "网页录音" ? "mic" : "ear"}-source.svg`} width={48} height={48} alt="" />
+                  <RecordingModeIcon record={r} className="md-recording-mark" size={48} />
 
                   <div className="md-top-copy">
                     <button

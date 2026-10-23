@@ -15,11 +15,15 @@ import { createPortal } from "react-dom";
 import type { ActionRecord } from "@/features/workbench/model/types";
 import { reminders, createActions, createThoughts } from "./store";
 import { usePersonal } from "./use-personal";
+import { creationSourceLabel } from "./creation-source";
+import { CaptureAudio } from "./capture-audio";
+import { AssetDeleteDialog } from "./asset-delete-dialog";
+import { createWorkspaceStore, M } from "@/features/spaces/model/store";
+import type { Member } from "@/features/spaces/model/types";
+import { ScheduleParticipants, ParticipantShareConfirm } from "./participant-fields";
+import { participantSharingCandidates, participantSharingRevocations, type ActionSaveOptions } from "./calendar-participants";
 
-export const actionSource = (r: ActionRecord) =>
-  ({ manual: "手动创建", agent: "Agent 创建", capture: "闪念提取", dingtalk: "钉钉", feishu: "飞书", system: "系统" } as Record<string,string>)[
-    r.source
-  ] || "其他来源";
+export const actionSource = (r: ActionRecord) => creationSourceLabel(r.source);
 export function localDate(value: string) {
   if (!value) return "未安排";
   if (
@@ -146,7 +150,7 @@ export function PaButton({
     </button>
   );
 }
-export function ActionFields({ record }: { record: ActionRecord }) {
+export function ActionFields({ record, members = [], team = false, actor = "zhang" }: { record: ActionRecord; members?: Member[]; team?: boolean; actor?: string }) {
   const [start, setStart] = useState(record.start);
   return (
     <>
@@ -214,16 +218,7 @@ export function ActionFields({ record }: { record: ActionRecord }) {
               placeholder="线上链接或会议地点"
             />
           </label>
-          <label className="pa-field">
-            参与人
-            <input
-              name="participants"
-              type="text"
-              defaultValue={record.participants}
-              maxLength={300}
-              placeholder="用顿号分隔姓名"
-            />
-          </label>
+          <ScheduleParticipants record={record} members={members} team={team} actor={actor}/>
         </div>
       )}
       <label className="pa-field">
@@ -244,7 +239,8 @@ export function actionValues(
   form: HTMLFormElement,
   base: ActionRecord,
 ): ActionRecord {
-  const next = { ...base, ...Object.fromEntries(new FormData(form)) };
+  const data = new FormData(form);
+  const next = { ...base, ...Object.fromEntries(data), participantIds: data.getAll("participantIds").map(String) };
   if (next.type === "todo" && !next.start) next.reminder = "none";
   return next;
 }
@@ -271,7 +267,7 @@ export function PaModal({
     }
   };
   return (
-    <RefDialog className="pa-dialog" label="编辑个人记录" onClose={onClose}>
+    <RefDialog className="pa-dialog" label={title} onClose={onClose}>
       <form
         ref={form}
         method="dialog"
@@ -311,13 +307,24 @@ export function ActionEditor({
   record,
   onSave,
   onClose,
+  onDelete,
+  readOnly = false,
+  space = "personal",
+  actor = "zhang",
   variant = "quick",
 }: {
   record: ActionRecord;
-  onSave: (r: ActionRecord) => void;
+  onSave: (r: ActionRecord, options?: ActionSaveOptions) => void;
   onClose: () => void;
+  onDelete?: (record: ActionRecord) => void;
+  readOnly?: boolean;
+  space?: string;
+  actor?: string;
   variant?: "quick" | "create" | "page";
 }) {
+  const [deleting, setDeleting] = useState(false);
+  const [pendingShare, setPendingShare] = useState<{record: ActionRecord; members: Member[]; revokeMembers:Member[]} | null>(null);
+  const workspace = space !== "personal" ? M.get(createWorkspaceStore(marketStorage).read(), space) : undefined;
   const [base] = useState(record),
     [error, setError] = useState(""),
     [guard, setGuard] = useState(false);
@@ -378,7 +385,12 @@ export function ActionEditor({
   });
   const persist = () => {
     if (!form.current?.reportValidity()) throw Error("请填写有效的标题和时间");
-    onSave(actionValues(form.current, base));
+    const next = actionValues(form.current, base);
+    const current = space !== "personal" ? M.get(createWorkspaceStore(marketStorage).read(), space) : undefined;
+    const recipients = current ? participantSharingCandidates(next,current,actor,base) : [];
+    const revokeMembers = current ? participantSharingRevocations(next,current,actor,base) : [];
+    if (recipients.length || revokeMembers.length) { setPendingShare({record:next,members:recipients,revokeMembers}); return; }
+    onSave(next);
     finish();
   };
   const save = (e?: FormEvent) => {
@@ -429,7 +441,7 @@ export function ActionEditor({
         className={page ? "pa-card pa-editor" : undefined}
         onSubmit={save}
       >
-        <ActionFields record={base} />
+        <ActionFields record={base} members={workspace?.members.filter(m=>m.status==="active")} team={!!workspace} actor={actor}/>
         <p
           className={quick ? "th-error" : undefined}
           role="alert"
@@ -439,6 +451,7 @@ export function ActionEditor({
           {error}
         </p>
         <footer>
+          {onDelete && base.id && !readOnly && <button type="button" className={quick ? "th-btn" : "pa-btn"} data-ap="delete" onClick={() => setDeleting(true)}>删除</button>}
           {quick ? (
             <button
               type="button"
@@ -480,6 +493,11 @@ export function ActionEditor({
           {content}
         </RefDialog>
       )}
+      {deleting && onDelete && <AssetDeleteDialog type={base.type} onClose={() => setDeleting(false)} onConfirm={() => onDelete(base)} />}
+      {pendingShare && <ParticipantShareConfirm members={pendingShare.members} revokeMembers={pendingShare.revokeMembers} onClose={()=>setPendingShare(null)} onSave={(share,revoke)=>{
+        onSave(pendingShare.record,{participantShareIds:share?pendingShare.members.map(m=>m.id):[],participantRevokeIds:revoke?pendingShare.revokeMembers.map(m=>m.id):[]});
+        finish();
+      }}/>}
       {guard &&
         (quick ? (
           <RefDialog
@@ -592,10 +610,11 @@ export function ActionPreview({
           <dd>{r.notes || "暂无备注"}</dd>
         </div>
       </dl>
-      {r.capture && (
-        <details className="th-original">
+      {(r.capture || r.source === "capture" || r.captureAudioUrl) && (
+        <details className="th-original" open>
           <summary>原始捕获</summary>
           <p>{r.capture}</p>
+          <CaptureAudio key={r.id} record={r} />
         </details>
       )}
       {error && (

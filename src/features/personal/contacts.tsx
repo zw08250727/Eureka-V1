@@ -530,8 +530,8 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
             />
           </div>
         )}
-        {schedule && <ActionEditor record={schedule} variant="create" onClose={() => setSchedule(null)} onSave={(r) => {
-          repo.current!.actions.save(r);
+        {schedule && <ActionEditor space={space} actor={actor} record={schedule} variant="create" onClose={() => setSchedule(null)} onSave={(r,options) => {
+          repo.current!.actions.save(r,options);
           refresh();
           setToast("跟进日程已创建，团队管理员可管理");
         }} />}

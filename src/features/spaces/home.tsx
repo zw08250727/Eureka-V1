@@ -5,7 +5,7 @@ import "./team-home.css";
 import { RecipientDialog } from "./sharing-settings";
 import { TeamOverview } from "./team-overview";
 import { ManagementDialog } from "./management-ui";
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { M } from "./model/store";
 import type { SpacesController } from "./use-spaces";
 import type { WorkspaceFile } from "./model/types";
@@ -23,6 +23,7 @@ import {
 } from "./billing-ui";
 import { HomeFilter } from "./home-filters";
 import { TeamHomeAgent } from "./home-agent";
+import { RecordingModeIcon } from "@/features/meetings/recording-mode-icon";
 export function TeamHome({
   controller,
   space,
@@ -51,12 +52,12 @@ export function TeamHome({
     [deleting, setDeleting] = useState<WorkspaceFile | null>(null),
     [error, setError] = useState(""),
     [toast, setToast] = useState(""),
-    [agent, setAgent] = useState<{ insight?: string; key: number; prompt?: string } | null>(
+    [agent, setAgent] = useState<{ insight?: string; key: number; prompt?: string; fileIds?:string[] } | null>(
       historyId ? { key: 0 } : null,
     );
+  const [now,setNow]=useState(()=>new Date());
+  useEffect(()=>{const tick=()=>setNow(new Date());const timer=window.setInterval(tick,60000);window.addEventListener("focus",tick);return()=>{window.clearInterval(timer);window.removeEventListener("focus",tick);};},[]);
   const w = M.get(controller.state!, space),
-    report = w.status === "active" ? M.insights(w, actor) : { items: [] },
-    now = new Date(),
     readonly = w.status !== "active";
   const files = recycle
     ? w.files.filter(
@@ -134,15 +135,16 @@ export function TeamHome({
               actor={actor}
               insightId={agent.insight}
               initialPrompt={agent.prompt}
+              initialFileIds={agent.fileIds}
               initialHistoryId={historyId}
               onClose={() => setAgent(null)}
             />
           ) : undefined
         }
       >
-        {!recycle && <TeamOverview now={now} workspace={w} actor={actor} insights={report.items} readOnly={readonly} agentOpen={!!agent}
+        {!recycle && <TeamOverview now={now} workspace={w} actor={actor} readOnly={readonly} agentOpen={!!agent}
           onAsk={() => { if (!readonly) setAgent(agent ? null : { key: Date.now() }); }}
-          onInsight={id => setAgent({ insight: id, key: Date.now() })}
+          onReviewWeek={(prompt,fileIds)=>setAgent({prompt,fileIds,key:Date.now()})}
           onUpload={() => guard(() => { M.writable(w); setUpload(true); })}
           onNote={() => setNote(true)} />}
         <section className="ws-surface ws-recordings">
@@ -287,7 +289,7 @@ export function TeamHome({
                             )
                           }
                         >
-                          {icon("mic")}
+                          <RecordingModeIcon record={f} />
                           <strong>{f.title}</strong>
                         </button>
                       )}

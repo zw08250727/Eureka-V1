@@ -8,7 +8,6 @@ import {
   ActionEditor,
   ActionPreview,
   PersonalToast,
-  actionSource,
   localDate,
   useLivePersonal,
 } from "./calendar-dialogs";
@@ -27,6 +26,7 @@ import type {
   ThoughtRecord,
 } from "@/features/workbench/model/types";
 import { appUrl } from "@/lib/routes";
+import { thoughtCreationSourceLabel } from "./creation-source";
 const icons = {
   inspiration: "spark",
   ledger: "book",
@@ -415,12 +415,8 @@ export function ThoughtsPage({ id, actor = "zhang", space = "personal", controll
                                         {r.detail || "暂无补充内容"}
                                       </span>
                                       <span className="th-meta">
-                                        {!("action" in r) && <>{r.time} · </>}
-                                        {"action" in r ? actionSource(r) : r.source === "manual"
-                                          ? "手动创建"
-                                          : r.source === "agent"
-                                            ? "Agent 创建"
-                                            : "闪念提取"}
+                                        {!("action" in r) && <>{r.time}{thoughtCreationSourceLabel(r.source) ? " · " : ""}</>}
+                                        {thoughtCreationSourceLabel(r.source)}
                                         {"action" in r && (
                                           <span>{`${r.type === "todo" ? "截止" : "日程"} ${r.start.replace("T", " ")}${r.type === "schedule" ? " — " + r.end.replace("T", " ") : ""}`}</span>
                                         )}
@@ -511,11 +507,20 @@ export function ThoughtsPage({ id, actor = "zhang", space = "personal", controll
       {action &&
         (editing ? (
           <ActionEditor
+            space={space} actor={actor}
             key={action.id}
             record={action}
+            readOnly={readonly || !canEditAsset(space, actor, action)}
+            onDelete={(snapshot) => {
+              repo.current!.actions.remove(snapshot);
+              setSelected("");
+              setEditing(false);
+              refresh();
+              setNotice("已删除");
+            }}
             onClose={() => setSelected("")}
-            onSave={(r) => {
-              repo.current!.actions.save(r);
+            onSave={(r,options) => {
+              repo.current!.actions.save(r,options);
               refresh();
               setNotice("已保存");
             }}
@@ -538,6 +543,13 @@ export function ThoughtsPage({ id, actor = "zhang", space = "personal", controll
           readOnly={readonly||!canEditAsset(space,actor,record)}
           onEdit={() => setEditing(true)}
           onClose={() => setSelected("")}
+          onDelete={(snapshot) => {
+            repo.current!.thoughts.remove(snapshot);
+            setSelected("");
+            setEditing(false);
+            refresh();
+            setNotice("已删除");
+          }}
           onSave={(r) => {
             repo.current!.thoughts.save(r);
             refresh();

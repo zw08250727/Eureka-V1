@@ -1,4 +1,5 @@
 export interface ActionRecord {
+  captureAudioUrl?: string;
   sharedWith?: string[];
   ownerId?: string;
   previousOwnerId?: string;
@@ -15,6 +16,7 @@ export interface ActionRecord {
   reminder: string;
   location: string;
   participants: string;
+  participantIds?: string[];
   capture?: string;
   detail?: string;
   created: string;
@@ -52,6 +54,7 @@ export interface ActionState {
   demoWeekDays?: string[];
 }
 export interface ThoughtRecord {
+  captureAudioUrl?: string;
   ownerId?: string;
   previousOwnerId?: string;
   id: string;
@@ -73,6 +76,7 @@ export interface ThoughtRecord {
   updated?: string;
 }
 export interface Meeting {
+  recordingMode?: "environment" | "call";
   id: string;
   title: string;
   source: string;

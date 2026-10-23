@@ -17,6 +17,7 @@ export function TeamHomeAgent({
   insightId,
   initialHistoryId,
   initialPrompt,
+  initialFileIds,
   onClose,
 }: {
   controller: SpacesController;
@@ -25,6 +26,7 @@ export function TeamHomeAgent({
   insightId?: string;
   initialHistoryId?: string;
   initialPrompt?: string;
+  initialFileIds?: string[];
   onClose: () => void;
 }) {
   const w = M.get(controller.state!, space),
@@ -39,7 +41,7 @@ export function TeamHomeAgent({
     [error, setError] = useState(""),
     [web, setWeb] = useState(false),
     [appData, setAppData] = useState(false),
-    [fileIds, setFileIds] = useState<string[]>([]),
+    [fileIds, setFileIds] = useState<string[]>(initialFileIds || []),
     [sources, setSources] = useState(false),
     [width, setWidth] = useState(390),
     [bounds, setBounds] = useState({ min: 300, max: 760 });

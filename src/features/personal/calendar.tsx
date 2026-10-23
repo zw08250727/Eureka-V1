@@ -6,10 +6,12 @@ import {AssetSharing,assetOwner,canEditAsset} from "./asset-sharing";
 import { M } from "@/features/spaces/model/store";
 import { actionOnDay, assetActive } from "./asset-rules";
 import { usePageTitle } from "@/features/reference/page-title";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { marketConfig } from "@/features/markets/config";
 import { calendarRange, day, shiftDay, reminders } from "./store";
 import type { ActionRecord } from "@/features/workbench/model/types";
-import { appUrl, assetUrl, requestRecording } from "@/lib/routes";
+import { appUrl, requestRecording } from "@/lib/routes";
+import { CaptureAudio } from "./capture-audio";
 import { useWorkbench } from "@/features/workbench/hooks/use-workbench";
 import { RefIcon } from "@/features/reference/symbols";
 import {
@@ -21,8 +23,11 @@ import {
   localDate,
   useLivePersonal,
 } from "./calendar-dialogs";
-import { createMeetingDetails } from "@/features/meetings/store";
 import { CalendarAgent } from "./calendar-agent";
+import { schedulePhase, scheduleAssistCopy, type ScheduleContext } from "./schedule-context";
+import { readScheduleContext } from "./schedule-context-repository";
+import { ScheduleAssistEntry } from "./schedule-assist";
+import type { ActionSaveOptions } from "./calendar-participants";
 export { ActionEditor } from "./calendar-dialogs";
 export function newAction(
   type: "todo" | "schedule",
@@ -74,6 +79,21 @@ export function CalendarPage({
   const [agent, setAgent] = useState(false),
     [agentSession, setAgentSession] = useState(""),
     [notice, setNotice] = useState("");
+  const [assist, setAssist] = useState<ScheduleContext | undefined>();
+  const [assistBusy, setAssistBusy] = useState(false);
+  const [now, setNow] = useState(() => new Date());
+  const assistSequence = useRef(0);
+  useEffect(() => {
+    const update = () => setNow(new Date());
+    const timer = window.setInterval(update, 30000);
+    window.addEventListener("focus", update);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("focus", update);
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- This is a request counter, not a DOM ref; invalidate the latest pending work on unmount.
+      assistSequence.current++;
+    };
+  }, [space, actor]);
   const host = useRef<HTMLDivElement>(null),
     navigationGuardRef = useRef<((next: () => void) => void) | null>(null);
   useLayoutEffect(() => {
@@ -120,6 +140,7 @@ export function CalendarPage({
   const records = data.actions.records,
     record = records.find((r) => r.id === selected);
   const recordReadonly=readonly||!!record&&!canEditAsset(space,actor,record);
+  const phase = record ? schedulePhase(record, now) : "unscheduled";
   const unscheduled = records.filter(
     (r) => r.type === "todo" && !r.start && assetActive(r),
   );
@@ -144,10 +165,17 @@ export function CalendarPage({
     records
       .filter((r) => actionOnDay(r, d))
       .sort((a, b) => a.start.localeCompare(b.start));
-  const save = (r: ActionRecord) => {
-    const saved = repo.current!.actions.save(r);
+  const save = (r: ActionRecord, options?: ActionSaveOptions) => {
+    const saved = repo.current!.actions.save(r, options);
     refresh();
     return saved;
+  };
+  const remove = (r: ActionRecord) => {
+    repo.current!.actions.remove(r);
+    setEdit(null);
+    setSelected("");
+    refresh();
+    setNotice("已删除");
   };
   const toggle = (r: ActionRecord) => {
     try {
@@ -159,6 +187,9 @@ export function CalendarPage({
   const transition = (next: () => void) =>
     navigationGuardRef.current ? navigationGuardRef.current(next) : next();
   const openDirect = (r: ActionRecord) => {
+    assistSequence.current++;
+    setAssistBusy(false);
+    setAssist(undefined);
     setSelected(r.id);
     if (r.start) setDate(r.start.slice(0, 10));
     setAgent(false);
@@ -173,10 +204,22 @@ export function CalendarPage({
       return;
     }
     transition(() => {
+      setAssist(undefined);
       setAgentSession(session);
       setAgent(true);
     });
   };
+  const prepareSchedule = (r: ActionRecord) => transition(() => {
+    const sequence = ++assistSequence.current;
+    setAssistBusy(true);
+    readScheduleContext(marketStorage, marketConfig().id as "cn" | "global", space, actor, r.id).then(context => {
+      if (sequence !== assistSequence.current) return;
+      setAssist(context);
+      setAgentSession(`schedule-assist:${r.id}:${sequence}`);
+      setAgent(true);
+    }).catch(error => { if (sequence === assistSequence.current) setNotice((error as Error).message); })
+      .finally(() => { if (sequence === assistSequence.current) setAssistBusy(false); });
+  });
   const askButton = (
     <PaButton action="agent" disabled={readonly} className="pa-ask-agent" onClick={() => ask()}>
       <span className="ws-agent-mark" aria-hidden="true">
@@ -286,10 +329,13 @@ export function CalendarPage({
       <div className="pa-content">
         {edit?.variant === "page" ? (
           <ActionEditor
+            space={space} actor={actor}
             record={edit.record}
+            readOnly={readonly || !canEditAsset(space, actor, edit.record)}
+            onDelete={remove}
             variant="page"
-            onSave={(r) => {
-              save(r);
+            onSave={(r,options) => {
+              save(r,options);
               if (r.start) setDate(r.start.slice(0, 10));
               setNotice("已保存");
             }}
@@ -304,6 +350,9 @@ export function CalendarPage({
                   className="plain"
                   onClick={() =>
                     transition(() => {
+                      assistSequence.current++;
+                      setAssistBusy(false);
+                      setAssist(undefined);
                       setAgent(false);
                       if (onBack) onBack();
                       else setSelected("");
@@ -312,7 +361,7 @@ export function CalendarPage({
                 >
                   ← {onBack ? "全部闪念" : "日程与待办"}
                 </PaButton>
-                <h1>{record.title}</h1><span className="ex-owner">{assetOwner(space,record.ownerId)}</span><AssetSharing {...{space,actor}} record={record} onSaved={refresh}/>
+                <h1>{record.title}</h1><span className="ex-owner">{assetOwner(space,record.ownerId)}</span>
                 <span className="pa-source">{actionSource(record)}</span>
                 {record.type === "todo" && (
                   <span className={`pa-status ${record.done ? "done" : ""}`}>
@@ -321,10 +370,11 @@ export function CalendarPage({
                 )}
               </div>
               <div>
+                <AssetSharing {...{space,actor}} record={record} variant="button" onSaved={refresh}/>
                 <PaButton action="edit" disabled={readonly||!canEditAsset(space,actor,record)} onClick={() => startEdit(record)}>
                   编辑
                 </PaButton>
-                {askButton}
+                {record.type === "schedule" && phase === "during" ? <PaButton action="schedule-assist" className="primary" disabled={readonly || assistBusy} onClick={() => prepareSchedule(record)}>{assistBusy ? "正在整理资料…" : scheduleAssistCopy.during.button}</PaButton> : askButton}
               </div>
             </header>
             <div className="pa-detail-grid">
@@ -381,6 +431,7 @@ export function CalendarPage({
                   </dl>
 
                 </section>
+                {record.type === "schedule" && (phase === "before" || phase === "unscheduled") && <ScheduleAssistEntry phase={phase} disabled={readonly} busy={assistBusy} onClick={() => prepareSchedule(record)} />}
                 <section className="pa-card">
                   <div className="pa-section-head">
                     <h2>我的备注</h2>
@@ -430,7 +481,7 @@ export function CalendarPage({
                           >
                             <strong>{m.title}</strong>
                             <small>
-                              {`${m.id.startsWith("meeting-") ? m.created.slice(0, 10) : m.created} · ${m.duration || ""} · ${m.source}`}
+                              {`${m.id.startsWith("meeting-") ? m.created.slice(0, 10) : m.created} · ${m.duration || ""} · ${m.source}${space !== "personal" ? ` · 会议创建人：${m.creator || ("owner" in m ? assetOwner(space, m.createdBy || m.previousOwner || m.owner) : "") || "未知创建人"}` : ""}`}
                             </small>
                           </PaButton>
                         ) : (
@@ -446,6 +497,7 @@ export function CalendarPage({
                     )}
                   </section>
                 )}
+                {record.type === "schedule" && phase === "after" && <ScheduleAssistEntry phase={phase} disabled={readonly} busy={assistBusy} onClick={() => prepareSchedule(record)} />}
                 <footer className="pa-detail-footer">
                   {record.type === "todo" ? (
                     <PaButton
@@ -506,17 +558,12 @@ export function CalendarPage({
                       <summary>原始捕获</summary>
                       <p>{record.capture || record.detail || record.title}</p>
                       <small>{`捕获于 ${localDate(record.created)} · 已处理`}</small>
-                      <audio
-                        controls
-                        preload="metadata"
-                        src={assetUrl("meeting-demo.wav")}
-                        aria-label="原始捕获音频"
-                      />
+                      <CaptureAudio key={record.id} record={record} />
 
                     </details>
-                    <PaButton action="recall" disabled={recordReadonly} onClick={() => ask()}>
+                    {record.type === "todo" && <PaButton action="recall" disabled={readonly} onClick={() => ask()}>
                       ✧ 回顾当时的上下文
-                    </PaButton>
+                    </PaButton>}
                   </>
                 )}
                 <p className="pa-hint">
@@ -714,6 +761,8 @@ export function CalendarPage({
               : records.filter((r) => days.some((d) => actionOnDay(r, d)))
           }
           selected={record}
+          assist={assist}
+          onLoadAssist={assist ? () => readScheduleContext(marketStorage, marketConfig().id as "cn" | "global", space, actor, assist.record.id) : undefined}
           session={data.actions.sessions.find((s) => s.id === agentSession)}
           repo={repo.current!.actions}
           onRefresh={refresh}
@@ -724,11 +773,14 @@ export function CalendarPage({
       )}
       {edit && edit.variant !== "page" && (
         <ActionEditor
+          space={space} actor={actor}
           record={edit.record}
+          readOnly={readonly || !canEditAsset(space, actor, edit.record)}
+          onDelete={edit.variant === "create" ? undefined : remove}
           variant={edit.variant}
           onClose={() => setEdit(null)}
-          onSave={(r) => {
-            save(r);
+          onSave={(r,options) => {
+            save(r,options);
             if (edit.variant === "create" && r.start)
               setDate(r.start.slice(0, 10));
             setNotice("已保存");
@@ -779,7 +831,7 @@ export function CalendarPage({
       )}
       {modal === "links" && record && (
         <PaModal
-          title="关联会议与总结"
+          title="关联会议"
           confirm="确认关联"
           onClose={() => setModal(null)}
           onSave={(f) => {
@@ -803,20 +855,7 @@ export function CalendarPage({
                   />
                   <span>
                     <strong>{m.title}</strong>
-                    <small>{`${m.created} · ${m.source}`}</small>
-                    <details>
-                      <summary>展开总结</summary>
-                      <p>
-                        {(() => {
-                          try {
-                            return space !== "personal" ? ("summary" in m ? String(m.summary || "暂无总结") : "暂无总结") : createMeetingDetails(marketStorage).read(m.id)
-                              .summary;
-                          } catch {
-                            return "暂无总结";
-                          }
-                        })()}
-                      </p>
-                    </details>
+                    <small>{`${m.created} · ${m.source}${space !== "personal" ? ` · 会议创建人：${m.creator || ("owner" in m ? assetOwner(space, m.createdBy || m.previousOwner || m.owner) : "") || "未知创建人"}` : ""}`}</small>
                   </span>
                 </label>
               ))

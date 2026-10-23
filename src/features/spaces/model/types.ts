@@ -11,6 +11,7 @@ export interface Member {
   exitReason?: string;
 }
 export interface WorkspaceFile {
+  recordingMode?: "environment" | "call";
   createdBy?: string;
   previousOwner?: string;
   transferredAt?: string;

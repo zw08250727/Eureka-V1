@@ -1,8 +1,6 @@
 "use client";
-import { productName } from "@/features/markets/brand";
 
 import { scopedKey } from "@/features/markets/storage";
-/* eslint-disable @next/next/no-img-element -- Preserve the reference guide image markup and dimensions. */
 import { Select } from "@/components/ui/select";
 import {
   useEffect,
@@ -13,9 +11,12 @@ import {
 } from "react";
 import type { ThoughtRecord } from "@/features/workbench/model/types";
 import { RefIcon } from "@/features/reference/symbols";
-import { assetUrl } from "@/lib/routes";
 import { ledgerCurrency, ledgerDate, money } from "./asset-rules";
 import { RefDialog } from "./calendar-dialogs";
+import { AssetDeleteDialog } from "./asset-delete-dialog";
+import { CaptureAudio } from "./capture-audio";
+import { thoughtCreationSourceLabel } from "./creation-source";
+export { ThoughtDeviceGuide } from "./thought-device-guide";
 export const thoughtNames = {
   schedule: "日程",
   todo: "待办",
@@ -62,6 +63,7 @@ export function ThoughtDialog({
   onEdit,
   onClose,
   onSave,
+  onDelete,
 }: {
   record: ThoughtRecord;
   editing: boolean;
@@ -69,7 +71,9 @@ export function ThoughtDialog({
   onEdit: () => void;
   onClose: () => void;
   onSave: (r: ThoughtRecord) => void;
+  onDelete: (record: ThoughtRecord) => void;
 }) {
+  const [deleting, setDeleting] = useState(false);
   const [base] = useState(record),
     [type, setType] = useState(record.type),
     [error, setError] = useState(""),
@@ -255,6 +259,7 @@ export function ThoughtDialog({
                 {error}
               </p>
               <footer>
+                {!readOnly && <ThButton action="delete" onClick={() => setDeleting(true)}>删除</ThButton>}
                 <ThButton action="close" onClick={close}>
                   取消
                 </ThButton>
@@ -276,7 +281,7 @@ export function ThoughtDialog({
               </ThButton>
             </header>
             <div className="th-detail-meta">
-              {`${r.date} ${r.time} · ${r.source === "manual" ? "手动创建" : "闪念提取"}${r.updated ? " · 已编辑" : ""}`}
+              {`${r.date} ${r.time}${thoughtCreationSourceLabel(r.source) ? ` · ${thoughtCreationSourceLabel(r.source)}` : ""}${r.updated ? " · 已编辑" : ""}`}
             </div>
             {r.type === "ledger" && (
               <div className="th-detail-money">
@@ -288,10 +293,11 @@ export function ThoughtDialog({
               </div>
             )}
             <p className="th-detail-content">{r.detail || "暂无补充内容"}</p>
-            {r.capture && (
-              <details className="th-original">
+            {(r.capture || r.source === "capture" || r.captureAudioUrl) && (
+              <details className="th-original" open>
                 <summary>原始捕获</summary>
                 <p>{r.capture}</p>
+                <CaptureAudio key={r.id} record={r} />
               </details>
             )}
             <footer>
@@ -311,6 +317,7 @@ export function ThoughtDialog({
           </>
         )}
       </RefDialog>
+      {deleting && <AssetDeleteDialog type={base.type} onClose={() => setDeleting(false)} onConfirm={() => onDelete(base)} />}
       {guard && (
         <RefDialog
           className="th-dialog th-guard"
@@ -334,89 +341,5 @@ export function ThoughtDialog({
         </RefDialog>
       )}
     </>
-  );
-}
-export function ThoughtDeviceGuide({ onClose }: { onClose: () => void }) {
-  return (
-    <RefDialog
-      id="ws-dialog"
-      className="ws-dialog"
-      label="绑定你的设备"
-      onClose={onClose}
-    >
-      <div className="ws-dialog-head">
-        <h2>绑定你的设备</h2>
-        <button
-          type="button"
-          className="ws-btn ws-icon-button"
-          data-ws-action="close-dialog"
-          data-value=""
-          aria-label="关闭"
-          onClick={onClose}
-        >
-          <RefIcon name="x" />
-        </button>
-      </div>
-      <div className="ws-dialog-content">
-        <div className="ws-device-guide">
-          <section className="ws-device-guide-card">
-            <h3>已经有设备？</h3>
-            <p>
-              在手机上下载 {productName()} App，
-              <br />
-              登录后即可绑定你的设备。
-            </p>
-            <div className="ws-device-guide-art ws-device-guide-qr">
-              <img
-                src={assetUrl("download/eurekamind-download-qr.png")}
-                alt={`扫码下载 ${productName()} App`}
-                width="240"
-                height="240"
-              />
-            </div>
-            <a
-              className="ws-btn ws-device-download"
-              href="https://eurekamind.ai/download"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <RefIcon name="phone" />
-              下载 App <RefIcon name="expand" />
-            </a>
-            <small>iOS / Android · 手机扫码下载</small>
-          </section>
-          <section className="ws-device-guide-card">
-            <h3>还没有设备？</h3>
-            <p>
-              了解 {productName()} 录音设备，
-              <br />
-              让每一次对话都成为有价值的记录。
-            </p>
-            <div className="ws-device-guide-art">
-              <img
-                src={assetUrl("download/eurekamind-device.webp")}
-                alt={`${productName()} 录音设备`}
-                width="280"
-                height="280"
-              />
-            </div>
-            <a
-              className="ws-btn primary"
-              href="https://eurekamind.ai/shop"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              购买设备 <RefIcon name="expand" />
-            </a>
-            <small>前往 {productName()} 官方商城</small>
-          </section>
-        </div>
-        <p className="ws-device-guide-note">
-          在 App
-          中登录同一账号，选择「个人工作空间」完成设备绑定。绑定成功后，录音将同步到设备所属的工作空间。
-        </p>
-        <p className="ws-form-error" role="alert" />
-      </div>
-    </RefDialog>
   );
 }

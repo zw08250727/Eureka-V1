@@ -1,6 +1,5 @@
 "use client";
 
-import { Select } from "@/components/ui/select";
 import {
   useEffect,
   useLayoutEffect,
@@ -126,7 +125,7 @@ export function MeetingFilter({
           {kind === "source" ? "筛选来源" : "筛选录音时间"}
         </span>
         {kind === "source" ? (
-          <Select
+          <select
             id={id}
             aria-label="筛选内容来源"
             hidden
@@ -139,7 +138,7 @@ export function MeetingFilter({
                 {o}
               </option>
             ))}
-          </Select>
+          </select>
         ) : (
           <input
             id={id}

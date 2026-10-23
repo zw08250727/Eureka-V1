@@ -7,6 +7,8 @@ import { MeetingFilter } from "@/features/reference/meeting-filter";
 import { appUrl } from "@/lib/routes";
 import { filterMeetings } from "../model/selectors";
 import type { Meeting } from "../model/types";
+import { RecordingModeIcon } from "@/features/meetings/recording-mode-icon";
+import styles from "./meeting-table.module.css";
 export function MeetingTable({
   meetings,
   recycled,
@@ -299,6 +301,7 @@ export function MeetingTable({
     <>
       <section
         className="home-meeting-library"
+        data-personal-meetings
         id="recording-card"
         aria-labelledby="recent-meeting-title"
       >
@@ -354,11 +357,10 @@ export function MeetingTable({
               setLimit((n) => Math.min(n + 10, rows.length));
           }}
         >
-          <div className="home-meeting-table-head">
+          <div className={`home-meeting-table-head ${styles.personalColumns}`}>
             {[
               "文件名",
               "文件大小",
-              "创建人",
               "文件来源",
               "标签",
               "录音时长",
@@ -373,7 +375,7 @@ export function MeetingTable({
           <div className="home-meeting-table" id="meeting-list">
             {rows.slice(0, limit).map((m, i) => (
               <div
-                className="meeting-row home-meeting-row"
+                className={`meeting-row home-meeting-row ${styles.personalColumns}`}
                 id={i === 0 ? "view-panorama" : undefined}
                 key={m.id}
                 role="button"
@@ -396,7 +398,7 @@ export function MeetingTable({
               >
                 <span className="home-meeting-title">
                   <i>
-                    <RefIcon name="mic" />
+                    <RecordingModeIcon record={m} />
                   </i>
                   <span>
                     <strong>{m.title}</strong>
@@ -404,7 +406,6 @@ export function MeetingTable({
                   </span>
                 </span>
                 <span className="home-meeting-size">{m.size}</span>
-                <span className="meeting-creator">{m.creator}</span>
                 <span className="meeting-source">{m.source}</span>
                 <span className="home-meeting-tag" title={m.tag}>
                   {m.tag}

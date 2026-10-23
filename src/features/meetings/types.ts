@@ -23,6 +23,7 @@ export interface MeetingContentState {
   autoTranslateEverEnabled?: boolean | 0 | 1;
 }
 export interface MeetingDetail {
+  recordingMode?: "environment" | "call";
   audioUrl?: string;
   deleteSourceAudio?: boolean;
   contentState?: MeetingContentState;

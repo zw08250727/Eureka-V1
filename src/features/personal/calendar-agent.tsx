@@ -21,6 +21,8 @@ import type {
 import { RefIcon } from "@/features/reference/symbols";
 import { createActions, parseSchedule } from "./store";
 import { newAction } from "./calendar";
+import { scheduleAssistCopy, type ScheduleContext } from "./schedule-context";
+import { ScheduleAssistAnswer, ScheduleContextSources } from "./schedule-assist";
 import {
   ActionFields,
   actionValues,
@@ -41,6 +43,8 @@ export function CalendarAgent({
   onClose,
   onOpen,
   navigationGuardRef,
+  assist,
+  onLoadAssist,
 }: {
   host: RefObject<HTMLDivElement | null>;
   records: ActionRecord[];
@@ -52,11 +56,13 @@ export function CalendarAgent({
   onClose: () => void;
   onOpen: (r: ActionRecord) => void;
   navigationGuardRef: RefObject<((next: () => void) => void) | null>;
+  assist?: ScheduleContext;
+  onLoadAssist?: () => Promise<ScheduleContext>;
 }) {
   const agent = useSceneAgent("calendar", selected?.id || "");
-  const [prompt, setPrompt] = useState(""),
+  const [prompt, setPrompt] = useState(assist?.prompt || ""),
     [ids, setIds] = useState<string[]>([]),
-    [web, setWeb] = useState(false),
+    [web, setWeb] = useState(!!assist),
     [sources, setSources] = useState(false);
   const [draft, setDraft] = useState<ActionRecord | null>(null),
     [sessionId, setSessionId] = useState(session?.id || ""),
@@ -67,6 +73,11 @@ export function CalendarAgent({
     [error, setError] = useState(""),
     [guard, setGuard] = useState(false);
   const [toast, setToast] = useState("");
+  const [activeAssist, setActiveAssist] = useState(assist);
+  const [busy, setBusy] = useState(false);
+  const requestSequence = useRef(0);
+  useEffect(() => () => { requestSequence.current++; }, []);
+  useEffect(() => { if (assist) input.current?.focus({ preventScroll: true }); }, [assist]);
   const [width, setWidth] = useState(390),
     [max, setMax] = useState(760);
   const drag = useRef<{ x: number; width: number } | null>(null),
@@ -183,9 +194,28 @@ export function CalendarAgent({
     const r = records.find((r) => r.id === id);
     if (r) onOpen(r);
   };
-  const generate = (text: string) => {
-    if (!text.trim() || draft) return;
+  const generate = async (text: string) => {
+    if (!text.trim() || draft || busy) return;
     try { agent.ensureAvailable(); } catch (error) { setError((error as Error).message); return; }
+    if (activeAssist && onLoadAssist) {
+      const sequence = ++requestSequence.current;
+      setBusy(true);
+      setError("");
+      try {
+        const current = await onLoadAssist();
+        if (sequence !== requestSequence.current) return;
+        agent.ensureAvailable();
+        const answer = [scheduleAssistCopy[current.phase].heading, current.record.title,
+          ...current.assets.map(a => `${a.kind} · ${a.title} · ${a.at}\n${a.text}\n${a.url}`),
+          web ? "公开网页尚未获取，请通过公开资料检索入口核对最新信息。" : "本次仅检索工作区历史资产。"].join("\n\n");
+        agent.record(text, answer);
+        setActiveAssist(current);
+        setMessages(list => [...list, {prompt:text,body:<ScheduleAssistAnswer context={current} web={web}/> }]);
+        setPrompt("");
+      } catch (error) { if (sequence === requestSequence.current) setError((error as Error).message); }
+      finally { if (sequence === requestSequence.current) setBusy(false); }
+      return;
+    }
     const wantsCreate =
       /创建|新建|提醒我/.test(text) ||
       (/安排/.test(text) && !/哪些|优先|汇总|总结|回顾/.test(text));
@@ -351,6 +381,9 @@ export function CalendarAgent({
                 setSessionId("");
                 setIds([]);
                 setWeb(false);
+                setActiveAssist(undefined);
+                requestSequence.current++;
+                setBusy(false);
                 input.current?.focus();
               })
             }
@@ -377,7 +410,7 @@ export function CalendarAgent({
         </span>
         <div
           className="pa-agent-welcome"
-          hidden={!!activeSession || !!messages.length}
+          hidden={!!activeSession || !!messages.length || !!activeAssist}
         >
           <h3>让每个安排都有下一步</h3>
           <p>梳理日程、跟进待办，或准备新的安排。</p>
@@ -401,6 +434,11 @@ export function CalendarAgent({
             </PaButton>
           </div>
         </div>
+        {activeAssist && !messages.length && <section data-schedule-brief>
+          <h3>{scheduleAssistCopy[activeAssist.phase].heading} · {activeAssist.record.title}</h3>
+          <p>已带入日程与相关资料，可修改下方要求后发送。</p>
+          <ScheduleContextSources context={activeAssist} web={web}/>
+        </section>}
         <div id="pa-agent-result" role="log" aria-label="Agent 对话">
           {activeSession && (
             <>
@@ -484,7 +522,7 @@ export function CalendarAgent({
           ref={input}
           id="pa-prompt"
           rows={3}
-          maxLength={2000}
+          maxLength={activeAssist ? 16000 : 2000}
           aria-describedby="pa-agent-scope"
           placeholder="输入问题，按 Enter 发送…"
           value={prompt}
@@ -529,13 +567,13 @@ export function CalendarAgent({
             className="pa-btn primary"
             type="submit"
             aria-label="发送问题"
-            disabled={!prompt.trim()}
+            disabled={!prompt.trim() || busy}
           >
             <RefIcon name="send" />
           </button>
         </div>
         <small id="pa-agent-scope">
-          {ids.length
+          {activeAssist ? `已引用当前日程及 ${activeAssist.assets.length} 项相关资产` : ids.length
             ? `已引用 ${ids.length} 条日程与待办`
             : selected
               ? "已引用当前记录"

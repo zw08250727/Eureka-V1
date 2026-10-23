@@ -1,0 +1,6 @@
+.dialog { width: min(400px, calc(100vw - 32px)); padding: 24px; }
+.dialog h2 { margin: 0 0 16px; font-size: var(--ui-font-dialog, 18px); line-height: 26px; }
+.dialog p { color: var(--ui-secondary); }
+.dialog .danger { color: white; background: var(--ui-danger, #c63737); border-color: var(--ui-danger, #c63737); }
+:global(html:has(.market-surface[data-market])) .dialog .danger { color: #fff; }
+.dialog .danger:hover { filter: brightness(.9); }

@@ -63,7 +63,7 @@ test("ACCOUNT-01 / SHARE-01: upload and recording stay in the only team, private
 test("team offers private calendar and thought modules without a sharing switch", async ({ page }) => {
   await seed(page); await go(page);
   await expect(page.locator(".sidebar-quick-nav").getByRole("button", { name: "日程与待办", exact: true })).toBeVisible();
-  await expect(page.getByRole("complementary", { name: "我的闪念与安排" })).toBeVisible();
+  await expect(page.getByRole("complementary", { name: "团队共享日常" })).toBeVisible();
   await expect(page.getByRole("region", { name: "团队简报", exact: true })).toBeVisible();
   await go(page, "calendar");
   await expect(page.locator("#personal-actions h1")).toHaveText("日程与待办");

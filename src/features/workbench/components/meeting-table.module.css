@@ -1,0 +1,5 @@
+/* Override the generated ten-column grid only within the personal home table. */
+:global(#recording-card) :global(#meeting-table-scroll) .personalColumns {
+  min-width: 1200px;
+  grid-template-columns: minmax(260px, 1fr) 80px 84px 84px 82px 76px 128px 128px 104px;
+}

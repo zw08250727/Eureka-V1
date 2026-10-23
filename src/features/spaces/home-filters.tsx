@@ -1,6 +1,5 @@
 "use client";
 
-import { Select } from "@/components/ui/select";
 import { useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
 import { createPortal } from "react-dom";
 import { RefIcon } from "@/features/reference/symbols";
@@ -164,7 +163,7 @@ export function HomeFilter({
         className={`ws-filter-${kind} mf-control${selected ? " mf-selected" : ""}`}
       >
         {kind === "source" ? (
-          <Select
+          <select
             id={id}
             aria-label="会议来源"
             hidden
@@ -177,7 +176,7 @@ export function HomeFilter({
                 {v === "all" ? "全部来源" : v}
               </option>
             ))}
-          </Select>
+          </select>
         ) : (
           <input
             id={id}

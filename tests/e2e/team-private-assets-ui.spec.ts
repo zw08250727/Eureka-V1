@@ -23,7 +23,7 @@ async function seed(page: Page, expired = false) {
 
 test("compact team overview integrates private assets; navigation and edits remain scoped", async ({ page }) => {
   await seed(page); await go(page);
-  const privateArea = page.getByRole("complementary", { name: "我的闪念与安排" });
+  const privateArea = page.getByRole("complementary", { name: "团队共享日常" });
   await expect(privateArea).toContainText("仅自己可见");
   await expect(privateArea.locator(".team-private-idea")).toHaveCount(2);
   await expect(privateArea).toContainText("团队内私有灵感 3");

@@ -41,12 +41,14 @@ export function AssetSharing({
   record,
   type,
   onSaved,
+  variant = "link",
 }: {
   space: string;
   actor: string;
   record?: ActionRecord;
   type?: ThoughtRecord["type"];
   onSaved?: () => void;
+  variant?: "link" | "button";
 }) {
   const [open, setOpen] = useState(false),
     [ids, setIds] = useState<string[]>([]),
@@ -62,7 +64,9 @@ export function AssetSharing({
   return (
     <>
       <button
-        className="ex-share"
+        type="button"
+        className={variant === "button" ? "pa-btn" : "ex-share"}
+        data-asset-sharing={variant}
         disabled={w.status !== "active"}
         onClick={() => {
           setIds(

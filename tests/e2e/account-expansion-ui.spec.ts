@@ -54,7 +54,7 @@ test("team daily ownership, share-only own records, no reward or note entry", as
 }) => {
   await page.goto("/workbench/?space=team-eureka&actor=zhang");
   await expect(
-    page.getByRole("heading", { name: "团队洞察", exact: true }),
+    page.getByRole("heading", { name: "周度会议总结", exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "新建笔记", exact: true }),

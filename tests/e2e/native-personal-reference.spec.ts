@@ -138,7 +138,7 @@ test("reference thoughts: category counts, popup edits, filter-preserving detail
   await expect(page.locator(".th-detail-money")).toContainText("63.50");
   await page.locator("#thought-record-dialog [data-th=close]").last().click();
   await page.locator("[data-th=new]").click();
-  await expect(page.locator("#ws-dialog")).toContainText("绑定你的设备");
+  await expect(page.locator("#ws-dialog")).toContainText("绑定设备，开始记录闪念");
   await page.locator("#ws-dialog [data-ws-action=close-dialog]").click();
   await page.setViewportSize({ width: 390, height: 844 });
   expect(

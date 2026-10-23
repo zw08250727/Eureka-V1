@@ -51,6 +51,7 @@ export function createMeetingDetails(storage: Storage) {
         verbatim: "",
         source:
           device?.source || seed?.source || (upload ? "文件上传" : "网页录音"),
+        recordingMode: device?.recordingMode,
         created:
           device?.created ||
           seed?.created ||

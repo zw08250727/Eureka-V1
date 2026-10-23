@@ -200,6 +200,7 @@ export function createLocalRepository(
             title: String(f.title),
             date: String(f.created).slice(0, 10),
             source: String(f.source),
+            recordingMode: f.recordingMode === "call" ? "call" : f.recordingMode === "environment" ? "environment" : undefined,
             size: String(f.size || "音频"),
             creator: accountName,
             tag: Array.isArray(f.tags) ? f.tags.join("、") : "设备录音",
@@ -239,6 +240,7 @@ export function createLocalRepository(
       const p: Record<string, unknown> = object(patch) ? patch : {};
       if (typeof p.title === "string") m.title = p.title;
       if (Array.isArray(p.tags)) m.tag = p.tags.join("、");
+      if (p.recordingMode === "call" || p.recordingMode === "environment") m.recordingMode = p.recordingMode;
       if (p.deleted || p.purged) {
         meetings.splice(i, 1);
         if (!p.purged)
@@ -259,8 +261,8 @@ export function createLocalRepository(
       ? personalContacts.filter((p) => object(p) && (!p.ownerId || p.ownerId === workspace.account.id)).length
       : 6;
     return {
-      actions: clone(actions.records),
-      thoughts: clone([...(workspace.spaces.find((w) => w.id === "personal")?.thoughts || []).filter((t) => !t.deleted && t.owner === workspace.account.id), ...thoughts.records]),
+      actions: clone(actions.records.filter(r => !r.deleted)),
+      thoughts: clone([...(workspace.spaces.find((w) => w.id === "personal")?.thoughts || []).filter((t) => !t.deleted && t.owner === workspace.account.id), ...thoughts.records.filter(r => !r.deleted)]),
       meetings,
       spaces,
       accountName,

@@ -2,6 +2,7 @@ import { createWorkspaceStore, M } from "@/features/spaces/model/store";
 import type { CustomerSource, CustomerField } from "./contact-identity";
 import type { ContactPromise, ContactInteraction } from "./contact-rules";
 import { ledgerCurrency, ledgerDate, localDay } from "./asset-rules";
+import { validateParticipantIds, type ActionSaveOptions } from "./calendar-participants";
 import {
   fillWeekActions,
   fillWeekThoughts,
@@ -157,7 +158,7 @@ export function createActions(storage: Storage, now = () => new Date(), accountI
   return {
     read() {
       authorize(); const data = store.read();
-      data.records = data.records.map(r => ({ ...r, ownerId }));
+      data.records = data.records.filter(r => !r.deleted).map(r => ({ ...r, ownerId }));
       if (workspaceId !== "personal" && ownerId === accountId) {
         const w = M.get(createWorkspaceStore(storage).read(), workspaceId);
         for (const m of w.members.filter(m => m.status === "active" && m.id !== accountId))
@@ -168,6 +169,21 @@ export function createActions(storage: Storage, now = () => new Date(), accountI
         if(!M.admin(w,accountId)){data.records=data.records.filter(r=>r.sharedWith?.includes(accountId));data.settings={};data.sessions=[];data.meetings=[];}
       }
       return data;
+    },
+    remove(input: ActionRecord): void {
+      if (input.ownerId && input.ownerId !== ownerId)
+        return createActions(storage, now, accountId, workspaceId, input.ownerId).remove(input);
+      authorize(true);
+      store.change(s => {
+        const record = s.records.find(r => r.id === input.id);
+        if (!record || record.deleted) throw Error("记录已删除，请刷新后重试");
+        if ((record.revision || 0) !== (input.revision || 0) || record.updated !== input.updated)
+          throw Error("记录已更新，请重新打开后删除");
+        record.deleted = true;
+        record.sharedWith = [];
+        record.revision = (record.revision || 0) + 1;
+        record.updated = now().toISOString();
+      });
     },
     share(recordId:string, recipients:string[]){
       authorize(true);
@@ -220,14 +236,34 @@ export function createActions(storage: Storage, now = () => new Date(), accountI
         return r;
       });
     },
-    save(input: ActionRecord): ActionRecord {
+    save(input: ActionRecord, options: ActionSaveOptions = {}): ActionRecord {
       if (input.ownerId && input.ownerId !== ownerId)
-        return createActions(storage, now, accountId, workspaceId, input.ownerId).save(input);
+        return createActions(storage, now, accountId, workspaceId, input.ownerId).save(input, options);
       if (input.type === "todo" && !input.start)
         input = { ...input, reminder: "none" };
       authorize(true);
       return store.change((s) => {
         const old = s.records.find((x) => x.id === input.id);
+        if (old?.deleted) throw Error("记录已删除，不能保存旧的编辑内容");
+        const recipients = [...new Set(options.participantShareIds || [])];
+        const revocations = [...new Set(options.participantRevokeIds || [])];
+        if (recipients.length && input.type !== "schedule") throw Error("参与人联动共享仅适用于日程");
+        if (revocations.length && input.type !== "schedule") throw Error("参会人撤权仅适用于日程");
+        let participantIds = [...new Set(input.participantIds || [])];
+        if (workspaceId !== "personal") {
+          const current = M.get(createWorkspaceStore(storage).read(), workspaceId);
+          if (recipients.length && current.type !== "team") throw Error("个人日程不能向团队共享");
+          participantIds = validateParticipantIds(input, current);
+          if (recipients.length && (ownerId !== accountId || old?.previousOwnerId || input.previousOwnerId))
+            throw Error("只有日程创建者本人可以设置共享");
+          if (revocations.length && (ownerId !== accountId || old?.previousOwnerId || input.previousOwnerId))
+            throw Error("只有日程创建者本人可以撤销参会人共享");
+          if (recipients.some(id => id === accountId || !participantIds.includes(id)))
+            throw Error("只能共享给已选择的有效团队参会人");
+          if (revocations.some(id => !old?.participantIds?.includes(id) || !old.sharedWith?.includes(id) || participantIds.includes(id)))
+            throw Error("只能撤销已移除参会人的现有日程共享");
+        } else if (recipients.length) throw Error("个人日程不能向团队共享");
+        else if (revocations.length) throw Error("个人日程没有团队参会人共享可撤销");
         if (
           old &&
           ((old.revision || 0) !== (input.revision || 0) ||
@@ -238,7 +274,8 @@ export function createActions(storage: Storage, now = () => new Date(), accountI
           ...input,
           id: input.id || crypto.randomUUID(),
           title: input.title.trim(),
-          sharedWith: old?.sharedWith || [],
+          participantIds,
+          sharedWith: [...new Set([...(old?.sharedWith || []).filter(id=>!revocations.includes(id)), ...recipients])],
           previousOwnerId: old?.previousOwnerId,
           source: old?.source || input.source,
           completedAt: input.done ? (old?.done ? old.completedAt : now().toISOString()) : undefined,
@@ -285,7 +322,7 @@ export function createThoughts(storage: Storage, now = () => new Date(), account
     read() {
       const personal = authorize();
       const data = store.read();
-      data.records = data.records.map(r => ({ ...r, ownerId }));
+      data.records = data.records.filter(r => !r.deleted).map(r => ({ ...r, ownerId }));
       if (ownerId === accountId) {
         data.records = [...M.visibleThoughts(personal, accountId).map(t=>({...t,ownerId:t.owner})), ...data.records];
         if (personal.type === "team") for (const m of personal.members.filter(m => m.status === "active" && m.id !== accountId))
@@ -293,6 +330,37 @@ export function createThoughts(storage: Storage, now = () => new Date(), account
       }
       if(ownerId!==accountId&&!M.admin(personal,accountId))data.records=data.records.filter(r=>!r.previousOwnerId&&personal.thoughtSharing?.[ownerId]?.[r.type]?.includes(accountId));
       return data;
+    },
+    remove(input: ThoughtRecord): void {
+      const workspace = authorize(true);
+      if (workspace.thoughts?.some(t => t.id === input.id)) {
+        workspaceStore.change(state => {
+          const current = M.get(state, workspaceId);
+          if (!M.member(current, accountId)) throw Error("没有此工作空间的访问权限");
+          M.writable(current);
+          const thought = current.thoughts!.find(t => t.id === input.id)!;
+          if (thought.owner !== accountId && !M.admin(current, accountId))
+            throw Error("仅本人或管理员可以删除闪念");
+          if (thought.deleted) throw Error("记录已删除，请刷新后重试");
+          if ((thought.revision || 0) !== (input.revision || 0)) throw Error("记录已更新，请重新打开后删除");
+          thought.deleted = true;
+          thought.shared = [];
+          thought.editors = [];
+          thought.revision = (thought.revision || 0) + 1;
+          thought.updated = now().toISOString();
+        });
+        return;
+      }
+      if (input.ownerId && input.ownerId !== ownerId)
+        return createThoughts(storage, now, accountId, workspaceId, input.ownerId).remove(input);
+      store.change(s => {
+        const record = s.records.find(r => r.id === input.id);
+        if (!record || record.deleted) throw Error("记录已删除，请刷新后重试");
+        if ((record.revision || 0) !== (input.revision || 0)) throw Error("记录已更新，请重新打开后删除");
+        record.deleted = true;
+        record.revision = (record.revision || 0) + 1;
+        record.updated = now().toISOString();
+      });
     },
     save(input: ThoughtRecord): ThoughtRecord {
       const workspace = authorize(true);
@@ -305,6 +373,7 @@ export function createThoughts(storage: Storage, now = () => new Date(), account
           if (!M.member(current, accountId)) throw Error("没有此工作空间的访问权限");
           M.writable(current);
           const thought = current.thoughts!.find((t) => t.id === input.id)!;
+          if (thought.deleted) throw Error("记录已删除，不能保存旧的编辑内容");
           if (thought.owner !== accountId && !M.admin(current, accountId)) throw Error("仅本人或管理员可以修改闪念");
           if (thought.revision !== input.revision) throw Error("记录已更新，请重新打开");
           Object.assign(thought, { title: input.title.trim(), detail: input.detail,
@@ -340,6 +409,7 @@ export function createThoughts(storage: Storage, now = () => new Date(), account
             throw Error("收支方向无效");
         }
         const old = s.records.find((x) => x.id === input.id);
+        if (old?.deleted) throw Error("记录已删除，不能保存旧的编辑内容");
         if (old && (old.revision || 0) !== (input.revision || 0))
           throw Error("记录已更新，请重新打开");
         const r = {
