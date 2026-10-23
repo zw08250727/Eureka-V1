@@ -119,7 +119,8 @@ function pay(
     o.priceVersion !== (config.id === "cn" ? config.revision : "mobile-demo-v1")
   )
     fail("订单报价无效");
-  if (!config.payments.subscription.includes(method))
+  // The overseas sandbox completion adapter records its verified provider name.
+  if (!config.payments.subscription.includes(method) && !(config.id === "global" && method === "Airwallex"))
     fail("支付方式无效");
   if (result === "failure") {
     o.status = "failed";

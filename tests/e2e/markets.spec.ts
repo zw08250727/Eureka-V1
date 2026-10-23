@@ -37,7 +37,7 @@ test("lobby and review board expose fixed regional entrypoints", async ({
   await expect(page.locator("body")).toContainText("待认领");
 });
 for (const market of ["cn", "global"] as const) {
-  test(`${market}: login, native connectors, failed authorization, persistence and scope`, async ({
+  test(`${market}: login, native connectors, authorization boundary, persistence and scope`, async ({
     page,
   }) => {
     const errors: string[] = [];
@@ -46,36 +46,49 @@ for (const market of ["cn", "global"] as const) {
     await expect(page.locator(".auth-overlay")).toBeVisible();
     await login(page, market);
     await page.goto(`/${market}/workbench/?view=connectors&review=1`);
+    if (market === "global") await page.getByRole("tab", { name: "接入其他应用", exact: true }).click();
     await expect(page.locator("iframe")).toHaveCount(0);
     const name = market === "cn" ? "飞书" : "Google Workspace";
+    if (market === "cn") {
+      await expect(page.locator(".connector-card.is-system")).toHaveCount(3);
+      await expect(page.getByRole("button", { name: "查看 腾讯会议" })).toBeVisible();
+    }
     await page
       .getByRole("button", { name: `查看 ${name}`, exact: true })
       .click();
+    if (market === "cn") await page.screenshot({ path: "test-results/markets/cn-connector-detail-unconnected.png", animations: "disabled" });
     await page.getByRole("button", { name: "连接", exact: true }).click();
-    await page.getByRole("button", { name: "模拟授权失败" }).click();
-    await expect(page.getByRole("dialog").getByRole("alert")).toContainText(
-      "授权未完成",
-    );
-    await page.getByRole("button", { name: "确认授权" }).click();
-    await expect(
-      page.getByRole("button", { name: `查看 ${name}`, exact: true }),
-    ).toContainText("已连接");
-    await page.getByRole("button", { name: "＋ 添加自定义连接器" }).click();
-    await page.getByLabel("连接器名称").fill("Test MCP");
-    await page.getByLabel("JSON 配置", { exact: true }).check();
-    await page.getByLabel("MCP JSON 配置").fill("invalid");
-    await page.getByRole("button", { name: "保存连接器" }).click();
+    if (market === "cn") {
+      const authorization = page.getByRole("dialog", { name: "飞书 登录与授权" });
+      await authorization.getByRole("button", { name: "选择已有应用" }).click();
+      await authorization.getByRole("button", { name: "授权并连接" }).click();
+      await expect(authorization).toContainText("授权成功");
+      await expect(authorization).toHaveCount(0, { timeout: 3000 });
+      await page.screenshot({ path: "test-results/markets/cn-connector-detail-connected.png", animations: "disabled" });
+      await page.getByRole("dialog", { name: "飞书 · 连接器详情" }).getByRole("button", { name: "关闭对话框" }).click();
+    } else {
+      await expect(page.getByRole("dialog")).toContainText("连接状态需在授权完成后更新");
+      await expect(page.getByRole("button", { name: `查看 ${name}`, exact: true })).toHaveAttribute("data-connected", "false");
+      await page.getByRole("button", { name: "评审：模拟授权成功" }).click();
+    }
+    await page.getByRole("button", { name: "新增连接器" }).click();
+    await page.getByPlaceholder("请输入连接器名称").fill("Test MCP");
+    await page.getByLabel("通过JSON导入").check();
+    await page.getByLabel("JSON 配置").fill("invalid");
+    await page.getByRole("button", { name: "确定" }).click();
     await expect(page.getByRole("dialog").getByRole("alert")).toContainText(
       "JSON 格式",
     );
     await page
-      .getByLabel("MCP JSON 配置")
+      .getByLabel("JSON 配置")
       .fill('{"mcpServers":{"demo":{"url":"https://example.com/mcp"}}}');
-    await page.getByRole("button", { name: "保存连接器" }).click();
+    await page.getByRole("button", { name: "确定" }).click();
     await page.reload();
+    if (market === "global") await page.getByRole("tab", { name: "接入其他应用", exact: true }).click();
     await expect(
       page.getByRole("button", { name: "查看 Test MCP" }),
     ).toBeVisible();
+    await expect(page.getByRole("button", { name: `查看 ${name}`, exact: true })).toHaveAttribute("data-connected", market === "cn" ? "true" : "false");
     await page.screenshot({
       path: `test-results/markets/${market}-connectors-desktop.png`,
       fullPage: true, animations: "disabled",
@@ -83,18 +96,23 @@ for (const market of ["cn", "global"] as const) {
     await page
       .getByRole("button", { name: `查看 ${name}`, exact: true })
       .click();
+    if (market === "global") {
+      await page.getByRole("button", { name: "评审：模拟授权成功" }).click();
+      await page.getByRole("button", { name: `查看 ${name}`, exact: true }).click();
+    }
     await page.getByRole("button", { name: "断开连接", exact: true }).click();
-    await page.getByRole("button", { name: "确认断开" }).click();
+    await page.getByRole("dialog", { name: "确认断开此连接器" }).getByRole("button", { name: "确认", exact: true }).click();
     await expect(
       page.getByRole("button", { name: `查看 ${name}`, exact: true }),
-    ).toContainText("未连接");
+    ).toHaveAttribute("data-connected", "false");
     await page.goto(`/${market}/workbench/?view=connectors&space=team-eureka`);
+    if (market === "global") await page.getByRole("tab", { name: "接入其他应用", exact: true }).click();
     await expect(
       page.getByRole("button", { name: "查看 Test MCP" }),
     ).toHaveCount(0);
     await expect(
       page.getByRole("button", { name: `查看 ${name}`, exact: true }),
-    ).toContainText("未连接");
+    ).toHaveAttribute("data-connected", "false");
     await page.goto(`/${market}/workbench/?view=calendar`);
     await expect(page.locator("#personal-actions")).toBeVisible();
     await page.locator("#ws-switcher").click();
@@ -110,6 +128,20 @@ for (const market of ["cn", "global"] as const) {
   test(`${market}: subscription purchase and credit recharge stay in market`, async ({
     page,
   }) => {
+    // The local overseas UI now opens the sandbox service. Supply deterministic
+    // service receipts; never make external checkout requests in browser tests.
+    const checkoutKinds: string[] = [];
+    if (market === "global") {
+      await page.context().route("https://checkout.airwallex.com/eureka-test-checkout", route => route.fulfill({contentType:"text/html",body:"<p>Test checkout</p>"}));
+      await page.route("**/api/airwallex/checkouts**", async route => {
+        if (route.request().method() === "POST") {
+          const body = route.request().postDataJSON();
+          expect(body.market).toBe("global"); expect(body.workspaceId).toBe("personal");
+          checkoutKinds.push(body.kind);
+          await route.fulfill({json:{id:`test-${body.kind}`,url:"https://checkout.airwallex.com/eureka-test-checkout"}});
+        } else await route.fulfill({json:{status:"COMPLETED",subscriptionId:"test-subscription"}});
+      });
+    }
     await login(page, market);
     await page.goto(`/${market}/workbench/?view=subscription`);
     await page
@@ -117,7 +149,7 @@ for (const market of ["cn", "global"] as const) {
       .click();
     await expect(page.getByRole("dialog")).toBeVisible();
     await page
-      .getByRole("button", { name: /确认支付/ })
+      .getByRole("button", { name: market === "global" ? "前往支付" : /确认支付/ })
       .last()
       .click();
     await expect(page.getByRole("dialog")).toContainText(market === "cn" ? "专业版 已生效" : "Pro 已生效");
@@ -129,6 +161,7 @@ for (const market of ["cn", "global"] as const) {
       state.spaces.find((w: { id: string }) => w.id === "personal")
         .personalOrders[0].status,
     ).toBe("paid");
+    if (market === "global") expect(state.spaces.find((w: { id: string }) => w.id === "personal").personalOrders[0].method).toBe("Airwallex");
     const other = market === "cn" ? "global" : "cn";
     expect(
       await page.evaluate((k) => localStorage.getItem(k), key(other, M.KEY)),
@@ -137,10 +170,38 @@ for (const market of ["cn", "global"] as const) {
     await page.locator("#user-card").click();
     await page.getByRole("button", { name: "充值", exact: true }).click();
     await page.getByRole("button", { name: "确认充值", exact: true }).click();
-    await page.getByRole("button", { name: /确认支付/ }).click();
+    if (market === "cn") await page.getByRole("button", { name: /确认支付/ }).click();
     await expect(page.getByRole("dialog")).toContainText("充值成功");
+    if (market === "global") expect(checkoutKinds).toEqual(["personal", "credits"]);
   });
 }
+
+test("CONNECT-01 preserves saved connector values and keeps catalog additions out of storage", async ({ page }) => {
+  await login(page, "cn");
+  await page.goto("/cn/workbench/?view=connectors");
+  await page.evaluate(() => {
+    localStorage.setItem("eureka:market:cn:eureka:connectors:native:v1:personal:zhang", JSON.stringify({ version: 1, items: [
+      { id: "dingtalk", name: "钉钉", description: "旧描述", tools: 8, connected: false, custom: false },
+      { id: "feishu", name: "飞书", description: "旧描述", tools: 30, connected: false, custom: false },
+      { id: "saved-custom", name: "我的工具", description: "已保存", tools: 3, connected: false, custom: true, url: "https://example.com/mcp" },
+    ] }));
+  });
+  await page.reload();
+  await expect(page.locator(".connector-card.is-system")).toHaveCount(3);
+  await expect(page.getByRole("button", { name: "查看 钉钉" })).toHaveAttribute("data-connected", "false");
+  await expect(page.getByRole("button", { name: "查看 腾讯会议" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "查看 我的工具" })).toHaveCount(0);
+  await page.getByRole("button", { name: "待接入配置 1" }).click();
+  await expect(page.getByRole("dialog", { name: "待接入配置" })).toContainText("我的工具");
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("eureka:market:cn:eureka:connectors:native:v1:personal:zhang")!).items.length)).toBe(3);
+  await page.getByRole("dialog", { name: "待接入配置" }).getByRole("button", { name: "继续配置" }).click();
+  await page.getByRole("dialog", { name: "编辑自定义连接器" }).getByRole("button", { name: "保存" }).click();
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("eureka:market:cn:eureka:connectors:native:v1:personal:zhang")!));
+  expect(saved.items).toHaveLength(3);
+  expect(saved.items.find((item: { id: string }) => item.id === "dingtalk").connected).toBe(false);
+  expect(saved.items.some((item: { id: string }) => item.id.startsWith("demo-"))).toBe(false);
+  expect(saved.items.some((item: { id: string }) => item.id === "tencent-meeting")).toBe(false);
+});
 test("same email has two independent sessions; logout is local to its market", async ({
   page,
   context,
@@ -179,8 +240,8 @@ test("connector save refuses expired access and stale writes without losing inpu
 }) => {
   await login(page, "cn");
   await page.goto("/cn/workbench/?view=connectors&space=team-eureka");
-  await page.getByRole("button", { name: "＋ 添加自定义连接器" }).click();
-  await page.getByLabel("连接器名称").fill("Pending");
+  await page.getByRole("button", { name: "新增连接器" }).click();
+  await page.getByPlaceholder("请输入连接器名称").fill("Pending");
   await page.getByLabel("服务地址").fill("https://example.com");
   const seed = M.seed();
   seed.spaces.find((w) => w.id === "team-eureka")!.status = "expired";
@@ -188,20 +249,20 @@ test("connector save refuses expired access and stale writes without losing inpu
     ({ k, s }) => localStorage.setItem(k, JSON.stringify(s)),
     { k: key("cn", M.KEY), s: seed },
   );
-  await page.getByRole("button", { name: "保存连接器" }).click();
+  await page.getByRole("button", { name: "确定" }).click();
   await expect(page.getByRole("dialog").getByRole("alert")).toContainText(
     "权限已变化",
   );
-  await expect(page.getByLabel("连接器名称")).toHaveValue("Pending");
+  await expect(page.getByPlaceholder("请输入连接器名称")).toHaveValue("Pending");
   await page.goto("/cn/workbench/?view=connectors");
-  await page.getByRole("button", { name: "＋ 添加自定义连接器" }).click();
-  await page.getByLabel("连接器名称").fill("Stale");
+  await page.getByRole("button", { name: "新增连接器" }).click();
+  await page.getByPlaceholder("请输入连接器名称").fill("Stale");
   await page.getByLabel("服务地址").fill("https://example.com");
   await page.evaluate(
     (k) => localStorage.setItem(k, '{"version":1,"items":[]}'),
     key("cn", "eureka:connectors:native:v1:personal:zhang"),
   );
-  await page.getByRole("button", { name: "保存连接器" }).click();
+  await page.getByRole("button", { name: "确定" }).click();
   await expect(page.getByRole("dialog").getByRole("alert")).toContainText(
     "其他页面",
   );
@@ -230,17 +291,18 @@ for (const width of [390, 768, 1440])
       ).toBe(true);
       await login(page, market);
       await page.goto(`/${market}/workbench/?view=connectors`);
+      if (market === "global") await page.getByRole("tab", { name: "接入其他应用", exact: true }).click();
       await expect(page.locator(".connector-card").first()).toBeVisible();
       expect(
         await page.evaluate(
           () => document.documentElement.scrollWidth <= innerWidth,
         ),
       ).toBe(true);
-      await page.getByRole("button", { name: "＋ 添加自定义连接器" }).click();
-      await expect(page.getByLabel("连接器名称")).toBeFocused();
+      await page.getByRole("button", { name: "新增连接器" }).click();
+      await expect(page.getByPlaceholder("请输入连接器名称")).toBeFocused();
       await page.keyboard.press("Escape");
       await expect(
-        page.getByRole("button", { name: "＋ 添加自定义连接器" }),
+        page.getByRole("button", { name: "新增连接器" }),
       ).toBeFocused();
       await page.screenshot({
         path: `test-results/markets/${market}-connectors-${width}.png`,
@@ -281,6 +343,20 @@ for (const market of ["cn", "global"] as const) {
   test(`${market}: account without a team creates one through payment and keeps the same login`, async ({
     page,
   }) => {
+    let completed = false;
+    let requestedWorkspace = "";
+    if (market === "global") {
+      await page.context().route("https://checkout.airwallex.com/team-test", route => route.fulfill({ contentType: "text/html", body: "Team checkout" }));
+      await page.route("**/api/airwallex/checkouts**", async route => {
+        if (route.request().method() === "POST") {
+          const body = route.request().postDataJSON();
+          expect(body.kind).toBe("team");
+          expect(body.quantity).toBe(3);
+          requestedWorkspace = body.workspaceId;
+          await route.fulfill({ json: { id: "team-checkout", url: "https://checkout.airwallex.com/team-test" } });
+        } else await route.fulfill({ json: { status: completed ? "COMPLETED" : "OPEN", subscriptionId: completed ? "team-subscription" : null } });
+      });
+    }
     await login(page, market);
     const state = M.seed();
     state.spaces = state.spaces.filter((w) => w.type === "personal");
@@ -294,9 +370,15 @@ for (const market of ["cn", "global"] as const) {
     await page.locator('#ws-dialog [name="name"]').fill(`${market} 评审团队`);
     await page.getByRole("button", { name: "确认订单", exact: true }).click();
     await page
-      .getByRole("button", { name: "支付并开通", exact: true })
+      .getByRole("button", { name: market === "global" ? "前往支付" : "支付并开通", exact: true })
       .click();
+    if (market === "global") {
+      await expect(page.getByRole("button", { name: "等待支付结果" })).toBeDisabled();
+      expect(await page.evaluate(k => JSON.parse(localStorage.getItem(k)!).spaces.filter((w: {type:string}) => w.type === "team").length, key(market, M.KEY))).toBe(0);
+      completed = true;
+    }
     await page.getByRole("button", { name: "进入团队", exact: true }).click();
+    if (market === "global") expect(new URL(page.url()).searchParams.get("space")).toBe(requestedWorkspace);
     await expect(page).toHaveURL(new RegExp(`/${market}/workbench/`));
     await expect(page.locator("#ws-switcher")).toContainText(
       `${market} 评审团队`,
@@ -318,8 +400,8 @@ test("connector storage failure retains the draft and creates no false success",
 }) => {
   await login(page, "cn");
   await page.goto("/cn/workbench/?view=connectors");
-  await page.getByRole("button", { name: "＋ 添加自定义连接器" }).click();
-  await page.getByLabel("连接器名称").fill("Unsaved MCP");
+  await page.getByRole("button", { name: "新增连接器" }).click();
+  await page.getByPlaceholder("请输入连接器名称").fill("Unsaved MCP");
   await page.getByLabel("服务地址").fill("https://example.com/mcp");
   await page.evaluate(() => {
     const original = Storage.prototype.setItem;
@@ -328,11 +410,11 @@ test("connector storage failure retains the draft and creates no false success",
       return original.call(this, k, v);
     };
   });
-  await page.getByRole("button", { name: "保存连接器" }).click();
+  await page.getByRole("button", { name: "确定" }).click();
   await expect(page.getByRole("dialog").getByRole("alert")).toContainText(
     "存储已满",
   );
-  await expect(page.getByLabel("连接器名称")).toHaveValue("Unsaved MCP");
+  await expect(page.getByPlaceholder("请输入连接器名称")).toHaveValue("Unsaved MCP");
   await expect(
     page.getByRole("button", { name: "查看 Unsaved MCP" }),
   ).toHaveCount(0);

@@ -28,4 +28,7 @@
 .enterprise-member { display: flex; gap: 24px; flex-wrap: wrap; padding: 20px 0; border-bottom: 1px solid #e5e9e7; }
 .enterprise-workbench :focus-visible { outline: 2px solid #166b56; outline-offset: 3px; }
 .enterprise-loading { padding: 48px; }
+.enterprise-connectors-content { max-width: none; padding: 32px 24px; }
+.enterprise-connectors-content h1 { margin-bottom: 4px; }
+.enterprise-connectors-content .connectors-page { padding: 0 0 48px; }
 @media(max-width: 700px) { .enterprise-workbench { grid-template-columns: minmax(0,1fr); grid-template-rows: auto 1fr; } .enterprise-workbench aside { padding: 16px; border-right: 0; } .enterprise-workbench aside h2 { margin: 12px 0; } .enterprise-workbench nav { grid-template-columns: 1fr 1fr; } .enterprise-profile { display: flex; align-items: center; gap: 12px; padding-top: 16px; } .enterprise-profile span { flex: 1; } .enterprise-profile button { margin: 0; padding: 0 12px; } .enterprise-content { padding: 24px 16px; } }

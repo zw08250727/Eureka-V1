@@ -1,6 +1,6 @@
 {
-  "revision": "market-20261012-02",
-  "status": "待 PM 确认；金额沿用现有 USD 演示基线，不代表两地正式定价",
+  "revision": "market-global-airwallex-20261019",
+  "status": "团队订阅及 Credits 已按 Airwallex 沙盒商品价格核对（2026-10-19）；个人订阅沿用演示价格",
   "currency": "USD",
   "personal": {
     "month": {
@@ -23,17 +23,17 @@
   },
   "team": {
     "month": {
-      "monthly": 28,
-      "originalMonthly": 35,
-      "firstAmount": 28,
-      "renewalAmount": 35,
+      "monthly": 19.99,
+      "originalMonthly": 19.99,
+      "firstAmount": 19.99,
+      "renewalAmount": 19.99,
       "currency": "USD"
     },
     "year": {
-      "monthly": 20,
-      "originalMonthly": 25,
-      "firstAmount": 240,
-      "renewalAmount": 300,
+      "monthly": 12.5,
+      "originalMonthly": 12.5,
+      "firstAmount": 149.99,
+      "renewalAmount": 149.99,
       "currency": "USD"
     }
   },
@@ -41,20 +41,20 @@
     {
       "id": "credits-5k",
       "credits": 5000,
-      "amount": 59,
-      "original": 89
+      "amount": 49.95,
+      "original": 49.95
     },
     {
       "id": "credits-10k",
       "credits": 10000,
-      "amount": 109,
-      "original": 159
+      "amount": 99.9,
+      "original": 99.9
     },
     {
       "id": "credits-15k",
       "credits": 15000,
-      "amount": 149,
-      "original": 199
+      "amount": 149.85,
+      "original": 149.85
     }
   ],
   "rewards": {
@@ -104,6 +104,18 @@
       "name": "Slack",
       "description": "连接已授权的频道与消息。",
       "tools": 6
+    },
+    {
+      "id": "google-calendar",
+      "name": "Google Calendar",
+      "description": "连接已授权的日历、日程与会议安排。",
+      "tools": 4
+    },
+    {
+      "id": "notion",
+      "name": "Notion",
+      "description": "连接已授权的页面、知识库与项目资料。",
+      "tools": 5
     }
   ],
   "payments": {

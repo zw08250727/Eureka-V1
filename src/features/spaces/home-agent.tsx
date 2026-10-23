@@ -1,15 +1,21 @@
 "use client";
 
+import { reportAgentAttempt } from "@/features/agent/feedback";
+import { useAgentCreditSimulation, AgentSimulationMessages, AgentSendButton } from "@/features/agent/credit-preview";
+import { AgentCredits } from "@/features/agent/credits";
 import { marketStorage } from "@/features/markets/storage";
 
 import { AgentHistoryButton } from "@/features/agent/history-button";
+import { AgentConnectorPicker } from "@/features/connectors/agent-picker";
+import { AgentActiveConnectorChips } from "@/features/connectors/active-chips";
+import { AgentMaterialPicker, AgentMaterialSummary, type AgentMaterial } from "@/features/agent/material-picker";
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { RefIcon } from "@/features/reference/symbols";
 import { M } from "./model/store";
 import type { Insight, Thread } from "./model/types";
 import type { SpacesController } from "./use-spaces";
 import { appUrl } from "@/lib/routes";
-import { creditNumber, date, WsButton as Button, WsDialog } from "./billing-ui";
+import { creditNumber, date, WsButton as Button } from "./billing-ui";
 export function TeamHomeAgent({
   controller,
   space,
@@ -29,6 +35,7 @@ export function TeamHomeAgent({
   initialFileIds?: string[];
   onClose: () => void;
 }) {
+  const simulation = useAgentCreditSimulation();
   const w = M.get(controller.state!, space),
     insight = M.insights(w, actor).items.find((i) => i.id === insightId);
   const [activeInsight, setActiveInsight] = useState<string | undefined>(
@@ -37,12 +44,18 @@ export function TeamHomeAgent({
     [historyId, setHistoryId] = useState(initialHistoryId),
     [draft, setDraft] = useState(initialPrompt || insight?.title || ""),
     [answer, setAnswer] = useState(""),
-    [fresh, setFresh] = useState(false),
+    [fresh, setFresh] = useState(!!initialPrompt || !!initialFileIds?.length),
     [error, setError] = useState(""),
     [web, setWeb] = useState(false),
     [appData, setAppData] = useState(false),
     [fileIds, setFileIds] = useState<string[]>(initialFileIds || []),
-    [sources, setSources] = useState(false),
+    [materials, setMaterials] = useState<AgentMaterial[]>(() => {
+      const selected = new Set(initialFileIds || []);
+      return M.visible(w, actor).filter(file => selected.has(file.id)).map(file => ({
+        id:`meetings:${file.id}`,sourceId:file.id,category:"meetings",title:file.title,
+        meta:`文件大小：${file.size || "3.2 MB"}`,sourceLabel:file.source,size:file.size || "3.2 MB",
+      }));
+    }),
     [width, setWidth] = useState(390),
     [bounds, setBounds] = useState({ min: 300, max: 760 });
   const rail = useRef<HTMLElement>(null),
@@ -108,13 +121,13 @@ export function TeamHomeAgent({
     const resize = () => applyWidth(preferred.current);
     resize();
     window.addEventListener("resize", resize);
-    if (insightId || initialHistoryId)
+    if (insightId || initialHistoryId || initialPrompt || initialFileIds?.length)
       input.current?.focus({ preventScroll: true });
     return () => {
       window.removeEventListener("resize", resize);
       document.body.classList.remove("agent-resizing");
     };
-  }, [insightId, initialHistoryId]);
+  }, [insightId, initialHistoryId, initialPrompt, initialFileIds?.length]);
   useEffect(() => {
     if (shouldScroll.current && scroll.current) {
       scroll.current.scrollTop = scroll.current.scrollHeight;
@@ -122,6 +135,9 @@ export function TeamHomeAgent({
     }
   }, [controller.state, answer]);
   function send() {
+    const simulated = simulation.send(draft.trim());
+    if (simulated) { if (simulated === "sent") setDraft(""); return; }
+    reportAgentAttempt(w, actor);
     try {
       const prompt =
         context && draft.trim() && !draft.includes(context.title)
@@ -135,9 +151,10 @@ export function TeamHomeAgent({
         }),
       );
       setDraft("");
-      setAnswer(result.cost ? "" : result.answer);
+      setAnswer(result.threadId ? "" : result.answer);
       setHistoryId(result.threadId || historyId);
       setFileIds([]);
+      setMaterials([]);
       setError("");
       shouldScroll.current = true;
     } catch (e) {
@@ -220,6 +237,7 @@ export function TeamHomeAgent({
               aria-label="新建会话"
               title="新建会话"
               onClick={() => {
+                    simulation.reset();
                 setFresh(true);
                 setHistoryId(undefined);
                 setActiveInsight(undefined);
@@ -227,6 +245,7 @@ export function TeamHomeAgent({
                 setDraft("");
                 setError("");
                 setFileIds([]);
+                setMaterials([]);
                 setWeb(false);
                 setAppData(false);
                 input.current?.focus();
@@ -278,7 +297,7 @@ export function TeamHomeAgent({
                 ))}
               </div>
             </div>
-          ) : (
+          ) : !simulation.hasMessages && !messages.length ? (
             <>
               <h3>让团队讨论有下一步</h3>
               <p>整理关键结论、拆解行动项，或准备下一次沟通。</p>
@@ -298,16 +317,14 @@ export function TeamHomeAgent({
                 ))}
               </div>
             </>
-          )}
+          ) : null}
           {messages.map((t) => (
             <Fragment key={t.id}>
               <div className="ws-chat-user">{t.prompt}</div>
               <div className="ws-chat-answer">{t.answer}</div>
               {t.usage ? (
                 <div className="ws-agent-usage">
-                  输入 {creditNumber(t.usage.inputTokens)} / 输出{" "}
-                  {creditNumber(t.usage.outputTokens)} tokens ·{" "}
-                  {creditNumber(t.usage.cost)} Credits
+                  {t.usage.status && t.usage.status !== "settled" ? "待结算" : creditNumber(t.usage.cost) + " Credits"}
                 </div>
               ) : null}
             </Fragment>
@@ -317,6 +334,8 @@ export function TeamHomeAgent({
               {answer}
             </div>
           ) : null}
+          <AgentSimulationMessages kind="team" />
+          <AgentCredits />
         </div>
         <form
           className="ws-composer"
@@ -326,6 +345,8 @@ export function TeamHomeAgent({
             send();
           }}
         >
+          <AgentMaterialSummary selected={materials} onRemove={(id) => { const next = materials.filter(item => item.id !== id); setMaterials(next); setFileIds(next.filter(item => item.category === "meetings").map(item => item.sourceId)); }} />
+          <AgentActiveConnectorChips />
           <textarea
             ref={input}
             name="question"
@@ -346,15 +367,7 @@ export function TeamHomeAgent({
             }}
           />
           <div className="ws-composer-tools">
-            <Button
-              action="agent-sources"
-              className={`ws-tool${fileIds.length || thread ? " selected" : ""}`}
-              aria-label="引用资料"
-              title="引用资料"
-              onClick={() => setSources(true)}
-            >
-              {icon("book")}
-            </Button>
+            <AgentMaterialPicker selected={materials} onChange={(next) => { setMaterials(next); setFileIds(next.filter(item => item.category === "meetings").map(item => item.sourceId)); setAppData(next.some(item => item.category !== "meetings")); }} triggerClassName={`ws-btn ws-tool${materials.length || thread ? " selected" : ""}`} />
             <Button
               action="agent-web"
               className={`ws-tool${web ? " selected" : ""}`}
@@ -365,14 +378,8 @@ export function TeamHomeAgent({
             >
               {icon("globe")}
             </Button>
-            <button
-              type="submit"
-              className="ws-btn primary"
-              aria-label="发送问题"
-              disabled={!draft.trim()}
-            >
-              {icon("send")}
-            </button>
+            <AgentConnectorPicker />
+            <AgentSendButton className="ws-btn primary" label="发送问题" disabled={!draft.trim()} onSend={() => { void send(); }}>{icon("send")}</AgentSendButton>
           </div>
           <small id="ws-composer-hint">
             {fileIds.length
@@ -392,64 +399,6 @@ export function TeamHomeAgent({
           </p>
         </form>
       </aside>
-      {sources ? (
-        <WsDialog
-          title="引用资料"
-          form="agent-sources"
-          onClose={() => setSources(false)}
-          error={error}
-          footer={
-            <>
-              <Button action="close-dialog" onClick={() => setSources(false)}>
-                取消
-              </Button>
-              <button type="submit" className="ws-btn primary">
-                确认引用
-              </button>
-            </>
-          }
-          onSubmit={(e) => {
-            e.preventDefault();
-            try {
-              const form = new FormData(e.currentTarget),
-                ids = form.getAll("files").map(String);
-              ids.forEach((id) => M.getFile(w, id, actor));
-              setFileIds(ids);
-              setAppData(form.has("appData"));
-              setSources(false);
-              setError("");
-            } catch (e) {
-              setError((e as Error).message);
-            }
-          }}
-        >
-          <p className="ws-muted">
-            仅展示当前空间有权访问的音频文件。未选择时沿用当前会话或页面上下文。
-          </p>
-          <div className="ws-source-options">
-            {M.visible(w, actor).map((f) => (
-              <label key={f.id}>
-                <input
-                  type="checkbox"
-                  name="files"
-                  value={f.id}
-                  defaultChecked={(fileIds.length
-                    ? fileIds
-                    : thread?.files || []
-                  ).includes(f.id)}
-                />
-                {icon("mic")}
-                <span>{f.title}</span>
-              </label>
-            ))}
-          </div>
-          <label className="ws-source-app">
-            <input type="checkbox" name="appData" defaultChecked={appData} />
-            应用数据（所选会议的名称与处理状态）
-          </label>
-          <p className="ws-muted">不会引用个人闪念、联系人或其他空间资料。</p>
-        </WsDialog>
-      ) : null}
     </>
   );
 }

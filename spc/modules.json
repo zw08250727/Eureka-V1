@@ -1,6 +1,6 @@
 {
   "version": "1.2",
-  "rulesVersion": "rules-20261012-05",
+  "rulesVersion": "rules-20261018-05",
   "modules": [
     {
       "id": "architecture-ui",
@@ -126,7 +126,12 @@
         "ASYNC-01",
         "CN-POINTS-01",
         "CN-POINTS-02",
-        "CN-POINTS-03"
+        "CN-POINTS-03",
+        "AGENT-CREDITS-01",
+        "AGENT-CREDITS-02",
+        "AGENT-CREDITS-03",
+        "AGENT-CREDITS-04",
+        "AGENT-CREDITS-05"
       ]
     },
     {
@@ -152,7 +157,12 @@
       ],
       "rules": [
         "ASYNC-01",
-        "ACCESS-01"
+        "ACCESS-01",
+        "AGENT-CREDITS-01",
+        "AGENT-CREDITS-02",
+        "AGENT-CREDITS-03",
+        "AGENT-CREDITS-04",
+        "AGENT-CREDITS-05"
       ]
     },
     {

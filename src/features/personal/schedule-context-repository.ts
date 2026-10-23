@@ -6,7 +6,7 @@ import { buildScheduleContext, type ScheduleMeeting } from "./schedule-context";
 import type { Market } from "@/features/markets/config";
 
 /** Resolve again at opening/sending; inputs are never a cross-workspace search cache. */
-export async function readScheduleContext(storage: Storage, market: Market, space: string, actor: string, id: string, now = new Date()) {
+export async function readScheduleContext(storage: Storage, market: Market, space: string, actor: string, id: string, now = new Date(), additionalActionIds:string[] = []) {
   const workspace = M.get(createWorkspaceStore(storage, () => now).read(), space);
   if (!M.member(workspace, actor)) throw Error("没有此工作空间的访问权限");
   M.assertEntitlement(workspace, actor);
@@ -25,5 +25,5 @@ export async function readScheduleContext(storage: Storage, market: Market, spac
       catch { return []; } // Removed/unreadable recordings cannot become source context.
     });
   }
-  return buildScheduleContext({record,actions,thoughts,contacts,meetings,market,space,actor,now});
+  return buildScheduleContext({record,actions,thoughts,contacts,meetings,market,space,actor,now,additionalActionIds});
 }

@@ -19,6 +19,7 @@ import {
   WsButton as Button,
   WsHeading,
 } from "./billing-ui";
+import { AirwallexInvoices } from "./airwallex-invoices";
 export type BillingAction = (action: string, value?: string) => void;
 export type BillingOrder = Order & {
   unitPrice?: number;
@@ -173,7 +174,7 @@ export function PersonalBilling({
             分钟转写与摘要时长。年付套餐按年支付，权益按月刷新。
           </p>
           <p>{cn ? "免费版" : "标准版"}每月包含 {marketConfig().benefits.standardMinutes} 分钟。</p>
-          {cn && <p>标准版每月 3,000 积分，专业版每月 5,000 积分，卓越版每月 10,000 积分。标准版与卓越版可在 App 内查看开通方式。</p>}
+          {cn && <p>标准版每月 3,000 Credits，专业版每月 5,000 Credits，卓越版每月 10,000 Credits。标准版与卓越版可在 App 内查看开通方式。</p>}
         </div>
         <div className="ps-plan-footer">
           <Button
@@ -205,10 +206,14 @@ export function TeamBilling({
   w,
   actor,
   act,
+  checkoutPending = false,
+  checkoutError = "",
 }: {
   w: Workspace;
   actor: string;
   act: BillingAction;
+  checkoutPending?: boolean;
+  checkoutError?: string;
 }) {
   const order = (w.seatOrders || []).find((o) =>
     ["pending", "failed"].includes(o.status),
@@ -273,7 +278,7 @@ export function TeamBilling({
           </div>
         </div>
       ) : null}
-      <div className="ws-billing-grid">
+      <div className="ws-billing-grid" style={{ gridTemplateColumns: "1fr" }}>
         <section className="ws-surface ws-plan-current">
           <div className="ws-section-head">
             <h2>Team Unlimited</h2>
@@ -305,7 +310,7 @@ export function TeamBilling({
             <Button
               action="add-seats"
               className="primary"
-              disabled={w.seats >= 50 || w.status !== "active"}
+              disabled={checkoutPending || w.seats >= 50 || w.status !== "active"}
               title={
                 w.seats >= 50
                   ? "已达50席位上限"
@@ -316,7 +321,7 @@ export function TeamBilling({
               onClick={() => act("add-seats")}
             >
               <RefIcon name="plus" className="ws-icon" />
-              增加席位
+              {checkoutPending ? "正在打开支付页面…" : "增加席位"}
             </Button>
             <Button action="seats" onClick={() => act("seats")}>
               管理席位
@@ -325,9 +330,10 @@ export function TeamBilling({
               切换{w.cycle === "year" ? "月付" : "年付"}
             </Button>
           </div>
+          {checkoutError && <p className="ws-form-error" role="alert">{checkoutError}</p>}
           {w.pendingCycle ? (
             <div className="ws-info">
-              下周期改为 {w.pendingCycle === "year" ? "年付" : "月付"}{" "}
+              自 {w.nextDate} 起改为{w.pendingCycle === "year" ? "年付" : "月付"}：{w.pendingSeats ?? w.seats} 席位 × {teamMoney(M.price(w.pendingCycle))} / 席位 / {w.pendingCycle === "year" ? "年" : "月"} = {teamMoney((w.pendingSeats ?? w.seats) * M.price(w.pendingCycle))} / {w.pendingCycle === "year" ? "年" : "月"}，税费另计。{" "}
               <Button
                 action="cancel-cycle"
                 className="link"
@@ -350,21 +356,6 @@ export function TeamBilling({
             </div>
           ) : null}
           <TeamTerm w={w} />
-        </section>
-        <section className="ws-surface ws-billing-details">
-          <h3>账单信息</h3>
-          <dl>
-            <dt>公司名称</dt>
-            <dd>{w.billing.company}</dd>
-            <dt>账单邮箱</dt>
-            <dd>{w.billing.email}</dd>
-            <dt>支付方式</dt>
-            <dd>{w.billing.method}</dd>
-          </dl>
-          <Button action="billing-info" onClick={() => act("billing-info")}>
-            编辑账单信息
-          </Button>
-          <div className="ws-plan-divider" />
           <div className="ws-actions">
             <Button
               action="renew"
@@ -395,7 +386,7 @@ export function TeamBilling({
 
         </section>
       </div>
-      <section className="ws-surface">
+      {routeMarket() === "global" ? <AirwallexInvoices workspaceId={w.id} revision={w.invoices.length} /> : <section className="ws-surface">
         <div className="ws-section-head">
           <h2>账单历史</h2>
         </div>
@@ -435,7 +426,7 @@ export function TeamBilling({
             </tbody>
           </table>
         </div>
-      </section>
+      </section>}
     </>
   );
 }
@@ -447,33 +438,18 @@ export function CreditOrderActions({
   act: BillingAction;
 }) {
   return o.status === "paid" ? (
-    <>
-      <Button
-        action="credit-checkout"
-        value={o.id}
-        className="link"
-        onClick={() => act("credit-checkout", o.id)}
-      >
-        查看结果
-      </Button>
-      <Button
-        action="invoice"
-        value={o.invoiceId}
-        className="link"
-        onClick={() => act("invoice", o.invoiceId)}
-      >
-        下载账单
-      </Button>
-    </>
+    routeMarket() === "global" ? <Button action="credit-airwallex-invoice" value={o.id} className="link" onClick={() => act("credit-airwallex-invoice", o.id)}>
+      查看 invoice
+    </Button> : <Button action="invoice" value={o.invoiceId} className="link" onClick={() => act("invoice", o.invoiceId)}>下载账单</Button>
   ) : o.status === "cancelled" ? (
     <span className="ws-muted">已关闭</span>
   ) : (
     <>
       <Button
-        action="credit-checkout"
+        action="credit-resume"
         value={o.id}
         className="link"
-        onClick={() => act("credit-checkout", o.id)}
+        onClick={() => act("credit-resume", o.id)}
       >
         {o.status === "failed" ? "重试支付" : "继续支付"}
       </Button>

@@ -1,3 +1,4 @@
+import type { AgentRun, TokenUsage, UsageReceipt } from "@/features/agent/usage";
 import type { ThoughtRecord } from "@/features/workbench/model/types";
 export type Cycle = "month" | "year";
 export interface Member {
@@ -55,7 +56,7 @@ export interface Thread {
   time: string;
   files: string[];
   parentThreadId?: string;
-  usage?: { inputTokens: number; outputTokens: number; cost: number };
+  usage?: { inputTokens: number; outputTokens: number; cost: number; status?: "settled" | "pending" | "insufficient" };
 }
 export interface AutomaticTask {
   id: string;
@@ -112,6 +113,7 @@ export interface DeviceThought extends ThoughtRecord {
   sharedAt?: string;
 }
 export interface Workspace {
+  agentRuns?: AgentRun[];
   meetingFeedback?: Record<string, import("@/features/meetings/types").MeetingFeedback>;
   rewards?: import("@/features/account/rewards").RewardState;
   thoughtSharing?: Record<string, Partial<Record<"inspiration" | "ledger" | "other", string[]>>>;
@@ -379,14 +381,16 @@ export interface WorkspaceAPI {
     fid?: string | null,
     actor?: string,
     historyId?: string | null,
-    options?: { fileIds?: string[]; web?: boolean; appData?: boolean },
-  ): { answer: string; cost: number; threadId: string };
+    options?: { fileIds?: string[]; web?: boolean; appData?: boolean; receipt?: UsageReceipt | null },
+  ): { answer: string; cost: number; threadId: string; usage?: UsageReceipt };
   acceptInvite(s: WorkspaceState, id: string): Workspace;
   accountTeams(s: WorkspaceState, actor?: string): Workspace[];
   reconcileEntitlements(s: WorkspaceState, now?: Date): void;
   assertEntitlement(w: Workspace, actor?: string): void;
-  simulatedTokenUsage(input: string, output: string): { inputTokens: number; outputTokens: number };
-  settleCredits(w: Workspace, runId: string, prompt: string, usage: { inputTokens: number; outputTokens: number }, actor?: string): { amount: number };
+  simulatedTokenUsage(input?: string, output?: string): UsageReceipt;
+  assertAgentAvailable(w: Workspace, actor?: string): void;
+  recordAgentUsage(w: Workspace, runId: string, prompt: string, receipt: UsageReceipt | null, actor?: string, scene?: string): AgentRun;
+  settleCredits(w: Workspace, runId: string, prompt: string, usage: TokenUsage, actor?: string): { amount: number };
   consumeMinutes(w: Workspace, runId: string, minutes: number, actor?: string): { id: string; workspaceId: string; user: string; minutes: number; time: string };
   accountTeam(s: WorkspaceState, actor?: string): Workspace | undefined;
   assertCanJoinTeam(s: WorkspaceState, actor?: string): void;

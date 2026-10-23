@@ -2,7 +2,8 @@
 import { reviewToolsEnabled } from "@/features/markets/review";
 import { productName } from "@/features/markets/brand";
 
-import { marketConfig } from "@/features/markets/config";
+import { marketConfig, routeMarket } from "@/features/markets/config";
+import { useAirwallexCheckout } from "./use-airwallex-checkout";
 import { marketStorage } from "@/features/markets/storage";
 
 import { Select } from "@/components/ui/select";
@@ -46,6 +47,8 @@ export function CreateTeamDialog({
   const accountId = controller.state!.account.id;
   const [setup, setSetup] = useState<Setup | null>(null);
   const [error, setError] = useState("");
+  const airwallex = useAirwallexCheckout();
+  const overseas = routeMarket() === "global";
   const [created, setCreated] = useState<Workspace | null>(null);
   const [invite, setInvite] = useState(false);
   const snapshot = useRef<string | null>(null);
@@ -250,7 +253,7 @@ export function CreateTeamDialog({
             </div>
             <div className="ws-price">
               {money(M.teamPricing[draft.cycle].monthly)}
-              <s>{money(M.teamPricing[draft.cycle].originalMonthly)}</s>
+              {M.teamPricing[draft.cycle].originalMonthly > M.teamPricing[draft.cycle].monthly && <s>{money(M.teamPricing[draft.cycle].originalMonthly)}</s>}
               <small>/ 席位 / 月</small>
             </div>
             <p>
@@ -258,7 +261,7 @@ export function CreateTeamDialog({
                 ? `按年计费，每席位 ${money(M.teamPricing.year.firstAmount)} · 税费另计`
                 : "按月计费 · 税费另计"}
             </p>
-            <p className="ws-price-offer">首次订阅 {Math.round(M.teamPricing[draft.cycle].firstAmount / M.teamPricing[draft.cycle].renewalAmount * 100) / 10} 折{draft.cycle === "year" && <span>年付比月付节省 {Math.round((1 - M.price("year") / (M.price("month") * 12)) * 100)}%</span>}</p>
+            <p className="ws-price-offer">{M.teamPricing[draft.cycle].firstAmount < M.teamPricing[draft.cycle].renewalAmount && <>首次订阅 {Math.round(M.teamPricing[draft.cycle].firstAmount / M.teamPricing[draft.cycle].renewalAmount * 100) / 10} 折</>}{draft.cycle === "year" && <span>年付比月付节省 {Math.round((1 - M.price("year") / (M.price("month") * 12)) * 100)}%</span>}</p>
             <p className="ws-muted">首期后按 {money(M.price(draft.cycle))} / 席位 / {draft.cycle === "year" ? "年" : "月"}续费</p>
             <Button
               action="setup"
@@ -283,6 +286,7 @@ export function CreateTeamDialog({
       <Dialog
         key="setup"
         title="创建团队工作空间"
+        wide
         form="setup"
         onClose={onClose}
         error={error}
@@ -341,7 +345,7 @@ export function CreateTeamDialog({
             ))}
           </Select>
         </label>
-        <div className="ws-two-fields">
+        <div className="ws-team-setup-fields">
           <label className="ws-field">
             席位数量
             <input
@@ -357,8 +361,8 @@ export function CreateTeamDialog({
           <label className="ws-field">
             计费周期
             <Select name="cycle" defaultValue={draft.cycle}>
-              <option value="year">年付 · {money(M.teamPricing.year.monthly)} / 席位 / 月（首年 {money(M.teamPricing.year.firstAmount)}）</option>
-              <option value="month">月付 · {money(M.teamPricing.month.monthly)} / 席位 / 月（首月优惠）</option>
+              <option value="year">年付 · {money(M.teamPricing.year.firstAmount)} / 席位 / 年</option>
+              <option value="month">月付 · {money(M.teamPricing.month.firstAmount)} / 席位 / 月</option>
             </Select>
           </label>
         </div>
@@ -371,12 +375,13 @@ export function CreateTeamDialog({
     <Dialog
       key="checkout"
       title="确认团队订单"
-      onClose={onClose}
-      error={error}
+      onClose={() => { if (!airwallex.pending) onClose(); }}
+      error={error || airwallex.error}
       footer={
         <>
           <Button
             action="cancel-setup"
+            disabled={airwallex.pending}
             onClick={() =>
               act(() => {
                 clear();
@@ -388,6 +393,7 @@ export function CreateTeamDialog({
           </Button>
           <Button
             action="setup"
+            disabled={airwallex.pending}
             onClick={() => {
               setError("");
               setSetup({ ...draft, step: 1 });
@@ -395,7 +401,7 @@ export function CreateTeamDialog({
           >
             上一步
           </Button>
-          {reviewToolsEnabled() && (<Button
+          {!overseas && reviewToolsEnabled() && (<Button
             action="payment-fail"
             onClick={() => setError("支付失败，未创建空间或扣款。请重试。")}
           >
@@ -404,8 +410,12 @@ export function CreateTeamDialog({
           <Button
             action="payment"
             className="primary"
+            disabled={airwallex.pending}
             onClick={() =>
               act(() => {
+                fresh();
+                M.assertCanJoinTeam(controller.state!);
+                const complete = () => {
                 fresh();
                 const team = controller.change((s) => M.create(s, draft));
                 try {
@@ -414,10 +424,19 @@ export function CreateTeamDialog({
                   /* Fulfilled order id prevents duplicate creation on recovery. */
                 }
                 setCreated(team);
+                };
+                if (overseas) {
+                  const prospective = { ...M.get(controller.state!), id: `team-${draft.orderId}`, type: "team" as const };
+                  void airwallex.begin(prospective, M.SELF, {
+                    id: draft.orderId, status: "pending", created: "", cycle: draft.cycle,
+                    added: draft.seats, amount: draft.seats * M.teamPricing[draft.cycle].firstAmount,
+                    currency: marketConfig().team.month.currency,
+                  }, complete, "team");
+                } else complete();
               })
             }
           >
-            支付并开通
+            {airwallex.pending ? "等待支付结果" : overseas ? "前往支付" : "支付并开通"}
           </Button>
         </>
       }
@@ -442,16 +461,16 @@ export function CreateTeamDialog({
           </span>
           <strong>{money(draft.seats * M.price(draft.cycle))}</strong>
         </div>
-        <div className="ws-price-discount">
-          <span>首次优惠 · 每席位享 8 折</span>
+        {M.teamPricing[draft.cycle].firstAmount < M.price(draft.cycle) && <div className="ws-price-discount">
+          <span>首次优惠 · 每席位享 {Math.round(M.teamPricing[draft.cycle].firstAmount / M.price(draft.cycle) * 100) / 10} 折</span>
           <strong>−{money(draft.seats * (M.price(draft.cycle) - M.teamPricing[draft.cycle].firstAmount))}</strong>
-        </div>
+        </div>}
         <div>
           <span>本次支付</span>
           <strong>{money(draft.seats * M.teamPricing[draft.cycle].firstAmount)}</strong>
         </div>
       </div>
-      <p className="ws-muted">税费另计。首次优惠仅用于开通首期；之后按 {money(draft.seats * M.price(draft.cycle))} / {draft.cycle === "year" ? "年" : "月"}续费。</p>
+      <p className="ws-muted">税费另计。{M.teamPricing[draft.cycle].firstAmount < M.price(draft.cycle) ? "首次优惠仅用于开通首期；之后按" : "按"} {money(draft.seats * M.price(draft.cycle))} / {draft.cycle === "year" ? "年" : "月"}续费。</p>
 
     </Dialog>
   );

@@ -1,5 +1,5 @@
 "use client";
-import { creditText, marketConfig, formatMarketMoney, personalPlanName } from "@/features/markets/config";
+import { creditText, marketConfig, formatMarketMoney, personalPlanName, routeMarket } from "@/features/markets/config";
 
 import { marketStorage } from "@/features/markets/storage";
 
@@ -11,6 +11,8 @@ import { payTimeOrder, cancelTimeOrder } from "@/features/spaces/model/time-pack
 import PS from "@/features/spaces/model/subscription";
 import type { SpacesController } from "@/features/spaces/use-spaces";
 import { CheckoutDialog } from "@/features/spaces/billing-checkout";
+import { useAirwallexCheckout, usesAirwallexCheckout } from "@/features/spaces/use-airwallex-checkout";
+import { openAirwallexInvoice } from "@/features/spaces/open-airwallex-invoice";
 import { downloadText } from "@/features/spaces/billing-ui";
 import { ReferenceDialog } from "@/features/reference/dialog";
 import { AccountTabs, AccountStatus } from "./ui";
@@ -25,6 +27,7 @@ export function OrdersPanel({controller, space, actor, resumeCredit}: {
   const [invoice, setInvoice] = useState(false), [cancel, setCancel] = useState<AccountOrder | null>(null);
   const [checkout, setCheckout] = useState(""), [method, setMethod] = useState(marketConfig().payments.subscription[0]);
   const [message, setMessage] = useState(""), [error, setError] = useState("");
+  const airwallex = useAirwallexCheckout();
   const w = M.get(controller.state!, space);
   const allowed = !!M.member(w, actor) && (w.type === "personal" || M.admin(w, actor));
   const orders = allowed ? accountOrders(w, actor) : [];
@@ -41,9 +44,35 @@ export function OrdersPanel({controller, space, actor, resumeCredit}: {
   function pay(outcome: "success" | "failure") {
     run(() => controller.change(st => { const current=M.get(st,space); assertOrderAccess(current,actor); PS.pay(current,checkout,outcome,method); }));
   }
+  function resume(o: AccountOrder) {
+    run(() => {
+      if (o.kind === "time") { setCheckout(o.id); return; }
+      if (!usesAirwallexCheckout()) {
+        if (o.kind === "credit") { resumeCredit(o.id); return; }
+        setCheckout(o.id);
+        return;
+      }
+      void airwallex.begin(w, actor, o, () => {
+        controller.change(st => {
+          const current = M.get(st, space);
+          assertOrderAccess(current, actor);
+          if (o.kind === "credit") M.payCreditOrder(current, o.id, "success", actor);
+          else PS.pay(current, o.id, "success", "Airwallex");
+        });
+        setMessage(o.kind === "credit" ? "Credits 已到账" : "个人订阅已生效");
+      }, o.kind === "credit" ? "credits" : "personal");
+    });
+  }
+  function viewInvoice(o: AccountOrder) {
+    run(() => {
+      if (routeMarket() !== "global" || o.kind === "time") { receipt(o); return; }
+      if (!usesAirwallexCheckout()) throw Error("当前环境暂不支持查看 Airwallex invoice");
+      void openAirwallexInvoice(space, actor, o.id).catch(cause => setError((cause as Error).message));
+    });
+  }
   if (!allowed) return <div className="ex-empty">账单由团队管理员管理<span>请联系管理员查看和处理团队订单。</span></div>;
   return <>
-    {!personal && !time && !cancel && <AccountStatus message={error || message} error={!!error}/>}
+    {!personal && !time && !cancel && <AccountStatus message={error || airwallex.error || message} error={!!(error || airwallex.error)}/>}
     <div className="ex-order-scope">{w.name} · {w.type === "personal" ? creditText("个人订阅与 Credits 充值统一记账") : creditText("团队 Credits 充值")}</div>
     <div className="ex-order-tools">
       <AccountTabs items={filters} value={filter} onChange={setFilter} label="订单状态" panelId="account-orders"/>
@@ -71,8 +100,8 @@ export function OrdersPanel({controller, space, actor, resumeCredit}: {
         <header><strong>{o.kind==='personal'?`${o.planName || personalPlanName()} 个人订阅 · ${o.cycle==='year'?'年付':'月付'}`:o.kind==='time'?`${o.minutes} 分钟加时包`:creditText(`${o.credits?.toLocaleString()} Credits`)}</strong><span className={`ex-order-state ${o.status}`}>{statuses[o.status]}</span></header>
         <div className="ex-order-meta"><span>订单 {o.id}<small>{o.created.replace('T',' ').slice(0,16)}</small></span><strong>{formatMarketMoney(o.amount, o.currency)} <small>{o.currency || 'USD'}</small></strong></div>
         <footer className="ex-order-actions">
-          {o.status==='paid' && <button className="ex-link" onClick={()=>receipt(o)}>下载账单</button>}
-          {['pending','failed'].includes(o.status) && <><button className="ex-link" onClick={()=>run(()=>{ if(o.kind==='credit')resumeCredit(o.id);else setCheckout(o.id); })}>继续支付</button><button className="ex-link" onClick={()=>{setError('');setCancel(o)}}>取消订单</button></>}
+          {o.status==='paid' && <button className="ex-link" onClick={()=>viewInvoice(o)}>{routeMarket() === "global" && o.kind !== "time" ? "查看 invoice" : "下载账单"}</button>}
+          {['pending','failed'].includes(o.status) && <><button className="ex-link" disabled={airwallex.pending} onClick={()=>resume(o)}>继续支付</button><button className="ex-link" disabled={airwallex.pending} onClick={()=>{setError('');setCancel(o)}}>取消订单</button></>}
           {o.status==='cancelled' && <small className="ex-muted">已关闭 · 未扣款，未发放权益</small>}
         </footer>
       </article>)}

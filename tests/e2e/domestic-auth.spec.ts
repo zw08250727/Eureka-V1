@@ -158,17 +158,31 @@ for (const width of [390, 768, 1440]) test(`enterprise forms and workbench fit $
   expect(errors).toEqual([]);
 });
 
-for (const market of ["cn", "global"]) test(`${market} business surfaces do not include prototype prose or review controls`, async ({page}) => {
+for (const market of ["cn", "global"]) test(`${market} ordinary workbench links show review entry with preview actions closed`, async ({page}) => {
   await page.goto(`/${market}/`);
   await page.evaluate(m => localStorage.setItem(`eureka:market:${m}:eureka:auth:v1`, JSON.stringify({market:m, realm:`eureka-${m}`, identity:"member@example.com"})), market);
   for (const view of ["home", "connectors", "subscription", "credits", "calendar", "settings", "contacts"]) {
     await page.goto(`/${market}/workbench/?view=${view}`);
     await expect(page.locator(".app")).toBeVisible();
     await expect(page.locator("body")).not.toContainText(forbidden);
-    await expect(page.getByRole("button", {name:/模拟支付失败|模拟授权失败|模拟到期|评审工具/})).toHaveCount(0);
+    if (view === "connectors") await expect(page.getByRole("button", {name:"评审工具",exact:true})).toHaveCount(0);
+    else await expect(page.getByRole("button", {name:"评审工具",exact:true})).toBeVisible();
+    await expect(page.getByRole("dialog", {name:"评审工具",exact:true})).toHaveCount(0);
+    await expect(page.getByRole("button", {name:/模拟支付失败|模拟授权失败|模拟到期/})).toHaveCount(0);
   }
   await page.goto(`/${market}/workbench/?view=subscription`);
   await page.getByRole("button", {name:market === "cn" ? "立即升级 专业版" : "立即升级 Pro",exact:true}).click();
   await expect(page.getByRole("dialog")).not.toContainText(forbidden);
   await expect(page.getByRole("button", {name:"模拟支付失败"})).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  for (const space of ["personal", "team-eureka"]) {
+    await page.goto(`/${market}/workbench/?space=${space}`);
+    const entry = page.getByRole("button", {name:"评审工具",exact:true});
+    await entry.click();
+    await expect(page.getByRole("dialog", {name:"评审工具",exact:true})).toBeVisible();
+    await expect(page.getByLabel("计费预演场景")).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(entry).toBeFocused();
+    await expect(page.getByTestId("simulation-assistant")).toHaveCount(0);
+  }
 });

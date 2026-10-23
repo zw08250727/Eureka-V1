@@ -1,5 +1,7 @@
 "use client";
 
+import { useAgentCreditSimulation, AgentSimulationMessages, AgentSendButton } from "@/features/agent/credit-preview";
+import { AgentCredits } from "@/features/agent/credits";
 import { marketStorage } from "@/features/markets/storage";
 
 import { Select } from "@/components/ui/select";
@@ -100,6 +102,7 @@ export function RecordingPage({
     inputRef = useRef<HTMLTextAreaElement>(null),
     log = useRef<HTMLDivElement>(null);
   const w = M.get(controller.state!, space);
+  const simulation = useAgentCreditSimulation(open);
   useEffect(() => {
     if (paused || saved || (w.type === "team" && w.status !== "active")) return;
     const timer = setInterval(() => setSeconds((s) => s + 1), 1000);
@@ -135,16 +138,19 @@ export function RecordingPage({
   }, [toast]);
   function send() {
     if (!input.trim()) return;
+    const simulated = simulation.send(input.trim());
+    if (simulated) { if (simulated === "sent") setInput(""); return; }
     const prompt = input.trim();
     const answer =
       "基于当前转写：讨论涉及录音授权说明、采集范围及录制中提问。请回到原文确认具体行动与责任人。";
     try {
+      agent.ensureAvailable();
       if (w.type === "team") {
         const nextId = crypto.randomUUID();
         controller.change((s) => {
           const target = M.get(s, space);
-          M.assertEntitlement(target, actor);
-          M.settleCredits(target, nextId, prompt, M.simulatedTokenUsage(prompt, answer), actor);
+          M.assertAgentAvailable(target, actor);
+          M.recordAgentUsage(target, nextId, prompt, { ...M.simulatedTokenUsage(), runId: nextId }, actor, "recording");
           if (!M.member(target, actor)) throw Error("没有访问此工作空间的权限");
           target.threads.push({
             ...agentRoute("recording"),
@@ -524,6 +530,7 @@ export function RecordingPage({
                   aria-label="新建会话"
                   title="新建会话"
                   onClick={() => {
+                    simulation.reset();
                     agent.reset();
                     lastThread.current = undefined;
                     setNewTask(true);
@@ -553,7 +560,7 @@ export function RecordingPage({
                     <span>{m.text}</span>
                   </div>
                 ))
-              ) : newTask ? (
+              ) : simulation.hasMessages ? null : newTask ? (
                 <div className="recording-assistant-empty">
                   <h3>开始新的会话</h3>
                   <p>继续围绕当前转写提问。</p>
@@ -587,6 +594,8 @@ export function RecordingPage({
                   </div>
                 </div>
               )}
+              <AgentSimulationMessages kind="recording" />
+              {open && <AgentCredits />}
             </div>
             <div className="recording-assistant-composer">
               <textarea
@@ -624,15 +633,7 @@ export function RecordingPage({
                     知识库
                   </button>
                 </div>
-                <button
-                  className="recording-assistant-send"
-                  id="recording-assistant-send"
-                  disabled={!input.trim()}
-                  aria-label="发送给小智"
-                  onClick={send}
-                >
-                  <RefIcon name="send" />
-                </button>
+                <AgentSendButton className="recording-assistant-send" id="recording-assistant-send" label="发送给小智" disabled={!input.trim()} onSend={() => { void send(); }}><RefIcon name="send" /></AgentSendButton>
               </div>
             </div>
           </div>

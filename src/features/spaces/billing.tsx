@@ -5,7 +5,7 @@ import { productName } from "@/features/markets/brand";
 
 import { marketConfig } from "@/features/markets/config";
 import { Select } from "@/components/ui/select";
-import { useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { M } from "./model/store";
 import PS from "./model/subscription";
 import type { Cycle, Workspace } from "./model/types";
@@ -33,13 +33,15 @@ import { DomesticMembership } from "./domestic-membership";
 import { TimeCheckout } from "./time-checkout";
 import { createTimeOrder, payTimeOrder, cancelTimeOrder } from "./model/time-packs";
 import { CheckoutDialog, type OrderKind } from "./billing-checkout";
+import { useAirwallexCheckout, usesAirwallexCheckout } from "./use-airwallex-checkout";
+import { openAirwallexInvoice } from "./open-airwallex-invoice";
 type Dialog =
   | { type: "checkout"; kind: OrderKind; id: string }
   | { type: "time"; id: string }
   | { type: "seats"; increaseOnly: boolean }
   | { type: "pack" }
   | { type: "billing" }
-  | { type: "confirm"; title: string; copy: string; run: () => void }
+  | { type: "confirm"; title: string; copy: ReactNode; run: () => void }
   | null;
 export function BillingPage({
   controller,
@@ -52,17 +54,23 @@ export function BillingPage({
   actor: string;
   credits?: boolean;
 }) {
+  const w = M.get(controller.state!, space), personal = w.type === "personal";
+  const autoSeats = typeof location !== "undefined" && new URLSearchParams(location.search).get("addSeats") === "1" && !personal && M.admin(w, actor);
   const [cycle, setCycle] = useState<Cycle>("year"),
-    [modal, setModal] = useState<Dialog>(null),
-    [count, setCount] = useState(""),
+    [modal, setModal] = useState<Dialog>(autoSeats ? { type: "seats", increaseOnly: true } : null),
+    [count, setCount] = useState(autoSeats ? String(w.seats + 1) : ""),
     [pack, setPack] = useState(M.CREDIT_PACKS[0].id),
     [method, setMethod] = useState(marketConfig().payments.subscription[0]),
     [error, setError] = useState(""),
     [toast, setToast] = useState("");
-  const w = M.get(controller.state!, space),
-    personal = w.type === "personal";
+  const airwallex = useAirwallexCheckout();
   const mutate = <T,>(fn: (current: Workspace) => T) =>
     controller.change((s) => fn(M.get(s, space)));
+  useEffect(() => {
+    if (new URLSearchParams(location.search).get("addSeats") === "1" && w.type === "team" && M.admin(w, actor)) {
+      const url = new URL(location.href); url.searchParams.delete("addSeats"); history.replaceState(null, "", url);
+    }
+  }, [w, actor]);
   const close = () => {
     setModal(null);
     setError("");
@@ -77,7 +85,7 @@ export function BillingPage({
       if (!modal) setToast(message);
     }
   }
-  function confirm(title: string, copy: string, run: () => void) {
+  function confirm(title: string, copy: ReactNode, run: () => void) {
     setModal({ type: "confirm", title, copy, run });
   }
   function checkout(kind: OrderKind, id: string) {
@@ -111,6 +119,25 @@ export function BillingPage({
   }
   function act(action: string, value = "") {
     guard(() => {
+      if (action === "credit-resume") {
+        M.govern(w, actor);
+        const creditOrder = w.creditOrders?.find(o => o.id === value);
+        if (!creditOrder || !["pending", "failed"].includes(creditOrder.status)) throw Error("订单已无法继续支付");
+        if (usesAirwallexCheckout()) {
+          void airwallex.begin(w, actor, creditOrder, () => {
+            mutate(current => M.payCreditOrder(current, value, "success", actor));
+            setModal({ type: "checkout", kind: "credit", id: value });
+          }, "credits");
+        } else checkout("credit", value);
+        return;
+      }
+      if (action === "credit-airwallex-invoice") {
+        M.govern(w, actor);
+        if (!w.creditOrders?.some(o => o.id === value && o.status === "paid")) throw Error("已支付订单不存在");
+        if (!usesAirwallexCheckout()) throw Error("该订单暂无可查看的 Airwallex invoice");
+        void openAirwallexInvoice(w.id, actor, value).catch(error => setToast((error as Error).message));
+        return;
+      }
       if (action === "personal-cycle") {
         setCycle(value as Cycle);
         return;
@@ -212,7 +239,21 @@ export function BillingPage({
       if (action === "cycle") {
         confirm(
           "切换计费周期？",
-          `改为${w.cycle === "year" ? "月付" : "年付"}后，下一周期费用为 ${teamMoney((w.pendingSeats ?? w.seats) * M.price(w.cycle === "year" ? "month" : "year"))}。`,
+          <>
+            <div className="ws-table-scroll">
+              <table className="ws-table" aria-label="切换计费周期明细">
+                <thead><tr><th scope="col">项目</th><th scope="col">切换后</th></tr></thead>
+                <tbody>
+                  <tr><th scope="row">计费周期</th><td>{w.cycle === "year" ? "月付" : "年付"}</td></tr>
+                  <tr><th scope="row">席位数量</th><td>{w.pendingSeats ?? w.seats} 席位</td></tr>
+                  <tr><th scope="row">每席单价</th><td>{teamMoney(M.price(w.cycle === "year" ? "month" : "year"))} / {w.cycle === "year" ? "月" : "年"}</td></tr>
+                  <tr><th scope="row">下期费用</th><td>{w.pendingSeats ?? w.seats} × {teamMoney(M.price(w.cycle === "year" ? "month" : "year"))} = <strong>{teamMoney((w.pendingSeats ?? w.seats) * M.price(w.cycle === "year" ? "month" : "year"))} / {w.cycle === "year" ? "月" : "年"}</strong></td></tr>
+                  <tr><th scope="row">生效日期</th><td>{w.nextDate}</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p className="ws-muted">税费另计。当前账期保持不变，新计费周期从上述日期开始。</p>
+          </>,
           () => {
             mutate((current) => {
               M.govern(current, actor);
@@ -362,9 +403,9 @@ export function BillingPage({
             </Button>
           </div>
         ) : credits ? (
-          <CreditsBilling w={w} actor={actor} act={act} />
+          <><CreditsBilling w={w} actor={actor} act={act} />{airwallex.error && <p role="alert" className="ws-form-error">{airwallex.error}</p>}</>
         ) : (
-          <TeamBilling w={w} actor={actor} act={act} />
+          <TeamBilling w={w} actor={actor} act={act} checkoutPending={airwallex.pending} checkoutError={airwallex.error} />
         )}
       </WsRoot>
       {modal?.type === "time" && w.timeOrders?.find(o => o.id === modal.id) && <TimeCheckout order={w.timeOrders.find(o => o.id === modal.id)!} error={error} method={method} setMethod={setMethod} onClose={close} onPay={() => guard(() => { mutate(current => payTimeOrder(current, modal.id, "success", method)); })} onCancel={() => guard(() => { mutate(current => cancelTimeOrder(current, modal.id)); close(); })} onReceipt={() => guard(() => { const receipt = orderReceipt(w, actor, "time", modal.id); downloadText(receipt.filename, receipt.text); })}/>}
@@ -376,13 +417,28 @@ export function BillingPage({
           kind={modal.kind}
           order={order}
           act={act}
-          error={error}
+          error={error || (modal.kind !== "credit" ? airwallex.error : "")}
+          sandbox={modal.kind !== "credit" && usesAirwallexCheckout()}
+          pending={airwallex.pending}
           method={method}
           setMethod={setMethod}
-          onClose={close}
+          onClose={() => { if (!airwallex.pending) close(); }}
           onSubmit={(e) => {
             e.preventDefault();
-            guard(() => pay("success", modal.kind, modal.id));
+            if (modal.kind === "personal" && usesAirwallexCheckout()) {
+              void airwallex.begin(w, actor, order, () => {
+                mutate(current => PS.pay(current, modal.id, "success", "Airwallex"));
+              }, "personal");
+            } else if (modal.kind === "seat" && usesAirwallexCheckout()) {
+              void airwallex.begin(w, actor, order, () => {
+                mutate(current => {
+                  const paid = M.paySeatOrder(current, modal.id, "success", actor);
+                  const invoice = current.invoices.find(item => item.id === paid.invoiceId);
+                  if (invoice) invoice.label = `沙盒加席演示 · ${paid.added} 席位（原型参考价）`;
+                });
+                setModal({ type: "checkout", kind: "seat", id: modal.id });
+              });
+            } else guard(() => pay("success", modal.kind, modal.id));
           }}
         />
       ) : null}
@@ -404,7 +460,7 @@ export function BillingPage({
             </>
           }
         >
-          <p>{modal.copy}</p>
+          {typeof modal.copy === "string" ? <p>{modal.copy}</p> : modal.copy}
         </WsDialog>
       ) : null}
       {modal?.type === "seats" ? (

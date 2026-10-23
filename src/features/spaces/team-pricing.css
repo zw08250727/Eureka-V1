@@ -4,6 +4,9 @@
 .ws-price-offer span { padding: 3px 7px; border-radius: 6px; background: #e9f4ec; color: #247144; }
 .ws-order .ws-price-discount { color: #7560bb; }
 
+#ws-dialog.ws-dialog-wide:has(.ws-team-setup-fields) { width:min(720px, calc(100vw - 32px)); max-width:calc(100vw - 32px); }
+.ws-team-setup-fields { display:grid; grid-template-columns:1fr; gap:16px; }
+
 /* UI-TEAM-DIALOG-01: the two-column introduction must not inherit form width. */
 #ws-dialog.ws-dialog-wide:has(.ws-plan-intro) {
   width: min(980px, calc(100vw - 48px));

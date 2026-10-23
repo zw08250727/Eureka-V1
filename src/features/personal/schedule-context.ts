@@ -37,7 +37,7 @@ export function scheduleEntities(record: ActionRecord, contacts: Contact[]) {
 }
 export function buildScheduleContext(input: {
   record: ActionRecord; actions: ActionRecord[]; thoughts: ThoughtRecord[]; contacts: Contact[]; meetings: ScheduleMeeting[];
-  space: string; actor: string; market: Market; now?: Date;
+  space: string; actor: string; market: Market; now?: Date; additionalActionIds?:string[];
 }): ScheduleContext {
   const { record, space, actor } = input;
   const phase = schedulePhase(record, input.now);
@@ -46,6 +46,7 @@ export function buildScheduleContext(input: {
   const linkedMeetings = new Set([...record.links, ...input.contacts
     .filter(c => c.id === record.contactId || matches(`${c.name} ${c.company}`))
     .flatMap(c => (c.interactions || []).filter(i => i.verifiedParticipation && i.sourceAvailable).map(i => i.id))]);
+  const additionalActionIds = new Set(input.additionalActionIds || []);
   const excerpt = (text: string) => {
     const at = entities.map(e => text.indexOf(e)).find(i => i >= 0) || 0;
     const start = Math.max(0, at - 60);
@@ -54,7 +55,7 @@ export function buildScheduleContext(input: {
   const assets: ScheduleAsset[] = [];
   for (const m of input.meetings) if (!m.deleted && (linkedMeetings.has(m.id) || matches(`${m.title} ${m.summary} ${m.transcript}`)))
     assets.push({ id:m.id,kind:"会议",title:m.title,at:m.created,text:excerpt(m.summary || m.transcript),url:appUrl("meeting",m.id,space,actor) });
-  for (const r of input.actions) if (!r.deleted && r.id !== record.id && (matches(`${r.title} ${r.notes} ${r.participants} ${r.location} ${r.capture || ""}`) || !!record.contactId && r.contactId === record.contactId))
+  for (const r of input.actions) if (!r.deleted && r.id !== record.id && (additionalActionIds.has(r.id) || matches(`${r.title} ${r.notes} ${r.participants} ${r.location} ${r.capture || ""}`) || !!record.contactId && r.contactId === record.contactId))
     assets.push({id:r.id,kind:r.type === "schedule" ? "日程" : "待办",title:r.title,at:r.start || r.created,text:excerpt([r.type === "todo" ? r.done ? "已完成" : "未完成" : "",r.status === "canceled" ? "已取消" : "",r.notes,r.capture].filter(Boolean).join(" · ")),url:appUrl("calendar",r.id,space,actor)});
   for (const r of input.thoughts) if (!r.deleted && matches(`${r.title} ${r.detail} ${r.capture || ""}`))
     assets.push({id:r.id,kind:{inspiration:"灵感",ledger:"记账",other:"其他"}[r.type] as ScheduleAsset["kind"],title:r.title,at:`${r.date} ${r.time}`,text:excerpt(r.detail || r.capture || ""),url:appUrl("thoughts",r.id,space,actor)});

@@ -1,5 +1,26 @@
 import { expect, test } from "@playwright/test";
 
+test("enterprise connectors keep a separate catalog and authorization state", async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem("eureka:market:cn:enterprise:auth:v1", JSON.stringify({ realm: "baizhi-enterprise:bairong", code: "bairong", identity: "lin@bairong.example", name: "林晓" }));
+  });
+  await page.goto("/cn/enterprise/");
+  await page.getByRole("navigation", { name: "企业导航" }).getByRole("button", { name: "连接器" }).click();
+  await expect(page.locator(".connector-card.is-system")).toHaveCount(3);
+  await expect(page.locator(".connectors-page .connector-search")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "查看 钉钉" })).toHaveAttribute("data-connected", "true");
+  await page.getByRole("button", { name: "查看 飞书" }).click();
+  await expect(page.getByRole("dialog")).toContainText("快速查看已连接数据");
+  await page.getByRole("button", { name: "关闭对话框" }).click();
+  await page.getByRole("button", { name: "新增连接器" }).click();
+  await page.getByPlaceholder("请输入连接器名称").fill("企业 MCP");
+  await page.getByLabel("服务地址").fill("https://example.com/mcp");
+  await page.getByRole("button", { name: "确定" }).click();
+  await expect(page.getByRole("button", { name: "查看 企业 MCP" })).toBeVisible();
+  await expect.poll(() => page.evaluate(() => !!localStorage.getItem("eureka:market:cn:enterprise:bairong:lin@bairong.example:connectors:v1"))).toBe(true);
+  expect(await page.evaluate(() => Object.keys(localStorage).some(key => key.includes("connectors:native")))).toBe(false);
+});
+
 test("enterprise card navigates to its guest workbench and back returns to edition selection", async ({ page }) => {
   await page.goto("/cn/");
   await page.getByRole("button", { name: "登录 / 注册", exact: true }).last().click();

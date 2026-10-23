@@ -1,10 +1,16 @@
+import { mockUsageReceipt } from "@/features/agent/usage";
+import { createDemoScript, playDemo } from "@/features/agent/demo-stream";
 import type { AgentGateway } from "./types";
 /** Replace this adapter with the agreed Agentplatform API; never call a model directly from UI. */
 export const mockAgent: AgentGateway = {
   async send(prompt, context, options, signal) {
     signal.throwIfAborted();
+    const usage = mockUsageReceipt(options.runId || crypto.randomUUID());
+    const script = createDemoScript(prompt);
+    if (!context.widget) await playDemo(script, signal, options.onProgress);
     return !!context.widget
       ? {
+          usage,
           title:
             context.widget === "thoughts"
               ? "回顾当前闪念"
@@ -18,8 +24,9 @@ export const mockAgent: AgentGateway = {
             ) || context.lines,
         }
       : {
+          usage,
           title: "Ask Agent",
-          text: `已收到你的问题：${prompt}。可以继续补充背景，或引用资料展开讨论。`,
+          text: script.answer,
           items: [
 
             options.audio ? "已引用当前会议列表。" : "",

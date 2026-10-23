@@ -312,7 +312,7 @@ export function MeetingContent({
             <div>
               <h3>
                 欢迎评价本次结果，下次更懂你{" "}
-                <span className="md-reward">✦ 奖励500积分</span>
+                <span className="md-reward">✦ 奖励500Credits</span>
               </h3>
 
             </div>

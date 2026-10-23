@@ -9,6 +9,8 @@ import { ReferenceDialog } from "@/features/reference/dialog";
 import type { SpacesController } from "@/features/spaces/use-spaces";
 import updates from "./updates.json";
 import { ConnectorsPage } from "@/features/connectors/page";
+import { ConnectionsPage } from "@/features/connectors/connections-page";
+import { routeMarket } from "@/features/markets/config";
 export function CompanionPage({
   view,
   space,
@@ -24,7 +26,9 @@ export function CompanionPage({
     [version, setVersion] = useState("全部版本"),
     [gallery, setGallery] = useState<string[]>([]),
     [index, setIndex] = useState(0);
-  if (view === "connectors") return <ConnectorsPage key={`${space}:${actor}`} space={space} actor={actor} controller={controller} />;
+  if (view === "connectors") return routeMarket() === "global"
+    ? <ConnectionsPage key={`${space}:${actor}`} space={space} actor={actor} controller={controller} />
+    : <ConnectorsPage key={`${space}:${actor}`} space={space} actor={actor} controller={controller} />;
   if (view === "product")
     return (
       <section className="ex-product">

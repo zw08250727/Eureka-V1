@@ -20,7 +20,7 @@ for (const market of ["cn", "global"]) {
     await expect(page.locator(".today-workbench, .guest-points-guide")).toHaveCount(0);
     await expect(page.locator(".guest-meeting-empty")).toHaveCount(1);
     await expect(page.getByRole("button", { name: "个人工作空间", exact: true })).toBeVisible();
-    const names = ["个人工作空间", "开始录音", "通讯录", "日程与待办", "连接器", "上传", "Ask Agent", "我的闪念", "搜索会议", "登录后查看", "登录 / 注册"];
+    const names = ["个人工作空间", "开始录音", "通讯录", "日程与待办", market === "cn" ? "连接器" : "AI Connections", "上传", "Ask Agent", "我的闪念", "搜索会议", "登录后查看", "登录 / 注册"];
     for (const name of names) {
       const trigger = page.getByRole("button", { name, exact: true }).first();
       await trigger.click();
@@ -59,8 +59,9 @@ for (const market of ["cn", "global"]) {
     await page.reload();
     await expect(page.locator(".guest-app")).toBeVisible();
     await expect(page.locator(".auth-overlay")).toHaveCount(0);
-    await page.getByRole("button", { name: "连接器", exact: true }).click();
+    await page.getByRole("button", { name: market === "cn" ? "连接器" : "AI Connections", exact: true }).click();
     await signIn(page, market);
+    if (market === "global") await page.getByRole("tab", { name: "接入其他应用", exact: true }).click();
     await expect(page.locator(".connector-card").first()).toBeVisible();
     await page.goto(`/${market}/`);
     await expect(page.locator(".app:not(.guest-app)")).toBeVisible();

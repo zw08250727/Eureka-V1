@@ -762,7 +762,7 @@ export function CalendarPage({
           }
           selected={record}
           assist={assist}
-          onLoadAssist={assist ? () => readScheduleContext(marketStorage, marketConfig().id as "cn" | "global", space, actor, assist.record.id) : undefined}
+          onLoadAssist={assist ? (assetIds) => readScheduleContext(marketStorage, marketConfig().id as "cn" | "global", space, actor, assist.record.id, new Date(), assetIds) : undefined}
           session={data.actions.sessions.find((s) => s.id === agentSession)}
           repo={repo.current!.actions}
           onRefresh={refresh}

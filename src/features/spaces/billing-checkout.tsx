@@ -28,7 +28,11 @@ export function CheckoutDialog({
   setMethod,
   onSubmit,
   onClose,
+  sandbox = false,
+  pending = false,
 }: {
+  sandbox?: boolean;
+  pending?: boolean;
   w: Workspace;
   email: string;
   kind: OrderKind;
@@ -92,7 +96,7 @@ export function CheckoutDialog({
           <h3>支付成功</h3>
           <strong>+{creditNumber(o.credits)}{creditText(" Credits")}</strong>
           <p>已加入「{w.name}」共享池</p>
-          {o.creditsExpireAt && <p>积分有效期至 {date(o.creditsExpireAt)}</p>}
+          {o.creditsExpireAt && <p>Credits有效期至 {date(o.creditsExpireAt)}</p>}
           <p>当前可用 {creditNumber(M.creditBalance(w))}{creditText(" Credits")}</p>
         </div>
         <div className="ws-order">
@@ -156,7 +160,7 @@ export function CheckoutDialog({
             <strong>{money(o.amount, o.currency)} {o.currency}</strong>
           </div>
         </div>
-        <label className="ws-field">
+        {!sandbox && <label className="ws-field">
           支付方式
           <Select
             name="method"
@@ -165,9 +169,9 @@ export function CheckoutDialog({
           >
             {marketConfig().payments.subscription.map(method => <option key={method}>{method}</option>)}
           </Select>
-        </label>
+        </label>}
         <p className="ws-muted">
-          {cn ? "单次购买，支付成功后立即生效，不自动续费。年付会员积分仍随会员周期按月发放至个人账户。" : creditText(`支付成功后立即生效，随后每${o.cycle === "year" ? "年" : "月"}按 ${dollars(o.amount)} 自动续费，可随时取消续费并保留已购期间权益。年付的分钟数与 Credits 仍按月刷新。`)}
+          {cn ? "单次购买，支付成功后立即生效，不自动续费。年付会员Credits仍随会员周期按月发放至个人账户。" : creditText(`支付成功后立即生效，随后每${o.cycle === "year" ? "年" : "月"}按 ${dollars(o.amount)} 自动续费，可随时取消续费并保留已购期间权益。年付的分钟数与 Credits 仍按月刷新。`)}
         </p>
         {o.status === "failed" && <p className="ws-seat-payment-error" role="alert">支付失败，未扣款、未开通权益。可重试或取消。</p>}
         <input type="hidden" name="orderId" value={o.id} />
@@ -204,35 +208,11 @@ export function CheckoutDialog({
         </div>
         <p className="ws-muted">
           按新增席位的完整{o.cycle === "year" ? "年度" : "月度"}
-          原价计费，税费另计；首次开通优惠不重复用于加席，不按剩余天数折算，现有账期不变。
+          原价计费，税费另计；不按剩余天数折算，现有账期不变。
         </p>
-        {o.snapshot !==
-        JSON.stringify([
-          w.id,
-          w.seats,
-          w.cycle,
-          w.nextDate,
-          w.pendingSeats ?? null,
-          w.pendingCycle ?? null,
-          w.renew,
-          w.status,
-        ]) ? (
-          <p className="ws-seat-payment-error">
-            席位或订阅已变化，请返回修改并重新确认费用。
-          </p>
-        ) : null}
         {w.pendingSeats ? (
           <p className="ws-info">支付成功后，将取消已安排的减席计划。</p>
         ) : null}
-        <label className="ws-field">支付方式
-          {seat ? <strong>{w.billing.method}</strong> : <Select name="method" value={method} onChange={e => setMethod(e.target.value)}>{marketConfig().payments.credits.map(value => <option key={value}>{value}</option>)}</Select>}
-        </label>
-        <p className="ws-muted">
-          新增席位当前周期截止：{o.nextDate}
-          {w.renew
-            ? ` · ${o.targetSeats} 席位 · ${money(o.nextAmount ?? 0, o.currency)} / ${o.nextCycle === "year" ? "年" : "月"}`
-            : "（自动续费已关闭）"}
-        </p>
         {o.status === "failed" ? (
           <div className="ws-seat-payment-error" role="alert">
             支付失败，未扣款、未增加席位。可以重试或取消订单。
@@ -267,7 +247,7 @@ export function CheckoutDialog({
           </div>
         </div>
         <label className="ws-field">支付方式
-          {seat ? <strong>{w.billing.method}</strong> : <Select name="method" value={method} onChange={e => setMethod(e.target.value)}>{marketConfig().payments.credits.map(value => <option key={value}>{value}</option>)}</Select>}
+          {seat ? <strong>{sandbox ? "Airwallex 沙盒" : w.billing.method}</strong> : <Select name="method" value={method} onChange={e => setMethod(e.target.value)}>{marketConfig().payments.credits.map(value => <option key={value}>{value}</option>)}</Select>}
         </label>
         <p className="ws-muted">{creditText("一次性购买，无自动续购。支付成功后 Credits 才会到账，有效期一年；购买后不支持退款，如需发票请联系客服。")}</p>
         {o.status === "failed" ? (
@@ -282,6 +262,7 @@ export function CheckoutDialog({
       <>
         {!personal ? (
           <Button
+            disabled={pending}
             action={`${kind}-back`}
             value={o.id}
             onClick={() => act(`${kind}-back`, o.id)}
@@ -290,13 +271,14 @@ export function CheckoutDialog({
           </Button>
         ) : null}
         <Button
+          disabled={pending}
           action={`${kind}-cancel`}
           value={o.id}
           onClick={() => act(`${kind}-cancel`, o.id)}
         >
           取消订单
         </Button>
-        {reviewToolsEnabled() && (<Button
+        {!sandbox && reviewToolsEnabled() && (<Button
           action={personal ? "personal-fail" : `${kind}-pay-fail`}
           value={o.id}
           className="link"
@@ -306,8 +288,8 @@ export function CheckoutDialog({
         >
           模拟支付失败
         </Button>)}
-        <button type="submit" className="ws-btn primary">
-          {personal
+        <button type="submit" className="ws-btn primary" disabled={pending}>
+          {sandbox ? (pending ? "等待支付" : "前往支付") : personal
             ? "确认支付 " + money(o.amount, o.currency)
             : `${o.status === "failed" ? "重试支付" : "确认支付"} ${money(o.amount, o.currency)}`}
         </button>

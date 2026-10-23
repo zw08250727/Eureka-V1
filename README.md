@@ -22,9 +22,9 @@ npm run dev
 | `/prototype/prd/index.html` | 集中 PRD 的阅读与编辑发布网站 |
 | `/workbench/` | 历史无市场数据的回归入口，不作为新交付入口 |
 
-国内采用百智线上黑白灰与亮蓝组件主题，海外保留靛蓝色主题。邮箱及渠道登录、支付、Agent、连接器、设备均为本地模拟，不访问真实服务。每个市场使用一套演示人物；并非生产认证或真实多用户后台。
+国内采用百智线上黑白灰与亮蓝组件主题，海外保留靛蓝色主题。邮箱及渠道登录、Agent、连接器、设备均为本地模拟；支付默认使用本地模拟，海外本地开发可通过下述独立服务访问 Airwallex 官方沙盒。每个市场使用一套演示人物；并非生产认证或真实多用户后台。
 
-本轮登录流程、企业测试账号、服务模拟边界详见 [登录流程与验收数据](docs/auth-flows.md)。评审辅助操作使用工作台 URL 参数 `review=1`，普通流程不显示评审说明或失败注入工具。
+本轮登录流程、企业测试账号、服务模拟边界详见 [登录流程与验收数据](docs/auth-flows.md)。国内／海外个人与团队工作台的普通链接均显示可拖动“评审工具”入口，无需 `review=1`；预演配置在弹窗中，须主动应用才生效。其他业务页面的失败注入按钮仍仅在显式评审模式启用。
 
 ## 当前有效规则
 
@@ -41,7 +41,7 @@ npm run dev
 ## 代码与配置
 
 - `src/features/markets/`：国内、海外独立配置、路由识别、存储适配、登录门禁和主题。
-- `src/features/connectors/`：React 连接器目录、卡片、授权演示及自定义配置；不再使用 iframe。
+- `src/features/connectors/`：React 连接器目录、卡片、详情、自定义配置及 Agent 入口；国内个人／团队与企业各自保存状态，不使用 iframe。品牌 SVG 来源见 [素材记录](public/assets/connectors/README.md)。系统“连接”可打开官方登录页，配置公开应用 ID 与回调 URI 后可进入授权页；令牌兑换与真实连接状态仍需服务端接入，详见 [连接器变更与接入条件](spc/changes/2026-10-16-connector-catalog.md)。
 - `src/features/`：个人、团队、会议、日程、订阅、Credits、Agent 的共享交互与模型。
 - `src/components/ui/`：共享控件；新增模块遵循 SPC。
 - `src/prototype/prd/`：现有 PRD 站点、内容及配图。
@@ -64,3 +64,13 @@ npm run package:markets # 构建并生成两地独立静态包
 `artifacts/markets/` 输出国内 `baizhi-cn.zip`、海外 `eurekamind-global.zip`、对应目录及发布 manifest。包须通过 HTTP 静态服务访问，不使用 file://。每包根路径进入该市场首页，两包分别带完整资源；仍保留原 React 工程维护。GitHub Pages 路径前缀由 `NEXT_PUBLIC_BASE_PATH` 注入。
 
 `develop` 是当前 Pages 发布分支，`main` 为稳定分支；新修改使用 `codex/<module>-<change>`，通过相关检查后合入。不要提交环境密钥、依赖目录和运行缓存。
+
+## Airwallex 本地沙盒结账
+
+运行 `npm run dev:airwallex` 启动本地后端（127.0.0.1:3101），另一个终端运行 `npm run dev`。
+在被 Git 忽略的 `.env.airwallex.local` 配置沙盒 API Key、公开 HTTPS 成功／返回地址。
+现有月付／年付 Price ID 已预填；完整运行、接口和范围说明见 [Airwallex 本地服务](docs/airwallex-local.md)。
+
+海外本地工作台「增加席位」先选择数量、确认订单，再以独立采购窗口打开官方 Hosted Checkout。邀请弹窗入口进入同一流程。
+此阶段创建沙盒测试订阅；服务端核验完成后回到原成功弹窗，幂等更新本地演示席位。已有 Airwallex 订阅不被修改，回跳参数不作为支付凭据。
+国内、历史回归入口及静态部署保持原交互。Next.js 静态导出无需后端，不受此服务影响。

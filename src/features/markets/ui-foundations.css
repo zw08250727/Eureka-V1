@@ -10,6 +10,10 @@ html:has(.market-surface[data-market]) {
   --ui-text: #253354;
   --ui-secondary: #526078;
   --ui-meta: #697386;
+  --ui-warning-text: #875815;
+  --ui-warning-surface: #fff8eb;
+  --ui-success-text: #28734c;
+  --ui-success-surface: #e8f7ee;
   --ui-input: #fff;
   --ui-canvas: #fff;
   --ui-app: #f6f8fd;

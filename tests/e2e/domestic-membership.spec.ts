@@ -23,8 +23,8 @@ for (const width of [390, 768, 1440]) test(`CN personal subscription layout and 
 
   // CN-MEMBER-01: both tiers retain their verified prices and all 16 benefits.
   for (const plan of [
-    { name: '专业版', month: 50, year: 199, minutes: '3000分钟/月录音转写时长', credits: '5000积分/月', storage: '50G的PC端知识库容量' },
-    { name: '卓越版', month: 100, year: 599, minutes: '无限录音转写时长', credits: '10000积分/月', storage: '200G的PC端知识库容量' },
+    { name: '专业版', month: 50, year: 199, minutes: '3000分钟/月录音转写时长', credits: '5000Credits/月', storage: '50G的PC端知识库容量' },
+    { name: '卓越版', month: 100, year: 599, minutes: '无限录音转写时长', credits: '10000Credits/月', storage: '200G的PC端知识库容量' },
   ]) {
     await tiers.getByRole('button', { name: plan.name, exact: true }).click();
     await expect(tiers.getByRole('button', { name: plan.name, exact: true })).toHaveAttribute('aria-pressed', 'true');
@@ -82,13 +82,13 @@ test('CN time orders resume from account orders and persist personal entitlement
 });
 test('CN account card retains sign-in progress, real accumulated awards, task/recharge routes and upgrade',async({page})=>{
  await login(page);await page.locator('#user-card').click();const menu=page.getByRole('dialog',{name:'我的账户',exact:true});
- await expect(menu).toContainText('本月签到 0/15 次，累计 0 积分');await menu.screenshot({path:'test-results/cn-membership/account-card-ready.png'});await menu.getByRole('button',{name:'立即签到',exact:true}).click();
- await expect(menu).toContainText('本月签到 1/15 次，累计 1,000 积分');await expect(menu.getByRole('button',{name:'明日再来',exact:true})).toBeDisabled();
- await expect(menu.getByRole('button',{name:'升级',exact:true})).toBeVisible();await expect(menu).toContainText('当前可用积分');
+ await expect(menu).toContainText('本月签到 0/15 次，累计 0 Credits');await menu.screenshot({path:'test-results/cn-membership/account-card-ready.png'});await menu.getByRole('button',{name:'立即签到',exact:true}).click();
+ await expect(menu).toContainText('本月签到 1/15 次，累计 1,000 Credits');await expect(menu.getByRole('button',{name:'明日再来',exact:true})).toBeDisabled();
+ await expect(menu.getByRole('button',{name:'升级',exact:true})).toBeVisible();await expect(menu).toContainText('当前可用Credits');
  await page.mouse.move(600,400);
  await expect(menu.getByRole('button',{name:'明日再来',exact:true})).toHaveCSS('background-image','none');
  await page.screenshot({path:'test-results/cn-membership/account-card.png'});
- await menu.getByRole('button',{name:'赚积分',exact:true}).click();await expect(page.locator('.ex-task')).not.toHaveCount(0);await page.keyboard.press('Escape');
+ await menu.getByRole('button',{name:'赚Credits',exact:true}).click();await expect(page.locator('.ex-task')).not.toHaveCount(0);await page.keyboard.press('Escape');
  await page.locator('#user-card').click();await menu.getByRole('button',{name:'充值',exact:true}).click();await expect(page.getByRole('button',{name:'确认充值',exact:true})).toBeVisible();
 });
 test('CN excellent checkout applies 10000 points and unlimited minutes with full comparison matrix',async({page})=>{

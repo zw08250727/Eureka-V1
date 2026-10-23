@@ -18,6 +18,7 @@ import { claimReward, countMonthlyFeedbackRewards, rewardState } from "./rewards
 import { OrdersPanel } from "./orders-panel";
 import { AccountTabs, AccountStatus, CreditsHero } from "./ui";
 import "./experience.css";
+import { useAirwallexCheckout, usesAirwallexCheckout } from "@/features/spaces/use-airwallex-checkout";
 import { DomesticAccountPoints } from "./domestic-points";
 import { TeamCreditsCard } from "./team-credits-card";
 export type AccountPanel =
@@ -77,7 +78,7 @@ export function CreditsPromo({
       )}
       <footer>
         <button className="ex-button credit-recharge-cta" disabled={team && !M.admin(w, actor)} onClick={() => openAccount("recharge")}>
-          {team && !M.admin(w, actor) ? "联系管理员充值" : (routeMarket() === "cn" ? "充值积分" : "充值")}
+          {team && !M.admin(w, actor) ? "联系管理员充值" : (routeMarket() === "cn" ? "充值Credits" : "充值")}
         </button>
         {!team && (
           <button
@@ -143,6 +144,21 @@ export function AccountExperience({
     sharedMeeting =
       M.visible(w, actor).find((f) => f.owner !== actor) ||
       M.visible(w, actor)[0];
+  const airwallex = useAirwallexCheckout();
+  const sandboxCredits = usesAirwallexCheckout();
+  function purchaseCredits() {
+    perform(() => {
+      const o = controller.change(st => M.createCreditOrder(M.get(st, space), sku, actor));
+      setOrderId(o.id);
+      if (sandboxCredits) {
+        setNotice("");
+        void airwallex.begin(w, actor, o, () => {
+          controller.change(st => M.payCreditOrder(M.get(st, space), o.id, "success", actor));
+          setActivePage("recharge"); setOrderId(o.id);
+        }, "credits");
+      }
+    });
+  }
   const titles: Record<string, string> = {
     credits: creditText("Credits"),
     tasks: creditText("做任务赚 Credits"),
@@ -235,7 +251,7 @@ export function AccountExperience({
         )}
         {page === "tasks" && (
           <>
-            <CreditsHero eyebrow={routeMarket() === "cn" ? "做任务赚积分" : "GROW WITH EUREKAMIND"} title="记录好习惯，收获新灵感" description={creditText("完成任务获得 Credits，让每一天的积累都有回响。")}/>
+            <CreditsHero eyebrow={routeMarket() === "cn" ? "做任务赚Credits" : "GROW WITH EUREKAMIND"} title="记录好习惯，收获新灵感" description={creditText("完成任务获得 Credits，让每一天的积累都有回响。")}/>
             <AccountTabs items={["新手成长", "活跃互动", "会员升级"]} value={tab} onChange={setTab} label="奖励任务" panelId="reward-tasks"/>
             <div id="reward-tasks" role="tabpanel" aria-labelledby={`reward-tasks-tab-${["新手成长", "活跃互动", "会员升级"].indexOf(tab)}`} tabIndex={0}>
             {tab === "新手成长" ? (
@@ -336,7 +352,7 @@ export function AccountExperience({
                   ))}
                 </div>
                 <p className="ex-muted">
-                  会员积分随会员周期按月发放至个人账户，团队权益单独维护。
+                  会员Credits随会员周期按月发放至个人账户，团队权益单独维护。
                 </p>
                 <button
                   className="primary"
@@ -409,8 +425,9 @@ export function AccountExperience({
         {page === "recharge" && (
           <>
             <CreditsHero eyebrow={`充值至 ${w.name} · ${marketConfig().currency}`} title="为下一个好想法，蓄满能量" description={creditText("选择适合你的 Credits 包，按需补充，随用随取。")}/>
-            <ol className="ex-checkout-steps" aria-label="充值进度"><li data-active={!order || order.status === "cancelled"}>1 选择套餐</li><li data-active={!!order && ["pending", "failed"].includes(order.status)}>2 确认支付</li><li data-active={order?.status === "paid"}>3 充值完成</li></ol>
-            {!order || order.status === "cancelled" ? (
+            {sandboxCredits ? <ol className="ex-checkout-steps" aria-label="充值进度"><li data-active={order?.status !== "paid"}>1 选择套餐</li><li data-active={order?.status === "paid"}>2 充值完成</li></ol> : <ol className="ex-checkout-steps" aria-label="充值进度"><li data-active={!order || order.status === "cancelled"}>1 选择套餐</li><li data-active={!!order && ["pending", "failed"].includes(order.status)}>2 确认支付</li><li data-active={order?.status === "paid"}>3 充值完成</li></ol>}
+            {sandboxCredits && airwallex.error && <p role="alert" className="ws-form-error">{airwallex.error}</p>}
+            {!order || order.status === "cancelled" || (sandboxCredits && order.status !== "paid") ? (
               <>
                 <div className="ex-grid">
                   {packs.map((p, i) => (
@@ -418,15 +435,16 @@ export function AccountExperience({
                       className="ex-sku"
                       aria-pressed={sku === p.id}
                       key={p.id}
+                      disabled={sandboxCredits && airwallex.pending}
                       onClick={() => setSku(p.id)}
                     >
-                      <span className="ex-sku-label">{i === 2 ? "✦ 最划算" : creditText("Credits 充值包")}<i aria-hidden="true">{sku === p.id ? "✓" : "○"}</i></span>
+                      <span className="ex-sku-label">{i === 2 && originals[i] > p.amount ? "✦ 最划算" : creditText("Credits 充值包")}<i aria-hidden="true">{sku === p.id ? "✓" : "○"}</i></span>
                       <strong>
                         {format(p.credits)}{" "}
                         <small style={{ fontSize: 12 }}>{creditText("Credits")}</small>
                       </strong>
                       <b>
-                        {formatMarketMoney(p.amount)} <del>{formatMarketMoney(originals[i])}</del>
+                        {formatMarketMoney(p.amount)} {originals[i] > p.amount && <del>{formatMarketMoney(originals[i])}</del>}
                       </b>
                       <small>
                         {formatMarketMoney(1)} ≈ {Math.round(p.credits / p.amount)}{creditText(" Credits")}</small>
@@ -435,27 +453,20 @@ export function AccountExperience({
                 </div>
                 <div className="ex-summary">
                   应付 <strong>{formatMarketMoney(selected.amount)}</strong>{" "}
-                  <del>{formatMarketMoney(originals[packs.indexOf(selected)])}</del> · 已优惠{" "}
-                  {formatMarketMoney(originals[packs.indexOf(selected)] - selected.amount)}
+                  {originals[packs.indexOf(selected)] > selected.amount && <><del>{formatMarketMoney(originals[packs.indexOf(selected)])}</del> · 已优惠 {formatMarketMoney(originals[packs.indexOf(selected)] - selected.amount)}</>}
+                  {marketConfig().id === "global" && <small> · 每 1,000 Credits $9.99，税费另计</small>}
                 </div>
 
                 <div className="ex-footer">
                   <button onClick={() => setPage("rules")}>充值规则</button>
                   <button
                     className="primary credit-recharge-cta"
-                    disabled={team && !M.admin(w, actor)}
-                    onClick={() =>
-                      perform(() => {
-                        const o = controller.change((st) =>
-                          M.createCreditOrder(M.get(st, space), sku, actor),
-                        );
-                        setOrderId(o.id);
-                      })
-                    }
+                    disabled={(team && !M.admin(w, actor)) || airwallex.pending}
+                    onClick={purchaseCredits}
                   >
                     {team && !M.admin(w, actor)
                       ? "请联系管理员充值"
-                      : "确认充值"}
+                      : airwallex.pending ? "等待支付" : "确认充值"}
                   </button>
                 </div>
               </>
@@ -470,7 +481,7 @@ export function AccountExperience({
                   </strong>
                   <p>订单 {order.id}</p>
                   {order.expiresAt && order.status !== "paid" && <p>请于 {new Date(order.expiresAt).toLocaleString("zh-CN")} 前支付</p>}
-                  {order.creditsExpireAt && <p>积分有效期至 {new Date(order.creditsExpireAt).toLocaleDateString("zh-CN")}</p>}
+                  {order.creditsExpireAt && <p>Credits有效期至 {new Date(order.creditsExpireAt).toLocaleDateString("zh-CN")}</p>}
                   <p>
                     金额 {formatMarketMoney(order.amount, order.currency)} {order.currency} · {w.name}
                   </p>
@@ -478,7 +489,9 @@ export function AccountExperience({
                 {order.status === "paid" ? (
                   <>
                     <p>{creditText("Credits 已入账，可在积分明细中查看。")}</p>
+                    {sandboxCredits && <p>本次充值 +{format(order.credits || 0)} Credits · 当前余额 {format(M.creditBalance(w))} Credits</p>}
                     <button onClick={() => setPage("orders")}>查看订单</button>
+                    {sandboxCredits && <button className="primary" onClick={onClose}>完成</button>}
                   </>
                 ) : (
                   <>
@@ -535,7 +548,7 @@ export function AccountExperience({
               id: "expiry",
               icon: "!",
               title: creditText("您的 Credits 即将过期"),
-              text: routeMarket() === "cn" ? `${creditSummary(w).expiring.toLocaleString()} 积分将在本月底到期，请及时查看明细。` : "2,000 Credits 将在本月底到期，请及时查看明细。",
+              text: routeMarket() === "cn" ? `${creditSummary(w).expiring.toLocaleString()} Credits将在本月底到期，请及时查看明细。` : "2,000 Credits 将在本月底到期，请及时查看明细。",
               time: "今天 09:00",
               link: "查看明细",
             },
@@ -631,7 +644,7 @@ export function AccountExperience({
                   .map((row) => (
                     <tr key={row[0]}>
                       {row.map((v, i) => (
-                        <td key={i}>{v}</td>
+                        <td key={i}>{creditText(v)}</td>
                       ))}
                     </tr>
                   ))}
@@ -644,7 +657,7 @@ export function AccountExperience({
             {[
               [
                 "有哪些会员类型？",
-                creditText(`当前 ${productName()} ${routeMarket() === "cn" ? "提供免费版、标准版、专业版与卓越版" : "保留标准版与 Pro"}。会员积分按月发放，团队订阅独立计费。`),
+                creditText(`当前 ${productName()} ${routeMarket() === "cn" ? "提供免费版、标准版、专业版与卓越版" : "保留标准版与 Pro"}。会员Credits按月发放，团队订阅独立计费。`),
               ],
               [
                 "会员权益里的功能具体指什么？",
@@ -656,7 +669,7 @@ export function AccountExperience({
               ],
               [
                 "转写时长和加时包有什么区别？",
-                routeMarket() === "cn" ? "会员转写时长按月刷新；加时包一次性购买，有效期2年，可叠加使用，优先消耗先到期的时长。积分与转写时长分别计算。" : creditText(`会员转写额度随周期刷新，Credits 余额与订阅权益可在个人订阅页查看。`),
+                routeMarket() === "cn" ? "会员转写时长按月刷新；加时包一次性购买，有效期2年，可叠加使用，优先消耗先到期的时长。Credits与转写时长分别计算。" : creditText(`会员转写额度随周期刷新，Credits 余额与订阅权益可在个人订阅页查看。`),
               ],
               [
                 "升级后何时生效？",

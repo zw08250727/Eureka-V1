@@ -32,6 +32,7 @@ const base = (process.env.DEPLOYMENT_URL || "http://127.0.0.1:3135").replace(/\/
       await page.locator("#code").fill("123456");
       await page.locator("#terms").check();
       await page.locator("#submit").click();
+      if (market === "global") await page.getByRole("tab", {name:"接入其他应用",exact:true}).click();
       await page.locator(".connector-card").first().waitFor();
       assert.equal(await page.locator("iframe").count(), 0);
       await page.goto(`${base}/${market}/workbench/?view=subscription`);

@@ -175,7 +175,10 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
       if (detail && !person) throw Error("客户不存在或已停止共享");
       setAnswerContext(contextKey);
       resetContentScroll();
-      setAnswer(agent.run(question, () => contactAnswer(question, agentPerson)));
+      const result = agent.run(question, () => contactAnswer(question, agentPerson));
+      if (result === undefined) return false;
+      setAnswer(result);
+      return true;
     } catch (e) { setAnswer(""); setToast((e as Error).message); refresh(); }
   }
   function openFollowup() {
@@ -519,7 +522,7 @@ export function ContactsPage({ id, actor = "zhang", space = "personal", controll
               onToggle={toggleAgent}
               inputRef={inputRef}
               onAsk={askCustomer}
-              onSend={() => { if (draft.trim()) { askCustomer(draft.trim()); setDraft(""); } }}
+              onSend={() => { if (draft.trim() && askCustomer(draft.trim())) setDraft(""); }}
               onNewTask={() => {
                 agent.reset();
                 resetContentScroll();
