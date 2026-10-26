@@ -2,11 +2,12 @@ import {test,expect,type Page} from '@playwright/test';
 import M from '../../src/features/spaces/model/core';
 import type {WorkspaceFile} from '../../src/features/spaces/model/types';
 test.use({timezoneId:'Asia/Shanghai'});
-async function seed(page:Page,market:string,expired=false){
+async function seed(page:Page,market:string,expired=false,emptyWeek=false){
   const state=M.seed(new Date('2026-10-20T04:00:00Z')),w=M.get(state,'team-eureka');
   w.name=`${market==='cn'?'百智':'EurekaMind'} 产品团队`;w.members.find(m=>m.id==='kevin')!.role='member';
   const file=(id:string,title:string,created:string,summary:string):WorkspaceFile=>({id,title,created,summary,owner:'zhang',shared:['kevin'],duration:20,updated:created,source:'网页录音',transcript:summary,deleted:false,size:'10 MB',creator:'张伟',status:'已总结',tags:[],detail:{}});
   w.files=[file('weekly-discussion','CRM接入方案评审','2026-10-13 10:00','本次记录确认需要先核对接口字段与范围。'),file('weekly-progress','项目进展同步','2026-10-14 10:00','协作各方记录了当前进展与待补充资料。'),file('weekly-review','阶段沟通复盘','2026-10-18 10:00','回顾已有进展，保留尚未解决的问题。'),{...file('weekly-private','内部未共享记录','2026-10-16 10:00','仅本人和管理员可查看。'),owner:'lin',shared:[],creator:'林晓'},file('weekly-next','本周尚未纳入的会议','2026-10-19 10:00','此记录属于下一期周总结。')];
+  if(emptyWeek)w.files=[];
   if(expired)w.status='expired';
   await page.addInitScript(({market,state})=>{
     const prefix=`eureka:market:${market}:`;
@@ -16,6 +17,20 @@ async function seed(page:Page,market:string,expired=false){
   await page.clock.setFixedTime(new Date('2026-10-20T12:00:00+08:00'));
 }
 for(const market of ['cn','global']) {
+  test(`${market}: team overview typography uses the shared Chinese workbench font`,async({page})=>{
+    await seed(page,market);await page.goto(`/${market}/workbench/?view=home&space=team-eureka`);
+    const font=await page.locator('.team-overview').evaluate(el=>getComputedStyle(el).fontFamily);
+    expect(font).toContain('MiSans');
+    await expect(page.locator('.team-overview-actions button').first()).toHaveCSS('font-family',font);
+  });
+  test(`${market}: overview hides weekly actions when the selected week has no meetings`,async({page})=>{
+    await seed(page,market,false,true);
+    await page.goto(`/${market}/workbench/?view=home&space=team-eureka`);
+    const area=page.getByRole('region',{name:'周度会议总结',exact:true});
+    await expect(area).toContainText('该周暂无有权查看的会议记录');
+    await expect(area.getByRole('button',{name:'查看详情',exact:true})).toHaveCount(0);
+    await expect(area.getByRole('button',{name:'基于本周总结问 Agent',exact:true})).toHaveCount(0);
+  });
   test(`${market}: weekly overview generalizes meeting types and detail exposes only that completed week`,async({page})=>{
     await seed(page,market);await page.setViewportSize({width:1440,height:960});
     await page.goto(`/${market}/workbench/?view=home&space=team-eureka`);

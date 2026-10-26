@@ -19,6 +19,7 @@ export function WeeklyMeetings({workspace,space,actor,now,readOnly,onAsk}: {
   const chosen=selection?.anchor===latest?selection.week:latest;
   const week=weeks.find(w=>w.key===chosen)||weeks[0];
   const report=buildWeeklyMeetingSummary(M.visible(workspace,actor),week,now);
+  const hasWeeklySummary=report.sources.length>0&&report.groups.length>0;
   return <section className="team-brief-column ws-team-brief" aria-label="周度会议总结">
     <header className="team-section-heading"><h2><RefIcon name="spark"/>周度会议总结</h2>
       <span className={styles.period}>{week.label.replace(/\d{4}\//g,"")}<span>{week.key===latest?"上周":"历史周"}</span></span>
@@ -31,9 +32,9 @@ export function WeeklyMeetings({workspace,space,actor,now,readOnly,onAsk}: {
         </div>
       </article>)}
     </div> : <p className="team-brief-empty">该周暂无有权查看的会议记录。</p>}
-    {!readOnly&&<footer className={styles.actions}>
-      <button type="button" className={styles.actionLink} disabled={!report.sources.length} onClick={()=>setDetail("all")}>查看详情 <RefIcon name="chevron"/></button>
-      <button type="button" className={`${styles.actionLink} ${styles.agentLink}`} disabled={!report.sources.length} onClick={()=>onAsk(buildWeeklySummaryGenerationRequest(report))}><RefIcon name="spark"/>基于本周总结问 Agent</button>
+    {!readOnly&&hasWeeklySummary&&<footer className={styles.actions}>
+      <button type="button" className={styles.actionLink} onClick={()=>setDetail("all")}>查看详情 <RefIcon name="chevron"/></button>
+      <button type="button" className={`${styles.actionLink} ${styles.agentLink}`} onClick={()=>onAsk(buildWeeklySummaryGenerationRequest(report))}><RefIcon name="spark"/>基于本周总结问 Agent</button>
     </footer>}
     {detail!==null&&!readOnly&&<WeeklySummaryDetail report={report} weeks={weeks} category={detail} space={space} actor={actor}
       onClose={()=>setDetail(null)} onWeek={value=>setSelection({anchor:latest,week:value})} onAsk={()=>{

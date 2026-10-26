@@ -4,6 +4,7 @@
 :root {
   --ui-danger: #cf313b;
   --ui-on-danger: #fff;
+  --ui-font-team-overview: "MiSans", "HarmonyOS Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
 }
 html:has(.market-surface[data-market]) {
   --font: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;

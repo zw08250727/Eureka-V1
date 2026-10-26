@@ -47,6 +47,10 @@ html:has(.market-surface[data-market]) body #ws-view .team-overview-refined {
   .team-private-idea { gap: 8px; min-height: 28px; }
   .team-private-ledger strong { color: var(--ui-text); font-size: 14px; line-height: 22px; font-weight: 500; }
 }
+html:has(.market-surface[data-market]) body #ws-view .team-overview,
+html:has(.market-surface[data-market]) body #ws-view .team-overview :is(button, input, select, textarea) {
+  font-family: var(--ui-font-team-overview);
+}
 @media (max-width: 760px) {
   html:has(.market-surface[data-market]) body #ws-view .team-overview-refined {
     .team-overview-canvas { grid-template-columns: minmax(0, 1fr); grid-template-rows: 240px minmax(0, 1fr); }
