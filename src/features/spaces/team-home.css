@@ -99,8 +99,8 @@
 /* Keep per-record actions compact without increasing the meeting row height. */
 .ws-recording-table td:last-child .ws-actions { flex-wrap: nowrap; gap: 14px; min-width: 88px; }
 .ws-recording-table td:last-child .ws-btn.link { min-height: 28px; }
-.ws-meeting-tools :is(#ws-meeting-member, #ws-meeting-status) { border: 1px solid var(--ui-border, #dce5f2); border-radius: var(--ui-button-radius, 8px); padding: 8px 12px; min-height: var(--ui-control-height, 40px); color: var(--ui-secondary); background: var(--ui-canvas, white); font: inherit; font-size: 12px; }
-.ws-meeting-tools :is(.mf-control, .mf-trigger, .ws-search) { border-radius: var(--ui-button-radius, 8px); min-height: var(--ui-control-height, 40px); box-sizing: border-box; }
+.ws-meeting-tools :is(#ws-meeting-member, #ws-meeting-status) { border: 1px solid var(--ui-border); border-radius: var(--ui-button-radius); padding: 8px 12px; min-height: var(--ui-control-height); color: var(--ui-secondary); background: var(--ui-canvas); font: inherit; font-size: var(--ui-font-caption); }
+.ws-meeting-tools :is(.mf-control, .mf-trigger, .ws-search) { border-radius: var(--ui-button-radius); min-height: var(--ui-control-height); box-sizing: border-box; }
 
 #ws-view .team-overview-canvas{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr)}
 #ws-view .team-private-agenda{min-height:170px;grid-template-columns:1fr;gap:16px}#ws-view .team-private-list{max-height:130px;overflow:auto;gap:9px}#ws-view .team-private-notes{padding-top:12px;margin-top:14px;opacity:.85}#ws-view .team-private-todo>.team-private-todo-title{flex:1}#ws-view .team-private-todo>.ex-share{width:auto;height:auto;flex:none;border:0;border-radius:0;font-size:11px}#ws-view .ex-daily-row{display:flex;gap:8px;align-items:center}#ws-view .ex-daily-row>a{flex:1;min-width:0}#ws-view .team-insights{max-height:355px;overflow:auto}#ws-view .team-insight-body>span:first-child{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}@container team-overview (max-width:900px){#ws-view .team-overview-canvas{grid-template-columns:1fr}}

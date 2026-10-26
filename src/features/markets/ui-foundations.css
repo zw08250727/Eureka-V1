@@ -1,6 +1,10 @@
 /* UI-CN / UI-GLOBAL: shared metrics and semantic tokens, including body portals.
    Two attributes deliberately outrank the frozen reference's :root palette.
    Keep feature selectors in reference/market-workbench.css, not in primitives. */
+:root {
+  --ui-danger: #cf313b;
+  --ui-on-danger: #fff;
+}
 html:has(.market-surface[data-market]) {
   --font: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
   --ui-action: #3858b6;

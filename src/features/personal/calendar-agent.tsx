@@ -589,6 +589,7 @@ export function CalendarAgent({
         <PaModal
           title="保留这次修改？"
           confirm="保存并继续"
+          footerLeading={<PaButton action="discard" onClick={continueAfterGuard}>放弃修改</PaButton>}
           onClose={() => setGuard(false)}
           onSave={() => {
             if (confirm()) continueAfterGuard();
@@ -596,9 +597,6 @@ export function CalendarAgent({
           }}
         >
           <p>还有未保存的内容。你可以继续编辑、放弃修改，或保存后继续。</p>
-          <PaButton action="discard" onClick={continueAfterGuard}>
-            放弃修改
-          </PaButton>
         </PaModal>
       )}
       <PersonalToast message={toast} onDone={() => setToast("")} />

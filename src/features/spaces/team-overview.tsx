@@ -15,7 +15,6 @@ export function TeamOverview({ now, workspace, actor, readOnly, agentOpen, onAsk
   onAsk: () => void;
   onReviewWeek: (prompt:string,fileIds:string[])=>void;
   onUpload: () => void;
-  onNote: () => void;
 }) {
   return <div className="team-overview team-overview-refined">
     <header className="team-overview-head">

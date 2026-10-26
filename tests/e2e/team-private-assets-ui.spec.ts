@@ -24,7 +24,7 @@ async function seed(page: Page, expired = false) {
 test("compact team overview integrates private assets; navigation and edits remain scoped", async ({ page }) => {
   await seed(page); await go(page);
   const privateArea = page.getByRole("complementary", { name: "团队共享日常" });
-  await expect(privateArea).toContainText("仅自己可见");
+  await expect(privateArea).toContainText("成员日程与待办");
   await expect(privateArea.locator(".team-private-idea")).toHaveCount(2);
   await expect(privateArea).toContainText("团队内私有灵感 3");
   await expect(privateArea).not.toContainText("团队内私有灵感 1");
@@ -32,7 +32,7 @@ test("compact team overview integrates private assets; navigation and edits rema
   await expect(page.locator(".ws-team-brief")).not.toContainText("团队内私有灵感");
   await privateArea.getByRole("button", { name: "完成状态：准备本人访谈提纲" }).click();
   await expect(privateArea.getByRole("button", { name: "完成状态：准备本人访谈提纲" })).toHaveAttribute("aria-pressed", "true");
-  const todoTitle = privateArea.locator(".team-private-todo-title");
+  const todoTitle = privateArea.locator(".team-private-todo-title").filter({ hasText: "准备本人访谈提纲" });
   await expect(todoTitle).toHaveCSS("text-decoration-line", "line-through");
   await todoTitle.click();
   await expect(todoTitle).toHaveAttribute("aria-pressed", "false");
@@ -43,7 +43,7 @@ test("compact team overview integrates private assets; navigation and edits rema
   await page.getByRole("dialog").getByRole("button", { name: "编辑", exact: true }).click();
   await page.getByRole("dialog").locator('[name="title"]').fill("仅本区的修改");
   await page.getByRole("dialog").locator('button[type="submit"]').click();
-  await go(page, "thoughts", "lin", "team-eureka", "inspiration");
+  await go(page, "thoughts", "kevin", "team-eureka", "inspiration");
   await expect(page.locator("#thought-file-list")).not.toContainText("仅本区的修改");
   await go(page, "thoughts", "zhang", "personal", "inspiration");
   await expect(page.locator("#thought-file-list")).not.toContainText("仅本区的修改");
@@ -53,7 +53,7 @@ test("compact team overview integrates private assets; navigation and edits rema
   await page.locator('#pa-edit-form [name="title"]').fill("团队区本人日程");
   await page.locator('#pa-edit-form button[type="submit"]').click();
   await expect(page.locator('#pa-list')).toContainText("团队区本人日程");
-  await go(page, "calendar", "lin");
+  await go(page, "calendar", "kevin");
   await expect(page.locator('#pa-list')).not.toContainText("团队区本人日程");
   await go(page);
   await page.setViewportSize({ width: 390, height: 844 });

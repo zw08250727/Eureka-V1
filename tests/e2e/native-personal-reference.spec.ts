@@ -33,7 +33,8 @@ test("reference calendar: cross-day creation, quick edit guard, full detail, res
   await expect(page.locator("#pa-list")).toContainText("跨日原生验证");
   await page.locator("#pa-calendar-date").fill("2026-10-25");
   await expect(page.locator("#pa-list")).toContainText("跨日原生验证");
-  await page.locator(".pa-calendar-edit").first().click();
+  await page.locator(".pa-calendar-edit").first().focus();
+  await page.locator(".pa-calendar-edit").first().press("Enter");
   await page.locator("#ap-edit-form [name=title]").fill("尚未保存的安排");
   await page.keyboard.press("Escape");
   await expect(page.locator(".ap-guard")).toBeVisible();
@@ -68,7 +69,7 @@ test("reference calendar Agent: draft confirmation, source session and resize", 
   await enter(page, "calendar");
   await page.locator("[data-pa=agent]").click();
   await page.locator("[data-pa=agent-summary]").click();
-  await expect(page.locator("#pa-agent-result")).toContainText("根据当前视图");
+  await expect(page.locator("#pa-agent-result")).toContainText("根据所选记录");
   await page.locator("#pa-prompt").fill("明天 18:00 创建待办「核对原生实现」");
   await page.locator("#pa-prompt").press("Enter");
   await expect(page.locator("#pa-agent-form [name=end]")).toHaveCount(0);

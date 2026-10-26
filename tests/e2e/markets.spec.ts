@@ -46,7 +46,6 @@ for (const market of ["cn", "global"] as const) {
     await expect(page.locator(".auth-overlay")).toBeVisible();
     await login(page, market);
     await page.goto(`/${market}/workbench/?view=connectors&review=1`);
-    if (market === "global") await page.getByRole("tab", { name: "接入其他应用", exact: true }).click();
     await expect(page.locator("iframe")).toHaveCount(0);
     const name = market === "cn" ? "飞书" : "Google Workspace";
     if (market === "cn") {
@@ -84,7 +83,6 @@ for (const market of ["cn", "global"] as const) {
       .fill('{"mcpServers":{"demo":{"url":"https://example.com/mcp"}}}');
     await page.getByRole("button", { name: "确定" }).click();
     await page.reload();
-    if (market === "global") await page.getByRole("tab", { name: "接入其他应用", exact: true }).click();
     await expect(
       page.getByRole("button", { name: "查看 Test MCP" }),
     ).toBeVisible();
@@ -106,7 +104,6 @@ for (const market of ["cn", "global"] as const) {
       page.getByRole("button", { name: `查看 ${name}`, exact: true }),
     ).toHaveAttribute("data-connected", "false");
     await page.goto(`/${market}/workbench/?view=connectors&space=team-eureka`);
-    if (market === "global") await page.getByRole("tab", { name: "接入其他应用", exact: true }).click();
     await expect(
       page.getByRole("button", { name: "查看 Test MCP" }),
     ).toHaveCount(0);
@@ -291,7 +288,6 @@ for (const width of [390, 768, 1440])
       ).toBe(true);
       await login(page, market);
       await page.goto(`/${market}/workbench/?view=connectors`);
-      if (market === "global") await page.getByRole("tab", { name: "接入其他应用", exact: true }).click();
       await expect(page.locator(".connector-card").first()).toBeVisible();
       expect(
         await page.evaluate(

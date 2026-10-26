@@ -22,6 +22,7 @@ import { createWorkspaceStore, M } from "@/features/spaces/model/store";
 import type { Member } from "@/features/spaces/model/types";
 import { ScheduleParticipants, ParticipantShareConfirm } from "./participant-fields";
 import { participantSharingCandidates, participantSharingRevocations, type ActionSaveOptions } from "./calendar-participants";
+import styles from "./calendar-dialogs.module.css";
 
 export const actionSource = (r: ActionRecord) => creationSourceLabel(r.source);
 export function localDate(value: string) {
@@ -153,8 +154,8 @@ export function PaButton({
 export function ActionFields({ record, members = [], team = false, actor = "zhang" }: { record: ActionRecord; members?: Member[]; team?: boolean; actor?: string }) {
   const [start, setStart] = useState(record.start);
   return (
-    <>
-      <label className="pa-field">
+    <div className={styles.editorLayout} data-calendar-editor-layout>
+      <label className={`pa-field ${styles.fullWidth}`}>
         标题
         <input
           name="title"
@@ -166,7 +167,7 @@ export function ActionFields({ record, members = [], team = false, actor = "zhan
           autoFocus
         />
       </label>
-      <div className="pa-form-grid">
+      <div className={styles.timeFields}>
         <label className="pa-field">
           {record.type === "schedule" ? "开始时间" : "截止时间"}
           <input
@@ -188,7 +189,7 @@ export function ActionFields({ record, members = [], team = false, actor = "zhan
             />
           </label>
         )}
-        <label className="pa-field">
+        <label className={`pa-field ${record.type === "schedule" ? styles.fullWidth : ""}`}>
           提醒时间
           <Select
             name="reminder"
@@ -202,12 +203,12 @@ export function ActionFields({ record, members = [], team = false, actor = "zhan
             ))}
           </Select>
         </label>
-        <p className="pa-hint">
+        <p className="pa-hint" data-calendar-time-hint>
           时间按当前设备时区；待办截止时间可留空，保存到“未安排”
         </p>
       </div>
       {record.type === "schedule" && (
-        <div className="pa-form-grid">
+        <div className={styles.scheduleFields} data-calendar-schedule-fields>
           <label className="pa-field">
             地点
             <input
@@ -221,7 +222,7 @@ export function ActionFields({ record, members = [], team = false, actor = "zhan
           <ScheduleParticipants record={record} members={members} team={team} actor={actor}/>
         </div>
       )}
-      <label className="pa-field">
+      <label className={`pa-field ${styles.fullWidth}`}>
         我的备注
         <textarea
           name="notes"
@@ -232,7 +233,7 @@ export function ActionFields({ record, members = [], team = false, actor = "zhan
         />
         <small>最多 2000 字</small>
       </label>
-    </>
+    </div>
   );
 }
 export function actionValues(
@@ -248,12 +249,14 @@ export function PaModal({
   title,
   children,
   confirm = "保存",
+  footerLeading,
   onClose,
   onSave,
 }: {
   title: string;
   children: ReactNode;
   confirm?: string;
+  footerLeading?: ReactNode;
   onClose: () => void;
   onSave: (form: HTMLFormElement) => void;
 }) {
@@ -291,13 +294,29 @@ export function PaModal({
         <p role="alert" data-pa-error hidden={!error}>
           {error}
         </p>
-        <footer>
-          <PaButton action="modal-cancel" onClick={onClose}>
-            取消
-          </PaButton>
-          <PaButton action="modal-confirm" className="primary" onClick={save}>
-            {confirm}
-          </PaButton>
+        <footer className={footerLeading ? styles.footerWithLeading : undefined}>
+          {footerLeading ? (
+            <>
+              <div className={styles.footerLeading}>{footerLeading}</div>
+              <div className={styles.footerActions}>
+                <PaButton action="modal-cancel" onClick={onClose}>
+                  取消
+                </PaButton>
+                <PaButton action="modal-confirm" className="primary" onClick={save}>
+                  {confirm}
+                </PaButton>
+              </div>
+            </>
+          ) : (
+            <>
+              <PaButton action="modal-cancel" onClick={onClose}>
+                取消
+              </PaButton>
+              <PaButton action="modal-confirm" className="primary" onClick={save}>
+                {confirm}
+              </PaButton>
+            </>
+          )}
         </footer>
       </form>
     </RefDialog>
@@ -530,13 +549,11 @@ export function ActionEditor({
           <PaModal
             title="保留这次修改？"
             confirm="保存并继续"
+            footerLeading={<PaButton action="discard" onClick={finish}>放弃修改</PaButton>}
             onClose={() => setGuard(false)}
             onSave={persist}
           >
             <p>还有未保存的内容。你可以继续编辑、放弃修改，或保存后继续。</p>
-            <PaButton action="discard" onClick={finish}>
-              放弃修改
-            </PaButton>
           </PaModal>
         ))}
     </>

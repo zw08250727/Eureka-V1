@@ -70,6 +70,14 @@ for(const market of ['cn','global']){
     await expect(page.locator('#pa-edit-form [name=participants]')).toHaveValue('外部联系人李先生、Kevin');
     await page.locator('#pa-edit-form button[type=submit]').click();
     const confirm=page.getByRole('dialog',{name:'是否共享给参会人？'});
+    const checkbox=confirm.getByRole('checkbox');
+    const choice=checkbox.locator('xpath=..');
+    const checkboxBox=(await checkbox.boundingBox())!;
+    const copyBox=(await choice.locator('span').boundingBox())!;
+    const dialogBox=(await confirm.boundingBox())!;
+    expect(checkboxBox.width).toBeLessThan(24);
+    expect(copyBox.width).toBeGreaterThan(dialogBox.width-120);
+    expect(await confirm.evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThan(2);
     await expect(confirm).toContainText('Kevin');expect((await stored(page,market)).sharedWith).toEqual([]);
     await confirm.screenshot({path:`test-results/team-schedule-refinements/${market}-participant-share.png`,animations:'disabled'});
     await confirm.getByRole('button',{name:'保存变更',exact:true}).click();
@@ -84,6 +92,7 @@ for(const market of ['cn','global']){
     await page.locator('#pa-edit-form button[type=submit]').click();
     const revoke=page.getByRole('dialog',{name:'是否撤销参会人共享？'});
     await expect(revoke.getByRole('checkbox',{name:/撤销已移除参会人的访问权限：Kevin/})).toBeChecked();
+    await expect(revoke).toContainText('不再通过此日程共享获得查看权限');
     await revoke.getByRole('button',{name:'保存变更'}).click();
     expect((await stored(page,market)).participantIds).toEqual([]);
     expect((await stored(page,market)).sharedWith).toEqual([]);
@@ -102,5 +111,65 @@ for(const market of ['cn','global']){
     await confirm.getByRole('checkbox',{name:/将此日程共享给新增参会人：Kevin/}).uncheck();
     await confirm.getByRole('button',{name:'保存变更',exact:true}).click();
     const record=await stored(page,market);expect(record.participantIds).toEqual(['kevin']);expect(record.sharedWith).toEqual([]);
+  });
+
+  test(`${market}: calendar editor aligns place, participant, and team picker rows`,async({page})=>{
+    await seed(page,market);await page.setViewportSize({width:1440,height:960});await page.goto(path(market));
+    await page.locator('.pa-page-head [data-pa=edit]').click();
+    const form=page.locator('#pa-edit-form');
+    const locationBox=(await form.locator('[name=location]').boundingBox())!;
+    const participantsBox=(await form.locator('[name=participants]').boundingBox())!;
+    expect(Math.abs(locationBox.y-participantsBox.y)).toBeLessThan(2);
+    const fields=form.locator('[data-calendar-schedule-fields]');
+    const teamRow=form.locator('[data-calendar-team-participants]');
+    await expect(fields).toBeVisible();
+    await expect(teamRow).toBeVisible();
+    const locationRadius=await form.locator('[name=location]').evaluate(el=>getComputedStyle(el).borderRadius);
+    const memberSelect=teamRow.getByRole('combobox',{name:'选择团队参与人'});
+    await expect(memberSelect).toHaveCSS('border-radius',locationRadius);
+    await expect(teamRow.locator('small')).toHaveCSS('text-align','left');
+    const locationHeight=(await form.locator('[name=location]').boundingBox())!.height;
+    const memberSelectHeight=(await memberSelect.boundingBox())!.height;
+    expect(Math.abs(locationHeight-memberSelectHeight)).toBeLessThan(2);
+    const fieldsBox=(await fields.boundingBox())!,teamBox=(await teamRow.boundingBox())!;
+    expect(Math.abs(fieldsBox.width-teamBox.width)).toBeLessThan(2);
+    for(const width of [1440,1080,768,390]){
+      await page.setViewportSize({width,height:892});
+      expect(await form.evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThan(2);
+      expect(await fields.evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThan(2);
+      await page.screenshot({path:`test-results/calendar-editor-layout-${market}-team-${width}.png`,animations:'disabled'});
+    }
+  });
+
+  test(`${market}: creating a team schedule keeps the sharing confirmation usable over the editor`,async({page})=>{
+    await seed(page,market);
+    await page.clock.setFixedTime(new Date('2026-10-19T09:00:00+08:00'));
+    await page.setViewportSize({width:1216,height:1032});
+    await page.goto(`/${market}/workbench/?view=calendar&space=team-eureka&actor=zhang`);
+    await page.locator('.pa-page-head [data-pa=new-schedule]').click();
+    const editor=page.locator('.pa-create-dialog');
+    const form=editor.locator('#pa-edit-form');
+    await form.locator('[name=title]').fill('新建团队日程共享验证');
+    await form.getByRole('combobox',{name:'选择团队参与人'}).selectOption('kevin');
+    await form.locator('button[type=submit]').click();
+    const confirmation=page.getByRole('dialog',{name:'是否共享给参会人？'});
+    await expect(confirmation).toBeVisible();
+    await expect(confirmation.getByRole('checkbox',{name:/Kevin/})).toBeChecked();
+    for(const width of [1216,390]) {
+      await page.setViewportSize({width,height:844});
+      const box=(await confirmation.boundingBox())!;
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.x+box.width).toBeLessThanOrEqual(width);
+      expect(await confirmation.evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThan(2);
+      await confirmation.screenshot({path:`test-results/team-schedule-refinements/${market}-create-share-${width}.png`,animations:'disabled'});
+    }
+    await confirmation.getByRole('button',{name:'返回编辑'}).click();
+    await expect(form.locator('[name=title]')).toHaveValue('新建团队日程共享验证');
+    await expect(form.locator('[name=participants]')).toHaveValue(/Kevin/);
+    await form.locator('button[type=submit]').click();
+    await confirmation.getByRole('button',{name:'保存变更'}).click();
+    const created=await page.evaluate(m=>JSON.parse(localStorage.getItem(`eureka:market:${m}:eureka:actions:team-eureka:zhang:v1`)!).records.find((r:{title:string})=>r.title==='新建团队日程共享验证'),market);
+    expect(created?.participantIds).toEqual(['kevin']);
+    expect(created?.sharedWith).toEqual(['kevin']);
   });
 }

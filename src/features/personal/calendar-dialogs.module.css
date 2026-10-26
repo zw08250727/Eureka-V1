@@ -1,0 +1,65 @@
+.editorLayout,
+.timeFields,
+.scheduleFields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 16px;
+  align-items: start;
+  min-width: 0;
+}
+
+.editorLayout > .timeFields,
+.editorLayout > .scheduleFields,
+.editorLayout > .fullWidth,
+.timeFields > .fullWidth,
+.timeFields > :global([data-calendar-time-hint]),
+.scheduleFields > :global([data-calendar-team-participants]) {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.editorLayout :global(.pa-field) {
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+:global(.pa-dialog) .footerWithLeading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.footerLeading {
+  display: flex;
+  justify-content: flex-start;
+  min-width: 0;
+}
+
+.footerActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  min-width: 0;
+}
+
+@media (max-width: 650px) {
+  .editorLayout,
+  .timeFields,
+  .scheduleFields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .editorLayout > .timeFields,
+  .editorLayout > .scheduleFields,
+  .editorLayout > .fullWidth,
+  .timeFields > .fullWidth,
+  .timeFields > :global([data-calendar-time-hint]),
+  .scheduleFields > :global([data-calendar-team-participants]) {
+    grid-column: 1;
+  }
+
+  :global(.pa-dialog) .footerWithLeading {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

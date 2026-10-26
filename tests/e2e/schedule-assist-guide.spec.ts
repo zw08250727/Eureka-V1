@@ -52,8 +52,10 @@ for(const market of ['cn','global']) {
         }
         const entry=page.getByRole('button',{name:label,exact:true});
         await expect(entry).toBeVisible();
-        if(phase==='during') await expect(page.locator('.pa-page-head [data-pa=schedule-assist]')).toBeVisible();
-        else await expect(page.locator(`.pa-detail-main > [data-schedule-phase=${phase}]`)).toBeVisible();
+        if(phase==='during') {
+          await expect(page.locator('.pa-page-head [data-pa=schedule-assist]')).toHaveCount(0);
+          await expect(page.locator('.pa-detail-main > [data-schedule-phase=during]')).toBeVisible();
+        } else await expect(page.locator(`.pa-detail-main > [data-schedule-phase=${phase}]`)).toBeVisible();
         await entry.click();
         await expect(page.locator('#pa-agent')).toBeVisible();
         await expect(page.locator('#pa-prompt')).toHaveValue(expectedSchedulePrompts[phase as keyof typeof expectedSchedulePrompts]);
@@ -74,4 +76,73 @@ for(const market of ['cn','global']) {
       expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(391);
     });
   }
+
+  test(`${market}: calendar editor layout aligns place and participants`,async({page})=>{
+    await seed(page,market);
+    await page.setViewportSize({width:1440,height:960});
+    await page.goto(`/${market}/workbench/?view=calendar&id=schedule-assist-test`);
+    await page.locator('.pa-page-head [data-pa=edit]').click();
+    const form=page.locator('#pa-edit-form');
+    const location=form.locator('[name=location]');
+    const participants=form.locator('[name=participants]');
+    const locationBox=(await location.boundingBox())!;
+    const participantsBox=(await participants.boundingBox())!;
+    expect(Math.abs(locationBox.y-participantsBox.y)).toBeLessThan(2);
+    await page.setViewportSize({width:1216,height:1032});
+    await participants.focus();
+    const reviewWidthLocation=(await location.boundingBox())!,reviewWidthParticipants=(await participants.boundingBox())!;
+    expect(Math.abs(reviewWidthLocation.y-reviewWidthParticipants.y),`1216px: location=${reviewWidthLocation.y}, participants=${reviewWidthParticipants.y}`).toBeLessThan(2);
+    await expect(form.locator('[data-calendar-team-participants]')).toHaveCount(0);
+    const layout=form.locator('[data-calendar-editor-layout]');
+    await expect(layout).toBeVisible();
+    const hint=form.locator('[data-calendar-time-hint]');
+    await expect(hint).toBeVisible();
+    for(const width of [1440,1080,768,390]){
+      await page.setViewportSize({width,height:900});
+      expect(await layout.evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThan(2);
+      const layoutBox=(await layout.boundingBox())!,hintBox=(await hint.boundingBox())!;
+      expect(Math.abs(layoutBox.x-hintBox.x)).toBeLessThan(2);
+      expect(hintBox.width).toBeGreaterThan(layoutBox.width-4);
+      await page.screenshot({path:`test-results/calendar-editor-layout-${market}-schedule-${width}.png`,animations:'disabled'});
+    }
+  });
+
+  test(`${market}: todo editor hint spans the responsive field grid`,async({page})=>{
+    await seed(page,market);
+    await page.goto(`/${market}/workbench/?view=calendar&space=personal`);
+    await page.locator('.pa-page-head [data-pa=new-todo]').click();
+    const form=page.locator('#pa-edit-form');
+    const layout=form.locator('[data-calendar-editor-layout]');
+    const hint=form.locator('[data-calendar-time-hint]');
+    await expect(layout).toBeVisible();
+    await expect(hint).toBeVisible();
+    for(const width of [1440,1080,768,390]){
+      await page.setViewportSize({width,height:900});
+      expect(await layout.evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThan(2);
+      const layoutBox=(await layout.boundingBox())!,hintBox=(await hint.boundingBox())!;
+      expect(Math.abs(layoutBox.x-hintBox.x)).toBeLessThan(2);
+      expect(hintBox.width).toBeGreaterThan(layoutBox.width-4);
+      await page.screenshot({path:`test-results/calendar-editor-layout-${market}-todo-${width}.png`,animations:'disabled'});
+    }
+  });
+
+  test(`${market}: discard action aligns with unsaved form footer`,async({page})=>{
+    await seed(page,market);
+    await page.goto(`/${market}/workbench/?view=calendar&space=personal`);
+    await page.locator('.pa-page-head [data-pa=new-schedule]').click();
+    const editor=page.locator('.pa-create-dialog');
+    await editor.locator('#pa-edit-form [name=title]').fill('待确认的日程');
+    await editor.locator('header [data-pa=cancel-create]').click();
+    const guard=page.getByRole('dialog',{name:'保留这次修改？'});
+    const footer=guard.locator('form.pa-modal-form footer');
+    const discard=footer.locator('[data-pa=discard]');
+    const cancel=footer.locator('[data-pa=modal-cancel]');
+    await expect(discard).toBeVisible();
+    await expect(cancel).toBeVisible();
+    const discardBox=(await discard.boundingBox())!,cancelBox=(await cancel.boundingBox())!;
+    expect(discardBox.width).toBeLessThan(200);
+    expect(Math.abs(discardBox.y-cancelBox.y)).toBeLessThan(4);
+    expect(discardBox.x).toBeLessThan(cancelBox.x);
+    await guard.screenshot({path:`test-results/calendar-unsaved-guard-${market}.png`,animations:'disabled'});
+  });
 }

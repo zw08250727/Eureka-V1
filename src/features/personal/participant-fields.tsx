@@ -15,13 +15,15 @@ export function ScheduleParticipants({ record, members, team, actor }: {record:A
     setSelected(ids => ids.includes(member.id) ? ids : [...ids,member.id]);
     setText(current => namesIn(current).includes(member.name) ? current : [...namesIn(current),member.name].join("、"));
   };
-  return <div className="pa-field">
-    <label htmlFor={id}>参与人</label>
-    <input id={id} name="participants" value={text} maxLength={300} placeholder="手动填写姓名，用顿号分隔" onChange={e => {
-      const value=e.target.value;setText(value);
-      setSelected(ids => ids.filter(key => {const member=members.find(m=>m.id===key);return !member || namesIn(value).includes(member.name);}));
-    }}/>
-    {team && <>
+  return <>
+    <div className={`pa-field ${styles.participantField}`}>
+      <label htmlFor={id}>参与人</label>
+      <input id={id} name="participants" value={text} maxLength={300} placeholder="手动填写姓名，用顿号分隔" onChange={e => {
+        const value=e.target.value;setText(value);
+        setSelected(ids => ids.filter(key => {const member=members.find(m=>m.id===key);return !member || namesIn(value).includes(member.name);}));
+      }}/>
+    </div>
+    {team && <div className={`pa-field ${styles.teamPicker}`} data-calendar-team-participants>
       <Select aria-label="选择团队参与人" value="" onChange={e => {const member=members.find(m=>m.id===e.target.value);if(member)choose(member);}}>
         <option value="">选择团队成员</option>
         {members.map(m=><option key={m.id} value={m.id} disabled={selected.includes(m.id)}>{m.name}{m.id===actor?"（我）":""}</option>)}
@@ -37,9 +39,9 @@ export function ScheduleParticipants({ record, members, team, actor }: {record:A
           }}>×</button>
         </span>;
       })}</div>}
-      <small>选择成员不会自动共享；手动填写的姓名不产生访问权限。</small>
-    </>}
-  </div>;
+      <small className={styles.participantNote}>选择成员不会自动共享；手动填写的姓名不产生访问权限。</small>
+    </div>}
+  </>;
 }
 /** Confirm newly granted and removed access in one save, while allowing either decision to be kept. */
 export function ParticipantShareConfirm({members,revokeMembers=[],onClose,onSave}: {members:Member[];revokeMembers?:Member[];onClose:()=>void;onSave:(share:boolean,revoke:boolean)=>void}) {
@@ -51,7 +53,11 @@ export function ParticipantShareConfirm({members,revokeMembers=[],onClose,onSave
     <h2>{title}</h2>
     {!!members.length&&<label className={styles.choice}><input type="checkbox" checked={share} onChange={e=>setShare(e.target.checked)}/><span>将此日程共享给新增参会人：{members.map(m=>m.name).join("、")}</span></label>}
     {!!revokeMembers.length&&<label className={styles.choice}><input type="checkbox" checked={revoke} onChange={e=>setRevoke(e.target.checked)}/><span>同时撤销已移除参会人的访问权限：{revokeMembers.map(m=>m.name).join("、")}</span></label>}
-    <p>共享后仅可查看日程，不授予编辑或转共享权限。</p>
+    <p>{members.length && revokeMembers.length
+      ? "新增共享仅授予查看权限；撤销共享后，已移除参会人不再通过此日程共享获得访问权限。"
+      : members.length
+        ? "共享后仅可查看日程，不授予编辑或转共享权限。"
+        : "撤销后，已移除参会人不再通过此日程共享获得查看权限。"}</p>
     {error&&<p role="alert" className="th-error">{error}</p>}
     <footer>
       <button type="button" className="th-btn" data-autofocus onClick={onClose}>返回编辑</button>

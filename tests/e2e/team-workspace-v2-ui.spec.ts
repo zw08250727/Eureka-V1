@@ -9,7 +9,8 @@ const seed = async (page: Page, s = M.seed()) => page.addInitScript(state => { i
 test("common primary entries, admin-only device information and member content settings", async ({ page }) => {
   await seed(page); await go(page);
   const nav = page.locator(".sidebar-quick-nav");
-  for (const name of ["首页", "开始录音", "团队客户"]) await expect(nav.getByRole("button", { name, exact: true })).toBeVisible();
+  for (const name of ["首页", "开始录音"]) await expect(nav.getByRole("button", { name, exact: true })).toBeVisible();
+  await expect(nav.getByRole("button", { name: "团队客户", exact: true })).toHaveCount(0);
   const teamNav = page.getByRole("navigation", { name: "团队工作区", exact: true });
   await expect(teamNav.getByRole("button", { name: "我的客户", exact: true })).toHaveCount(0);
   await expect(teamNav.getByRole("button", { name: "闪念", exact: true })).toHaveCount(0);
@@ -23,10 +24,11 @@ test("common primary entries, admin-only device information and member content s
   await page.getByRole("button", { name: "查看信息", exact: true }).first().click();
   await expect(page.getByRole("dialog")).toContainText("序列号");
   await page.keyboard.press("Escape");
-  await go(page, "content-permissions", "kevin");
+  await go(page, "space-settings", "kevin");
   await expect(teamNav.getByRole("button", { name: "设备查看", exact: true })).toHaveCount(0);
   await expect(teamNav.getByRole("button", { name: "空间设置", exact: true })).toBeVisible();
-  await expect(page.getByRole("region", { name: "我的内容权限" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "空间设置", exact: true })).toBeVisible();
+  await expect(page.getByRole("textbox", { name: "工作空间名称" })).toBeDisabled();
   await expect(page.getByLabel("新设备内容保存到")).toHaveCount(0);
   await expect(page.getByLabel("共享设置所属团队")).toHaveCount(0);
   await go(page, "devices", "kevin");
@@ -60,17 +62,18 @@ test("ACCOUNT-01 / SHARE-01: upload and recording stay in the only team, private
   await expect(page.getByRole("button", { name: "团队上传", exact: true })).toHaveCount(0);
 });
 
-test("team offers private calendar and thought modules without a sharing switch", async ({ page }) => {
+test("team exposes calendar and thought modules with item-level sharing", async ({ page }) => {
   await seed(page); await go(page);
   await expect(page.locator(".sidebar-quick-nav").getByRole("button", { name: "日程与待办", exact: true })).toBeVisible();
   await expect(page.getByRole("complementary", { name: "团队共享日常" })).toBeVisible();
-  await expect(page.getByRole("region", { name: "团队简报", exact: true })).toBeVisible();
+  await expect(page.getByRole("region", { name: "周度会议总结", exact: true })).toBeVisible();
   await go(page, "calendar");
   await expect(page.locator("#personal-actions h1")).toHaveText("日程与待办");
   await go(page, "thoughts");
   await expect(page.getByRole("heading", { name: "全部闪念", exact: true })).toBeVisible();
-  await go(page, "content-permissions");
-  await expect(page.getByRole("switch")).toHaveCount(2);
+  await go(page, "space-settings");
+  await expect(page.getByRole("heading", { name: "空间设置", exact: true })).toBeVisible();
+  await expect(page.getByRole("switch")).toHaveCount(0);
   await expect(page.getByRole("switch", { name: "闪念信息共享给团队" })).toHaveCount(0);
   await go(page, "home", "zhang", "personal");
   await expect(page.locator(".sidebar-quick-nav").getByRole("button", { name: "日程与待办", exact: true })).toBeVisible();
@@ -86,16 +89,17 @@ test("expired workspace is readable and searchable, mutation/AI disabled, device
   await expect(page.locator(".ws-readonly")).toContainText("原始音频");
   await expect(page.locator("#module-start-recording")).toBeDisabled();
   await expect(page.getByRole("button", { name: "上传", exact: true })).toBeDisabled();
-  await expect(page.getByRole("button", { name: "新建笔记", exact: true })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "新建笔记", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("region", { name: "周度会议总结", exact: true })).toContainText("周度总结暂不可用");
   await expect(page.getByRole("button", { name: "Ask Agent", exact: true })).toBeDisabled();
   await page.getByLabel("搜索团队会议").fill("核心验收词");
   await expect(page.locator(".ws-recording-table tbody tr")).toHaveCount(1);
   await page.getByLabel("搜索团队会议").fill("到期后设备原始录音");
-  await page.getByRole("button", { name: "到期后设备原始录音", exact: true }).click();
+  await page.getByRole("button", { name: /到期后设备原始录音/ }).click();
   await expect(page.locator(".md-workspace")).toContainText("尚未转录或生成摘要");
   await expect(page.locator('[data-md-action="edit"]')).toBeDisabled();
-  await go(page, "content-permissions");
-  await expect(page.getByRole("switch").first()).toBeDisabled();
+  await go(page, "space-settings");
+  await expect(page.getByRole("textbox", { name: "工作空间名称" })).toBeDisabled();
   await go(page, "home", "zhang", "personal");
   expect(M.get(await raw(page), "personal").entitlementFreeze).toBeUndefined();
   expect((await raw(page)).devices[0].bound).toBe(true);
@@ -108,32 +112,39 @@ test("new layout and permission settings fit desktop, laptop and phone", async (
   for (const [width, height] of [[1440, 900], [1080, 680], [390, 844]]) {
     await page.setViewportSize({ width, height });
     await go(page);
-    await expect(page.getByRole("region", { name: "团队简报", exact: true })).toBeVisible();
+    await expect(page.getByRole("region", { name: "周度会议总结", exact: true })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: `test-results/team-workspace-home-${width}.png`, fullPage: true });
-    await go(page, "content-permissions", "kevin");
-    await page.getByRole("switch").first().click();
-    await expect(page.getByRole("dialog")).toBeInViewport();
+    await go(page, "space-settings", "kevin");
+    await expect(page.getByRole("textbox", { name: "工作空间名称" })).toBeDisabled();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: `test-results/team-content-permissions-${width}.png`, fullPage: true });
-    await page.keyboard.press("Escape");
   }
 });
 
-test("compact team brief keeps source navigation and Agent evidence usable", async ({ page }) => {
-  await seed(page);
+test("compact weekly summary keeps source navigation and Agent context usable", async ({ page }) => {
+  const state=M.seed(),team=M.get(state,"team-eureka");
+  team.files[0].created="2026-10-20 10:00";
+  team.files[0].updated="2026-10-20 10:00";
+  await seed(page,state);
+  await page.clock.setFixedTime(new Date("2026-10-26T12:00:00+08:00"));
   for (const width of [1440, 1080, 390]) {
     await page.setViewportSize({ width, height: 900 }); await go(page);
-    await expect(page.getByRole("region", { name: "团队简报", exact: true })).toBeVisible();
+    await expect(page.getByRole("region", { name: "周度会议总结", exact: true })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: `test-results/team-overview-compact-${width}.png`, fullPage: true });
   }
   await page.setViewportSize({ width: 1440, height: 900 });
-  const evidence = page.locator(".team-insight-evidence").first();
-  await page.getByRole("button", { name: "查看会议依据", exact: true }).first().click();
-  await expect(evidence.getByRole("link").first()).toBeVisible();
-  await evidence.getByRole("link").first().click(); await expect(page).toHaveURL(/view=meeting/);
-  await go(page);
-  await page.getByRole("button", { name: /问问 Agent：/ }).first().click();
+  const summary=page.getByRole("region", { name: "周度会议总结", exact: true });
+  await summary.getByRole("button", { name: "查看详情", exact: true }).click();
+  const detail=page.getByRole("dialog", { name: "周度会议总结详情", exact: true });
+  const source=detail.getByRole("link").first();
+  await expect(source).toHaveAttribute("href",/view=meeting/);
+  const [meetingPage]=await Promise.all([page.waitForEvent("popup"),source.click()]);
+  await expect(meetingPage).toHaveURL(/view=meeting/);
+  await meetingPage.close();
+  await detail.getByRole("button", { name: "关闭周总结详情" }).click();
+  await summary.getByRole("button", { name: "基于本周总结问 Agent", exact: true }).click();
   await expect(page.getByRole("complementary", { name: "Ask Agent", exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: "test-results/team-overview-agent.png", fullPage: true });
@@ -141,6 +152,7 @@ test("compact team brief keeps source navigation and Agent evidence usable", asy
   const overview = page.locator(".team-overview");
   expect(await overview.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
   expect((await overview.locator("h1").boundingBox())!.height).toBeLessThan(40);
-  expect((await overview.locator(".team-brief-column").boundingBox())!.width).toBeGreaterThan(280);
+  expect(await overview.locator(".team-brief-column").evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+  await expect(overview.getByRole("button", { name: "基于本周总结问 Agent", exact: true })).toBeVisible();
   await page.screenshot({ path: "test-results/team-overview-agent-1080.png", fullPage: true });
 });

@@ -24,7 +24,7 @@ import {
   useLivePersonal,
 } from "./calendar-dialogs";
 import { CalendarAgent } from "./calendar-agent";
-import { schedulePhase, scheduleAssistCopy, type ScheduleContext } from "./schedule-context";
+import { schedulePhase, type ScheduleContext } from "./schedule-context";
 import { readScheduleContext } from "./schedule-context-repository";
 import { ScheduleAssistEntry } from "./schedule-assist";
 import type { ActionSaveOptions } from "./calendar-participants";
@@ -374,7 +374,7 @@ export function CalendarPage({
                 <PaButton action="edit" disabled={readonly||!canEditAsset(space,actor,record)} onClick={() => startEdit(record)}>
                   编辑
                 </PaButton>
-                {record.type === "schedule" && phase === "during" ? <PaButton action="schedule-assist" className="primary" disabled={readonly || assistBusy} onClick={() => prepareSchedule(record)}>{assistBusy ? "正在整理资料…" : scheduleAssistCopy.during.button}</PaButton> : askButton}
+                {askButton}
               </div>
             </header>
             <div className="pa-detail-grid">
@@ -497,7 +497,7 @@ export function CalendarPage({
                     )}
                   </section>
                 )}
-                {record.type === "schedule" && phase === "after" && <ScheduleAssistEntry phase={phase} disabled={readonly} busy={assistBusy} onClick={() => prepareSchedule(record)} />}
+                {record.type === "schedule" && (phase === "during" || phase === "after") && <ScheduleAssistEntry phase={phase} disabled={readonly} busy={assistBusy} onClick={() => prepareSchedule(record)} />}
                 <footer className="pa-detail-footer">
                   {record.type === "todo" ? (
                     <PaButton
@@ -817,6 +817,7 @@ export function CalendarPage({
       {modal === "notes-guard" && record && (
         <PaModal
           title="保留备注修改？"
+          footerLeading={<PaButton action="drop-notes" onClick={() => setModal(null)}>放弃修改</PaButton>}
           onClose={() => setModal(null)}
           onSave={() => {
             save({ ...(modalRecord || record), notes: note });
@@ -824,9 +825,6 @@ export function CalendarPage({
           }}
         >
           <p>你有尚未保存的备注。</p>
-          <PaButton action="drop-notes" onClick={() => setModal(null)}>
-            放弃修改
-          </PaButton>
         </PaModal>
       )}
       {modal === "links" && record && (

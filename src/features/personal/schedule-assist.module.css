@@ -1,9 +1,9 @@
 .entry { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.entry h2 { margin: 0; font-size: 16px; line-height: 24px; }
-.entry p { margin: 4px 0 0; color: var(--ui-secondary); font-size: 12px; line-height: 18px; }
+.entry h2 { margin: 0; font-size: var(--ui-font-section); line-height: var(--ui-line-section); }
+.entry p { margin: 4px 0 0; color: var(--ui-secondary); font-size: var(--ui-font-caption); line-height: var(--ui-line-caption); }
 .entry button { flex-shrink: 0; }
-.sources { min-width: 0; font-size: 12px; line-height: 18px; overflow-wrap: anywhere; }
-.scope { color: var(--ui-secondary); font-size: 12px; line-height: 18px; }
+.sources { min-width: 0; font-size: var(--ui-font-caption); line-height: var(--ui-line-caption); overflow-wrap: anywhere; }
+.scope { color: var(--ui-secondary); font-size: var(--ui-font-caption); line-height: var(--ui-line-caption); }
 .sources details { border-top: 1px solid var(--ui-border); margin-top: 12px; padding-top: 12px; }
 .sources summary { cursor: pointer; font-weight: 500; color: var(--ui-text); }
 .sources ol { list-style: none; padding: 0; margin: 8px 0; display: grid; gap: 12px; }

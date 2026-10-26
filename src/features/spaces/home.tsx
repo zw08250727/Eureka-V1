@@ -4,7 +4,6 @@ import { Select } from "@/components/ui/select";
 import "./team-home.css";
 import { RecipientDialog } from "./sharing-settings";
 import { TeamOverview } from "./team-overview";
-import { ManagementDialog } from "./management-ui";
 import { Fragment, useEffect, useState } from "react";
 import { M } from "./model/store";
 import type { SpacesController } from "./use-spaces";
@@ -47,7 +46,6 @@ export function TeamHome({
     [sortAsc, setSortAsc] = useState(false),
     [recycle, setRecycle] = useState(trash),
     [upload, setUpload] = useState(false),
-    [note, setNote] = useState(false),
     [sharingId, setSharingId] = useState<string | null>(null),
     [deleting, setDeleting] = useState<WorkspaceFile | null>(null),
     [error, setError] = useState(""),
@@ -145,8 +143,7 @@ export function TeamHome({
         {!recycle && <TeamOverview now={now} workspace={w} actor={actor} readOnly={readonly} agentOpen={!!agent}
           onAsk={() => { if (!readonly) setAgent(agent ? null : { key: Date.now() }); }}
           onReviewWeek={(prompt,fileIds)=>setAgent({prompt,fileIds,key:Date.now()})}
-          onUpload={() => guard(() => { M.writable(w); setUpload(true); })}
-          onNote={() => setNote(true)} />}
+          onUpload={() => guard(() => { M.writable(w); setUpload(true); })} />}
         <section className="ws-surface ws-recordings">
           <header className="ws-recording-head">
             <div>
@@ -420,7 +417,6 @@ export function TeamHome({
         </section>
       </WsRoot>
       <WsToast message={toast} onClear={() => setToast("")} />
-      {note && <ManagementDialog title="新建笔记" form="note" onClose={() => setNote(false)} onSubmit={data => { const file = controller.change(s => M.addFile(M.get(s, space), { title: String(data.get("title")), source: "笔记", transcript: "", summary: String(data.get("body")), duration: 0 }, actor)); setNote(false); location.assign(appUrl("meeting", file.id, space, actor)); }} footer={<button className="ws-btn primary" type="submit">保存笔记</button>}><label className="ws-field">标题<input name="title" required maxLength={200} /></label><label className="ws-field">内容<textarea name="body" rows={6} maxLength={10000} /></label><p>默认本人及团队管理员可见，可在详情中逐条授权其他成员只读访问。</p></ManagementDialog>}
       {upload ? (
         <UploadDialog
           target={w.name}
