@@ -1296,6 +1296,12 @@ function ask(w, prompt, fid, uid = SELF, historyId = null, options = {}) {
   if (!prompt) fail("请输入问题");
   const previous = historyId ? getThread(w, historyId, uid) : null;
   const explicit = Array.isArray(options.fileIds) && options.fileIds.length > 0;
+  if (options.weeklySummaryRequest) {
+    const requested = [...new Set(options.weeklySummaryRequest.sourceIds || [])];
+    const attached = [...new Set(options.fileIds || [])];
+    if (!requested.length || requested.length !== attached.length || requested.some(id => !attached.includes(id)))
+      fail("周总结引用范围已变化，请重新打开周总结入口后再试");
+  }
   const insight =
     !explicit &&
     !previous &&
@@ -1347,7 +1353,9 @@ function ask(w, prompt, fid, uid = SELF, historyId = null, options = {}) {
         ).slice(0, 300)}`,
     )
     .join("\n\n");
-  const label = /对比|决策/.test(prompt)
+  const label = options.weeklySummaryRequest
+    ? "本周会议总结"
+    : /对比|决策/.test(prompt)
     ? "会议决策对照"
     : /客户|反馈/.test(prompt)
       ? "客户反馈摘要"

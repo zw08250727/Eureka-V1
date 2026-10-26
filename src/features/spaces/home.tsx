@@ -8,6 +8,7 @@ import { Fragment, useEffect, useState } from "react";
 import { M } from "./model/store";
 import type { SpacesController } from "./use-spaces";
 import type { WorkspaceFile } from "./model/types";
+import type { WeeklySummaryGenerationRequest } from "./model/weekly-summary";
 import { UploadDialog } from "@/features/workbench/components/upload-dialog";
 import { RefIcon } from "@/features/reference/symbols";
 import { validateUpload } from "@/features/workbench/model/local-repository";
@@ -50,7 +51,7 @@ export function TeamHome({
     [deleting, setDeleting] = useState<WorkspaceFile | null>(null),
     [error, setError] = useState(""),
     [toast, setToast] = useState(""),
-    [agent, setAgent] = useState<{ insight?: string; key: number; prompt?: string; fileIds?:string[] } | null>(
+    [agent, setAgent] = useState<{ insight?: string; key: number; prompt?: string; fileIds?:string[]; weeklySummaryRequest?: WeeklySummaryGenerationRequest } | null>(
       historyId ? { key: 0 } : null,
     );
   const [now,setNow]=useState(()=>new Date());
@@ -134,6 +135,7 @@ export function TeamHome({
               insightId={agent.insight}
               initialPrompt={agent.prompt}
               initialFileIds={agent.fileIds}
+              initialWeeklySummaryRequest={agent.weeklySummaryRequest}
               initialHistoryId={historyId}
               onClose={() => setAgent(null)}
             />
@@ -142,7 +144,7 @@ export function TeamHome({
       >
         {!recycle && <TeamOverview now={now} workspace={w} actor={actor} readOnly={readonly} agentOpen={!!agent}
           onAsk={() => { if (!readonly) setAgent(agent ? null : { key: Date.now() }); }}
-          onReviewWeek={(prompt,fileIds)=>setAgent({prompt,fileIds,key:Date.now()})}
+          onReviewWeek={request=>setAgent({prompt:request.prompt,fileIds:request.sourceIds,weeklySummaryRequest:request,key:Date.now()})}
           onUpload={() => guard(() => { M.writable(w); setUpload(true); })} />}
         <section className="ws-surface ws-recordings">
           <header className="ws-recording-head">

@@ -13,6 +13,7 @@ import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { RefIcon } from "@/features/reference/symbols";
 import { M } from "./model/store";
 import type { Insight, Thread } from "./model/types";
+import type { WeeklySummaryGenerationRequest } from "./model/weekly-summary";
 import type { SpacesController } from "./use-spaces";
 import { appUrl } from "@/lib/routes";
 import { creditNumber, date, WsButton as Button } from "./billing-ui";
@@ -24,6 +25,7 @@ export function TeamHomeAgent({
   initialHistoryId,
   initialPrompt,
   initialFileIds,
+  initialWeeklySummaryRequest,
   onClose,
 }: {
   controller: SpacesController;
@@ -33,6 +35,7 @@ export function TeamHomeAgent({
   initialHistoryId?: string;
   initialPrompt?: string;
   initialFileIds?: string[];
+  initialWeeklySummaryRequest?: WeeklySummaryGenerationRequest;
   onClose: () => void;
 }) {
   const simulation = useAgentCreditSimulation();
@@ -49,6 +52,7 @@ export function TeamHomeAgent({
     [web, setWeb] = useState(false),
     [appData, setAppData] = useState(false),
     [fileIds, setFileIds] = useState<string[]>(initialFileIds || []),
+    [weeklySummaryRequest, setWeeklySummaryRequest] = useState(initialWeeklySummaryRequest),
     [materials, setMaterials] = useState<AgentMaterial[]>(() => {
       const selected = new Set(initialFileIds || []);
       return M.visible(w, actor).filter(file => selected.has(file.id)).map(file => ({
@@ -148,6 +152,7 @@ export function TeamHomeAgent({
           fileIds,
           web,
           appData,
+          weeklySummaryRequest,
         }),
       );
       setDraft("");
@@ -155,6 +160,7 @@ export function TeamHomeAgent({
       setHistoryId(result.threadId || historyId);
       setFileIds([]);
       setMaterials([]);
+      setWeeklySummaryRequest(undefined);
       setError("");
       shouldScroll.current = true;
     } catch (e) {
@@ -246,6 +252,7 @@ export function TeamHomeAgent({
                 setError("");
                 setFileIds([]);
                 setMaterials([]);
+                setWeeklySummaryRequest(undefined);
                 setWeb(false);
                 setAppData(false);
                 input.current?.focus();
@@ -345,7 +352,7 @@ export function TeamHomeAgent({
             send();
           }}
         >
-          <AgentMaterialSummary selected={materials} onRemove={(id) => { const next = materials.filter(item => item.id !== id); setMaterials(next); setFileIds(next.filter(item => item.category === "meetings").map(item => item.sourceId)); }} />
+          <AgentMaterialSummary selected={materials} onRemove={(id) => { const next = materials.filter(item => item.id !== id); setMaterials(next); setFileIds(next.filter(item => item.category === "meetings").map(item => item.sourceId)); setWeeklySummaryRequest(undefined); }} />
           <AgentActiveConnectorChips />
           <textarea
             ref={input}
@@ -367,7 +374,7 @@ export function TeamHomeAgent({
             }}
           />
           <div className="ws-composer-tools">
-            <AgentMaterialPicker selected={materials} onChange={(next) => { setMaterials(next); setFileIds(next.filter(item => item.category === "meetings").map(item => item.sourceId)); setAppData(next.some(item => item.category !== "meetings")); }} triggerClassName={`ws-btn ws-tool${materials.length || thread ? " selected" : ""}`} />
+            <AgentMaterialPicker selected={materials} onChange={(next) => { setMaterials(next); setFileIds(next.filter(item => item.category === "meetings").map(item => item.sourceId)); setAppData(next.some(item => item.category !== "meetings")); setWeeklySummaryRequest(undefined); }} triggerClassName={`ws-btn ws-tool${materials.length || thread ? " selected" : ""}`} />
             <Button
               action="agent-web"
               className={`ws-tool${web ? " selected" : ""}`}

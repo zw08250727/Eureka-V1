@@ -2,6 +2,7 @@
 .cn-audio-player.md-player {
   position: relative;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 12px;
   padding: 12px 0 16px;
@@ -209,29 +210,27 @@
   font: inherit;
 }
 .cn-audio-status {
-  position: absolute;
-  z-index: 5;
-  bottom: calc(100% - 6px);
-  left: 0;
+  position: static;
+  flex: 1 1 100%;
   display: flex;
   align-items: center;
   gap: 8px;
   box-sizing: border-box;
   max-width: 100%;
-  padding: 6px 10px;
-  border: 1px solid #ebebeb;
-  border-radius: 6px;
-  background: white;
-  box-shadow: 0 4px 12px #0000000d;
-  color: #595959;
-  font-size: 12px;
-  line-height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--ui-secondary);
+  font-size: var(--ui-font-caption);
+  line-height: var(--ui-line-caption);
 }
 .cn-audio-status > span {
   overflow-wrap: anywhere;
 }
 .cn-audio-player.is-error .cn-audio-status {
-  color: #c62828;
+  color: var(--ui-danger);
 }
 .cn-audio-retry {
   flex-shrink: 0;

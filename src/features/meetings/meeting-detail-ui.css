@@ -92,7 +92,7 @@ html:has(.market-surface[data-market]) body .meeting-detail-ui {
   .cn-audio-player .md-play { width: 28px; height: 28px; min-width: 28px; min-height: 28px; }
   .cn-audio-player > .ui-select { width: 52px; flex: 0 0 52px; }
   .cn-audio-player #md-speed { min-height: 28px; height: 28px; padding: 2px 16px 2px 6px; font-size: 12px; }
-  .cn-audio-status { flex-basis: 100%; font-size: 11px; line-height: 16px; }
+  .cn-audio-status { font-size: var(--ui-font-caption); line-height: var(--ui-line-caption); }
   .md-info { margin: 0 0 16px; padding: 12px 16px; border: 1px solid var(--ui-border); border-radius: 12px; font-size: 14px; line-height: 24px; }
   .md-info > .md-info-line { position: relative; display: flex; gap: 8px; padding-right: 48px; }
   .md-info.is-expanded > .md-info-line { flex-direction: column; align-items: stretch; }

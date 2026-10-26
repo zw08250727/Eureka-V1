@@ -10,6 +10,7 @@ export function CaptureAudio({ record }: { record: { id: string; title: string; 
   const [failed, setFailed] = useState(false);
   if (!source) return <p className={styles.hint}>暂无可用的原始录音</p>;
   return <div className={styles.player}>
+    {/* Keep the browser's native overflow menu for its available audio tools; avoid duplicate controls below. */}
     <audio ref={audio} controls preload="metadata" src={source} aria-label="原始捕获音频" onError={() => setFailed(true)} />
     {failed && <p role="alert" className={styles.hint}>原始录音加载失败，请重新打开详情后重试。</p>}
   </div>;

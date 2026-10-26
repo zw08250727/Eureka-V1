@@ -1,5 +1,6 @@
 import type { AgentRun, TokenUsage, UsageReceipt } from "@/features/agent/usage";
 import type { ThoughtRecord } from "@/features/workbench/model/types";
+import type { WeeklySummaryGenerationRequest } from "./weekly-summary";
 export type Cycle = "month" | "year";
 export interface Member {
   id: string;
@@ -381,7 +382,7 @@ export interface WorkspaceAPI {
     fid?: string | null,
     actor?: string,
     historyId?: string | null,
-    options?: { fileIds?: string[]; web?: boolean; appData?: boolean; receipt?: UsageReceipt | null },
+    options?: { fileIds?: string[]; web?: boolean; appData?: boolean; receipt?: UsageReceipt | null; weeklySummaryRequest?: WeeklySummaryGenerationRequest },
   ): { answer: string; cost: number; threadId: string; usage?: UsageReceipt };
   acceptInvite(s: WorkspaceState, id: string): Workspace;
   accountTeams(s: WorkspaceState, actor?: string): Workspace[];

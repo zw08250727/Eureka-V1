@@ -27,6 +27,12 @@ html:has(.market-surface[data-market]) body {
   :is(.ws-dialog-head h2, .ex-head h2, .contacts-dialog h2, .pa-dialog h2, .th-dialog h2, .connector-dialog h2, .modal-head h3) {
     font-size: var(--ui-font-dialog); line-height: var(--ui-line-dialog); font-weight: 600;
   }
+  .th-dialog .th-detail-money p {
+    margin: 8px 0 0;
+    color: var(--ui-secondary);
+    font-size: var(--ui-font-body);
+    line-height: var(--ui-line-body);
+  }
   :is(.ex-hero h3, .connector-dialog h3, .xiaozhi-empty h3) { font-size: var(--ui-font-section); line-height: var(--ui-line-section); font-weight: 600; }
 
   /* Secondary copy is shorter and quieter than reading content. */

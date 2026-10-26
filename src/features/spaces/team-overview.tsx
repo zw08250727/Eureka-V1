@@ -13,7 +13,7 @@ export function TeamOverview({ now, workspace, actor, readOnly, agentOpen, onAsk
   readOnly: boolean;
   agentOpen: boolean;
   onAsk: () => void;
-  onReviewWeek: (prompt:string,fileIds:string[])=>void;
+  onReviewWeek: (request:WeeklySummaryGenerationRequest)=>void;
   onUpload: () => void;
 }) {
   return <div className="team-overview team-overview-refined">
@@ -28,7 +28,7 @@ export function TeamOverview({ now, workspace, actor, readOnly, agentOpen, onAsk
     <section className="team-overview-canvas" aria-label="团队工作概览">
       <div className="team-overview-main">
         <WeeklyMeetings workspace={workspace} space={workspace.id} actor={actor} now={now} readOnly={readOnly}
-          onAsk={(request:WeeklySummaryGenerationRequest)=>onReviewWeek(request.prompt,request.sourceIds)}/>
+          onAsk={onReviewWeek}/>
       </div>
       <PrivateOverview key={`${workspace.id}:${actor}`} space={workspace.id} actor={actor} now={now} readOnly={readOnly} />
     </section>
