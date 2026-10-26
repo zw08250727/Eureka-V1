@@ -5,3 +5,10 @@ html:has(.market-surface[data-market]) body .connector-mark.connector-mark-dingt
 html:has(.market-surface[data-market]) body .connector-mark.connector-mark-tencent-meeting { background: #087cff; }
 .connector-mark-dingtalk img { width: 78%; height: 78%; filter: brightness(0) invert(1); }
 .connector-mark-tencent-meeting img { width: 88%; height: auto; filter: brightness(0) invert(1); }
+
+/* Overseas vendor marks share a quiet 48px frame; retain each logo's proportions. */
+html:has(.market-surface[data-market="global"]) body {
+  .connector-mark:is(.connector-mark-google-workspace,.connector-mark-google-calendar,.connector-mark-microsoft-365,.connector-mark-slack,.connector-mark-notion) { background:transparent; border-color:transparent; }
+  .connector-mark:is(.connector-mark-google-workspace,.connector-mark-google-calendar,.connector-mark-microsoft-365,.connector-mark-slack,.connector-mark-notion) img { width:32px; height:32px; object-fit:contain; }
+  .connector-mark.large:is(.connector-mark-google-workspace,.connector-mark-google-calendar,.connector-mark-microsoft-365,.connector-mark-slack,.connector-mark-notion) img { width:48px; height:48px; }
+}

@@ -61,7 +61,6 @@ for (const market of ["cn", "global"]) {
     await expect(page.locator(".auth-overlay")).toHaveCount(0);
     await page.getByRole("button", { name: market === "cn" ? "连接器" : "AI Connections", exact: true }).click();
     await signIn(page, market);
-    if (market === "global") await page.getByRole("tab", { name: "接入其他应用", exact: true }).click();
     await expect(page.locator(".connector-card").first()).toBeVisible();
     await page.goto(`/${market}/`);
     await expect(page.locator(".app:not(.guest-app)")).toBeVisible();
