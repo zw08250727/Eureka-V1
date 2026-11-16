@@ -428,6 +428,7 @@ test("native team home: upload failure validation, private pending recording and
   await go(page, "home", "team-eureka", "kevin");
   await expect(page.locator(".ws-recording-table")).not.toContainText("native-upload");
   await page.getByRole("button", { name: "开始录音", exact: true }).last().click();
+  await page.getByRole("dialog", { name: "选择录制模式" }).getByRole("button", { name: /^开始录音/ }).click();
   await expect(page.locator("#record-permission-modal")).toBeVisible();
   await page.locator("#permission-authorize").click();
   await expect(page.locator("#recording-layout")).toBeVisible();

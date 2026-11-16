@@ -1,3 +1,4 @@
+import type { MeetingCapture } from "@/features/meetings/capture";
 import type { MeetingSummary } from "./summaries";
 export interface TranscriptSegment {
   at: number;
@@ -23,8 +24,10 @@ export interface MeetingContentState {
   autoTranslateEverEnabled?: boolean | 0 | 1;
 }
 export interface MeetingDetail {
+  capture?: MeetingCapture;
   recordingMode?: "environment" | "call";
   audioUrl?: string;
+  videoUrl?: string;
   deleteSourceAudio?: boolean;
   contentState?: MeetingContentState;
   summaries?: MeetingSummary[];

@@ -1,3 +1,4 @@
+import { captureSource } from "@/features/meetings/capture";
 import {
   fillWeekActions,
   fillWeekThoughts,
@@ -144,10 +145,11 @@ export function createLocalRepository(
         id: m.id,
         title: m.title,
         date: m.created.slice(0, 10),
-        source: "网页录音",
-        size: "音频",
+        source: captureSource(m.capture),
+        capture: m.capture,
+        size: m.capture?.kind === "meeting-video" ? "视频" : "音频",
         creator: "张伟",
-        tag: "日程录音",
+        tag: m.capture ? "会议录制" : "日程录音",
         duration: `${Math.max(1, Math.ceil(m.seconds / 60))} 分钟`,
         status: "已总结",
         created: m.created.slice(0, 16).replace("T", " "),
@@ -200,6 +202,7 @@ export function createLocalRepository(
             title: String(f.title),
             date: String(f.created).slice(0, 10),
             source: String(f.source),
+            capture: f.capture,
             recordingMode: f.recordingMode === "call" ? "call" : f.recordingMode === "environment" ? "environment" : undefined,
             size: String(f.size || "音频"),
             creator: accountName,

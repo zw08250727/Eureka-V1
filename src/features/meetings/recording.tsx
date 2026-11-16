@@ -13,7 +13,8 @@ import { createActions } from "@/features/personal/store";
 import { useSceneAgent } from "@/features/agent/session";
 import { agentRoute } from "@/features/agent/registry";
 import { AgentHistoryButton } from "@/features/agent/history-button";
-import { appUrl } from "@/lib/routes";
+import { captureSource, readCapture } from "./capture";
+import { appUrl, assetUrl, basePath } from "@/lib/routes";
 const transcript = [
   [
     "00:00:01　发言人 1",
@@ -75,6 +76,9 @@ export function RecordingPage({
   actor: string;
   id: string;
 }) {
+  const [capture] = useState(() => typeof window !== "undefined" ? readCapture(window.location.search) : undefined);
+  const [language, setLanguage] = useState(capture?.language || "普通话");
+  const defaultTitle = capture ? `新会议 · ${capture.kind === "meeting-video" ? "屏幕录制" : "音频录制"}` : "新录音 · 产品沟通";
   const [startedAt] = useState(() => new Date());
   const [recordingId] = useState(() => crypto.randomUUID());
   const agent = useSceneAgent("recording", recordingId);
@@ -82,8 +86,8 @@ export function RecordingPage({
   const [title, setTitle] = useState(() =>
       typeof window !== "undefined"
         ? new URLSearchParams(window.location.search).get("title")?.trim() ||
-          "新录音 · 产品沟通"
-        : "新录音 · 产品沟通",
+          defaultTitle
+        : defaultTitle,
     ),
     [paused, setPaused] = useState(false),
     [seconds, setSeconds] = useState(0),
@@ -180,6 +184,7 @@ export function RecordingPage({
   async function save() {
     if (saving.current) return;
     saving.current = true;
+    setError("");
     try {
       if (!title.trim()) throw Error("请输入会议名称");
       const text = transcript
@@ -190,6 +195,9 @@ export function RecordingPage({
       const fid = recordingId;
       const settings = createActions(marketStorage,()=>new Date(),actor,space).read().settings;
       const recordingTemplate = settings.recordingTemplate as {template?:string;language?:string;detail?:string} | undefined;
+      // Explicit prototype media belongs only to newly simulated meeting captures.
+      const captureDetail = capture ? { capture: { ...capture, language }, language, audioUrl: assetUrl("meeting-demo.wav"),
+        ...(capture.kind === "meeting-video" ? { videoUrl: `${basePath}/assets/meeting-capture/meeting-demo.webm` } : {}) } : {};
       if (w.type === "team") {
         controller.change((s) => {
           const target = M.get(s, space);
@@ -199,7 +207,7 @@ export function RecordingPage({
             target,
             {
               title,
-              source: "网页录音",
+              source: captureSource(capture),
               duration: Math.max(1, Math.ceil(seconds / 60)),
               transcript: text,
               summary,
@@ -207,7 +215,8 @@ export function RecordingPage({
             actor,
           );
           f.id = recordingId;
-          f.detail = { ...f.detail, ...recordingTemplate, marks: [...marks] };
+          if (capture) { f.capture = { ...capture, language }; f.size = capture.kind === "meeting-video" ? "视频" : "音频"; f.tags = ["会议录制"]; }
+          f.detail = { ...f.detail, ...recordingTemplate, ...captureDetail, marks: [...marks] };
           for (const thread of target.threads)
             if (thread.recordingId === recordingId && thread.user === actor)
               thread.files = [recordingId];
@@ -227,6 +236,7 @@ export function RecordingPage({
               transcript: text,
               summary,
               ...recordingTemplate,
+              ...captureDetail,
               marks: [...marks],
             });
           if (linked && !linked.links.includes(fid)) {
@@ -276,7 +286,7 @@ export function RecordingPage({
                     onBlur={(e) => {
                       setTitle(
                         e.currentTarget.textContent?.trim() ||
-                          "新录音 · 产品沟通",
+                          defaultTitle,
                       );
                       setRenaming(false);
                     }}
@@ -309,7 +319,8 @@ export function RecordingPage({
                     {saved ? "已结束" : paused ? "已暂停" : "录音中"}
                   </span>
                   <span>·</span>
-                  <span>麦克风 + 系统音频</span>
+                  <span>{capture && !capture.microphone ? "仅电脑声音" : "麦克风 + 系统音频"}</span>
+                  {capture && <><span>·</span><span data-capture-kind={capture.kind}>{captureSource(capture)}{capture.surfaceName ? ` · ${capture.surfaceName}` : ""}</span></>}
                   <span>·</span>
                   <span>内容仅用于本次转写与智能处理</span>
                 </div>
@@ -358,9 +369,12 @@ export function RecordingPage({
             <Select
               id="recording-source-language"
               aria-label="转写语言"
-              onChange={() => setToast("已更新转写语言")}
+              value={language}
+              onChange={e => { setLanguage(e.target.value); setToast("已更新转写语言"); }}
             >
               <option>普通话</option>
+              <option>中文（普通话）</option>
+              <option>日语</option>
               <option>粤语</option>
               <option>英语</option>
             </Select>

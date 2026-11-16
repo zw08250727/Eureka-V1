@@ -11,3 +11,5 @@
 | `visual-summary-empty-CF5U0pS6.png` | [官方 PNG](https://100wiser.com/static/png/visual-summary-empty-CF5U0pS6.png) | `5a09aae5f3d7b2c4c49016a4b21d00e63f554ebd51747b4f3f2f28b3549d3218` |
 
 2026-10-13补充：`add-image-source.svg`直接提取当前`index-DEbbywsx.js`的I6/E6组件；`recording-ear-source.svg`和`recording-mic-source.svg`提取`KnowledgeBaseSidebar.vue_vue_type_style_index_0_lang-DDgHMSmP.js`的IconMeetingEnvironmentEar／IconMeetingRecordingMic。SVG几何路径保持原样。完整来源SHA见docs/meeting-ui-source-20261013.md。
+
+2026-11-16：新增 `recording-app-source.svg`、`recording-web-source.svg`、`recording-video-source.svg`、`recording-upload-source.svg`。这四项为工程内绘制的来源图形，沿用既有 `recording-mic-source.svg`／`recording-ear-source.svg` 的 32×32 画布、7px 图形偏移、1.5px 圆角笔画与底板；音频录制复用原麦克风资产。原历史资产保持不变。

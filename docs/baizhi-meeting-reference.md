@@ -175,3 +175,9 @@
 首轮会议相关浏览器及逻辑回归38项通过；全屏编辑器动画修正后的会议／两地视觉／公共UI复验31项通过。覆盖390／768／1080／1440px；截图已经人工检查，修正了旧弹窗动画导致的编辑器入场透底。最终检查结果在下方补记。
 
 最终复验：`npm run check`、`npm run build`通过；国内模型21项通过；会议详情／编辑器／导出分享／两地还原39项通过，新增覆盖安全链接、文字颜色、默认背景色、非法富文本过滤；状态标签最后修正后，两地12项再次通过。公共UI与历史无市场路由31项在本轮布局修正后通过。日志位于 `/tmp/eureka-meeting-{check-final,build-final,model-final,final,state-final,visual}.log`。未推送或发布。
+
+## 2026-11-16 播放器与会议信息区复核
+
+按本轮 P4 要求，访问已登录的线上 `100wiser.com/index` 会议详情，核对渲染 DOM、computed styles 与公开前端构建资源：入口 `static/js/index-Ue4rA20V.js`，详情组件 `static/js/index-uJFCWQWI.js`，对应页面样式 `static/css/index-C6c4KiaV.css`。临时公开资源下载位于 `/tmp/baizhi-meeting-refresh-20261116/`，未写入私有会议内容、录音地址或凭据。
+
+公开组件的播放器类名包含 `h-[46px] w-[557px] max-w-full rounded-[12px] px-4 py-2`；信息区 `meeting-info-panel` 使用 `rounded-xl border-black/5 px-4 py-3`。展开首行的参会人／客户／商机字段采用 `flex-wrap gap-x-[60px] gap-y-2 text-sm leading-6`，标签和图片组分别使用 `mt-3`，图片添加块为 64px 方形。已将结构转译到现有 React：首行三项并排、右侧展开收起，标签／图片位于下一组，保留原编辑、只读和保存动作；播放器维持 557px 紧凑行并将字符快进后退替换为 SVG。两地仍使用各自语义主题，移动端保留 44px 触控目标和自然换行，不导入线上业务实现。

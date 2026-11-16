@@ -19,7 +19,10 @@ export function useAgentLayout(
     fit();
     let focusHistory = history;
     const align = () => {
-      if (open && history) {
+      if (open && matchMedia("(min-width: 761px)").matches) {
+        // Desktop panels now dock to the shell; opening them must not scroll
+        // the page to their former in-flow position.
+      } else if (open && history) {
         const main = element.closest<HTMLElement>(".main");
         const translateY = new DOMMatrixReadOnly(
           getComputedStyle(element).transform,

@@ -12,6 +12,8 @@ import { Select } from "@/components/ui/select";
 import { ChainLinkIcon } from "@/components/ui/chain-icon";
 import "./workspace-navigation.css";
 import "./ui-polish.css";
+import "./agent-dock.css";
+import { useShellAgentDock } from "./use-shell-agent-dock";
 import {
   useEffect,
   useRef,
@@ -27,7 +29,8 @@ import { RefIcon, Symbols } from "./symbols";
 import { appUrl, assetUrl, basePath, prdUrl, type AppView } from "@/lib/routes";
 import { AgentScope } from "@/features/agent/history-button";
 import { PageTitleContext } from "./page-title";
-import { RecordingPermission } from "@/features/meetings/recording-permission";
+import { RecordingLauncher } from "@/features/meetings/recording-launcher";
+import { captureParams } from "@/features/meetings/capture";
 import { CreateTeamDialog, InvitationsDialog } from "@/features/spaces/setup";
 import { M } from "@/features/spaces/model/store";
 import dynamic from "next/dynamic";
@@ -56,6 +59,8 @@ export function ReferenceShell({
   controller: SpacesController;
   reviewSwitch?: ReactNode;
 }) {
+  const mainRef = useRef<HTMLElement>(null);
+  useShellAgentDock(mainRef);
   const [mobileNav, setMobileNav] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [templatePreferences,setTemplatePreferences]=useState(false);
@@ -63,7 +68,7 @@ export function ReferenceShell({
   const [accountPanel,setAccountPanel]=useState<AccountPanel>(null);
   useEffect(()=>{const open=(e:Event)=>{setAccountPanel((e as CustomEvent<AccountPanel>).detail);setMenu(null);setMobileNav(false)};window.addEventListener("eureka:account-panel",open);return()=>window.removeEventListener("eureka:account-panel",open)},[]);
   const [pageTitle, setPageTitle] = useState(title);
-  const [recordRequest, setRecordRequest] = useState<{ id: string } | null>(
+  const [recordRequest, setRecordRequest] = useState<{ id: string; space: string; actor: string } | null>(
     null,
   );
   const [skipRecordPermission, setSkipRecordPermission] = useState(false);
@@ -71,9 +76,7 @@ export function ReferenceShell({
     const handler = (e: Event) => {
       const detail = (e as CustomEvent<{ id: string }>).detail;
       try { M.assertEntitlement(M.get(controller.state!, space), actor); } catch (e) { window.dispatchEvent(new CustomEvent("eureka:notice", { detail: (e as Error).message })); return; }
-      if (skipRecordPermission)
-        location.assign(appUrl("recording", detail.id, space, actor));
-      else setRecordRequest(detail);
+      setRecordRequest({ ...detail, space, actor });
     };
     window.addEventListener("eureka:record-request", handler);
     return () => window.removeEventListener("eureka:record-request", handler);
@@ -249,7 +252,7 @@ export function ReferenceShell({
             </button>
           </div>
         </aside>
-        <main className="main">
+        <main className="main" ref={mainRef}>
           <div className="topbar">
             <div className="topbar-inner">
               <button className="mobile-nav-trigger" aria-label="打开导航" onClick={() => setMobileNav(true)}><span aria-hidden="true">☰</span><span>导航</span></button>
@@ -327,12 +330,15 @@ export function ReferenceShell({
           </div>
           {children}
           {recordRequest ? (
-            <RecordingPermission
+            <RecordingLauncher
+              skipPermission={skipRecordPermission}
               onClose={() => setRecordRequest(null)}
-              onStart={(skip) => {
+              onStart={(skip, capture) => {
+                try { M.assertEntitlement(M.get(controller.state!, recordRequest.space), recordRequest.actor); }
+                catch (error) { setRecordRequest(null); window.dispatchEvent(new CustomEvent("eureka:notice", { detail: (error as Error).message })); return; }
                 setSkipRecordPermission(skip);
                 location.assign(
-                  appUrl("recording", recordRequest.id, space, actor),
+                  appUrl("recording", recordRequest.id, recordRequest.space, recordRequest.actor) + (capture ? `&${captureParams(capture)}` : ""),
                 );
               }}
             />

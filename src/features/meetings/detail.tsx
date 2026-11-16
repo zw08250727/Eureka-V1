@@ -2,7 +2,8 @@
 /* eslint-disable @next/next/no-img-element -- Preserve the original image element sizing and local upload preview behavior. */
 
 import { countMonthlyFeedbackRewards } from "@/features/account/rewards";
-import { meetingAudioSource } from "./audio-source";
+import { MeetingVideoPlayer } from "./meeting-video-player";
+import { meetingAudioSource, isSafeAudioUrl } from "./audio-source";
 import { RecordingModeIcon } from "./recording-mode-icon";
 import { MeetingDocumentEditor } from "./document-editor";
 import { meetingBodyHtml } from "./content";
@@ -18,7 +19,7 @@ import "./meeting-detail-ui.css";
 import { marketStorage } from "@/features/markets/storage";
 
 import { Select } from "@/components/ui/select";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type MediaHTMLAttributes } from "react";
 import { useWorkbench } from "@/features/workbench/hooks/use-workbench";
 import { createLocalRepository } from "@/features/workbench/model/local-repository";
 import { MeetingAgent } from "./agent";
@@ -61,7 +62,7 @@ export function MeetingPage({
   const cn = routeMarket() === "cn", enhanced = routeMarket() !== null;
   const personal = useWorkbench(),
     repo = useRef<ReturnType<typeof createMeetingDetails> | null>(null),
-    audio = useRef<HTMLAudioElement>(null),
+    audio = useRef<HTMLMediaElement>(null),
     root = useRef<HTMLElement>(null),
     host = useRef<HTMLDivElement>(null),
     imageInput = useRef<HTMLInputElement>(null);
@@ -70,7 +71,6 @@ export function MeetingPage({
     [assetSummaryId,setAssetSummaryId] = useState(""),
     [record, setRecord] = useState<MeetingDetail | null>(null),
     [error, setError] = useState(""),
-    [query, setQuery] = useState(""),
     [tab, setTab] = useState<MeetingTab>("summary"),
     [expanded, setExpanded] = useState(routeMarket() !== null),
     [score, setScore] = useState(0),
@@ -128,6 +128,7 @@ export function MeetingPage({
             verbatim: "",
             source: file.source,
             recordingMode: file.recordingMode,
+            capture: file.capture,
             created: file.created,
             duration: file.duration,
             template: "通用",
@@ -165,7 +166,9 @@ export function MeetingPage({
       active = false;
     };
   }, [selected, team, w, file]);
-  const audioSource=record ? (enhanced ? meetingAudioSource(record) : assetUrl("meeting-demo.wav")) : "";
+  const video = record?.capture?.kind === "meeting-video";
+  const videoSource = record && !record.deleted && !record.purged && !record.deleteSourceAudio && isSafeAudioUrl(record.videoUrl) ? record.videoUrl : "";
+  const audioSource=video ? videoSource : record ? (enhanced ? meetingAudioSource(record) : assetUrl("meeting-demo.wav")) : "";
   useEffect(() => {
     const element = audio.current;
     if (!element) return;
@@ -195,7 +198,7 @@ export function MeetingPage({
       element.pause();
       if (url) URL.revokeObjectURL(url);
     };
-  }, [audioSource,selected]);
+  }, [audioSource,selected,video]);
   useEffect(() => {
     const el = root.current;
     if (!el) return;
@@ -359,9 +362,7 @@ export function MeetingPage({
     }
   }
   const list = team && w ? M.visible(w, actor) : personal.data?.meetings || [];
-  const visible = list.filter((m) =>
-    m.title.toLowerCase().includes(query.toLowerCase()),
-  );
+  const visible = list;
   const badge = meetingStatusBadge(r?.contentState?.recordingStatus ?? file?.status ?? personal.data?.meetings.find(m=>m.id===selected)?.status);
   const shortContent = enhanced && (r?.contentState?.viewType === 2 || r?.contentState?.viewType === 3);
   const tabs = enhanced && r && !linesFor(r).some(s=>s.en.trim()) ? meetingTabs.filter(([key])=>key!=="translation") : meetingTabs;
@@ -372,6 +373,17 @@ export function MeetingPage({
     visibility?: string;
   }) =>
     `${m.created.replace("T", " ").slice(0, 16)} · ${typeof m.duration === "number" ? `${m.duration} 分钟` : m.duration} · ${m.source}${m.visibility === "invited" ? " · 已邀请成员查看" : team ? " · 仅自己可见" : ""}`;
+  const mediaEvents: MediaHTMLAttributes<HTMLMediaElement> = {
+    onLoadedMetadata: e => { const duration = e.currentTarget.duration; setDuration(Number.isFinite(duration) ? duration : 0); setAudioStatus("ready"); },
+    onWaiting: () => setAudioStatus("buffering"),
+    onCanPlay: () => setAudioStatus("ready"),
+    onError: () => setAudioStatus("error"),
+    onProgress: e => { const a = e.currentTarget; if (a.buffered.length) setBuffered(a.buffered.end(a.buffered.length - 1)); },
+    onTimeUpdate: e => { setTime(e.currentTarget.currentTime); if (participantClip.current && e.currentTarget.currentTime >= participantClip.current.end) stopParticipant(); },
+    onPlay: () => setPlaying(true),
+    onPause: () => setPlaying(false),
+    onEnded: () => { setPlaying(false); stopParticipant(); },
+  };
   return (
     <section
       ref={root}
@@ -380,45 +392,13 @@ export function MeetingPage({
       data-main-view="note-detail"
       aria-label="语音笔记详情"
     >
-      <audio
-        ref={audio}
-        preload="auto"
-        hidden
-        onLoadedMetadata={(e) => {setDuration(e.currentTarget.duration);setAudioStatus("ready");}}
-        onWaiting={()=>setAudioStatus("buffering")}
-        onCanPlay={()=>setAudioStatus("ready")}
-        onError={()=>setAudioStatus("error")}
-        onProgress={e=>{const a=e.currentTarget;if(a.buffered.length)setBuffered(a.buffered.end(a.buffered.length-1));}}
-        onTimeUpdate={(e) => {setTime(e.currentTarget.currentTime);if(participantClip.current && e.currentTarget.currentTime>=participantClip.current.end)stopParticipant();}}
-        onPlay={() => setPlaying(true)}
-        onPause={() => setPlaying(false)}
-        onEnded={() => {setPlaying(false);stopParticipant();}}
-      />
+      {!video && <audio ref={node => { audio.current = node; }} preload="auto" hidden {...mediaEvents} />}
       {!r ? (
         <p role={error ? "alert" : "status"}>{error || "正在读取会议…"}</p>
       ) : (
         <>
           {team && w?.status !== "active" && <p className="ws-readonly">团队工作区只读，可检索现有录音、转录和笔记；编辑与 AI 功能暂停。设备绑定和同步不受影响。</p>}
           {file?.rawAudio && <p className="ws-info">{file.processingPaused ? "原始音频已同步保存。工作区订阅暂停，尚未转录或生成摘要，恢复后进入处理队列。" : "原始音频已保留，工作区已恢复，等待转录处理。"}</p>}
-          <div className="md-page-head">
-            <div>
-              <h1>语音笔记</h1>
-              <p>
-                统一管理语音转写内容，沉淀会议、闪念与结构化数据，持续积累可复用的知识资产。
-              </p>
-            </div>
-            <div className="md-page-tools">
-              <input
-                className="md-search"
-                id="md-search"
-                type="search"
-                placeholder="搜索语音笔记"
-                aria-label="搜索语音笔记"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
-            </div>
-          </div>
           <div ref={host} className="md-detail-layout">
             <div
               className={`md-frame${libraryClosed ? " library-closed" : ""}${libraryMobile ? " library-mobile" : ""}`}
@@ -451,7 +431,7 @@ export function MeetingPage({
                         onClick={() => chooseMeeting(m.id)}
                       >
                         <span className="md-file-icon">
-                          <I name="file" />
+                          <RecordingModeIcon record={m.id === selected ? r : m} size={20} />
                         </span>
                         <span className="md-library-copy">
                           <strong>
@@ -570,7 +550,7 @@ export function MeetingPage({
                   </div>
                 </header>
                 <div className="md-scroll">
-                  {enhanced ? <DomesticAudioPlayer time={time} duration={duration} speed={speed} playing={playing} marks={r.marks} status={audioStatus} error={!audioSource ? "暂无可播放的原音频" : ""} buffered={buffered} onTogglePlay={()=>playing?audio.current?.pause():play()} onSeek={(n,autoplay)=>{seek(n,autoplay);if(autoplay)setTab("transcript");}} onSpeedChange={n=>{setSpeed(n);if(audio.current)audio.current.playbackRate=n;}} onRetry={audioSource ? ()=>{setAudioStatus("loading");audio.current?.load();} : undefined}/> : <div className="md-player">
+                  {video ? <MeetingVideoPlayer mediaRef={node => { audio.current = node; }} events={mediaEvents} available={!!videoSource} error={audioStatus === "error"} speed={speed} onSpeedChange={n => { setSpeed(n); if (audio.current) audio.current.playbackRate = n; }} onSeek={delta => seek(time + delta, false)} onRetry={() => { setAudioStatus("loading"); audio.current?.load(); }} /> : enhanced ? <DomesticAudioPlayer time={time} duration={duration} speed={speed} playing={playing} marks={r.marks} status={audioStatus} error={!audioSource ? "暂无可播放的原音频" : ""} buffered={buffered} onTogglePlay={()=>playing?audio.current?.pause():play()} onSeek={(n,autoplay)=>{seek(n,autoplay);if(autoplay)setTab("transcript");}} onSpeedChange={n=>{setSpeed(n);if(audio.current)audio.current.playbackRate=n;}} onRetry={audioSource ? ()=>{setAudioStatus("loading");audio.current?.load();} : undefined}/> : <div className="md-player">
                     <B
                       action="play"
                       className="md-play"
@@ -629,57 +609,26 @@ export function MeetingPage({
                   </div>}
                   <section className={`md-info${expanded ? " is-expanded" : ""}`}>
                     <div className="md-info-line">
-                      <button
-                        type="button"
-                        data-md-action="participants"
-                        disabled={readonly}
-                        onClick={() => action("participants")}
-                      >
-                        参会人 <span>{(enhanced ? [...new Set([...linesFor(r).map(s=>s.speakerName || r.speakers[s.speaker] || "发言人"),...(r.silentParticipants || [])])] : r.speakers).join("、")}</span>
-                      </button>
-                      {enhanced && <button type="button" data-md-action="info" disabled={readonly} onClick={()=>action("info")}>位置 <span>{r.location || "添加位置"}</span></button>}
-                      <B
-                        action="info-toggle"
-                        className="md-info-toggle"
-                        aria-expanded={expanded}
-                        onClick={() => setExpanded(!expanded)}
-                      >
-                        {expanded ? "收起 ⌃" : "展开 ⌄"}
+                      <div className="md-info-fields">
+                        <button type="button" data-md-action="participants" disabled={readonly} onClick={() => action("participants")}>
+                          参会人 <span>{(enhanced ? [...new Set([...linesFor(r).map(s=>s.speakerName || r.speakers[s.speaker] || "发言人"),...(r.silentParticipants || [])])] : r.speakers).join("、")}</span>
+                        </button>
+                        <button type="button" data-md-action="info" disabled={readonly} onClick={() => action("info")}>
+                          客户名称 <span className={!r.customer ? "md-info-placeholder" : undefined}>{r.customer || "请输入客户名称"}</span>
+                        </button>
+                        <button type="button" data-md-action="info" disabled={readonly} onClick={() => action("info")}>
+                          商机项目 <span className={!r.project ? "md-info-placeholder" : undefined}>{r.project || "请输入商机名称"}</span>
+                        </button>
+                      </div>
+                      <B action="info-toggle" className="md-info-toggle" aria-expanded={expanded} onClick={() => setExpanded(!expanded)}>
+                        {expanded ? "收起" : "展开"}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d={expanded ? "m6 15 6-6 6 6" : "m6 9 6 6 6-6"} /></svg>
                       </B>
                     </div>
                     <div className="md-info-extra" hidden={!expanded}>
-                      {(team || r.customer || r.project) && <div className="md-info-line">                      <button
-                        type="button"
-                        data-md-action="info"
-                        disabled={readonly}
-                        onClick={() => action("info")}
-                      >
-                        客户名称 <span>{r.customer || "添加客户"}</span>
-                      </button>
-                      <button
-                        type="button"
-                        data-md-action="info"
-                        disabled={readonly}
-                        onClick={() => action("info")}
-                      >
-                        商机项目 <span>{r.project || "添加项目"}</span>
-                      </button>
-</div>}
-                      <div>
-                        标签{" "}
-                        {r.tags.map((t) => (
-                          <span className="md-tag" key={t}>
-                            {t}
-                          </span>
-                        ))}
-                        <B
-                          action="info"
-                          className="md-link"
-                          disabled={readonly}
-                          onClick={() => action("info")}
-                        >
-                          ＋ 添加标签
-                        </B>
+                      <div className="md-tag-row">
+                        <span>标签</span>
+                        {r.tags.map(t => <span className="md-tag" key={t}>{t}</span>)}
+                        <B action="info" className="md-add-tag" disabled={readonly} onClick={() => action("info")}><I name="plus" />添加标签</B>
                       </div>
                       <div className="md-image-section">
                         <span>图片（{(r.images || []).length}/50）</span>

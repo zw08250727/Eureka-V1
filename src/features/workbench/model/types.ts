@@ -1,3 +1,4 @@
+import type { MeetingCapture } from "@/features/meetings/capture";
 export interface ActionRecord {
   captureAudioUrl?: string;
   sharedWith?: string[];
@@ -30,6 +31,9 @@ export interface ActionState {
   version: number;
   records: ActionRecord[];
   meetings: {
+    capture?: MeetingCapture;
+    audioUrl?: string;
+    videoUrl?: string;
     id: string;
     title: string;
     created: string;
@@ -76,6 +80,7 @@ export interface ThoughtRecord {
   updated?: string;
 }
 export interface Meeting {
+  capture?: MeetingCapture;
   recordingMode?: "environment" | "call";
   id: string;
   title: string;

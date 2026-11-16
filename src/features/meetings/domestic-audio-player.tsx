@@ -1,6 +1,7 @@
 "use client";
 
 import { useId } from "react";
+import { MediaSkipIcon } from "./media-skip-icon";
 import { Select } from "@/components/ui/select";
 import { MdButton as B, MdIcon as I } from "./reference-ui";
 import type { MeetingDetail } from "./types";
@@ -135,7 +136,7 @@ export function DomesticAudioPlayer({
         title="后退15秒"
         onClick={() => seek(elapsed - 15)}
       >
-        ↶15
+        <MediaSkipIcon />
       </B>
       <div className="cn-audio-timeline">
         <div className="cn-audio-track" aria-hidden="true">
@@ -189,7 +190,7 @@ export function DomesticAudioPlayer({
         title="快进15秒"
         onClick={() => seek(elapsed + 15)}
       >
-        15↷
+        <MediaSkipIcon forward />
       </B>
       <span className="cn-audio-times">
       <time id="md-elapsed" className="cn-audio-time">

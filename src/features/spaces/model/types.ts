@@ -1,3 +1,4 @@
+import type { MeetingCapture } from "@/features/meetings/capture";
 import type { AgentRun, TokenUsage, UsageReceipt } from "@/features/agent/usage";
 import type { ThoughtRecord } from "@/features/workbench/model/types";
 import type { WeeklySummaryGenerationRequest } from "./weekly-summary";
@@ -13,6 +14,7 @@ export interface Member {
   exitReason?: string;
 }
 export interface WorkspaceFile {
+  capture?: MeetingCapture;
   recordingMode?: "environment" | "call";
   createdBy?: string;
   previousOwner?: string;

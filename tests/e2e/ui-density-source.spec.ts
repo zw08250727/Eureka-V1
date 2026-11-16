@@ -14,7 +14,9 @@ for (const market of ['cn','global']) {
     await expect(page.locator('#note-detail-title')).toHaveCSS('font-size','18px');
     await expect(page.locator('.md-image-add img')).toBeVisible();
     await expect.poll(()=>page.locator('.md-image-add img').evaluate((el:HTMLImageElement)=>el.naturalWidth)).toBeGreaterThan(0);
-    await expect.poll(()=>page.locator('.md-recording-mark').evaluate((el:HTMLImageElement)=>el.naturalWidth)).toBeGreaterThan(0);
+    await expect.poll(() => page.locator('.md-recording-mark img').evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(32);
+    await expect(page.locator('.md-recording-mark')).toHaveAttribute('data-recording-source', 'web');
+    expect((await page.locator('.md-recording-mark img').boundingBox())!.width).toBe(48);
     await expect(page.locator('.md-top-actions [data-md-action=ask]')).toBeVisible();
     expect(await page.locator('.cn-audio-player').evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
     await page.screenshot({animations:"disabled",path:`artifacts/ui-density/${market}-meeting-${width}.png`});

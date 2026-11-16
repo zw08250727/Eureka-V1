@@ -1,0 +1,62 @@
+.dialog { box-sizing: border-box; width: min(720px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 0; border: 1px solid var(--ui-border); border-radius: 16px; background: var(--ui-canvas); color: var(--ui-text); font-family: inherit; overflow: auto; }
+.dialog::backdrop { background: rgb(20 30 45 / 32%); }
+.header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 24px 24px 16px; }
+.header h2 { margin: 0; font-size: 18px; line-height: 26px; font-weight: 600; }
+.header p { margin: 6px 0 0; font-size: 12px; line-height: 18px; color: var(--ui-secondary); }
+.iconButton { display: grid; place-items: center; flex-shrink: 0; width: 36px; height: 36px; border: 0; border-radius: 8px; background: transparent; color: var(--ui-secondary); cursor: pointer; }
+.iconButton:hover { background: var(--market-soft); }
+.body { padding: 8px 24px 24px; }
+.body h3 { margin: 0 0 12px; font-size: 14px; line-height: 22px; font-weight: 600; }
+.modes,.options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.mode { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding: 20px; border: 1px solid var(--ui-border); border-radius: 12px; background: var(--ui-canvas); color: var(--ui-text); font: inherit; text-align: left; cursor: pointer; }
+.mode:hover { border-color: var(--market-accent); background: var(--market-soft); }
+.mode strong { font-size: 16px; line-height: 24px; font-weight: 600; }
+.mode p { margin: 0; min-height: 44px; font-size: 14px; line-height: 22px; color: var(--ui-secondary); }
+.mark { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; background: var(--market-soft); color: var(--ui-text); }
+.mark :is(svg,img) { width: 24px; height: 24px; }
+.link { display: flex; justify-content: space-between; width: 100%; margin-top: 4px; color: var(--market-accent); font-size: 14px; line-height: 20px; font-weight: 500; }
+.option { display: flex; align-items: center; gap: 12px; min-width: 0; padding: 16px; border: 1px solid var(--ui-border); border-radius: 12px; background: var(--ui-canvas); color: var(--ui-secondary); text-align: left; cursor: pointer; }
+.option > :is(svg,img) { flex-shrink: 0; }
+.option > span:first-of-type { min-width: 0; flex: 1; }
+.option strong { display: block; color: var(--ui-text); font-size: 14px; line-height: 22px; font-weight: 600; }
+.option small { display: block; margin-top: 4px; font-size: 12px; line-height: 18px; }
+.option[aria-checked="true"],.source[aria-checked="true"] { border-color: var(--market-accent); background: var(--market-soft); color: var(--ui-secondary); }
+.radio { width: 14px; height: 14px; flex: 0 0 14px; border: 1px solid var(--ui-border); border-radius: 50%; }
+.option[aria-checked="true"] .radio { border: 4px solid var(--market-accent); box-sizing: border-box; }
+.note { display: flex; align-items: flex-start; gap: 8px; margin: 16px 0; color: var(--ui-secondary); font-size: 12px; line-height: 18px; }
+.note svg { flex-shrink: 0; }
+.fieldRow { display: flex; align-items: center; gap: 12px; margin: 24px 0 16px; font-size: 14px; line-height: 22px; font-weight: 500; }
+.toggle { display: flex; align-items: center; width: 40px; min-width: 40px; height: 24px; padding: 3px; border: 0; border-radius: 12px; background: var(--ui-border); cursor: pointer; }
+.toggle span { width: 18px; height: 18px; border-radius: 50%; background: var(--ui-canvas); }
+.toggle[aria-checked="true"] { background: var(--market-accent); justify-content: flex-end; }
+.field { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; color: var(--ui-secondary); font-size: 14px; line-height: 22px; }
+.field :global(.ui-select) { width: 100%; }
+.field select { box-sizing: border-box; min-height: var(--ui-control-height, 40px); padding: 8px 12px; border: 1px solid var(--ui-border); border-radius: var(--ui-button-radius, 8px); background: var(--ui-canvas); color: var(--ui-text); font: inherit; }
+.footer { display: flex; justify-content: space-between; gap: 12px; padding: 16px 24px; border-top: 1px solid var(--ui-border); }
+.primary,.secondary { min-height: 40px; padding: 0 16px; border: 1px solid var(--ui-border); border-radius: var(--ui-button-radius); font: inherit; font-size: 14px; line-height: 20px; cursor: pointer; }
+.secondary { background: var(--ui-canvas); color: var(--ui-text); }
+.primary { border-color: var(--ui-action); background: var(--ui-action); color: var(--ui-action-text, #fff); }
+.primary:hover:not(:disabled) { background: var(--ui-action-hover); border-color: var(--ui-action-hover); }
+.secondary:hover { background: var(--ui-sidebar); }
+.primary:disabled { opacity: .45; cursor: not-allowed; }
+.tabs { display: flex; gap: 24px; margin-bottom: 16px; border-bottom: 1px solid var(--ui-border); }
+.tabs button { min-height: 44px; padding: 8px 4px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--ui-secondary); font: inherit; font-size: 14px; cursor: pointer; }
+.tabs button[aria-selected="true"] { border-color: var(--market-accent); color: var(--ui-text); font-weight: 500; }
+.sources { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.source { min-width: 0; padding: 4px; border: 1px solid var(--ui-border); border-radius: 12px; background: var(--ui-canvas); text-align: left; cursor: pointer; }
+.preview { position: relative; overflow: hidden; border-radius: 6px; aspect-ratio: 16/9; background: var(--market-soft); }
+.preview img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.preview > span { position: absolute; inset: auto 8px 8px; padding: 4px 8px; background: var(--ui-canvas); color: var(--ui-text); border-radius: 4px; font-size: 12px; }
+.source strong { display: flex; align-items: center; gap: 8px; padding: 10px 8px; color: var(--ui-text); font-size: 14px; line-height: 22px; font-weight: 500; }
+.source strong > span { margin-left: auto; color: var(--market-accent); }
+.source strong :is(svg,img) { width: 18px; height: 18px; }
+.dialog button:focus-visible { outline: 2px solid var(--market-accent); outline-offset: 2px; }
+@media (max-width: 600px) {
+  .modes,.options,.sources { grid-template-columns: minmax(0, 1fr); }
+  .header { padding: 20px 16px 12px; }
+  .body { padding: 8px 16px 20px; }
+  .mode { padding: 16px; gap: 8px; }
+  .mode p { min-height: 0; }
+  .footer { padding: 16px; }
+  .primary,.secondary,.iconButton { min-height: 44px; }
+}

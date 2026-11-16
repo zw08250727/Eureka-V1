@@ -18,6 +18,9 @@ export function MeetingFilter({
   options = [
     "全部来源",
     "网页录音",
+    "视频录制",
+    "音频录制",
+    "APP录音",
     "合并录音",
     "M1",
     "W1",

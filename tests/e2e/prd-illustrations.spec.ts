@@ -19,7 +19,7 @@ test('capture functional PRD illustrations from the running prototype',async({pa
   await page.locator('#view-panorama').click();await page.locator('[data-md-action=edit]').click();await capture('meeting-edit');
   await page.locator('[data-md-action=exit-edit]').click();
   await page.locator('#home-entry').click();await page.locator('#recording-recycle-entry').click();await capture('recording-recycle');
-  await page.locator('#start-recording').click();await page.locator('#permission-authorize').click();await expect(page.locator('#recording-layout')).toBeVisible();await capture('recording');await page.locator('#recording-abandon').click();
+  await page.locator('#start-recording').click();await page.getByRole('dialog',{name:'选择录制模式'}).getByRole('button',{name:/^开始录音/}).click();await page.locator('#permission-authorize').click();await expect(page.locator('#recording-layout')).toBeVisible();await capture('recording');await page.locator('#recording-abandon').click();
   await page.locator('#ws-switcher').click();await action('plan').click();await capture('team-plan');
   await action('setup').click();await page.locator('#ws-dialog [name=name]').fill('EurekaMind 业务团队');await page.locator('#ws-dialog button[type=submit]').click();await capture('team-checkout');await action('close-dialog').click();
   await page.locator('#ws-switcher').click();await action('switch','team-eureka').click();

@@ -1,0 +1,32 @@
+/* UI-AGENT-DOCK-01: the conversation and topbar share the same right boundary.
+   Scoped !important declarations override the frozen rail's inline-position
+   compatibility rules; the generated prototype stylesheet stays untouched. */
+@media (min-width: 761px) {
+  .main[data-agent-docked="true"] {
+    /* Legacy entrance animations retain an identity transform, which would
+       otherwise make the fixed rail relative to the page content. */
+    :has([data-shell-agent="true"]) { animation: none; transform: none; }
+    > .topbar { box-sizing: border-box; width: calc(100% - var(--shell-agent-width, 390px)); }
+    > .topbar .topbar-inner { box-sizing: border-box; width: 100%; padding-inline: 16px; gap: 8px; flex-wrap: wrap; }
+    > .topbar .page-crumb { min-width: 0; flex: 1 1 100px; overflow-wrap: anywhere; }
+    > .topbar .topbar-right { min-width: 0; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+    > .topbar .record-promo { min-width: 0; }
+    :is(.meeting-agent-grid.agent-open, .ws-layout.with-agent, .md-agent-open .md-detail-layout, .contacts-shell:has(.contacts-xiaozhi-rail.expanded), #recording-layout.assistant-open) {
+      box-sizing: border-box; grid-template-columns: minmax(0, 1fr);
+      padding-right: calc(var(--shell-agent-width, 390px) + 20px);
+    }
+    .pa-workspace.pa-with-agent {
+      padding-right: calc(var(--shell-agent-width, 390px) + 20px);
+    }
+    /* Keep the inherited width preference and all existing resize handlers. */
+    :is(#xiaozhi-rail, #pa-agent, #contacts-xiaozhi-rail, .ws-agent, #recording-assistant-panel, #md-agent-host #xiaozhi-rail)[data-shell-agent="true"] {
+      position: fixed !important; inset: 0 0 0 auto !important;
+      box-sizing: border-box; width: var(--agent-panel-width, 390px) !important;
+      height: 100dvh !important; min-height: 0; max-height: none;
+      margin: 0; border-radius: 0; border: 0; border-left: 1px solid var(--ui-border);
+      background: var(--ui-canvas); transform: none; z-index: 13;
+    }
+    #md-agent-host { width: 0; min-width: 0; }
+    [data-shell-agent="true"] > .agent-resize-handle { display: block; left: 0; }
+  }
+}

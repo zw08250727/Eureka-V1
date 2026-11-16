@@ -1,3 +1,4 @@
+import { captureSource } from "./capture";
 import { createWorkspaceStore } from "@/features/spaces/model/store";
 import seeds from "./baseline.json";
 import baseline from "@/features/workbench/model/baseline.json";
@@ -50,7 +51,10 @@ export function createMeetingDetails(storage: Storage) {
           "",
         verbatim: "",
         source:
-          device?.source || seed?.source || (upload ? "文件上传" : "网页录音"),
+          device?.source || seed?.source || (upload ? "文件上传" : captureSource(record?.capture)),
+        capture: device?.capture || record?.capture,
+        audioUrl: record?.audioUrl || (typeof device?.detail.audioUrl === "string" ? device.detail.audioUrl : undefined),
+        videoUrl: record?.videoUrl || (typeof device?.detail.videoUrl === "string" ? device.detail.videoUrl : undefined),
         recordingMode: device?.recordingMode,
         created:
           device?.created ||

@@ -7,6 +7,7 @@ test("native recording permission can cancel and authorize without losing the cu
   await page.addInitScript(s => { if (!localStorage.getItem("eureka:workspaces:v2")) localStorage.setItem("eureka:workspaces:v2", JSON.stringify(s)); }, state);
   await page.goto("/workbench/");
   await page.locator("#module-start-recording").click();
+  await page.getByRole("dialog", { name: "选择录制模式" }).getByRole("button", { name: /^开始录音/ }).click();
   await expect(page.locator("#record-permission-modal")).toBeVisible();
   await expect(page.locator(".permission-state")).toHaveText([
     "待授权",
@@ -16,6 +17,7 @@ test("native recording permission can cancel and authorize without losing the cu
   await page.locator("#permission-skip").click();
   await expect(page.locator("#record-permission-modal")).toHaveCount(0);
   await page.locator("#module-start-recording").click();
+  await page.getByRole("dialog", { name: "选择录制模式" }).getByRole("button", { name: /^开始录音/ }).click();
   await page.locator("#permission-authorize").click();
   await expect(page.locator("#recording-layout")).toBeVisible();
   await expect(page.locator("#start-recording")).toHaveAttribute(

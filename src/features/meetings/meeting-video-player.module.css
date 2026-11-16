@@ -1,0 +1,12 @@
+.player { width: min(100%, 480px); margin-bottom: 16px; overflow: hidden; border: 1px solid var(--ui-border); border-radius: 12px; background: var(--ui-canvas); color: var(--ui-text); }
+.video { display: block; width: 100%; height: clamp(144px, 24dvh, 220px); object-fit: contain; background: #171b25; }
+.tools { display: flex; align-items: center; gap: 12px; padding: 8px 12px; font-size: 12px; line-height: 18px; }
+.tools > span { flex: 1; color: var(--ui-secondary); }
+.tools button,.error button { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; border: 0; border-radius: var(--ui-button-radius); padding: 4px 8px; background: var(--ui-sidebar); color: var(--ui-text); font: inherit; cursor: pointer; }
+.tools button:disabled { opacity: .45; cursor: not-allowed; }
+.error { display: flex; align-items: center; gap: 12px; margin: 12px; font-size: 12px; color: var(--ui-danger); }
+@media (max-width: 600px) { .tools { gap: 4px; flex-wrap: wrap; } .tools button { min-height: 44px; } }
+
+.tools select { min-height: 36px; padding: 4px 12px; border: 1px solid var(--ui-border); border-radius: var(--ui-button-radius); background: var(--ui-canvas); color: var(--ui-text); font: inherit; }
+
+.tools :global(.ui-select) { width: 84px; min-width: 0; max-width: 84px; flex: 0 0 84px; }
